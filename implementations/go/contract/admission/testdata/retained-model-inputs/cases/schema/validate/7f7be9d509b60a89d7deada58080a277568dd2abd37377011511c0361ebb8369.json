@@ -1,0 +1,14 @@
+{
+  "args": [
+    "backend-profile-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:7a5f8aaaead793da8ead1ebc74b616cc278d502670bea3f6ef6cbb35e1a6cf03"
+  },
+  "name": "backend-profile-v1/routed/contracts/profiles/backend/provisioning-only.json",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

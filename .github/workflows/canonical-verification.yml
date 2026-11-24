@@ -35,6 +35,16 @@ on:
         required: false
         default: false
         type: boolean
+      exhaustive-mutations:
+        description: Explicitly run mutation diagnostics outside normal PR admission
+        required: false
+        default: false
+        type: boolean
+      refresh-parity-inputs:
+        description: Explicitly replace the recorded regression input snapshot
+        required: false
+        default: false
+        type: boolean
     secrets:
       sonar_token:
         description: SonarCloud token; only consumed by the internally trust-gated sonar job
@@ -57,11 +67,45 @@ env:
   RAES_CI_SHARD_COUNT: "8"
 
 jobs:
+  # Each verification job checks out inputs.ref and runs its code. Admit only the
+  # commit that triggered this run, or a commit in its history, so that no caller
+  # can route other code into the run's cache and token scope (CodeQL CWE-349).
+  # The triggering ref already trusts its own history.
+  trust-ref:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Admit only the triggering commit or its history
+        env:
+          REQUESTED_REF: ${{ inputs.ref }}
+          TRIGGER_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          if [[ ! "${REQUESTED_REF}" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "The verified ref must be a full lowercase commit SHA, got '${REQUESTED_REF}'" >&2
+            exit 1
+          fi
+          if [ "${REQUESTED_REF}" = "${TRIGGER_SHA}" ]; then
+            echo "Verified ref ${REQUESTED_REF} is the triggering commit"
+            exit 0
+          fi
+          if git merge-base --is-ancestor "${REQUESTED_REF}" "${TRIGGER_SHA}"; then
+            echo "Verified ref ${REQUESTED_REF} is in the history of ${TRIGGER_SHA}"
+            exit 0
+          fi
+          echo "Refusing ${REQUESTED_REF}: it is not the triggering commit ${TRIGGER_SHA} or in its history" >&2
+          exit 1
+
   proof-archive:
     # The official proof archive host is not always reachable, so the Actions
     # cache keeps a verified copy, keyed by the locked digest. This job checks
     # out the triggering commit, never a caller-selected ref, so code under
     # verification cannot write the cache.
+    needs: trust-ref
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -218,6 +262,7 @@ jobs:
   # emits a combinable coverage data file plus an ownership manifest. Shards are
   # credential-free and need no locked tool inputs (pure pytest).
   test-shard:
+    needs: trust-ref
     runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
@@ -413,8 +458,10 @@ jobs:
         run: |
           uv run --project implementations/tooling/python --frozen --no-default-groups nox -f noxfile.py -s contracts -- --base-rev "${{ steps.commit.outputs.base_rev }}"
       - name: Run deterministic documentation checks
+        env:
+          BASE_REV: ${{ steps.commit.outputs.base_rev }}
         run: |
-          uv run --project implementations/tooling/python --frozen --no-default-groups nox -f noxfile.py -s docs-local
+          uv run --project implementations/tooling/python --frozen --no-default-groups nox -f noxfile.py -s docs-local -- --base-rev "$BASE_REV"
 
   # The proof-bearing lane stays on Ubuntu 22.04 so Bubblewrap enforces the
   # sandbox without disabling a host security control on the runner.
@@ -537,16 +584,129 @@ jobs:
 
   # The Go lanes of each Go module (ADR-121): tidy and verified dependencies,
   # strict lint, the repository analyzers, race-checked tests with the coverage
-  # floor, mutation testing of the lines changed since the comparison base, and
-  # the regression-test check. The Go toolchain and tools come from their locks.
-  go:
+  # floor and the regression-test check. Exhaustive mutation diagnostics are
+  # opt-in; the separate scheduled sweep is delivered by issue #1898.
+  # The Go toolchain and tools come from their locks.
+  go-test:
+    name: Go tests (${{ matrix.module }}, ${{ matrix.group }}, ${{ matrix.mode }})
+    needs: trust-ref
     runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        group: [shared, authoring, parity, processor, trial, runtime, tooling]
+        mode: [race, coverage]
+        include:
+          - {module: product, group: shared, path: implementations/go, packages: './backend/... ./base/... ./contract/... ./internal/base/... ./internal/contract/... ./internal/sdl/source/...'}
+          - {module: product, group: authoring, path: implementations/go, packages: './internal/sdl/authoring/...'}
+          - {module: product, group: parity, path: implementations/go, packages: './internal/parity/...'}
+          - {module: product, group: processor, path: implementations/go, packages: './processor ./processor/comparison/... ./processor/planning/... ./processor/realization/... ./sdl/...'}
+          - {module: product, group: trial, path: implementations/go, packages: './processor/trial/...'}
+          - {module: product, group: runtime, path: implementations/go, packages: './runtime/...'}
+          - {module: tooling, group: tooling, path: implementations/tooling/go, packages: './...'}
+    env:
+      GOTOOLCHAIN: local
+      GOFLAGS: -mod=readonly
+      GOWORK: "off"
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+          ref: ${{ inputs.ref }}
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: "3.14.7"
+      - name: Install uv
+        uses: astral-sh/setup-uv@18d369b23da25a81e9458561248e1aafff6a70fa # v10.3.1
+        with:
+          enable-cache: false
+          version: "0.13.4"
+      - name: Install the locked Go toolchain
+        run: |
+          kit="${RUNNER_TEMP}/go-kit"
+          mkdir "${kit}"
+          uv run --project implementations/tooling/python --frozen --no-default-groups python \
+            -m tools.bootstrap_profile fetch-inputs public-ubuntu-24.04-x86_64 "${kit}" --artifact-id go
+          uv run --project implementations/tooling/python --frozen --no-default-groups python \
+            -m tools.bootstrap_profile install-go public-ubuntu-24.04-x86_64 "${kit}" --go-artifact-id go > "${kit}/go.json"
+          echo "${kit}/$(jq -r .path "${kit}/go.json")/bin" >> "${GITHUB_PATH}"
+      - name: Prepare pinned product dependencies for offline consumer API tests
+        if: matrix.module == 'tooling'
+        run: go -C implementations/go mod download
+      - name: Record independent SDL test oracles
+        if: matrix.group == 'authoring' || matrix.group == 'parity'
+        run: |
+          uv run --project implementations/python --frozen --no-default-groups python \
+            tools/parity_authoring_vectors.py --corpus --output "${RUNNER_TEMP}/sdl-semantic-oracle.json"
+          echo "RAES_SEMANTIC_ORACLE=${RUNNER_TEMP}/sdl-semantic-oracle.json" >> "${GITHUB_ENV}"
+          uv run --project implementations/python --frozen --no-default-groups python \
+            tools/parity_format_bytes.py --output "${RUNNER_TEMP}/sdl-format-bytes.json"
+          echo "RAES_FORMAT_BYTE_ORACLE=${RUNNER_TEMP}/sdl-format-bytes.json" >> "${GITHUB_ENV}"
+      - name: Run the package group
+        working-directory: ${{ matrix.path }}
+        env:
+          PACKAGE_PATTERNS: ${{ matrix.packages }}
+          TEST_MODE: ${{ matrix.mode }}
+        run: |
+          set -euo pipefail
+          coverage_dir="${RUNNER_TEMP}/go-coverage"
+          mkdir -p "${coverage_dir}/data"
+          read -r -a test_packages <<< "${PACKAGE_PATTERNS}"
+          go list "${test_packages[@]}" > "${coverage_dir}/packages.txt"
+          coverage_arguments=()
+          case "${TEST_MODE}" in
+            race) test_flags=(-race) ;;
+            coverage)
+              test_flags=(-covermode=atomic -coverpkg=./... -coverprofile=cover.out)
+              coverage_arguments=(-args "-test.gocoverdir=${coverage_dir}/data")
+              ;;
+            *) echo "Unknown Go verification mode" >&2; exit 1 ;;
+          esac
+          log="${RUNNER_TEMP}/go-test-${{ matrix.module }}-${{ matrix.group }}-${TEST_MODE}.log"
+          if ! go test -v "${test_flags[@]}" "${test_packages[@]}" -p 1 -timeout 20m \
+            "${coverage_arguments[@]}" 2>&1 |
+            tee "${log}" |
+            awk '/^=== RUN   Test[^/ ]+$/ || /^--- (PASS|FAIL): Test/ || /^panic:/ || /^FAIL/ { print; fflush() }'; then
+            cat "${log}"
+            exit 1
+          fi
+          awk '/no Go runner covers/ || /^ok[[:space:]]/ { print }' "${log}"
+          if [ "${TEST_MODE}" = coverage ]; then
+            cp cover.out "${coverage_dir}/package-profile.out"
+          fi
+      - name: Retain Go test diagnostics
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: go-test-diagnostics-${{ matrix.module }}-${{ matrix.group }}-${{ matrix.mode }}-${{ inputs.ref }}
+          path: |
+            ${{ matrix.path }}/cover.out
+            ${{ runner.temp }}/go-test-${{ matrix.module }}-${{ matrix.group }}-${{ matrix.mode }}.log
+          if-no-files-found: ignore
+          retention-days: 1
+      - name: Carry the complete package-group execution data
+        if: matrix.mode == 'coverage'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: go-test-coverage-${{ matrix.module }}-${{ matrix.group }}-${{ inputs.ref }}
+          path: ${{ runner.temp }}/go-coverage
+          if-no-files-found: error
+          retention-days: 1
+
+  go:
+    name: go (${{ matrix.name }}, ${{ matrix.path }})
+    needs: [trust-ref, go-test]
+    runs-on: ubuntu-24.04
+    # Tests run in bounded groups; this job retains every module-level gate.
+    timeout-minutes: ${{ inputs.exhaustive-mutations && 360 || 25 }}
     strategy:
       fail-fast: false
       matrix:
         include:
-          - {name: product, path: implementations/go}
-          - {name: tooling, path: implementations/tooling/go}
+          - {name: product, path: implementations/go, shards: 6}
+          - {name: tooling, path: implementations/tooling/go, shards: 1}
     env:
       GOTOOLCHAIN: local
       GOFLAGS: -mod=readonly
@@ -578,9 +738,13 @@ jobs:
         run: |
           go -C implementations/tooling/go build -o "${RUNNER_TEMP}/go-tools/" \
             github.com/golangci/golangci-lint/v2/cmd/golangci-lint \
-            github.com/go-gremlins/gremlins/cmd/gremlins \
             ./cmd/raesvet ./cmd/regressiontest
           echo "${RUNNER_TEMP}/go-tools" >> "${GITHUB_PATH}"
+      - name: Build the locked mutation tool for explicit diagnostics
+        if: ${{ inputs.exhaustive-mutations }}
+        run: |
+          go -C implementations/tooling/go build -o "${RUNNER_TEMP}/go-tools/" \
+            github.com/go-gremlins/gremlins/cmd/gremlins
       - name: Check dependencies, lint, and analyzers
         working-directory: ${{ matrix.path }}
         run: |
@@ -589,23 +753,145 @@ jobs:
           go mod verify
           golangci-lint run --config "${GITHUB_WORKSPACE}/implementations/.golangci.yml" ./...
           go vet -vettool="$(command -v raesvet)" ./...
-      - name: Test with the race detector and the coverage floor
-        working-directory: ${{ matrix.path }}
+      - name: Check schema bindings, rule specifications, and embedded corpus
+        if: matrix.name == 'product'
         run: |
-          log="${RUNNER_TEMP}/go-test-${{ matrix.name }}.log"
-          if ! go test -v -race -covermode=atomic -coverprofile=cover.out ./... > "${log}" 2>&1; then
-            cat "${log}"
+          go -C implementations/tooling/go build -o "${RUNNER_TEMP}/contractgen" ./cmd/contractgen
+          "${RUNNER_TEMP}/contractgen" -check
+      - name: Check a built contract boundary without a checkout
+        if: matrix.name == 'product'
+        run: |
+          go -C implementations/go test -c -o "${RUNNER_TEMP}/contract-boundary.test" ./contract/validation
+          go -C implementations/go test -c -o "${RUNNER_TEMP}/contract-admission.test" ./contract/admission
+          mkdir "${RUNNER_TEMP}/contract-boundary-empty"
+          cd "${RUNNER_TEMP}/contract-boundary-empty"
+          "${RUNNER_TEMP}/contract-boundary.test" -test.run '^Test(PublishedSchemaBoundary|ImmutableAdmission)$'
+          "${RUNNER_TEMP}/contract-admission.test" -test.run '^TestCompleteRegistry$'
+      - name: Check the external consumer against the pinned public module
+        if: matrix.name == 'product'
+        working-directory: implementations/go/testdata/consumer
+        env:
+          GOWORK: "off"
+        run: |
+          # The fixture resolves the pinned rae module version from the module
+          # proxy, read-only, with no workspace and no local replacement.
+          test -z "$(go mod edit -json | jq -c '.Replace // empty')"
+          go mod download
+          go mod verify
+          golangci-lint run ./...
+          go vet -vettool="$(command -v raesvet)" ./...
+          go test ./...
+          # Verification must not repair the committed module metadata.
+          git diff --exit-code -- go.mod go.sum
+          test -z "$(git status --porcelain --untracked-files=all -- .)"
+      - name: Prepare pinned product dependencies for offline consumer API tests
+        if: matrix.name == 'tooling'
+        run: go -C implementations/go mod download
+      - name: Scan decoded independent model fixtures
+        if: matrix.name == 'product'
+        run: |
+          uv run --project implementations/tooling/python --frozen --no-default-groups python \
+            -m tools.parity_storage unpack implementations/go/contract/admission/testdata/retained-model-inputs \
+            --output "${RUNNER_TEMP}/retained-model-inputs/parity-decoded"
+          uv run --project implementations/tooling/python --frozen --no-default-groups python \
+            -m tools.parity_storage scan "${RUNNER_TEMP}/retained-model-inputs/parity-decoded"
+      - name: Record independent SDL formatter bytes
+        if: matrix.name == 'product'
+        run: |
+          uv run --project implementations/python --frozen --no-default-groups python \
+            tools/parity_authoring_layout.py --check
+          uv run --project implementations/python --frozen --no-default-groups python \
+            tools/parity_sdl_field_rules.py --check
+          uv run --project implementations/python --frozen --no-default-groups python \
+            tools/parity_sdl_field_patterns.py --check
+          uv run --project implementations/python --frozen --no-default-groups python \
+            tools/parity_sdl_constructors.py --check
+          uv run --project implementations/python --frozen --no-default-groups python \
+            tools/parity_sdl_constructors.py --runtime-helpers --check
+          uv run --project implementations/python --frozen --no-default-groups python \
+            tools/parity_sdl_constructors.py --runtime-constructors --check
+          uv run --project implementations/python --frozen --no-default-groups python \
+            tools/parity_authoring_vectors.py --check
+          uv run --project implementations/python --frozen --no-default-groups python \
+            tools/parity_authoring_vectors.py --selection --check
+          uv run --project implementations/python --frozen --no-default-groups python \
+            tools/parity_authoring_vectors.py --semantic-imports --check
+          uv run --project implementations/python --frozen --no-default-groups python \
+            tools/parity_authoring_vectors.py --corpus --output "${RUNNER_TEMP}/sdl-semantic-oracle.json"
+          echo "RAES_SEMANTIC_ORACLE=${RUNNER_TEMP}/sdl-semantic-oracle.json" >> "${GITHUB_ENV}"
+          uv run --project implementations/python --frozen --no-default-groups python \
+            tools/parity_format_bytes.py --output "${RUNNER_TEMP}/sdl-format-bytes.json"
+          echo "RAES_FORMAT_BYTE_ORACLE=${RUNNER_TEMP}/sdl-format-bytes.json" >> "${GITHUB_ENV}"
+      - name: Collect the complete package-group data
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          pattern: go-test-coverage-${{ matrix.name }}-*-${{ inputs.ref }}
+          path: ${{ runner.temp }}/go-shards
+      - name: Merge complete module coverage and enforce the floor
+        working-directory: ${{ matrix.path }}
+        env:
+          EXPECTED_GROUPS: ${{ matrix.shards }}
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          coverage_directories=("${RUNNER_TEMP}/go-shards/"*/data)
+          if [ -d "${RUNNER_TEMP}/go-shards/data" ]; then
+            coverage_directories+=("${RUNNER_TEMP}/go-shards/data")
+          fi
+          if [ "${#coverage_directories[@]}" -ne "${EXPECTED_GROUPS}" ]; then
+            echo "Missing or unexpected Go test-group artifacts" >&2
             exit 1
           fi
-          awk '/no Go runner covers/ || /^ok[[:space:]]/ { print }' "${log}"
+          package_inventories=()
+          statement_profiles=()
+          for coverage_directory in "${coverage_directories[@]}"; do
+            group_directory="${coverage_directory%/data}"
+            if [ ! -s "${group_directory}/packages.txt" ] ||
+              [ ! -s "${group_directory}/package-profile.out" ] ||
+              ! compgen -G "${coverage_directory}/covmeta.*" > /dev/null ||
+              ! compgen -G "${coverage_directory}/covcounters.*" > /dev/null; then
+              echo "Missing native Go coverage data for a test group" >&2
+              exit 1
+            fi
+            package_inventories+=("${group_directory}/packages.txt")
+            statement_profiles+=("${group_directory}/package-profile.out")
+          done
+          go list ./... | LC_ALL=C sort > "${RUNNER_TEMP}/expected-go-packages.txt"
+          cat "${package_inventories[@]}" | LC_ALL=C sort > "${RUNNER_TEMP}/tested-go-packages.txt"
+          diff -u "${RUNNER_TEMP}/expected-go-packages.txt" "${RUNNER_TEMP}/tested-go-packages.txt"
+          coverage_inputs="$(printf '%s,' "${coverage_directories[@]}")"
+          coverage_inputs="${coverage_inputs%,}"
+          mkdir "${RUNNER_TEMP}/go-merged"
+          go tool covdata merge -i="${coverage_inputs}" -o="${RUNNER_TEMP}/go-merged"
+          go tool covdata textfmt -i="${RUNNER_TEMP}/go-merged" -o=cover.out
+          awk '$1 != "mode:" { print $1, $2 }' "${statement_profiles[@]}" |
+            LC_ALL=C sort -u > "${RUNNER_TEMP}/expected-go-statements.txt"
+          awk '$1 != "mode:" { print $1, $2 }' cover.out |
+            LC_ALL=C sort -u > "${RUNNER_TEMP}/actual-go-statements.txt"
+          diff -u "${RUNNER_TEMP}/expected-go-statements.txt" "${RUNNER_TEMP}/actual-go-statements.txt"
           total="$(go tool cover -func=cover.out | awk '/^total:/ { sub(/%/, "", $3); print $3 }')"
           if ! awk -v total="${total}" 'BEGIN { exit !(total >= 90) }'; then
             echo "Go statement coverage ${total}% is below the 90% floor (ADR-121)" >&2
             exit 1
           fi
+          echo "Go module statement coverage ${total}%"
+      - name: Retain module coverage diagnostics
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: go-module-diagnostics-${{ matrix.name }}-${{ inputs.ref }}
+          path: |
+            ${{ matrix.path }}/cover.out
+            ${{ runner.temp }}/expected-go-packages.txt
+            ${{ runner.temp }}/tested-go-packages.txt
+          if-no-files-found: ignore
+          retention-days: 1
       - name: Fuzz each fuzz target for a bounded time
+        # Product fuzzing shares the independent Go architecture job below.
+        if: ${{ matrix.name != 'product' }}
         working-directory: ${{ matrix.path }}
         run: |
+          set -o pipefail
           go test -list '^Fuzz' ./... |
             awk '/^Fuzz/ { targets[++n] = $1 } /^ok/ { for (i = 1; i <= n; i++) print $2, targets[i]; n = 0 }' |
             while read -r package target; do
@@ -621,9 +907,8 @@ jobs:
             base="$(git rev-parse HEAD^)"
           fi
           echo "merge_base=$(git merge-base "${base}" HEAD)" >> "${GITHUB_OUTPUT}"
-      - name: Check changed-line mutation applicability
-        run: uv run --project implementations/tooling/python --frozen --no-default-groups python -m pytest -q -o addopts= implementations/tooling/python/tests/test_go_mutation_gate.py
       - name: Test the mutations of the changed lines
+        if: ${{ inputs.exhaustive-mutations }}
         working-directory: ${{ matrix.path }}
         env:
           GOGC: "10"
@@ -634,9 +919,9 @@ jobs:
           GIT_CONFIG_KEY_0: diff.relative
           GIT_CONFIG_VALUE_0: "true"
         run: |
-          changed_go="$(git diff --name-only "${MERGE_BASE}" -- '*.go' ':!*_test.go')"
-          if [ -z "${changed_go}" ]; then
-            echo "No production Go changes; no changed-line mutants to score."
+          changed="$(git diff --name-only "${MERGE_BASE}" -- '*.go' ':!*_test.go')"
+          if [ -z "${changed}" ]; then
+            echo "No production Go source changed in this module."
             exit 0
           fi
           # Gremlins v0.6.0 leaves copied files open until Go finalizes them.
@@ -693,20 +978,23 @@ jobs:
           version: "0.13.4"
       - name: Decide whether regression inputs need collection
         id: capture
+        env:
+          REFRESH_PARITY_INPUTS: ${{ inputs.refresh-parity-inputs }}
         run: |
-          if uv run --project implementations/tooling/python --frozen --no-default-groups python -m tools.parity_regressions current; then
-            if [ "${{ matrix.shard }}" = "0" ]; then
-              mkdir -p "${RUNNER_TEMP}/parity-inputs"
-              cp -R implementations/go/internal/parity/testdata/regressions/. "${RUNNER_TEMP}/parity-inputs/"
-              cp -R implementations/go/internal/parity/testdata/inputs "${RUNNER_TEMP}/inputs"
-              if [ -d implementations/go/internal/parity/testdata/pieces ]; then
-                cp -R implementations/go/internal/parity/testdata/pieces "${RUNNER_TEMP}/pieces"
-              fi
-            fi
-            echo "needed=false" >> "${GITHUB_OUTPUT}"
-          else
+          if [ "${REFRESH_PARITY_INPUTS}" = "true" ]; then
             echo "needed=true" >> "${GITHUB_OUTPUT}"
+            exit 0
           fi
+          uv run --project implementations/tooling/python --frozen --no-default-groups python -m tools.parity_regressions current
+          if [ "${{ matrix.shard }}" = "0" ]; then
+            mkdir -p "${RUNNER_TEMP}/parity-inputs"
+            cp -R implementations/go/internal/parity/testdata/regressions/. "${RUNNER_TEMP}/parity-inputs/"
+            cp -R implementations/go/internal/parity/testdata/inputs "${RUNNER_TEMP}/inputs"
+            if [ -d implementations/go/internal/parity/testdata/pieces ]; then
+              cp -R implementations/go/internal/parity/testdata/pieces "${RUNNER_TEMP}/pieces"
+            fi
+          fi
+          echo "needed=false" >> "${GITHUB_OUTPUT}"
       - name: Receive locked generic-tool inputs
         if: steps.capture.outputs.needed == 'true'
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
@@ -841,9 +1129,12 @@ jobs:
 
   # The architecture check of the Go code (ADR-122). It runs once from the
   # repository root and checks the model, the ADR-122 rule table, and the code
-  # of every Go module.
+  # of every Go module. Product fuzz checks reuse its toolchain and run beside
+  # the race/coverage job; both checks remain in the required aggregate.
   go-architecture:
+    needs: trust-ref
     runs-on: ubuntu-24.04
+    timeout-minutes: 25
     env:
       GOTOOLCHAIN: local
       GOFLAGS: -mod=readonly
@@ -871,15 +1162,29 @@ jobs:
             -m tools.bootstrap_profile install-go public-ubuntu-24.04-x86_64 "${kit}" --go-artifact-id go > "${kit}/go.json"
           echo "${kit}/$(jq -r .path "${kit}/go.json")/bin" >> "${GITHUB_PATH}"
       - name: Prepare pinned dependencies for offline API inspection
-        run: go -C implementations/go mod download
+        run: |
+          go -C implementations/go mod download
+          go -C implementations/tooling/go mod download
       - name: Check the Go code against the architecture model
         run: |
           go -C implementations/tooling/go build -o "${RUNNER_TEMP}/go-tools/" ./cmd/archcheck
           "${RUNNER_TEMP}/go-tools/archcheck"
-      - name: Prove the compiler rejects a declared import cycle
-        run: uv run --project implementations/tooling/python --frozen --no-default-groups python -m pytest -q -o addopts= implementations/python/tests/test_issue_1858_go_inventory.py::test_declared_cycle_fails_the_compiler_gate
       - name: Check Go module verification inventories
         run: uv run --project implementations/tooling/python --frozen --no-default-groups python -m tools.check_go_module_inventory
+      - name: Prove the compiler rejects a declared import cycle
+        env:
+          RAES_GO_COMPILER_GATE: required
+        run: uv run --project implementations/tooling/python --frozen --no-default-groups python -m pytest -q -o addopts= implementations/python/tests/test_issue_1858_go_inventory.py::test_declared_cycle_fails_the_compiler_gate
+      - name: Fuzz each product fuzz target for a bounded time
+        working-directory: implementations/go
+        timeout-minutes: 6
+        run: |
+          set -o pipefail
+          go test -list '^Fuzz' ./... |
+            awk '/^Fuzz/ { targets[++n] = $1 } /^ok/ { for (i = 1; i <= n; i++) print $2, targets[i]; n = 0 }' |
+            while read -r package target; do
+              go test -run '^$' -fuzz "^${target}\$" -fuzztime 20s "${package}" || exit 1
+            done
 
   # SonarCloud quality gate. It runs inside this graph, depending only on the
   # exact source and the combined coverage, so it starts as soon as coverage is
@@ -926,11 +1231,54 @@ jobs:
         id: result
         run: echo "outcome=${{ steps.scan.outcome }}" >> "${GITHUB_OUTPUT}"
 
+  governance-parity:
+    needs: trust-ref
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    env:
+      GOTOOLCHAIN: local
+      GOFLAGS: -mod=readonly
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+          ref: ${{ inputs.ref }}
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: "3.14.7"
+      - name: Install uv
+        uses: astral-sh/setup-uv@18d369b23da25a81e9458561248e1aafff6a70fa # v10.3.1
+        with:
+          enable-cache: false
+          version: "0.13.4"
+      - name: Install the frozen Python reference environment
+        run: |
+          uv sync --project implementations/python --frozen --extra docs
+          uv sync --project implementations/tooling/python --frozen --no-default-groups
+      - name: Install the locked Go toolchain
+        run: |
+          kit="${RUNNER_TEMP}/go-kit"
+          mkdir "${kit}"
+          uv run --project implementations/tooling/python --frozen --no-default-groups python \
+            -m tools.bootstrap_profile fetch-inputs public-ubuntu-24.04-x86_64 "${kit}" --artifact-id go
+          uv run --project implementations/tooling/python --frozen --no-default-groups python \
+            -m tools.bootstrap_profile install-go public-ubuntu-24.04-x86_64 "${kit}" --go-artifact-id go > "${kit}/go.json"
+          echo "${kit}/$(jq -r .path "${kit}/go.json")/bin" >> "${GITHUB_PATH}"
+      - name: Compare native governance with the retained Python tools
+        id: compare-governance
+        env:
+          GOVERNANCE_REFERENCE_PYTHON: ${{ github.workspace }}/implementations/python/.venv/bin/python
+          GOVERNANCE_REFERENCE_TOOLING_PYTHON: ${{ github.workspace }}/implementations/tooling/python/.venv/bin/python
+        run: |
+          go -C implementations/tooling/go test ./governance \
+            -run '^(TestReferenceParity|TestLiveReferenceParity)$' -count=1 -v
+
   # Fail-closed aggregate over every required job. A skipped or cancelled producer
   # is distinguished from success, so a missing shard or a skipped reducer fails
   # the gate rather than silently passing.
   gate:
-    needs: [test-shard, integration, checks, proof, model-check, coverage-reduce, go, go-architecture, parity-corpus]
+    needs: [test-shard, integration, checks, proof, model-check, coverage-reduce, go-test, go, go-architecture, parity-corpus, governance-parity]
     if: always()
     runs-on: ubuntu-24.04
     outputs:
@@ -945,9 +1293,11 @@ jobs:
           PROOF_RESULT: ${{ needs.proof.result }}
           MODEL_CHECK_RESULT: ${{ needs.model-check.result }}
           REDUCE_RESULT: ${{ needs.coverage-reduce.result }}
+          GO_TEST_RESULT: ${{ needs.go-test.result }}
           GO_RESULT: ${{ needs.go.result }}
           GO_ARCHITECTURE_RESULT: ${{ needs.go-architecture.result }}
           PARITY_CORPUS_RESULT: ${{ needs.parity-corpus.result }}
+          GOVERNANCE_PARITY_RESULT: ${{ needs.governance-parity.result }}
         run: |
           set -euo pipefail
           failed=""
@@ -958,9 +1308,11 @@ jobs:
             "proof:${PROOF_RESULT}" \
             "model-check:${MODEL_CHECK_RESULT}" \
             "coverage-reduce:${REDUCE_RESULT}" \
+            "go-test:${GO_TEST_RESULT}" \
             "go:${GO_RESULT}" \
             "go-architecture:${GO_ARCHITECTURE_RESULT}" \
-            "parity-corpus:${PARITY_CORPUS_RESULT}"; do
+            "parity-corpus:${PARITY_CORPUS_RESULT}" \
+            "governance-parity:${GOVERNANCE_PARITY_RESULT}"; do
             name="${pair%%:*}"
             result="${pair#*:}"
             if [ "${result}" != "success" ]; then

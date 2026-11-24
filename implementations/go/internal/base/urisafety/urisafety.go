@@ -12,7 +12,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/OpenRAE/rae/implementations/go/internal/base/fault"
+	"github.com/OpenRAE/rae/implementations/go/base/fault"
 
 	"golang.org/x/text/cases"
 	"golang.org/x/text/unicode/norm"

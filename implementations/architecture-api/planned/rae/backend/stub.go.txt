@@ -1,0 +1,38 @@
+package stub
+
+import (
+	"github.com/OpenRAE/rae/implementations/go/backend"
+	"github.com/OpenRAE/rae/implementations/go/contract/binding"
+	"github.com/OpenRAE/rae/implementations/go/base/clock"
+)
+
+type Configuration struct {
+	Clock    clock.Clock
+	Envelope *binding.RealizationEnvelopeV1
+}
+type Provisioner interface{ backend.Provisioner }
+type Orchestrator interface{ backend.Orchestrator }
+type Evaluator interface{ backend.Evaluator }
+type ParticipantRuntime interface{ backend.ParticipantRuntime }
+
+func NewOrchestrator() (Orchestrator, error)
+
+func NewOrchestratorWithConfiguration(c Configuration) (Orchestrator, error)
+
+func NewEvaluator() (Evaluator, error)
+
+func NewEvaluatorWithConfiguration(c Configuration) (Evaluator, error)
+
+type Options struct{ WithOrchestrator, WithEvaluator, WithParticipantRuntime, WithTime, WithObservation, WithRealizationEnvelope bool }
+
+func DefaultOptions() Options
+
+func Manifest(options Options) (backend.Manifest, error)
+
+func ManifestWithVersion(options Options, version string) (backend.Manifest, error)
+func NewParticipantRuntime() (ParticipantRuntime, error)
+
+func NewParticipantRuntimeWithConfiguration(c Configuration) (ParticipantRuntime, error)
+func NewProvisioner() (Provisioner, error)
+
+func NewProvisionerWithConfiguration(configuration Configuration) (Provisioner, error)

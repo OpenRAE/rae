@@ -1,0 +1,14 @@
+{
+  "args": [
+    "backend-runtime-descendants-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:bdf7b58aa8eed0c5eda398baf677024554af8fe8e75710410620595bd411377b"
+  },
+  "name": "regression/5d1aafd90b41e6b1773b6e72c43222bb7e153c75691e2583dee296966cbf3326",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

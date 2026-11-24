@@ -1,0 +1,14 @@
+{
+  "args": [
+    "domain-profile-resolution-context-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:8b447c7aed6a641958604d23d27a17a4d619e5aab6df6bb1d2625050f4929519"
+  },
+  "name": "regression/d4f722815252140db98f3fdae3f0995f9b72df122e4e671924a5e895ae43946c",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

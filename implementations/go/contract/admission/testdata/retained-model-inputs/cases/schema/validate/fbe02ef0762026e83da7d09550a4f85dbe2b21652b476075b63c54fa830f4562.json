@@ -1,0 +1,14 @@
+{
+  "args": [
+    "concept-families-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:d1cd67dc59ddcc0ce6f446839c930165237c3bf7806e94dfb775c16f351fa47f"
+  },
+  "name": "regression/95f1d5fad86f35f332885399a29a7684a543abbdb3916150d8fdc159f9ac13f9",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

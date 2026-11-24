@@ -2,8 +2,10 @@
   "mcpServers": {
     "ground-control": {
       "type": "stdio",
-      "command": "node",
-      "args": ["/home/atomik/src/Ground-Control/mcp/ground-control/index.js"],
+      "command": "grndctl",
+      "args": [
+        "mcp"
+      ],
       "env": {
         "GC_BASE_URL": "http://red-dragon:8000",
         "GH_REPO": "OpenRAE/rae"

@@ -215,6 +215,7 @@ def test_noxfile_registers_the_exact_public_session_inventory() -> None:
         "docs",
         "docs-links",
         "docs-local",
+        "docs-prose",
         "fuzz",
         "hook-pre-commit",
         "hook-pre-push",
@@ -1147,11 +1148,17 @@ def test_docs_graph_uses_curated_root_and_reader_style_gate(
     public_root = tmp_path / "docs" / "public"
     monkeypatch.setattr(nox_test_lanes, "PUBLIC_DOCS_ROOT", public_root)
     monkeypatch.setattr(nox_test_lanes, "DOCS_BUILD_ROOT", tmp_path / "docs" / "_build")
+    monkeypatch.setattr(
+        nox_test_lanes,
+        "_run_docs_prose",
+        lambda _session, stage_reporter: stage_reporter.skip("docs / Vale changed prose", "isolated selection fixture"),
+    )
     reporter = nox_runner.SessionReporter(FakeSession(), "docs")
 
     nox_test_lanes._run_docs(reporter.session, reporter)
 
     assert [result.name for result in reporter.results] == [
+        "docs / Vale changed prose",
         "docs / public source boundary",
         "docs / Vale reader style",
         "docs / executable quickstart",
@@ -1198,10 +1205,16 @@ def test_local_docs_graph_excludes_external_link_check(
     monkeypatch.setattr(nox_test_lanes, "PROJECT_ROOT", tmp_path / "implementations" / "python")
     monkeypatch.setattr(nox_test_lanes, "PUBLIC_DOCS_ROOT", tmp_path / "docs" / "public")
     monkeypatch.setattr(nox_test_lanes, "DOCS_BUILD_ROOT", tmp_path / "docs" / "_build")
+    monkeypatch.setattr(
+        nox_test_lanes,
+        "_run_docs_prose",
+        lambda _session, stage_reporter: stage_reporter.skip("docs / Vale changed prose", "isolated selection fixture"),
+    )
     reporter = nox_runner.SessionReporter(FakeSession(), "docs-local")
 
     nox_test_lanes._run_docs(reporter.session, reporter, include_external_links=False)
 
+    assert "docs / Vale changed prose" in [result.name for result in reporter.results]
     assert "docs / Sphinx link check" not in [result.name for result in reporter.results]
     sphinx_commands = [command for command in commands if "sphinx-build" in command]
     assert len(sphinx_commands) == 1
@@ -3172,17 +3185,19 @@ def _pin_fake_osv_download(monkeypatch: pytest.MonkeyPatch, payload: bytes) -> N
     digest = hashlib.sha256(payload).hexdigest()
 
     def selection(**kwargs: object) -> object:
-        if kwargs.get("version") != "2.4.0":
+        if kwargs.get("version") != osv_scanner_tool.OSV_SCANNER_VERSION:
             raise ArtifactPolicyError("no reviewed lock selection")
         return types.SimpleNamespace(
             artifact_id="osv-scanner",
             artifact_class="generic-cli",
-            version="2.4.0",
+            version=osv_scanner_tool.OSV_SCANNER_VERSION,
             platform_id="macos-arm64",
             profile_id="public-macos-arm64",
             repository="https://github.com/google/osv-scanner",
-            release="v2.4.0",
-            source_urls=("https://github.com/google/osv-scanner/releases/download/v2.4.0/osv-scanner_darwin_arm64",),
+            release=f"v{osv_scanner_tool.OSV_SCANNER_VERSION}",
+            source_urls=(
+                f"https://github.com/google/osv-scanner/releases/download/v{osv_scanner_tool.OSV_SCANNER_VERSION}/osv-scanner_darwin_arm64",
+            ),
             policy_refs=("artifact-integrity-v1",),
             raw_manifest=(
                 types.SimpleNamespace(
@@ -3289,7 +3304,7 @@ def test_osv_scanner_uses_the_selected_raw_object_at_the_shared_acquisition_boun
     assert osv_scanner_tool.ensure_osv_scanner(tmp_path).read_bytes() == payload
     assert observed["artifact_id"] == "osv-scanner"
     assert observed["source_url"] == (
-        "https://github.com/google/osv-scanner/releases/download/v2.4.0/osv-scanner_darwin_arm64"
+        f"https://github.com/google/osv-scanner/releases/download/v{osv_scanner_tool.OSV_SCANNER_VERSION}/osv-scanner_darwin_arm64"
     )
     assert observed["expected"].path == "osv-scanner_darwin_arm64"
     assert observed["local_input"] is None

@@ -30,6 +30,7 @@ const rulesADR = `# ADR-122
 | ARCH-012 | Exported identifiers. | ` + "`go build`" + ` |
 | ARCH-013 | API contract. | ` + "`archcheck`" + ` |
 | ARCH-014 | Current view. | ` + "`archcheck`" + ` |
+| ARCH-015 | Consumer API. | ` + "`archcheck`" + ` |
 `
 
 // model returns a model of one module with the package p in the layer l.

@@ -1,0 +1,14 @@
+{
+  "args": [
+    "participant-decision-surface-v2"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:63590111cae4aeeb65c6314e92089c51626848fc80857574dc1b41f4f83da267"
+  },
+  "name": "regression/066305fbf1e9c5cfc02385848213e1e607af78475e199a6d0e6a860701b07469",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

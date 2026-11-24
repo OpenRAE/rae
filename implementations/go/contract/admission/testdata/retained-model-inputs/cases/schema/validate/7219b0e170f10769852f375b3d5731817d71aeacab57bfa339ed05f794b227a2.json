@@ -1,0 +1,14 @@
+{
+  "args": [
+    "realization-envelope-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:1d3aa97a25b4e7301694313ff807d0e4e885058f5e839a86c832edbe7de146e0"
+  },
+  "name": "realization-envelope-v1/routed/contracts/realization-envelopes/reference-emulation/oci-container-v1.json",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

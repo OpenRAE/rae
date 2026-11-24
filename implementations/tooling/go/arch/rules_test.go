@@ -76,7 +76,7 @@ func TestCheckRulesReportsAMissingADR(t *testing.T) {
 // TestEachRuleHasItsCheck fails when a rule that archcheck enforces has no
 // tested finding, or when archcheck reports a rule that the compiler enforces.
 func TestEachRuleHasItsCheck(t *testing.T) {
-	tested := map[string]bool{"ARCH-013": true, "ARCH-014": true}
+	tested := map[string]bool{"ARCH-013": true, "ARCH-014": true, "ARCH-015": true}
 	for _, test := range designCases() {
 		tested[test.rule] = true
 	}

@@ -1,0 +1,14 @@
+{
+  "args": [
+    "attack-enterprise-tactics-source-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:22c999f624146f16dda86a440a871650306ef28d6b361a3db237e7b9a30b35d7"
+  },
+  "name": "regression/927ad510e5299c2c33d2ae7a33bcca9361c054614d67d2df76f699ab7a3d6f46",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

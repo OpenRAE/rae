@@ -1,0 +1,64 @@
+{
+  "name": "two-domain-controllers",
+  "nodes": {
+    "dc": {
+      "type": "compute"
+    },
+    "replica": {
+      "type": "compute"
+    }
+  },
+  "accounts": {
+    "admin": {
+      "node": "dc",
+      "username": "admin"
+    }
+  },
+  "identity_domains": {
+    "corp": {
+      "profile": {
+        "schema_version": "domain-profile-binding/v1",
+        "binding_id": "repository-binding",
+        "coordinate": {
+          "namespace": "com.example.private",
+          "authority": "urn:example:profiles",
+          "profile_id": "resource-label",
+          "revision": "1.0.0",
+          "definition_digest": "sha256:ee4c46c8ba5e1fc844bd743d5e80dc263f90a57866c8b3cd0561b25f82420115"
+        },
+        "owner": {
+          "owning_contract_id": "plan-realization-profiles-v1",
+          "canonical_address": "#/resources/provision.domain-controller.corp.dc",
+          "concept_family": "resource-realization",
+          "lifecycle_phase": "planning",
+          "context": "identity-domain",
+          "use": "constraint"
+        },
+        "value": {
+          "realm": "private"
+        },
+        "provenance": {
+          "basis": "author-supplied",
+          "source_ref": "urn:example:binding-source",
+          "evidence_refs": []
+        },
+        "children": []
+      },
+      "authority_account_ref": "admin"
+    }
+  },
+  "relationships": {
+    "primary": {
+      "type": "domain_controller_for",
+      "source": "dc",
+      "target": "corp",
+      "domain_controller": {}
+    },
+    "replica-controller": {
+      "type": "domain_controller_for",
+      "source": "replica",
+      "target": "corp",
+      "domain_controller": {}
+    }
+  }
+}

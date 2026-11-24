@@ -1,0 +1,14 @@
+{
+  "args": [
+    "authoring-adapter-comparison-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:b97eebefa860788561b0574f55e706a67085ce62c9e20d2c86dab17c3de144a0"
+  },
+  "name": "regression/9215d579d74c7b442ef19f9cec6d4f2c17969bf928b200920ff26010a6ea8b0e",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

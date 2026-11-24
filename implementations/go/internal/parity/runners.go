@@ -9,8 +9,8 @@ import (
 
 	"math/big"
 
-	"github.com/OpenRAE/rae/implementations/go/internal/base/canonjson"
-	"github.com/OpenRAE/rae/implementations/go/internal/base/digest"
+	"github.com/OpenRAE/rae/implementations/go/base/canonjson"
+	"github.com/OpenRAE/rae/implementations/go/base/digest"
 	"github.com/OpenRAE/rae/implementations/go/internal/base/randstream"
 )
 
@@ -18,6 +18,19 @@ import (
 // its runner. Each Go port adds the commands that it implements.
 func runners() map[string]Runner {
 	return map[string]Runner{
+		"mcp experiment_validate":     experimentValidateRunner(),
+		"cli processor manifest":      processorManifestRunner(),
+		"cli processor plan":          processorPlanRunner(),
+		"cli processor reconcile":     processorReconcileRunner(),
+		"cli semantic compile":        semanticOperationRunner(),
+		"cli sdl format":              formatRunner(),
+		"cli sdl resolve":             moduleOperationRunner(),
+		"cli sdl verify-imports":      moduleOperationRunner(),
+		"cli sdl publish":             moduleOperationRunner(),
+		"cli semantic resolve":        semanticOperationRunner(),
+		"cli semantic normalize":      semanticOperationRunner(),
+		"cli semantic transform":      semanticOperationRunner(),
+		"schema validate":             schemaRunner(),
 		"shared timestamp":            shared,
 		"shared version":              shared,
 		"shared domain":               shared,
@@ -142,7 +155,7 @@ func canonicalStreamAddress(address json.RawMessage) ([]byte, error) {
 			return nil, err
 		}
 		for name, value := range dimensions {
-			if bytes.Equal(bytes.TrimSpace(value), []byte("null")) {
+			if bytes.Equal(bytes.TrimSpace(value), []byte(termNull)) {
 				delete(dimensions, name)
 			}
 		}

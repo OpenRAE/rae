@@ -1,0 +1,14 @@
+{
+  "args": [
+    "participant-control-teaching-profile-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:87bfa421e4c2e504ae3c18b81599fdf77ed923a670f002b5beb18e0b5b8bd266"
+  },
+  "name": "regression/c09a6b44a07d9fdf27fa90a90f8bd4e79e43a75ae58d050c7a5ea9cde1027724",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

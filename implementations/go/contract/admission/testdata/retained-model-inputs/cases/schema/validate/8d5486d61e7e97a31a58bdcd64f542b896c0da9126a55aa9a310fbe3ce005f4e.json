@@ -1,0 +1,14 @@
+{
+  "args": [
+    "atlas-tactics-source-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:700d13d2fe432d2126c6228e5d95151ad1e44b2cc0f6b00953e1ff485f3c8d81"
+  },
+  "name": "regression/7da30ae4cd81dc19e0fd4e85cf27eab166dfa6c78778174422e50835dc358ec6",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

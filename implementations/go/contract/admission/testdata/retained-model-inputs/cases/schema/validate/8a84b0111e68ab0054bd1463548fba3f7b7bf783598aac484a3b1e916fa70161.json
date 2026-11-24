@@ -1,0 +1,14 @@
+{
+  "args": [
+    "evaluation-result-envelope-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:a1cac4ca2daae9fc0a9df1b0c475263d0489bf0208f5706c0427db308aa35c82"
+  },
+  "name": "evaluation-result-envelope-v1/routed/contracts/fixtures/control-plane/evaluation-result-envelope-v1/valid/ready.json",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

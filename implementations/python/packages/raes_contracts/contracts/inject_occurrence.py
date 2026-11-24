@@ -167,10 +167,14 @@ def _slot(occurrence: InjectOccurrenceModel) -> tuple[str, ...]:
 
 
 def inject_trigger_request_digest(request: InjectTriggerRequestModel) -> str:
+    """Return the canonical JSON digest of the caller's complete trigger request."""
+
     return canonical_json_digest(request.model_dump(mode="json"))
 
 
 def inject_occurrence_digest(occurrence: InjectOccurrenceModel) -> str:
+    """Return the canonical JSON digest of the retained occurrence and its admission."""
+
     return canonical_json_digest(occurrence.model_dump(mode="json"))
 
 

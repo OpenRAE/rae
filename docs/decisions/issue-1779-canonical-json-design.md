@@ -83,7 +83,7 @@ flowchart LR
 
 ## Supporting artifacts
 
-- `implementations/go/internal/base/canonjson/` and `implementations/go/internal/base/digest/`
+- `implementations/go/base/canonjson/` and `implementations/go/base/digest/` (public since #1892)
 - The `canonical` surface of `tools/parity_corpus.py`
 - [Golden parity corpus design](issue-1778-parity-corpus-design.md)
 
@@ -113,10 +113,12 @@ remaining package interfaces and security boundaries.
 | Graphs and secret references | `graph`, `secretref`; FIFO order, cyclic components, deep iterative traversal, grammar/length boundaries and corpus |
 | Unknown snapshot carriers | `value`; explicit Go refusal, with the unchanged Python outcome and the maintainer decision recorded in the corpus |
 
-The canonical-encoding security inventory includes invalid UTF-8, JSON
-syntax/trailing data, 10,000-level nesting, 4,300-digit integers (also in
-discarded members), finite float output, JCS exact-integer range, Unicode and
-surrogate identity, duplicate replacement, key ordering, and number notation.
+The canonical-encoding security inventory covers these cases:
+
+- invalid UTF-8, JSON syntax and trailing data;
+- 10,000-level nesting and 4,300-digit integers, also in discarded members;
+- finite float output and the JCS exact-integer range;
+- Unicode and surrogate identity, duplicate replacement, key order and number notation.
 
 Python's Pydantic base class has no Go inheritance analogue. Strict model
 bindings and the schema identifiers in `versions.py` belong to #1780; this

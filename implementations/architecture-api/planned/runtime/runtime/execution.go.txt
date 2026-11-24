@@ -1,0 +1,77 @@
+package execution
+
+import (
+	"context"
+	"github.com/OpenRAE/rae/implementations/go/contract/binding"
+	"time"
+)
+
+type Lane string
+
+const (
+	Effect     Lane = "effect"
+	Control    Lane = "control"
+	Store      Lane = "store"
+	Deadline   Lane = "deadline"
+	Resolution Lane = "resolution"
+)
+
+type Request struct {
+	Lane    Lane
+	Timeout time.Duration
+}
+type Adapter interface {
+	Call(context.Context, Request, func(context.Context) (any, error)) (any, error)
+	PendingCalls() int
+	Drain(context.Context, time.Duration) (bool, error)
+	ArmDeadline(string, time.Duration, func(), func()) error
+	Close() error
+}
+type LocalAdapter interface{ Adapter }
+
+func NewLocal(effectCapacity, controlCapacity, storeCapacity int) (LocalAdapter, error)
+
+type EngineReference struct {
+	SchemaVersion, OperationID, InvocationID, DeploymentID, WorkerID, RequestDigest string
+	OwnerGeneration, ExecutionGeneration                                            int64
+	EffectQueue, ControlQueue                                                       string
+	ExecutionBudget, ControlBudget                                                  time.Duration
+}
+type DeliveryBinding struct {
+	Namespace, WorkflowQueue, WorkflowID string
+	Reference                            EngineReference
+}
+type RuntimeSequenceReference struct {
+	SchemaVersion, EngineID, Kind, ExecutionID, ScopeID, RequestDigest, WorkerID, StateQueue string
+	ActivityBudget, PollInterval                                                             time.Duration
+}
+
+// Dispatcher transports stable references. Adapter owns bounded local calls.
+type Dispatcher interface {
+	WorkerIdentity() string
+	Binding(binding.BackendOperationRequestV1) (DeliveryBinding, error)
+	Submit(context.Context, binding.BackendOperationRequestV1) (string, error)
+	SubmitRuntime(context.Context, RuntimeSequenceReference) (string, error)
+	DeliverControl(context.Context, binding.BackendOperationRequestV1, binding.BackendOperationControlV1) error
+	Close() error
+}
+type InvocationGrant struct {
+	Request         binding.BackendOperationRequestV1
+	RemainingBudget time.Duration
+}
+type ControlDeliveryGrant struct {
+	Control         binding.BackendOperationControlV1
+	RemainingBudget time.Duration
+}
+
+// Effect and control workers receive separately scoped implementations of this
+// protocol. It exposes no snapshot/ledger writes or store credentials.
+type WorkerAuthority interface {
+	GetRequest(context.Context, EngineReference) (binding.BackendOperationRequestV1, error)
+	Claim(context.Context, EngineReference, binding.BackendOperationCapabilitiesV1, binding.BackendOperationResponseV1) (InvocationGrant, error)
+	Observation(context.Context, EngineReference) (ControlDeliveryGrant, error)
+	GetControl(context.Context, EngineReference, string) (ControlDeliveryGrant, error)
+	Publish(context.Context, EngineReference, binding.BackendOperationResponseV1) (binding.OperationStatusV1, error)
+	Indeterminate(context.Context, EngineReference) (binding.OperationStatusV1, error)
+	AdvanceRuntime(context.Context, RuntimeSequenceReference) (string, error)
+}

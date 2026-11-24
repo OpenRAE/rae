@@ -1,0 +1,14 @@
+{
+  "args": [
+    "participant-decision-surface-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:7c1adcba448a231a53f1bff75aa55ab3031d845cff375b3224c48e1e154611dd"
+  },
+  "name": "participant-decision-surface-v1/routed/contracts/fixtures/control-plane/participant-decision-surface-v1/valid/llm-open.json",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

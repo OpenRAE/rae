@@ -66,6 +66,7 @@ from raes_runtime.participant_activity import (
     select_activity_candidate,
 )
 from raes_runtime.participant_clock_driver import ParticipantClockDriver
+from raes_runtime.participant_release import participant_release_assertions
 from raes_runtime.participant_scheduler import ParticipantScheduler
 from raes_runtime.time_coordinator import ReferenceTimeRuntime, TimeCoordinator
 from test_runtime_manager import close_runtime_owners as close_runtime_owners
@@ -1675,6 +1676,7 @@ def test_scheduler_executes_native_actions_and_persists_shared_time_readback() -
         runtime_model.time_model,
         participant_runtime,
         snapshot,
+        release_assertions=participant_release_assertions(runtime_model),
     )
     assert initialized.success
     first = scheduler.run_due(
@@ -1682,6 +1684,7 @@ def test_scheduler_executes_native_actions_and_persists_shared_time_readback() -
         runtime_model.time_model,
         participant_runtime,
         initialized.snapshot,
+        release_assertions=participant_release_assertions(runtime_model),
     )
     assert first.success
     assert participant_runtime.native_actions == [
@@ -1712,13 +1715,16 @@ def test_scheduler_executes_native_actions_and_persists_shared_time_readback() -
         runtime_model.time_model,
         participant_runtime,
         first.snapshot,
+        release_assertions=participant_release_assertions(runtime_model),
     )
     preserved = ParticipantAutonomousExecutionStateModel.model_validate(
         reapplied.snapshot.participant_autonomous_execution_states[state_key]
     )
     assert preserved.attempted_actions == 1
 
-    paused = scheduler.set_clock_lifecycle(reapplied.snapshot, policy.clock_address, "paused").snapshot
+    paused = scheduler.set_clock_lifecycle(
+        reapplied.snapshot, policy.clock_address, "paused", policies=(policy,)
+    ).snapshot
     paused_state = ParticipantAutonomousExecutionStateModel.model_validate(
         paused.participant_autonomous_execution_states[state_key]
     )
@@ -1733,10 +1739,11 @@ def test_scheduler_executes_native_actions_and_persists_shared_time_readback() -
         runtime_model.time_model,
         participant_runtime,
         paused,
+        release_assertions=participant_release_assertions(runtime_model),
     )
     assert paused_due.success
     assert len(participant_runtime.native_actions) == 1
-    resumed = scheduler.set_clock_lifecycle(paused, policy.clock_address, "running").snapshot
+    resumed = scheduler.set_clock_lifecycle(paused, policy.clock_address, "running", policies=(policy,)).snapshot
 
     advanced = coordinator.advance(resumed, policy.clock_address, ticks=10)
     second = scheduler.run_due(
@@ -1744,6 +1751,7 @@ def test_scheduler_executes_native_actions_and_persists_shared_time_readback() -
         runtime_model.time_model,
         participant_runtime,
         advanced,
+        release_assertions=participant_release_assertions(runtime_model),
     )
     completed = ParticipantAutonomousExecutionStateModel.model_validate(
         second.snapshot.participant_autonomous_execution_states[state_key]
@@ -1779,6 +1787,7 @@ def test_scheduler_rejects_reapplication_after_material_policy_change() -> None:
         runtime_model.time_model,
         participant_runtime,
         TimeCoordinator(runtime_model.time_model).initialize(),
+        release_assertions=participant_release_assertions(runtime_model),
     ).snapshot
 
     changed = scheduler.initialize(
@@ -1786,6 +1795,7 @@ def test_scheduler_rejects_reapplication_after_material_policy_change() -> None:
         runtime_model.time_model,
         participant_runtime,
         snapshot,
+        release_assertions=participant_release_assertions(runtime_model),
     )
 
     assert not changed.success
@@ -1806,6 +1816,7 @@ def test_scheduler_rejects_v2_continuation_after_material_policy_change() -> Non
         _NativeParticipantRuntime(),
         TimeCoordinator(runtime_model.time_model).initialize(),
         controls,
+        release_assertions=participant_release_assertions(runtime_model),
     )
     assert initialized.success
 
@@ -1815,6 +1826,7 @@ def test_scheduler_rejects_v2_continuation_after_material_policy_change() -> Non
         _NativeParticipantRuntime(),
         initialized.snapshot,
         controls,
+        release_assertions=participant_release_assertions(runtime_model),
     )
 
     assert not changed.success
@@ -1830,6 +1842,7 @@ def test_scheduler_rejects_reapplication_after_referenced_cadence_change() -> No
         runtime_model.time_model,
         participant_runtime,
         TimeCoordinator(runtime_model.time_model).initialize(),
+        release_assertions=participant_release_assertions(runtime_model),
     ).snapshot
     changed_constraint = replace(runtime_model.time_model.constraints[0], cadence_ticks=20)
     changed_time_model = replace(runtime_model.time_model, constraints=(changed_constraint,))
@@ -1839,6 +1852,7 @@ def test_scheduler_rejects_reapplication_after_referenced_cadence_change() -> No
         changed_time_model,
         participant_runtime,
         snapshot,
+        release_assertions=participant_release_assertions(runtime_model),
     )
 
     assert not changed.success
@@ -1854,6 +1868,7 @@ def test_scheduler_counts_native_action_outcome_not_control_plane_success() -> N
         runtime_model.time_model,
         participant_runtime,
         TimeCoordinator(runtime_model.time_model).initialize(),
+        release_assertions=participant_release_assertions(runtime_model),
     )
 
     result = scheduler.run_due(
@@ -1861,6 +1876,7 @@ def test_scheduler_counts_native_action_outcome_not_control_plane_success() -> N
         runtime_model.time_model,
         participant_runtime,
         initialized.snapshot,
+        release_assertions=participant_release_assertions(runtime_model),
     )
 
     assert not result.success
@@ -1884,6 +1900,7 @@ def test_scheduler_rejects_invalid_native_outcome_before_committing_history_or_s
         runtime_model.time_model,
         participant_runtime,
         TimeCoordinator(runtime_model.time_model).initialize(),
+        release_assertions=participant_release_assertions(runtime_model),
     )
 
     result = scheduler.run_due(
@@ -1891,6 +1908,7 @@ def test_scheduler_rejects_invalid_native_outcome_before_committing_history_or_s
         runtime_model.time_model,
         participant_runtime,
         initialized.snapshot,
+        release_assertions=participant_release_assertions(runtime_model),
     )
 
     assert not result.success
@@ -1905,6 +1923,7 @@ def test_scheduler_rejects_invalid_native_outcome_before_committing_history_or_s
         runtime_model.time_model,
         participant_runtime,
         result.snapshot,
+        release_assertions=participant_release_assertions(runtime_model),
     )
     assert repeated.success
     assert len(participant_runtime.native_actions) == 1
@@ -1932,6 +1951,7 @@ def test_scheduler_fails_closed_for_nonconforming_direct_runtime(
         runtime_model.time_model,
         participant_runtime,
         TimeCoordinator(runtime_model.time_model).initialize(),
+        release_assertions=participant_release_assertions(runtime_model),
     )
 
     result = scheduler.run_due(
@@ -1939,6 +1959,7 @@ def test_scheduler_fails_closed_for_nonconforming_direct_runtime(
         runtime_model.time_model,
         participant_runtime,
         initialized.snapshot,
+        release_assertions=participant_release_assertions(runtime_model),
     )
 
     assert not result.success
@@ -2198,12 +2219,14 @@ def test_wall_driver_stop_keeps_live_thread_owned_until_it_exits() -> None:
         runtime_model.time_model,
         participant_runtime,
         TimeCoordinator(runtime_model.time_model).initialize(),
+        release_assertions=participant_release_assertions(runtime_model),
     ).snapshot
     snapshot = scheduler.run_due(
         [policy],
         runtime_model.time_model,
         participant_runtime,
         snapshot,
+        release_assertions=participant_release_assertions(runtime_model),
     ).snapshot
     entered = threading.Event()
     release = threading.Event()
@@ -2251,12 +2274,14 @@ def test_wall_driver_records_an_unexpected_runtime_exception() -> None:
         runtime_model.time_model,
         participant_runtime,
         TimeCoordinator(runtime_model.time_model).initialize(),
+        release_assertions=participant_release_assertions(runtime_model),
     ).snapshot
     snapshot = scheduler.run_due(
         [policy],
         runtime_model.time_model,
         participant_runtime,
         snapshot,
+        release_assertions=participant_release_assertions(runtime_model),
     ).snapshot
 
     def failing_advance(_clock_address: str, _ticks: int) -> ApplyResult:
@@ -2361,6 +2386,7 @@ def test_scheduler_rejects_an_unselected_participant_implementation() -> None:
         runtime_model.time_model,
         participant_runtime,
         TimeCoordinator(runtime_model.time_model).initialize(),
+        release_assertions=participant_release_assertions(runtime_model),
     ).snapshot
 
     class WrongBindingRuntime(_NativeParticipantRuntime):
@@ -2396,6 +2422,7 @@ def test_scheduler_rejects_an_unselected_participant_implementation() -> None:
         runtime_model.time_model,
         participant_runtime,
         snapshot,
+        release_assertions=participant_release_assertions(runtime_model),
     )
     assert not result.success
     assert result.snapshot == snapshot

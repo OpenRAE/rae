@@ -116,3 +116,35 @@ CI cannot hide a latent boundary violation behind an unrelated changed file.
   processor runtime-model types. Runtime-facing DTOs have moved to
   `aces_contracts`, and remaining splits must preserve the compatibility
   re-exports used by existing callers.
+
+## Repository ownership at the Go cutover
+
+At the common #1804 Go launch, the [ownership map](../issue-1891-runtime-repository-boundary.md) assigns the source to two repositories.
+`OpenRAE/rae` keeps SDL and the processor.
+It keeps the contracts, portable backend interfaces, stubs and authoring services.
+Runtime owns the live engine and control plane.
+It owns stores, HTTP, workers and backend calls.
+It also owns live participant control, injects, experiment/run execution and operational archives.
+Live conformance runners belong with that code.
+
+Runtime imports released public `rae` APIs.
+No `rae` product module imports runtime.
+SDL runtime vocabulary and trial compilation stay in `rae`.
+Shared primitives keep their current owner.
+Expose only the types that external callers need.
+
+Only runtime publishes the combined `raes` executable.
+It imports the authoring commands from `rae`.
+`rae` keeps authoring services and publishes `raes-mcp`.
+There is no forwarding service.
+#1825 owns the exact API.
+#1892 makes the required moves of already ported primitives.
+These are repository moves, not new behavior.
+Keep the behavioral boundaries above.
+Do not extract Python or repeat the Go port.
+
+## Amendments
+
+| Date | Commit/PR | Summary |
+| --- | --- | --- |
+| 2026-11-04 | #1891 | Recorded the planned runtime repository owner and one-way public dependencies at the common Go cutover; preserved behavioral decisions. |

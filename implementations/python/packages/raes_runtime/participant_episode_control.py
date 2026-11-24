@@ -99,6 +99,16 @@ class ParticipantEpisodeControlMixin:
             participant_address=participant_address,
             episode_id=episode_id,
         )
+        refusal = self._autonomous_release_refusal(participant_address)
+        if refusal is not None:
+            return self._reject_submission(
+                domain=RuntimeDomain.PARTICIPANT,
+                message=refusal,
+                idempotency_key=idempotency_key,
+                request_fingerprint=request_fingerprint,
+                identity=identity,
+                request=request,
+            )
         return self._submit_participant_episode_operation(
             request,
             method_name="initialize",

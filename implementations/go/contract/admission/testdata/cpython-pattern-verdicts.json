@@ -1,0 +1,1743 @@
+{
+  "reference": "https://raw.githubusercontent.com/python/cpython/v3.14.7/Lib/test/test_re.py",
+  "reference_sha256": "879c8b562a5bddb413e73ad6d026a6199785bd08fa1c2c5db1ef831b4e1c47e2",
+  "license_source": "https://raw.githubusercontent.com/python/cpython/v3.14.7/LICENSE",
+  "license": "A. HISTORY OF THE SOFTWARE\n==========================\n\nPython was created in the early 1990s by Guido van Rossum at Stichting\nMathematisch Centrum (CWI, see https://www.cwi.nl) in the Netherlands\nas a successor of a language called ABC.  Guido remains Python's\nprincipal author, although it includes many contributions from others.\n\nIn 1995, Guido continued his work on Python at the Corporation for\nNational Research Initiatives (CNRI, see https://www.cnri.reston.va.us)\nin Reston, Virginia where he released several versions of the\nsoftware.\n\nIn May 2000, Guido and the Python core development team moved to\nBeOpen.com to form the BeOpen PythonLabs team.  In October of the same\nyear, the PythonLabs team moved to Digital Creations, which became\nZope Corporation.  In 2001, the Python Software Foundation (PSF, see\nhttps://www.python.org/psf/) was formed, a non-profit organization\ncreated specifically to own Python-related Intellectual Property.\nZope Corporation was a sponsoring member of the PSF.\n\nAll Python releases are Open Source (see https://opensource.org for\nthe Open Source Definition).  Historically, most, but not all, Python\nreleases have also been GPL-compatible; the table below summarizes\nthe various releases.\n\n    Release         Derived     Year        Owner       GPL-\n                    from                                compatible? (1)\n\n    0.9.0 thru 1.2              1991-1995   CWI         yes\n    1.3 thru 1.5.2  1.2         1995-1999   CNRI        yes\n    1.6             1.5.2       2000        CNRI        no\n    2.0             1.6         2000        BeOpen.com  no\n    1.6.1           1.6         2001        CNRI        yes (2)\n    2.1             2.0+1.6.1   2001        PSF         no\n    2.0.1           2.0+1.6.1   2001        PSF         yes\n    2.1.1           2.1+2.0.1   2001        PSF         yes\n    2.1.2           2.1.1       2002        PSF         yes\n    2.1.3           2.1.2       2002        PSF         yes\n    2.2 and above   2.1.1       2001-now    PSF         yes\n\nFootnotes:\n\n(1) GPL-compatible doesn't mean that we're distributing Python under\n    the GPL.  All Python licenses, unlike the GPL, let you distribute\n    a modified version without making your changes open source.  The\n    GPL-compatible licenses make it possible to combine Python with\n    other software that is released under the GPL; the others don't.\n\n(2) According to Richard Stallman, 1.6.1 is not GPL-compatible,\n    because its license has a choice of law clause.  According to\n    CNRI, however, Stallman's lawyer has told CNRI's lawyer that 1.6.1\n    is \"not incompatible\" with the GPL.\n\nThanks to the many outside volunteers who have worked under Guido's\ndirection to make these releases possible.\n\n\nB. TERMS AND CONDITIONS FOR ACCESSING OR OTHERWISE USING PYTHON\n===============================================================\n\nPython software and documentation are licensed under the\nPython Software Foundation License Version 2.\n\nStarting with Python 3.8.6, examples, recipes, and other code in\nthe documentation are dual licensed under the PSF License Version 2\nand the Zero-Clause BSD license.\n\nSome software incorporated into Python is under different licenses.\nThe licenses are listed with code falling under that license.\n\n\nPYTHON SOFTWARE FOUNDATION LICENSE VERSION 2\n--------------------------------------------\n\n1. This LICENSE AGREEMENT is between the Python Software Foundation\n(\"PSF\"), and the Individual or Organization (\"Licensee\") accessing and\notherwise using this software (\"Python\") in source or binary form and\nits associated documentation.\n\n2. Subject to the terms and conditions of this License Agreement, PSF hereby\ngrants Licensee a nonexclusive, royalty-free, world-wide license to reproduce,\nanalyze, test, perform and/or display publicly, prepare derivative works,\ndistribute, and otherwise use Python alone or in any derivative version,\nprovided, however, that PSF's License Agreement and PSF's notice of copyright,\ni.e., \"Copyright (c) 2001 Python Software Foundation; All Rights Reserved\"\nare retained in Python alone or in any derivative version prepared by Licensee.\n\n3. In the event Licensee prepares a derivative work that is based on\nor incorporates Python or any part thereof, and wants to make\nthe derivative work available to others as provided herein, then\nLicensee hereby agrees to include in any such work a brief summary of\nthe changes made to Python.\n\n4. PSF is making Python available to Licensee on an \"AS IS\"\nbasis.  PSF MAKES NO REPRESENTATIONS OR WARRANTIES, EXPRESS OR\nIMPLIED.  BY WAY OF EXAMPLE, BUT NOT LIMITATION, PSF MAKES NO AND\nDISCLAIMS ANY REPRESENTATION OR WARRANTY OF MERCHANTABILITY OR FITNESS\nFOR ANY PARTICULAR PURPOSE OR THAT THE USE OF PYTHON WILL NOT\nINFRINGE ANY THIRD PARTY RIGHTS.\n\n5. PSF SHALL NOT BE LIABLE TO LICENSEE OR ANY OTHER USERS OF PYTHON\nFOR ANY INCIDENTAL, SPECIAL, OR CONSEQUENTIAL DAMAGES OR LOSS AS\nA RESULT OF MODIFYING, DISTRIBUTING, OR OTHERWISE USING PYTHON,\nOR ANY DERIVATIVE THEREOF, EVEN IF ADVISED OF THE POSSIBILITY THEREOF.\n\n6. This License Agreement will automatically terminate upon a material\nbreach of its terms and conditions.\n\n7. Nothing in this License Agreement shall be deemed to create any\nrelationship of agency, partnership, or joint venture between PSF and\nLicensee.  This License Agreement does not grant permission to use PSF\ntrademarks or trade name in a trademark sense to endorse or promote\nproducts or services of Licensee, or any third party.\n\n8. By copying, installing or otherwise using Python, Licensee\nagrees to be bound by the terms and conditions of this License\nAgreement.\n\n\nBEOPEN.COM LICENSE AGREEMENT FOR PYTHON 2.0\n-------------------------------------------\n\nBEOPEN PYTHON OPEN SOURCE LICENSE AGREEMENT VERSION 1\n\n1. This LICENSE AGREEMENT is between BeOpen.com (\"BeOpen\"), having an\noffice at 160 Saratoga Avenue, Santa Clara, CA 95051, and the\nIndividual or Organization (\"Licensee\") accessing and otherwise using\nthis software in source or binary form and its associated\ndocumentation (\"the Software\").\n\n2. Subject to the terms and conditions of this BeOpen Python License\nAgreement, BeOpen hereby grants Licensee a non-exclusive,\nroyalty-free, world-wide license to reproduce, analyze, test, perform\nand/or display publicly, prepare derivative works, distribute, and\notherwise use the Software alone or in any derivative version,\nprovided, however, that the BeOpen Python License is retained in the\nSoftware, alone or in any derivative version prepared by Licensee.\n\n3. BeOpen is making the Software available to Licensee on an \"AS IS\"\nbasis.  BEOPEN MAKES NO REPRESENTATIONS OR WARRANTIES, EXPRESS OR\nIMPLIED.  BY WAY OF EXAMPLE, BUT NOT LIMITATION, BEOPEN MAKES NO AND\nDISCLAIMS ANY REPRESENTATION OR WARRANTY OF MERCHANTABILITY OR FITNESS\nFOR ANY PARTICULAR PURPOSE OR THAT THE USE OF THE SOFTWARE WILL NOT\nINFRINGE ANY THIRD PARTY RIGHTS.\n\n4. BEOPEN SHALL NOT BE LIABLE TO LICENSEE OR ANY OTHER USERS OF THE\nSOFTWARE FOR ANY INCIDENTAL, SPECIAL, OR CONSEQUENTIAL DAMAGES OR LOSS\nAS A RESULT OF USING, MODIFYING OR DISTRIBUTING THE SOFTWARE, OR ANY\nDERIVATIVE THEREOF, EVEN IF ADVISED OF THE POSSIBILITY THEREOF.\n\n5. This License Agreement will automatically terminate upon a material\nbreach of its terms and conditions.\n\n6. This License Agreement shall be governed by and interpreted in all\nrespects by the law of the State of California, excluding conflict of\nlaw provisions.  Nothing in this License Agreement shall be deemed to\ncreate any relationship of agency, partnership, or joint venture\nbetween BeOpen and Licensee.  This License Agreement does not grant\npermission to use BeOpen trademarks or trade names in a trademark\nsense to endorse or promote products or services of Licensee, or any\nthird party.  As an exception, the \"BeOpen Python\" logos available at\nhttp://www.pythonlabs.com/logos.html may be used according to the\npermissions granted on that web page.\n\n7. By copying, installing or otherwise using the software, Licensee\nagrees to be bound by the terms and conditions of this License\nAgreement.\n\n\nCNRI LICENSE AGREEMENT FOR PYTHON 1.6.1\n---------------------------------------\n\n1. This LICENSE AGREEMENT is between the Corporation for National\nResearch Initiatives, having an office at 1895 Preston White Drive,\nReston, VA 20191 (\"CNRI\"), and the Individual or Organization\n(\"Licensee\") accessing and otherwise using Python 1.6.1 software in\nsource or binary form and its associated documentation.\n\n2. Subject to the terms and conditions of this License Agreement, CNRI\nhereby grants Licensee a nonexclusive, royalty-free, world-wide\nlicense to reproduce, analyze, test, perform and/or display publicly,\nprepare derivative works, distribute, and otherwise use Python 1.6.1\nalone or in any derivative version, provided, however, that CNRI's\nLicense Agreement and CNRI's notice of copyright, i.e., \"Copyright (c)\n1995-2001 Corporation for National Research Initiatives; All Rights\nReserved\" are retained in Python 1.6.1 alone or in any derivative\nversion prepared by Licensee.  Alternately, in lieu of CNRI's License\nAgreement, Licensee may substitute the following text (omitting the\nquotes): \"Python 1.6.1 is made available subject to the terms and\nconditions in CNRI's License Agreement.  This Agreement together with\nPython 1.6.1 may be located on the internet using the following\nunique, persistent identifier (known as a handle): 1895.22/1013.  This\nAgreement may also be obtained from a proxy server on the internet\nusing the following URL: http://hdl.handle.net/1895.22/1013\".\n\n3. In the event Licensee prepares a derivative work that is based on\nor incorporates Python 1.6.1 or any part thereof, and wants to make\nthe derivative work available to others as provided herein, then\nLicensee hereby agrees to include in any such work a brief summary of\nthe changes made to Python 1.6.1.\n\n4. CNRI is making Python 1.6.1 available to Licensee on an \"AS IS\"\nbasis.  CNRI MAKES NO REPRESENTATIONS OR WARRANTIES, EXPRESS OR\nIMPLIED.  BY WAY OF EXAMPLE, BUT NOT LIMITATION, CNRI MAKES NO AND\nDISCLAIMS ANY REPRESENTATION OR WARRANTY OF MERCHANTABILITY OR FITNESS\nFOR ANY PARTICULAR PURPOSE OR THAT THE USE OF PYTHON 1.6.1 WILL NOT\nINFRINGE ANY THIRD PARTY RIGHTS.\n\n5. CNRI SHALL NOT BE LIABLE TO LICENSEE OR ANY OTHER USERS OF PYTHON\n1.6.1 FOR ANY INCIDENTAL, SPECIAL, OR CONSEQUENTIAL DAMAGES OR LOSS AS\nA RESULT OF MODIFYING, DISTRIBUTING, OR OTHERWISE USING PYTHON 1.6.1,\nOR ANY DERIVATIVE THEREOF, EVEN IF ADVISED OF THE POSSIBILITY THEREOF.\n\n6. This License Agreement will automatically terminate upon a material\nbreach of its terms and conditions.\n\n7. This License Agreement shall be governed by the federal\nintellectual property law of the United States, including without\nlimitation the federal copyright law, and, to the extent such\nU.S. federal law does not apply, by the law of the Commonwealth of\nVirginia, excluding Virginia's conflict of law provisions.\nNotwithstanding the foregoing, with regard to derivative works based\non Python 1.6.1 that incorporate non-separable material that was\npreviously distributed under the GNU General Public License (GPL), the\nlaw of the Commonwealth of Virginia shall govern this License\nAgreement only as to issues arising under or with respect to\nParagraphs 4, 5, and 7 of this License Agreement.  Nothing in this\nLicense Agreement shall be deemed to create any relationship of\nagency, partnership, or joint venture between CNRI and Licensee.  This\nLicense Agreement does not grant permission to use CNRI trademarks or\ntrade name in a trademark sense to endorse or promote products or\nservices of Licensee, or any third party.\n\n8. By clicking on the \"ACCEPT\" button where indicated, or by copying,\ninstalling or otherwise using Python 1.6.1, Licensee agrees to be\nbound by the terms and conditions of this License Agreement.\n\n        ACCEPT\n\n\nCWI LICENSE AGREEMENT FOR PYTHON 0.9.0 THROUGH 1.2\n--------------------------------------------------\n\nCopyright (c) 1991 - 1995, Stichting Mathematisch Centrum Amsterdam,\nThe Netherlands.  All rights reserved.\n\nPermission to use, copy, modify, and distribute this software and its\ndocumentation for any purpose and without fee is hereby granted,\nprovided that the above copyright notice appear in all copies and that\nboth that copyright notice and this permission notice appear in\nsupporting documentation, and that the name of Stichting Mathematisch\nCentrum or CWI not be used in advertising or publicity pertaining to\ndistribution of the software without specific, written prior\npermission.\n\nSTICHTING MATHEMATISCH CENTRUM DISCLAIMS ALL WARRANTIES WITH REGARD TO\nTHIS SOFTWARE, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND\nFITNESS, IN NO EVENT SHALL STICHTING MATHEMATISCH CENTRUM BE LIABLE\nFOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES\nWHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN\nACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT\nOF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.\n\nZERO-CLAUSE BSD LICENSE FOR CODE IN THE PYTHON DOCUMENTATION\n----------------------------------------------------------------------\n\nPermission to use, copy, modify, and/or distribute this software for any\npurpose with or without fee is hereby granted.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH\nREGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY\nAND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,\nINDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM\nLOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR\nOTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR\nPERFORMANCE OF THIS SOFTWARE.\n",
+  "cases": [
+    {
+      "pattern": "ab+c",
+      "valid": true,
+      "source_line": 82
+    },
+    {
+      "pattern": ".",
+      "valid": true,
+      "source_line": 182
+    },
+    {
+      "pattern": "(?P<quote>)(?(quote))",
+      "valid": true,
+      "source_line": 190
+    },
+    {
+      "pattern": "(?P<a>x)(?P=a)(?(a)y)",
+      "valid": true,
+      "source_line": 283
+    },
+    {
+      "pattern": "(?P<a1>x)(?P=a1)(?(a1)y)",
+      "valid": true,
+      "source_line": 284
+    },
+    {
+      "pattern": "(?P<a1>x)\\1(?(1)y)",
+      "valid": true,
+      "source_line": 285
+    },
+    {
+      "pattern": "(?P<\u00b5>x)(?P=\u00b5)(?(\u00b5)y)",
+      "valid": true,
+      "source_line": 288
+    },
+    {
+      "pattern": "(?P<\ud835\udd18\ud835\udd2b\ud835\udd26\ud835\udd20\ud835\udd2c\ud835\udd21\ud835\udd22>x)(?P=\ud835\udd18\ud835\udd2b\ud835\udd26\ud835\udd20\ud835\udd2c\ud835\udd21\ud835\udd22)(?(\ud835\udd18\ud835\udd2b\ud835\udd26\ud835\udd20\ud835\udd2c\ud835\udd21\ud835\udd22)y)",
+      "valid": true,
+      "source_line": 289
+    },
+    {
+      "pattern": "((a)|(b))(c)?",
+      "valid": true,
+      "source_line": 527
+    },
+    {
+      "pattern": "(?:(?P<a1>a)|(?P<b2>b))(?P<c3>c)?",
+      "valid": true,
+      "source_line": 534
+    },
+    {
+      "pattern": "(a)(b)",
+      "valid": true,
+      "source_line": 547
+    },
+    {
+      "pattern": "(?P<g1>a)(?P<g2>b)?((?(g2)c|d))",
+      "valid": true,
+      "source_line": 653
+    },
+    {
+      "pattern": "(?i)(?P<first>a)(?P<other>b)",
+      "valid": true,
+      "source_line": 789
+    },
+    {
+      "pattern": "(?P<int>\\d+)(?:\\.(?P<frac>\\d*))?",
+      "valid": true,
+      "source_line": 1427
+    },
+    {
+      "pattern": ":+",
+      "valid": true,
+      "source_line": 1684
+    },
+    {
+      "pattern": "\\s",
+      "valid": true,
+      "source_line": 1718
+    },
+    {
+      "pattern": ".*",
+      "valid": true,
+      "source_line": 1727
+    },
+    {
+      "pattern": "$",
+      "valid": true,
+      "source_line": 1826
+    },
+    {
+      "pattern": "(?a)\\w",
+      "valid": true,
+      "source_line": 1862
+    },
+    {
+      "pattern": "a(\\w)",
+      "valid": true,
+      "source_line": 1986
+    },
+    {
+      "pattern": "a(.)",
+      "valid": true,
+      "source_line": 1988
+    },
+    {
+      "pattern": "..",
+      "valid": true,
+      "source_line": 1990
+    },
+    {
+      "pattern": "random pattern",
+      "valid": true,
+      "source_line": 2010
+    },
+    {
+      "pattern": "",
+      "valid": true,
+      "source_line": 2033
+    },
+    {
+      "pattern": "(ab)",
+      "valid": true,
+      "source_line": 2159
+    },
+    {
+      "pattern": "abc",
+      "valid": true,
+      "source_line": 2331
+    },
+    {
+      "pattern": "((?!(ab)c)(.))*",
+      "valid": true,
+      "source_line": 2462
+    },
+    {
+      "pattern": "a(?>bc|b)c",
+      "valid": true,
+      "source_line": 2572
+    },
+    {
+      "pattern": "(?<=[({}])(((//[^\\n]*)?[\\n])([\\000-\\040])*)*((/[^/\\[\\n]*(([^\\n]|(\\[\\n]*(]*)*\\]))[^/\\[]*)*/))((((//[^\\n]*)?[\\n])([\\000-\\040]|(/\\*[^*]*\\*+([^/*]\\*+)*/))*)+(?=[^\\000-\\040);\\]}]))",
+      "valid": true,
+      "source_line": 2651
+    },
+    {
+      "pattern": "x",
+      "valid": true,
+      "source_line": 91
+    },
+    {
+      "pattern": "a+",
+      "valid": true,
+      "source_line": 96
+    },
+    {
+      "pattern": "y",
+      "valid": true,
+      "source_line": 120
+    },
+    {
+      "pattern": "(?i)b+",
+      "valid": true,
+      "source_line": 129
+    },
+    {
+      "pattern": "\\d+",
+      "valid": true,
+      "source_line": 130
+    },
+    {
+      "pattern": "(.)",
+      "valid": true,
+      "source_line": 143
+    },
+    {
+      "pattern": "(?P<a>x)",
+      "valid": true,
+      "source_line": 147
+    },
+    {
+      "pattern": "(?P<unk>x)",
+      "valid": true,
+      "source_line": 149
+    },
+    {
+      "pattern": "()x",
+      "valid": true,
+      "source_line": 151
+    },
+    {
+      "pattern": "a",
+      "valid": true,
+      "source_line": 153
+    },
+    {
+      "pattern": "^\\s*",
+      "valid": true,
+      "source_line": 162
+    },
+    {
+      "pattern": "\\r\\n",
+      "valid": true,
+      "source_line": 171
+    },
+    {
+      "pattern": "\r\n",
+      "valid": true,
+      "source_line": 173
+    },
+    {
+      "pattern": "(((((((((((x)))))))))))",
+      "valid": true,
+      "source_line": 234
+    },
+    {
+      "pattern": "((((((((((y))))))))))(.)",
+      "valid": true,
+      "source_line": 235
+    },
+    {
+      "pattern": "b*",
+      "valid": true,
+      "source_line": 266
+    },
+    {
+      "pattern": ":",
+      "valid": true,
+      "source_line": 272
+    },
+    {
+      "pattern": "(\\S)\\s+(\\S)",
+      "valid": true,
+      "source_line": 279
+    },
+    {
+      "pattern": "(?P<a>x)|(?P<b>y)",
+      "valid": true,
+      "source_line": 332
+    },
+    {
+      "pattern": "(?P<\u00b5>x)",
+      "valid": true,
+      "source_line": 336
+    },
+    {
+      "pattern": "(?P<\ud835\udd18\ud835\udd2b\ud835\udd26\ud835\udd20\ud835\udd2c\ud835\udd21\ud835\udd22>x)",
+      "valid": true,
+      "source_line": 337
+    },
+    {
+      "pattern": "b+",
+      "valid": true,
+      "source_line": 381
+    },
+    {
+      "pattern": "(?::+)",
+      "valid": true,
+      "source_line": 424
+    },
+    {
+      "pattern": "(:)+",
+      "valid": true,
+      "source_line": 425
+    },
+    {
+      "pattern": "([b:]+)",
+      "valid": true,
+      "source_line": 427
+    },
+    {
+      "pattern": "(b)|(:+)",
+      "valid": true,
+      "source_line": 429
+    },
+    {
+      "pattern": "(?:b)|(?::+)",
+      "valid": true,
+      "source_line": 432
+    },
+    {
+      "pattern": "(:)",
+      "valid": true,
+      "source_line": 459
+    },
+    {
+      "pattern": "(:+)",
+      "valid": true,
+      "source_line": 461
+    },
+    {
+      "pattern": "(:*)",
+      "valid": true,
+      "source_line": 463
+    },
+    {
+      "pattern": "(a|(b))",
+      "valid": true,
+      "source_line": 504
+    },
+    {
+      "pattern": "abc$",
+      "valid": true,
+      "source_line": 621
+    },
+    {
+      "pattern": "abc\\z",
+      "valid": true,
+      "source_line": 622
+    },
+    {
+      "pattern": "abc\\Z",
+      "valid": true,
+      "source_line": 623
+    },
+    {
+      "pattern": "(?m)abc$",
+      "valid": true,
+      "source_line": 624
+    },
+    {
+      "pattern": "^(\\()?([^()]+)(?(1)\\))$",
+      "valid": true,
+      "source_line": 641
+    },
+    {
+      "pattern": "^(\\|)?([^()]+)\\1$",
+      "valid": true,
+      "source_line": 714
+    },
+    {
+      "pattern": "^(\\w){1}$",
+      "valid": true,
+      "source_line": 739
+    },
+    {
+      "pattern": "^(\\w){1}?$",
+      "valid": true,
+      "source_line": 740
+    },
+    {
+      "pattern": "^(\\w){1,2}$",
+      "valid": true,
+      "source_line": 741
+    },
+    {
+      "pattern": "^(\\w){1,2}?$",
+      "valid": true,
+      "source_line": 742
+    },
+    {
+      "pattern": "^x{1}$",
+      "valid": true,
+      "source_line": 753
+    },
+    {
+      "pattern": "^x{1}?$",
+      "valid": true,
+      "source_line": 754
+    },
+    {
+      "pattern": "^x{1,2}$",
+      "valid": true,
+      "source_line": 755
+    },
+    {
+      "pattern": "^x{1,2}?$",
+      "valid": true,
+      "source_line": 756
+    },
+    {
+      "pattern": "^x{3}$",
+      "valid": true,
+      "source_line": 758
+    },
+    {
+      "pattern": "^x{1,3}$",
+      "valid": true,
+      "source_line": 759
+    },
+    {
+      "pattern": "^x{3,3}$",
+      "valid": true,
+      "source_line": 760
+    },
+    {
+      "pattern": "^x{1,4}$",
+      "valid": true,
+      "source_line": 761
+    },
+    {
+      "pattern": "^x{3,4}?$",
+      "valid": true,
+      "source_line": 762
+    },
+    {
+      "pattern": "^x{3}?$",
+      "valid": true,
+      "source_line": 763
+    },
+    {
+      "pattern": "^x{1,3}?$",
+      "valid": true,
+      "source_line": 764
+    },
+    {
+      "pattern": "^x{1,4}?$",
+      "valid": true,
+      "source_line": 765
+    },
+    {
+      "pattern": "^x{}$",
+      "valid": true,
+      "source_line": 768
+    },
+    {
+      "pattern": "\\(",
+      "valid": true,
+      "source_line": 835
+    },
+    {
+      "pattern": "[\\]]",
+      "valid": true,
+      "source_line": 838
+    },
+    {
+      "pattern": "[a\\-c]",
+      "valid": true,
+      "source_line": 840
+    },
+    {
+      "pattern": "[\\^a]+",
+      "valid": true,
+      "source_line": 842
+    },
+    {
+      "pattern": "\\N{LESS-THAN SIGN}",
+      "valid": true,
+      "source_line": 853
+    },
+    {
+      "pattern": "\\N{less-than sign}",
+      "valid": true,
+      "source_line": 854
+    },
+    {
+      "pattern": "\\N{SNAKE}",
+      "valid": true,
+      "source_line": 856
+    },
+    {
+      "pattern": "\\N{ARABIC LIGATURE UIGHUR KIRGHIZ YEH WITH HAMZA ABOVE WITH ALEF MAKSURA ISOLATED FORM}",
+      "valid": true,
+      "source_line": 857
+    },
+    {
+      "pattern": "[\\N{LESS-THAN SIGN}-\\N{GREATER-THAN SIGN}]",
+      "valid": true,
+      "source_line": 860
+    },
+    {
+      "pattern": ".\\b",
+      "valid": true,
+      "source_line": 900
+    },
+    {
+      "pattern": ".\\B",
+      "valid": true,
+      "source_line": 926
+    },
+    {
+      "pattern": "\\b",
+      "valid": true,
+      "source_line": 952
+    },
+    {
+      "pattern": ".+\\b",
+      "valid": true,
+      "source_line": 959
+    },
+    {
+      "pattern": "\\B",
+      "valid": true,
+      "source_line": 973
+    },
+    {
+      "pattern": ".+\\B",
+      "valid": true,
+      "source_line": 980
+    },
+    {
+      "pattern": "(a)b(?=\\1)a",
+      "valid": true,
+      "source_line": 1053
+    },
+    {
+      "pattern": "(a)b(?=\\1)c",
+      "valid": true,
+      "source_line": 1054
+    },
+    {
+      "pattern": "(?:(a)|(x))b(?=(?(2)x|c))c",
+      "valid": true,
+      "source_line": 1056
+    },
+    {
+      "pattern": "(?:(a)|(x))b(?=(?(2)c|x))c",
+      "valid": true,
+      "source_line": 1057
+    },
+    {
+      "pattern": "(?:(a)|(x))b(?=(?(1)b|x))c",
+      "valid": true,
+      "source_line": 1059
+    },
+    {
+      "pattern": "(?:(a)|(x))b(?=(?(1)c|x))c",
+      "valid": true,
+      "source_line": 1060
+    },
+    {
+      "pattern": "(a)b(?=(?(2)x|c))(c)",
+      "valid": true,
+      "source_line": 1062
+    },
+    {
+      "pattern": "(a)b(?=(?(2)b|x))(c)",
+      "valid": true,
+      "source_line": 1063
+    },
+    {
+      "pattern": "(a)b(?=(?(1)c|x))(c)",
+      "valid": true,
+      "source_line": 1064
+    },
+    {
+      "pattern": "ab(?<=b)c",
+      "valid": true,
+      "source_line": 1067
+    },
+    {
+      "pattern": "ab(?<=c)c",
+      "valid": true,
+      "source_line": 1068
+    },
+    {
+      "pattern": "ab(?<!b)c",
+      "valid": true,
+      "source_line": 1069
+    },
+    {
+      "pattern": "ab(?<!c)c",
+      "valid": true,
+      "source_line": 1070
+    },
+    {
+      "pattern": "(a)a(?<=\\1)c",
+      "valid": true,
+      "source_line": 1072
+    },
+    {
+      "pattern": "(a)b(?<=\\1)a",
+      "valid": true,
+      "source_line": 1073
+    },
+    {
+      "pattern": "(a)a(?<!\\1)c",
+      "valid": true,
+      "source_line": 1074
+    },
+    {
+      "pattern": "(a)b(?<!\\1)a",
+      "valid": true,
+      "source_line": 1075
+    },
+    {
+      "pattern": "(?:(a)|(x))b(?<=(?(2)x|c))c",
+      "valid": true,
+      "source_line": 1077
+    },
+    {
+      "pattern": "(?:(a)|(x))b(?<=(?(2)b|x))c",
+      "valid": true,
+      "source_line": 1078
+    },
+    {
+      "pattern": "(?:(a)|(x))b(?<=(?(2)x|b))c",
+      "valid": true,
+      "source_line": 1079
+    },
+    {
+      "pattern": "(?:(a)|(x))b(?<=(?(1)c|x))c",
+      "valid": true,
+      "source_line": 1080
+    },
+    {
+      "pattern": "(?:(a)|(x))b(?<=(?(1)b|x))c",
+      "valid": true,
+      "source_line": 1081
+    },
+    {
+      "pattern": "(a)b(?<=(?(1)c|x))(c)",
+      "valid": true,
+      "source_line": 1084
+    },
+    {
+      "pattern": "(a)b(?<=(?(1)b|x))(c)",
+      "valid": true,
+      "source_line": 1085
+    },
+    {
+      "pattern": "[0-9--1]",
+      "valid": true,
+      "source_line": 1282
+    },
+    {
+      "pattern": "[--1]",
+      "valid": true,
+      "source_line": 1289
+    },
+    {
+      "pattern": "[%--1]",
+      "valid": true,
+      "source_line": 1292
+    },
+    {
+      "pattern": "[%--]",
+      "valid": true,
+      "source_line": 1297
+    },
+    {
+      "pattern": "[0-9&&1]",
+      "valid": true,
+      "source_line": 1302
+    },
+    {
+      "pattern": "[\\d&&1]",
+      "valid": true,
+      "source_line": 1310
+    },
+    {
+      "pattern": "[&&1]",
+      "valid": true,
+      "source_line": 1314
+    },
+    {
+      "pattern": "[0-9||a]",
+      "valid": true,
+      "source_line": 1317
+    },
+    {
+      "pattern": "[\\d||a]",
+      "valid": true,
+      "source_line": 1322
+    },
+    {
+      "pattern": "[||1]",
+      "valid": true,
+      "source_line": 1326
+    },
+    {
+      "pattern": "[0-9~~1]",
+      "valid": true,
+      "source_line": 1329
+    },
+    {
+      "pattern": "[\\d~~1]",
+      "valid": true,
+      "source_line": 1334
+    },
+    {
+      "pattern": "[~~1]",
+      "valid": true,
+      "source_line": 1338
+    },
+    {
+      "pattern": "[[0-9]|]",
+      "valid": true,
+      "source_line": 1341
+    },
+    {
+      "pattern": "[[:digit:]|]",
+      "valid": true,
+      "source_line": 1349
+    },
+    {
+      "pattern": "\\0",
+      "valid": true,
+      "source_line": 1463
+    },
+    {
+      "pattern": "\\08",
+      "valid": true,
+      "source_line": 1464
+    },
+    {
+      "pattern": "\\01",
+      "valid": true,
+      "source_line": 1465
+    },
+    {
+      "pattern": "\\018",
+      "valid": true,
+      "source_line": 1466
+    },
+    {
+      "pattern": "[\\U0001d49c-\\U0001d4b5]",
+      "valid": true,
+      "source_line": 1505
+    },
+    {
+      "pattern": "(?:a?)*y",
+      "valid": true,
+      "source_line": 1615
+    },
+    {
+      "pattern": "(?:a?)+y",
+      "valid": true,
+      "source_line": 1616
+    },
+    {
+      "pattern": "(?:a?){2,}y",
+      "valid": true,
+      "source_line": 1617
+    },
+    {
+      "pattern": "(?:a?)*?y",
+      "valid": true,
+      "source_line": 1618
+    },
+    {
+      "pattern": "(?:a?)+?y",
+      "valid": true,
+      "source_line": 1619
+    },
+    {
+      "pattern": "(?:a?){2,}?y",
+      "valid": true,
+      "source_line": 1620
+    },
+    {
+      "pattern": "bug_926075",
+      "valid": true,
+      "source_line": 1709
+    },
+    {
+      "pattern": "(?i:a)b",
+      "valid": true,
+      "source_line": 1924
+    },
+    {
+      "pattern": "(?i:(?-i:a)b)",
+      "valid": true,
+      "source_line": 1928
+    },
+    {
+      "pattern": "\\w(?a:\\W)\\w",
+      "valid": true,
+      "source_line": 1931
+    },
+    {
+      "pattern": "(?a:\\W(?u:\\w)\\W)",
+      "valid": true,
+      "source_line": 1932
+    },
+    {
+      "pattern": "(?x) a",
+      "valid": true,
+      "source_line": 1961
+    },
+    {
+      "pattern": "(?x) (?x) a",
+      "valid": true,
+      "source_line": 1963
+    },
+    {
+      "pattern": " a(?x: b) c",
+      "valid": true,
+      "source_line": 1964
+    },
+    {
+      "pattern": "(?x) a(?-x: b) c",
+      "valid": true,
+      "source_line": 1966
+    },
+    {
+      "pattern": "(?x) a| b",
+      "valid": true,
+      "source_line": 1967
+    },
+    {
+      "pattern": "(?x)#x\na",
+      "valid": true,
+      "source_line": 1973
+    },
+    {
+      "pattern": "(?x)#x\n(?x)#y\na",
+      "valid": true,
+      "source_line": 1975
+    },
+    {
+      "pattern": "#x\na(?x:#y\nb)#z\nc",
+      "valid": true,
+      "source_line": 1976
+    },
+    {
+      "pattern": "(?x)#x\na(?-x:#y\nb)#z\nc",
+      "valid": true,
+      "source_line": 1979
+    },
+    {
+      "pattern": "(?x)#x\na|#y\nb",
+      "valid": true,
+      "source_line": 1980
+    },
+    {
+      "pattern": "123.*-",
+      "valid": true,
+      "source_line": 2002
+    },
+    {
+      "pattern": "(?i)(a)\\1",
+      "valid": true,
+      "source_line": 2040
+    },
+    {
+      "pattern": "(.+)(.*?)\\1",
+      "valid": true,
+      "source_line": 2103
+    },
+    {
+      "pattern": "(aa)|(bb)",
+      "valid": true,
+      "source_line": 2117
+    },
+    {
+      "pattern": "\\b|:+",
+      "valid": true,
+      "source_line": 2130
+    },
+    {
+      "pattern": "(?<!\\w)(?=\\w)|:+",
+      "valid": true,
+      "source_line": 2131
+    },
+    {
+      "pattern": "(?<=\\w)(?!\\w)|:+",
+      "valid": true,
+      "source_line": 2132
+    },
+    {
+      "pattern": "(\\b|:+)",
+      "valid": true,
+      "source_line": 2136
+    },
+    {
+      "pattern": "\\b|\\w+",
+      "valid": true,
+      "source_line": 2139
+    },
+    {
+      "pattern": "(\u20ac))",
+      "valid": false,
+      "source_line": 2256
+    },
+    {
+      "pattern": "x*",
+      "valid": true,
+      "source_line": 2470
+    },
+    {
+      "pattern": "e*+e",
+      "valid": true,
+      "source_line": 2496
+    },
+    {
+      "pattern": "(.)++.",
+      "valid": true,
+      "source_line": 2500
+    },
+    {
+      "pattern": "a++",
+      "valid": true,
+      "source_line": 2511
+    },
+    {
+      "pattern": "^(\\w){1}+$",
+      "valid": true,
+      "source_line": 2512
+    },
+    {
+      "pattern": "^(\\w){1,2}+$",
+      "valid": true,
+      "source_line": 2513
+    },
+    {
+      "pattern": "^x{1}+$",
+      "valid": true,
+      "source_line": 2519
+    },
+    {
+      "pattern": "^x{1,2}+$",
+      "valid": true,
+      "source_line": 2520
+    },
+    {
+      "pattern": "^x{3}+$",
+      "valid": true,
+      "source_line": 2522
+    },
+    {
+      "pattern": "^x{1,3}+$",
+      "valid": true,
+      "source_line": 2523
+    },
+    {
+      "pattern": "^x{1,4}+$",
+      "valid": true,
+      "source_line": 2524
+    },
+    {
+      "pattern": "^x{}+$",
+      "valid": true,
+      "source_line": 2526
+    },
+    {
+      "pattern": "a*+",
+      "valid": true,
+      "source_line": 2531
+    },
+    {
+      "pattern": "a?+",
+      "valid": true,
+      "source_line": 2532
+    },
+    {
+      "pattern": "a{1,3}+",
+      "valid": true,
+      "source_line": 2533
+    },
+    {
+      "pattern": "a++b",
+      "valid": true,
+      "source_line": 2538
+    },
+    {
+      "pattern": "a*+b",
+      "valid": true,
+      "source_line": 2539
+    },
+    {
+      "pattern": "a?+b",
+      "valid": true,
+      "source_line": 2540
+    },
+    {
+      "pattern": "a{1,3}+b",
+      "valid": true,
+      "source_line": 2541
+    },
+    {
+      "pattern": "(?:ab)++",
+      "valid": true,
+      "source_line": 2543
+    },
+    {
+      "pattern": "(?:ab)*+",
+      "valid": true,
+      "source_line": 2544
+    },
+    {
+      "pattern": "(?:ab)?+",
+      "valid": true,
+      "source_line": 2545
+    },
+    {
+      "pattern": "(?:ab){1,3}+",
+      "valid": true,
+      "source_line": 2546
+    },
+    {
+      "pattern": "(?:ab)++c",
+      "valid": true,
+      "source_line": 2551
+    },
+    {
+      "pattern": "(?:ab)*+c",
+      "valid": true,
+      "source_line": 2552
+    },
+    {
+      "pattern": "(?:ab)?+c",
+      "valid": true,
+      "source_line": 2553
+    },
+    {
+      "pattern": "(?:ab){1,3}+c",
+      "valid": true,
+      "source_line": 2554
+    },
+    {
+      "pattern": "(?>.*).",
+      "valid": true,
+      "source_line": 2575
+    },
+    {
+      "pattern": "(?>x)++",
+      "valid": true,
+      "source_line": 2576
+    },
+    {
+      "pattern": "(?>x++)",
+      "valid": true,
+      "source_line": 2577
+    },
+    {
+      "pattern": "(?>x)++x",
+      "valid": true,
+      "source_line": 2578
+    },
+    {
+      "pattern": "(?>x++)x",
+      "valid": true,
+      "source_line": 2579
+    },
+    {
+      "pattern": "(?>a+)",
+      "valid": true,
+      "source_line": 2582
+    },
+    {
+      "pattern": "(?>a*)",
+      "valid": true,
+      "source_line": 2583
+    },
+    {
+      "pattern": "(?>a?)",
+      "valid": true,
+      "source_line": 2584
+    },
+    {
+      "pattern": "(?>a{1,3})",
+      "valid": true,
+      "source_line": 2585
+    },
+    {
+      "pattern": "(?>a+)b",
+      "valid": true,
+      "source_line": 2590
+    },
+    {
+      "pattern": "(?>a*)b",
+      "valid": true,
+      "source_line": 2591
+    },
+    {
+      "pattern": "(?>a?)b",
+      "valid": true,
+      "source_line": 2592
+    },
+    {
+      "pattern": "(?>a{1,3})b",
+      "valid": true,
+      "source_line": 2593
+    },
+    {
+      "pattern": "(?>(?:ab)+)",
+      "valid": true,
+      "source_line": 2595
+    },
+    {
+      "pattern": "(?>(?:ab)*)",
+      "valid": true,
+      "source_line": 2596
+    },
+    {
+      "pattern": "(?>(?:ab)?)",
+      "valid": true,
+      "source_line": 2597
+    },
+    {
+      "pattern": "(?>(?:ab){1,3})",
+      "valid": true,
+      "source_line": 2598
+    },
+    {
+      "pattern": "(?>(?:ab)+)c",
+      "valid": true,
+      "source_line": 2603
+    },
+    {
+      "pattern": "(?>(?:ab)*)c",
+      "valid": true,
+      "source_line": 2604
+    },
+    {
+      "pattern": "(?>(?:ab)?)c",
+      "valid": true,
+      "source_line": 2605
+    },
+    {
+      "pattern": "(?>(?:ab){1,3})c",
+      "valid": true,
+      "source_line": 2606
+    },
+    {
+      "pattern": "(?s:(?>.*?\\.).*)\\z",
+      "valid": true,
+      "source_line": 2620
+    },
+    {
+      "pattern": "(?s:(?=(?P<g0>.*?\\.))(?P=g0).*)\\z",
+      "valid": true,
+      "source_line": 2621
+    },
+    {
+      "pattern": "(:)(:*)",
+      "valid": true,
+      "source_line": 484
+    },
+    {
+      "pattern": "(?i)(a)(b)",
+      "valid": true,
+      "source_line": 775
+    },
+    {
+      "pattern": "(a)",
+      "valid": true,
+      "source_line": 782
+    },
+    {
+      "pattern": "[0-9--2]",
+      "valid": true,
+      "source_line": 1286
+    },
+    {
+      "pattern": "[0-8&&1]",
+      "valid": true,
+      "source_line": 1306
+    },
+    {
+      "pattern": "[[0-8]|]",
+      "valid": true,
+      "source_line": 1345
+    },
+    {
+      "pattern": "(a)?a",
+      "valid": true,
+      "source_line": 1564
+    },
+    {
+      "pattern": "(a)(b)?b",
+      "valid": true,
+      "source_line": 1565
+    },
+    {
+      "pattern": "(?P<a>a)(?P<b>b)?b",
+      "valid": true,
+      "source_line": 1566
+    },
+    {
+      "pattern": "(?P<a>a(b))",
+      "valid": true,
+      "source_line": 1567
+    },
+    {
+      "pattern": "((a))",
+      "valid": true,
+      "source_line": 1568
+    },
+    {
+      "pattern": "^\\d$",
+      "valid": true,
+      "source_line": 1751
+    },
+    {
+      "pattern": "12(?!)|3",
+      "valid": true,
+      "source_line": 2670
+    },
+    {
+      "pattern": "x+",
+      "valid": true,
+      "source_line": 89
+    },
+    {
+      "pattern": "a*",
+      "valid": true,
+      "source_line": 92
+    },
+    {
+      "pattern": "(ab|ba)",
+      "valid": true,
+      "source_line": 101
+    },
+    {
+      "pattern": "(abc|bac|ca|cb)",
+      "valid": true,
+      "source_line": 103
+    },
+    {
+      "pattern": "((a)|(b)|(c))",
+      "valid": true,
+      "source_line": 111
+    },
+    {
+      "pattern": ".*?$",
+      "valid": true,
+      "source_line": 615
+    },
+    {
+      "pattern": ".*?",
+      "valid": true,
+      "source_line": 616
+    },
+    {
+      "pattern": "a.*?b",
+      "valid": true,
+      "source_line": 617
+    },
+    {
+      "pattern": "ab(?=c)cd",
+      "valid": true,
+      "source_line": 625
+    },
+    {
+      "pattern": "ab(?<=b)cd",
+      "valid": true,
+      "source_line": 626
+    },
+    {
+      "pattern": "(?=a|ab)ab",
+      "valid": true,
+      "source_line": 627
+    },
+    {
+      "pattern": "^(?:(a)|c)((?(1)b|d))$",
+      "valid": true,
+      "source_line": 643
+    },
+    {
+      "pattern": "^(?:(a)|c)((?(1)|d))$",
+      "valid": true,
+      "source_line": 647
+    },
+    {
+      "pattern": "^(\\|)?([^()]+)\\1?$",
+      "valid": true,
+      "source_line": 712
+    },
+    {
+      "pattern": "^(?:(a)|c)(\\1)$",
+      "valid": true,
+      "source_line": 716
+    },
+    {
+      "pattern": "^(?:(a)|c)(\\1)?$",
+      "valid": true,
+      "source_line": 718
+    },
+    {
+      "pattern": "(?P<first>first) (?P<second>second)",
+      "valid": true,
+      "source_line": 724
+    },
+    {
+      "pattern": "(?P<first>first)|(?P<second>second)",
+      "valid": true,
+      "source_line": 733
+    },
+    {
+      "pattern": "^(\\w){3}$",
+      "valid": true,
+      "source_line": 744
+    },
+    {
+      "pattern": "^(\\w){1,3}$",
+      "valid": true,
+      "source_line": 745
+    },
+    {
+      "pattern": "^(\\w){1,4}$",
+      "valid": true,
+      "source_line": 746
+    },
+    {
+      "pattern": "^(\\w){3,4}?$",
+      "valid": true,
+      "source_line": 747
+    },
+    {
+      "pattern": "^(\\w){3}?$",
+      "valid": true,
+      "source_line": 748
+    },
+    {
+      "pattern": "^(\\w){1,3}?$",
+      "valid": true,
+      "source_line": 749
+    },
+    {
+      "pattern": "^(\\w){1,4}?$",
+      "valid": true,
+      "source_line": 750
+    },
+    {
+      "pattern": "\\b(b.)\\b",
+      "valid": true,
+      "source_line": 797
+    },
+    {
+      "pattern": "\\B(b.)\\B",
+      "valid": true,
+      "source_line": 799
+    },
+    {
+      "pattern": "\\d\\D\\w\\W\\s\\S",
+      "valid": true,
+      "source_line": 823
+    },
+    {
+      "pattern": "\\\\",
+      "valid": true,
+      "source_line": 836
+    },
+    {
+      "pattern": "\\b(abc)\\b",
+      "valid": true,
+      "source_line": 893
+    },
+    {
+      "pattern": "\\b(\u044c\u044e\u044f)\\b",
+      "valid": true,
+      "source_line": 897
+    },
+    {
+      "pattern": "([\u2222\u2223])",
+      "valid": true,
+      "source_line": 1021
+    },
+    {
+      "pattern": "(a(?=\\s[^a]))",
+      "valid": true,
+      "source_line": 1039
+    },
+    {
+      "pattern": "(a(?=\\s[^a]*))",
+      "valid": true,
+      "source_line": 1040
+    },
+    {
+      "pattern": "(a(?=\\s[abc]))",
+      "valid": true,
+      "source_line": 1041
+    },
+    {
+      "pattern": "(a(?=\\s[abc]*))",
+      "valid": true,
+      "source_line": 1042
+    },
+    {
+      "pattern": "(a)(?=\\s\\1)",
+      "valid": true,
+      "source_line": 1043
+    },
+    {
+      "pattern": "(a)(?=\\s\\1*)",
+      "valid": true,
+      "source_line": 1044
+    },
+    {
+      "pattern": "(a)(?=\\s(abc|a))",
+      "valid": true,
+      "source_line": 1045
+    },
+    {
+      "pattern": "(a(?!\\s[^a]))",
+      "valid": true,
+      "source_line": 1047
+    },
+    {
+      "pattern": "(a(?!\\s[abc]))",
+      "valid": true,
+      "source_line": 1048
+    },
+    {
+      "pattern": "(a)(?!\\s\\1)",
+      "valid": true,
+      "source_line": 1049
+    },
+    {
+      "pattern": "(a)(?!\\s(abc|a))",
+      "valid": true,
+      "source_line": 1050
+    },
+    {
+      "pattern": "(\\s)",
+      "valid": true,
+      "source_line": 1273
+    },
+    {
+      "pattern": "\\s([^a])",
+      "valid": true,
+      "source_line": 1276
+    },
+    {
+      "pattern": "\\s([^a]*)",
+      "valid": true,
+      "source_line": 1277
+    },
+    {
+      "pattern": "\\s(b)",
+      "valid": true,
+      "source_line": 1354
+    },
+    {
+      "pattern": "a\\s",
+      "valid": true,
+      "source_line": 1355
+    },
+    {
+      "pattern": "(a)|(b)",
+      "valid": true,
+      "source_line": 1558
+    },
+    {
+      "pattern": ".*?c",
+      "valid": true,
+      "source_line": 1574
+    },
+    {
+      "pattern": ".*?cd",
+      "valid": true,
+      "source_line": 1575
+    },
+    {
+      "pattern": "(a|b)*?c",
+      "valid": true,
+      "source_line": 1580
+    },
+    {
+      "pattern": "(x)*",
+      "valid": true,
+      "source_line": 1589
+    },
+    {
+      "pattern": "(x)*y",
+      "valid": true,
+      "source_line": 1590
+    },
+    {
+      "pattern": "(x)*?y",
+      "valid": true,
+      "source_line": 1591
+    },
+    {
+      "pattern": "^((a)|b)*",
+      "valid": true,
+      "source_line": 1653
+    },
+    {
+      "pattern": "^(([ab])|c)*",
+      "valid": true,
+      "source_line": 1655
+    },
+    {
+      "pattern": "^((d)|[ab])*",
+      "valid": true,
+      "source_line": 1657
+    },
+    {
+      "pattern": "^((a)c|[ab])*",
+      "valid": true,
+      "source_line": 1659
+    },
+    {
+      "pattern": "^((a)|b)*?c",
+      "valid": true,
+      "source_line": 1661
+    },
+    {
+      "pattern": "^(([ab])|c)*?d",
+      "valid": true,
+      "source_line": 1663
+    },
+    {
+      "pattern": "^((d)|[ab])*?c",
+      "valid": true,
+      "source_line": 1665
+    },
+    {
+      "pattern": "^((a)c|[ab])*?c",
+      "valid": true,
+      "source_line": 1667
+    },
+    {
+      "pattern": "(a)(?:(?=(b)*)c)*",
+      "valid": true,
+      "source_line": 1672
+    },
+    {
+      "pattern": "(a)((?!(b)*))*",
+      "valid": true,
+      "source_line": 1674
+    },
+    {
+      "pattern": "(?s).{1,3}",
+      "valid": true,
+      "source_line": 2041
+    },
+    {
+      "pattern": ".{65535}",
+      "valid": true,
+      "source_line": 2046
+    },
+    {
+      "pattern": ".{,65535}",
+      "valid": true,
+      "source_line": 2047
+    },
+    {
+      "pattern": ".{65535,}?",
+      "valid": true,
+      "source_line": 2048
+    },
+    {
+      "pattern": ".{65536}",
+      "valid": true,
+      "source_line": 2049
+    },
+    {
+      "pattern": ".{,65536}",
+      "valid": true,
+      "source_line": 2050
+    },
+    {
+      "pattern": ".{65536,}?",
+      "valid": true,
+      "source_line": 2051
+    },
+    {
+      "pattern": "(ab|a)*?b",
+      "valid": true,
+      "source_line": 2402
+    },
+    {
+      "pattern": "(ab|a)+?b",
+      "valid": true,
+      "source_line": 2403
+    },
+    {
+      "pattern": "(ab|a){0,2}?b",
+      "valid": true,
+      "source_line": 2404
+    },
+    {
+      "pattern": "(.b|a)*?b",
+      "valid": true,
+      "source_line": 2405
+    },
+    {
+      "pattern": "(ab?)*?b",
+      "valid": true,
+      "source_line": 2440
+    },
+    {
+      "pattern": "(?!(..)c)",
+      "valid": true,
+      "source_line": 2459
+    },
+    {
+      "pattern": "e++a",
+      "valid": true,
+      "source_line": 2497
+    },
+    {
+      "pattern": "e?+a",
+      "valid": true,
+      "source_line": 2498
+    },
+    {
+      "pattern": "e{2,4}+a",
+      "valid": true,
+      "source_line": 2499
+    },
+    {
+      "pattern": "(ae)*+a",
+      "valid": true,
+      "source_line": 2501
+    },
+    {
+      "pattern": "([ae][ae])?+a",
+      "valid": true,
+      "source_line": 2502
+    },
+    {
+      "pattern": "(e?){2,4}+a",
+      "valid": true,
+      "source_line": 2504
+    },
+    {
+      "pattern": "()*+a",
+      "valid": true,
+      "source_line": 2506
+    },
+    {
+      "pattern": "x*+",
+      "valid": true,
+      "source_line": 2507
+    },
+    {
+      "pattern": "x++",
+      "valid": true,
+      "source_line": 2508
+    },
+    {
+      "pattern": "^(\\w){3}+$",
+      "valid": true,
+      "source_line": 2515
+    },
+    {
+      "pattern": "^(\\w){1,3}+$",
+      "valid": true,
+      "source_line": 2516
+    },
+    {
+      "pattern": "^(\\w){1,4}+$",
+      "valid": true,
+      "source_line": 2517
+    },
+    {
+      "pattern": "(?>(?:.(?!D))+)",
+      "valid": true,
+      "source_line": 2625
+    },
+    {
+      "pattern": "(?:.(?!D))++",
+      "valid": true,
+      "source_line": 2626
+    },
+    {
+      "pattern": "(?>(?:.(?!D))*)",
+      "valid": true,
+      "source_line": 2627
+    },
+    {
+      "pattern": "(?:.(?!D))*+",
+      "valid": true,
+      "source_line": 2628
+    },
+    {
+      "pattern": "(?>(?:.(?!D))?)",
+      "valid": true,
+      "source_line": 2629
+    },
+    {
+      "pattern": "(?:.(?!D))?+",
+      "valid": true,
+      "source_line": 2630
+    },
+    {
+      "pattern": "(?>(?:.(?!D)){1,3})",
+      "valid": true,
+      "source_line": 2631
+    },
+    {
+      "pattern": "(?:.(?!D)){1,3}+",
+      "valid": true,
+      "source_line": 2632
+    },
+    {
+      "pattern": "(?>(?:ab?c)+)",
+      "valid": true,
+      "source_line": 2634
+    },
+    {
+      "pattern": "(?:ab?c)++",
+      "valid": true,
+      "source_line": 2635
+    },
+    {
+      "pattern": "(?>(?:ab?c)*)",
+      "valid": true,
+      "source_line": 2636
+    },
+    {
+      "pattern": "(?:ab?c)*+",
+      "valid": true,
+      "source_line": 2637
+    },
+    {
+      "pattern": "(?>(?:ab?c)?)",
+      "valid": true,
+      "source_line": 2638
+    },
+    {
+      "pattern": "(?:ab?c)?+",
+      "valid": true,
+      "source_line": 2639
+    },
+    {
+      "pattern": "(?>(?:ab?c){1,3})",
+      "valid": true,
+      "source_line": 2640
+    },
+    {
+      "pattern": "(?:ab?c){1,3}+",
+      "valid": true,
+      "source_line": 2641
+    },
+    {
+      "pattern": "((x)|y|z)*+",
+      "valid": true,
+      "source_line": 2645
+    },
+    {
+      "pattern": "((x)|y|z){3}+",
+      "valid": true,
+      "source_line": 2646
+    },
+    {
+      "pattern": "((x)|y|z){3,}+",
+      "valid": true,
+      "source_line": 2647
+    },
+    {
+      "pattern": "a|ab",
+      "valid": true,
+      "source_line": 609
+    },
+    {
+      "pattern": "bc",
+      "valid": true,
+      "source_line": 630
+    }
+  ]
+}

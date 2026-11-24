@@ -1,0 +1,337 @@
+{
+  "sources": {
+    "implementations/python/packages/raes_contracts/contracts/difficulty_adaptation.py": "779a95101b3194acc35878e7c1e22e3db563835732efea87ad00e4c1e03cc1de",
+    "implementations/python/packages/raes_contracts/contracts/difficulty_observations.py": "e4f4641e127eb1dc95c1574a041b67b6b9baf8aac17c6ec688330c9d9c3b5eb6",
+    "implementations/python/packages/raes_contracts/contracts/experiment_allocation.py": "6a1000d9ac3b1367954b26adb14f3753547d8334ac53750bd172e22812800cb4",
+    "implementations/python/packages/raes_contracts/contracts/experiment_apparatus.py": "29938354023b83b5867be50663047deb9426b628c7632d55551b6daf7ffe985e",
+    "implementations/python/packages/raes_contracts/contracts/experiment_artifacts.py": "14bbf13e3cd644939f9e9b483aca0fffeef32eb1a684ce2e0e20c3e49f5b01fb",
+    "implementations/python/packages/raes_contracts/contracts/experiment_bindings.py": "3c760fb45b0d85f2b17c1ab42b742398a887ac3871ad26c0c2d44f34aa4400d5",
+    "implementations/python/packages/raes_contracts/contracts/experiment_capture.py": "7a698a5550a6922fe33516ebf5025ba0e8316d57239b9c8f045f2b9eeca754f1",
+    "implementations/python/packages/raes_contracts/contracts/experiment_disclosure.py": "021a6ae52923117b0482f6e0b1f95dfca95fb561bf722f2adeed4b5097468a23",
+    "implementations/python/packages/raes_contracts/contracts/experiment_evidence_refinement.py": "494f384875e520779ef07f56432b03e53bd0ab1cb485ded3c312df0c1df7084b",
+    "implementations/python/packages/raes_contracts/contracts/experiment_factorial.py": "f32b0717606d2415c537c4b3690f32f40883bd5ff69fad8bc6528085be6a50db",
+    "implementations/python/packages/raes_contracts/contracts/experiment_manifest_references.py": "74505cf63b6cee314b7d904703e6be55c4b99c5a742ce4612f7cc56b6384f93c",
+    "implementations/python/packages/raes_contracts/contracts/experiment_plan_controls.py": "ff0632be7595403c1ec7d9b7f8f11f5512cb82579f4830ca4198707d42e69048",
+    "implementations/python/packages/raes_contracts/contracts/experiment_references.py": "41e58dde62698c0ce710f05aeafdb9b78270f826bbf827c2c4723fce2dc45cd5",
+    "implementations/python/packages/raes_contracts/contracts/experiment_selection.py": "8b2e1a48501b74939c6233b65bd8cfeb5fe7b2fa78c5db79c87dd9b35def79b1",
+    "implementations/python/packages/raes_contracts/contracts/experiment_spec.py": "526a041e62dd6db29d20d29146953a719d50f82f5b3cd3c2315a55dd67a507e3",
+    "implementations/python/packages/raes_contracts/contracts/experiment_study.py": "6b6217a5283dcddf4cac14f3af859709664df7d9438641ecf2397a097f7678ce",
+    "implementations/python/packages/raes_contracts/contracts/experiment_treatments.py": "f9d4632d4dd3874ece090451cddf25d017dff8a0bbc842ac71b7c0560d60fc96",
+    "implementations/python/packages/raes_contracts/contracts/random_stream.py": "73d224f0fdce4a9d7f9a75ee42fdddfc76d55a93506669d0fe4df310e433f872",
+    "implementations/python/packages/raes_contracts/contracts/trial_replacement.py": "38d7c2ef4c7996814ae961fa62ca47c1903ec5d111713f332cb31104232dc6d8",
+    "implementations/python/packages/raes_contracts/observation_demand.py": "1bbc54fa0c6e7819d178a5670be07cc1e83901979232d9d057d991f7e07e0e53"
+  },
+  "fields": {
+    "ApparatusBindingTargetModel": [
+      "/component_name",
+      "/component_version",
+      "/manifest_version",
+      "/target_id"
+    ],
+    "BindingOwnerModel": [
+      "/contract_id",
+      "/contract_version",
+      "/validator_id",
+      "/validator_version"
+    ],
+    "DifficultyActionModel": [
+      "/action_id",
+      "/carrier_ref",
+      "/target_variant_id"
+    ],
+    "DifficultyAffectedReferenceModel": [
+      "/ref_id"
+    ],
+    "DifficultyDimensionModel": [
+      "/dimension_id",
+      "/ordered_variant_ids/*",
+      "/ordering_rationale"
+    ],
+    "DifficultyObservationSourceModel": [
+      "/source_id"
+    ],
+    "DifficultyPolicyModel": [
+      "/baseline_variant_id",
+      "/guardrails/*",
+      "/policy_digest",
+      "/policy_id",
+      "/policy_version",
+      "/validity_effect"
+    ],
+    "DifficultyPolicyRegistryModel": [
+      "/default_policy_id"
+    ],
+    "DifficultySourceDefinitionReferenceModel": [
+      "/ref_digest",
+      "/ref_id",
+      "/ref_path",
+      "/ref_version"
+    ],
+    "DifficultyThresholdRuleModel": [
+      "/action_id",
+      "/observation_source_id",
+      "/rule_id"
+    ],
+    "DifficultyVariantModel": [
+      "/action_refs/*",
+      "/description",
+      "/scaffold_refs/*",
+      "/selection_policy_refs/*",
+      "/variant_id"
+    ],
+    "ExperimentAllocationPolicyModel": [
+      "/policy_id",
+      "/stochastic_control_ref"
+    ],
+    "ExperimentApparatusConstraintModel": [
+      "/notes/*",
+      "/required_capabilities/*"
+    ],
+    "ExperimentArtifactRefModel": [
+      "/artifact_id",
+      "/created_at",
+      "/description",
+      "/media_type",
+      "/source",
+      "/uri"
+    ],
+    "ExperimentBackendReferenceModel": [
+      "/ref_digest",
+      "/ref_id",
+      "/ref_path",
+      "/ref_version"
+    ],
+    "ExperimentBindingDescriptorModel": [
+      "/binding_id",
+      "/source_condition_id",
+      "/source_factor_id",
+      "/source_factor_level_id"
+    ],
+    "ExperimentCaptureSpecReferenceModel": [
+      "/ref_digest",
+      "/ref_id",
+      "/ref_path",
+      "/ref_version"
+    ],
+    "ExperimentChecksumModel": [
+      "/value"
+    ],
+    "ExperimentClockContextModel": [
+      "/authority",
+      "/clock_id",
+      "/synchronization"
+    ],
+    "ExperimentConditionAssignmentModel": [
+      "/condition_id",
+      "/description",
+      "/difficulty_policy_id",
+      "/factor_levels/*"
+    ],
+    "ExperimentConditionAssignmentParameterModel": [
+      "/name",
+      "/value"
+    ],
+    "ExperimentConditionAssignmentReferenceModel": [
+      "/ref_digest",
+      "/ref_id",
+      "/ref_path",
+      "/ref_version"
+    ],
+    "ExperimentEnumerateSelectionPolicyModel": [
+      "/binding_descriptor_refs/*",
+      "/point_ref",
+      "/policy_id"
+    ],
+    "ExperimentEpisodeControlModel": [
+      "/description",
+      "/termination_condition_refs/*",
+      "/termination_rule"
+    ],
+    "ExperimentEvidenceRequirementRelationModel": [
+      "/base_requirement_address",
+      "/capture_requirement_ref",
+      "/rationale",
+      "/relation_id",
+      "/relation_version"
+    ],
+    "ExperimentEvidenceSatisfactionReferenceModel": [
+      "/ref_digest",
+      "/ref_id",
+      "/ref_path",
+      "/ref_version"
+    ],
+    "ExperimentFactorLevelSelectionModel": [
+      "/scenario_family_digest"
+    ],
+    "ExperimentFactorialDesignModel": [
+      "/factor_ids/*"
+    ],
+    "ExperimentFactorialTreatmentDesignModel": [
+      "/factor_ids/*"
+    ],
+    "ExperimentFixedSelectionPolicyModel": [
+      "/binding_descriptor_refs/*",
+      "/point_ref",
+      "/policy_id"
+    ],
+    "ExperimentManifestReferenceModel": [
+      "/ref_digest",
+      "/ref_id",
+      "/ref_path",
+      "/ref_version"
+    ],
+    "ExperimentParameterModel": [
+      "/name",
+      "/value"
+    ],
+    "ExperimentProcessorReferenceModel": [
+      "/ref_digest",
+      "/ref_id",
+      "/ref_path",
+      "/ref_version"
+    ],
+    "ExperimentProductSelectionPolicyModel": [
+      "/policy_id",
+      "/policy_refs/*"
+    ],
+    "ExperimentRedVariantSelectionModel": [
+      "/agent_ref",
+      "/description",
+      "/variant_id"
+    ],
+    "ExperimentReferenceModel": [
+      "/ref_digest",
+      "/ref_id",
+      "/ref_path",
+      "/ref_version"
+    ],
+    "ExperimentRunAllocationPlanModel": [
+      "/allocation_method",
+      "/allocation_unit",
+      "/blocking_factors/*",
+      "/compared_conditions/*",
+      "/randomization_unit",
+      "/replication_policy",
+      "/stopping_rule"
+    ],
+    "ExperimentSampleSelectionPolicyModel": [
+      "/binding_descriptor_refs/*",
+      "/logical_coordinate_profile",
+      "/point_ref",
+      "/policy_id",
+      "/stochastic_control_ref"
+    ],
+    "ExperimentScenarioReferenceModel": [
+      "/ref_digest",
+      "/ref_id",
+      "/ref_path",
+      "/ref_version"
+    ],
+    "ExperimentScenarioSelectionDescriptorModel": [
+      "/scenario_family_digest",
+      "/selection_id",
+      "/source_condition_id",
+      "/source_factor_id",
+      "/source_factor_level_id"
+    ],
+    "ExperimentScenarioSnapshotReferenceModel": [
+      "/ref_digest",
+      "/ref_id",
+      "/ref_path",
+      "/ref_version"
+    ],
+    "ExperimentSelectionMemberOutcomeModel": [
+      "/member_id"
+    ],
+    "ExperimentSelectionOrderOutcomeModel": [
+      "/member_ids/*"
+    ],
+    "ExperimentSelectionReferenceOutcomeModel": [
+      "/reference_id"
+    ],
+    "ExperimentSelectionStratumModel": [
+      "/condition_id",
+      "/factor_id",
+      "/factor_level_id",
+      "/outcome_ref",
+      "/stratum_id"
+    ],
+    "ExperimentSelectionSubsetOutcomeModel": [
+      "/member_ids/*"
+    ],
+    "ExperimentSpecModel": [
+      "/description",
+      "/spec_id",
+      "/spec_version",
+      "/title"
+    ],
+    "ExperimentStochasticControlModel": [
+      "/control_id",
+      "/description",
+      "/value"
+    ],
+    "ExperimentStratifiedSelectionPolicyModel": [
+      "/point_ref",
+      "/policy_id"
+    ],
+    "ExperimentStudyFactorModel": [
+      "/levels/*",
+      "/name"
+    ],
+    "ExperimentTaskReferenceModel": [
+      "/ref_digest",
+      "/ref_id",
+      "/ref_path",
+      "/ref_version"
+    ],
+    "ExperimentValidityNoteModel": [
+      "/mitigation",
+      "/note"
+    ],
+    "GovernedEntropyRefModel": [
+      "/reference_id",
+      "/reference_version"
+    ],
+    "ObservationDemandDocument": [
+      "/document_id"
+    ],
+    "ObservationDemandRule": [
+      "/authority_ref",
+      "/integrity",
+      "/redaction",
+      "/rule_id",
+      "/scope"
+    ],
+    "ObservationSelector": [
+      "/coverage_profile",
+      "/semantic_scope"
+    ],
+    "ParticipantImplementationBindingTargetModel": [
+      "/implementation_name",
+      "/implementation_version",
+      "/manifest_version",
+      "/participant_address",
+      "/target_id"
+    ],
+    "PublicSeedModel": [
+      "/value"
+    ],
+    "RandomStreamControlBindingModel": [
+      "/namespace"
+    ],
+    "RandomStreamProfileReferenceModel": [
+      "/ref_digest",
+      "/ref_id",
+      "/ref_path",
+      "/ref_version"
+    ],
+    "ScenarioBindingTargetModel": [
+      "/scenario_family_id",
+      "/target_id",
+      "/variation_point_id"
+    ],
+    "SecretReferenceBindingValueModel": [
+      "/reference_id"
+    ]
+  }
+}

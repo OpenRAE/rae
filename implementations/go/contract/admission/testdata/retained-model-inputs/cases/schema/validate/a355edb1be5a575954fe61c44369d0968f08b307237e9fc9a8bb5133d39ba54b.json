@@ -1,0 +1,14 @@
+{
+  "args": [
+    "participant-information-reconstruction-profile-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:8062c69b484dc073fbcc0713fb10baed51782cb61a6d378926039b978463f0cf"
+  },
+  "name": "regression/3f9d9266fd2eb5db7a7d3bdd1d9b766bbbf33fd1e628f54ee58a13ad01595616",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

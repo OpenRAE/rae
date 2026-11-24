@@ -1,0 +1,14 @@
+{
+  "args": [
+    "inject-occurrence-correlation-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:3ab6e5d2581decc9b539e24898fb68d9db6b3366b8a06e2194a5b768f0573bc6"
+  },
+  "name": "inject-occurrence-correlation-v1/routed/contracts/fixtures/control-plane/inject-occurrence-correlation-v1/context-invalid/request-as-occurrence.json",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

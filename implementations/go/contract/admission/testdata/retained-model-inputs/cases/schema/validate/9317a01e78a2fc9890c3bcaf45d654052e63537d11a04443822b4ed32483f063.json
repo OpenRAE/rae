@@ -1,0 +1,14 @@
+{
+  "args": [
+    "proposition-truth-result-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:eaffc8e40d1b8bdf6a64fb81cf6babc86169464db56aa53d6e61a8becdf6bc30"
+  },
+  "name": "regression/49284762700337d6b7e49b723e2c03932dd996dec5718ea09fcd78e0cb24ff6f",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

@@ -1,0 +1,932 @@
+{
+  "reference": "Published domain-profile contract models and issue-1202 checks",
+  "baselines": {
+    "domain-profile-definition-v1": {
+      "contract_id": "domain-profile-definition-v1",
+      "payload": {
+        "schema_version": "domain-profile-definition/v1",
+        "coordinate": {
+          "namespace": "org.openrae.standard",
+          "authority": "https://openrae.org/profiles",
+          "profile_id": "repository",
+          "revision": "1.0.0",
+          "definition_digest": "sha256:aab59f13afb071f88828242ca97ed2359551ff651853369d935418d07d3be35d"
+        },
+        "profile_schema": {
+          "dialect": "https://json-schema.org/draft/2020-12/schema",
+          "schema_id": "urn:example:schema:repository",
+          "revision": "1.0.0",
+          "schema_digest": "sha256:6a68b701e172337e7afaa58d25e42852ee73074de8605b854b6505251faaaa81",
+          "required_vocabularies": [],
+          "schema_document": {
+            "$schema": "https://json-schema.org/draft/2020-12/schema",
+            "$id": "urn:example:schema:repository",
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "name"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "semantic_contract": {
+          "authority": "https://openrae.org/profiles",
+          "contract_id": "repository-semantics",
+          "revision": "1.0.0",
+          "digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+        },
+        "allowed_contexts": [
+          "artifact-acquisition"
+        ]
+      }
+    },
+    "domain-profile-binding-v1": {
+      "contract_id": "domain-profile-binding-v1",
+      "payload": {
+        "schema_version": "domain-profile-binding/v1",
+        "binding_id": "repository-binding",
+        "coordinate": {
+          "namespace": "org.openrae.standard",
+          "authority": "https://openrae.org/profiles",
+          "profile_id": "repository",
+          "revision": "1.0.0",
+          "definition_digest": "sha256:aab59f13afb071f88828242ca97ed2359551ff651853369d935418d07d3be35d"
+        },
+        "owner": {
+          "owning_contract_id": "artifact-requirement/v1",
+          "canonical_address": "#/source/artifact_requirement",
+          "concept_family": "tools-and-artifacts",
+          "lifecycle_phase": "authoring",
+          "context": "artifact-acquisition",
+          "use": "constraint"
+        },
+        "value": {
+          "name": "reference-repository"
+        },
+        "provenance": {
+          "basis": "author-supplied",
+          "source_ref": "urn:example:binding-source",
+          "evidence_refs": []
+        },
+        "children": []
+      }
+    },
+    "domain-profile-support-declaration-v1": {
+      "contract_id": "domain-profile-support-declaration-v1",
+      "payload": {
+        "schema_version": "domain-profile-support-declaration/v1",
+        "coordinate": {
+          "namespace": "org.openrae.standard",
+          "authority": "https://openrae.org/profiles",
+          "profile_id": "repository",
+          "revision": "1.0.0",
+          "definition_digest": "sha256:aab59f13afb071f88828242ca97ed2359551ff651853369d935418d07d3be35d"
+        },
+        "semantic_contract": {
+          "authority": "https://openrae.org/profiles",
+          "contract_id": "repository-semantics",
+          "revision": "1.0.0",
+          "digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+        },
+        "operations": [
+          "semantic-validation"
+        ],
+        "supported_schema_dialects": [],
+        "supported_vocabularies": [],
+        "supported_schema_keywords": []
+      }
+    },
+    "domain-profile-resolution-context-v1": {
+      "contract_id": "domain-profile-resolution-context-v1",
+      "payload": {
+        "schema_version": "domain-profile-resolution-context/v1",
+        "namespace_admissions": [
+          {
+            "namespace": "org.openrae.standard",
+            "authority": "https://openrae.org/profiles",
+            "trust_decision_id": "local-source"
+          }
+        ],
+        "definitions": [
+          {
+            "definition": {
+              "schema_version": "domain-profile-definition/v1",
+              "coordinate": {
+                "namespace": "org.openrae.standard",
+                "authority": "https://openrae.org/profiles",
+                "profile_id": "repository",
+                "revision": "1.0.0",
+                "definition_digest": "sha256:aab59f13afb071f88828242ca97ed2359551ff651853369d935418d07d3be35d"
+              },
+              "profile_schema": {
+                "dialect": "https://json-schema.org/draft/2020-12/schema",
+                "schema_id": "urn:example:schema:repository",
+                "revision": "1.0.0",
+                "schema_digest": "sha256:6a68b701e172337e7afaa58d25e42852ee73074de8605b854b6505251faaaa81",
+                "required_vocabularies": [],
+                "schema_document": {
+                  "$schema": "https://json-schema.org/draft/2020-12/schema",
+                  "$id": "urn:example:schema:repository",
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "name"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "semantic_contract": {
+                "authority": "https://openrae.org/profiles",
+                "contract_id": "repository-semantics",
+                "revision": "1.0.0",
+                "digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+              },
+              "allowed_contexts": [
+                "artifact-acquisition"
+              ]
+            },
+            "provenance": {
+              "source_locator": "urn:example:definition",
+              "source_digest": "sha256:aab59f13afb071f88828242ca97ed2359551ff651853369d935418d07d3be35d",
+              "trust_decision_id": "local-source"
+            }
+          }
+        ],
+        "support_declarations": [
+          {
+            "schema_version": "domain-profile-support-declaration/v1",
+            "coordinate": {
+              "namespace": "org.openrae.standard",
+              "authority": "https://openrae.org/profiles",
+              "profile_id": "repository",
+              "revision": "1.0.0",
+              "definition_digest": "sha256:aab59f13afb071f88828242ca97ed2359551ff651853369d935418d07d3be35d"
+            },
+            "semantic_contract": {
+              "authority": "https://openrae.org/profiles",
+              "contract_id": "repository-semantics",
+              "revision": "1.0.0",
+              "digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+            },
+            "operations": [
+              "semantic-validation"
+            ],
+            "supported_schema_dialects": [],
+            "supported_vocabularies": [],
+            "supported_schema_keywords": []
+          }
+        ],
+        "limits": {
+          "max_definitions": 256,
+          "max_bindings": 256,
+          "max_depth": 16,
+          "max_nodes": 4096,
+          "max_scalar_bytes": 1048576,
+          "max_references": 128,
+          "max_evaluations": 65536,
+          "max_diagnostics": 64
+        }
+      }
+    },
+    "domain-profile-admission-policy-v1": {
+      "contract_id": "domain-profile-admission-policy-v1",
+      "payload": {
+        "schema_version": "domain-profile-admission-policy/v1",
+        "required_operations": [
+          "structural-validation"
+        ],
+        "allow_opaque_exchange": false
+      }
+    }
+  },
+  "cases": [
+    {
+      "name": "domain-profile-definition-v1-reference",
+      "contract_id": "domain-profile-definition-v1",
+      "baseline": "domain-profile-definition-v1",
+      "valid": true,
+      "changes": []
+    },
+    {
+      "name": "domain-profile-binding-v1-reference",
+      "contract_id": "domain-profile-binding-v1",
+      "baseline": "domain-profile-binding-v1",
+      "valid": true,
+      "changes": []
+    },
+    {
+      "name": "domain-profile-support-declaration-v1-reference",
+      "contract_id": "domain-profile-support-declaration-v1",
+      "baseline": "domain-profile-support-declaration-v1",
+      "valid": true,
+      "changes": []
+    },
+    {
+      "name": "domain-profile-resolution-context-v1-reference",
+      "contract_id": "domain-profile-resolution-context-v1",
+      "baseline": "domain-profile-resolution-context-v1",
+      "valid": true,
+      "changes": []
+    },
+    {
+      "name": "domain-profile-admission-policy-v1-reference",
+      "contract_id": "domain-profile-admission-policy-v1",
+      "baseline": "domain-profile-admission-policy-v1",
+      "valid": true,
+      "changes": []
+    },
+    {
+      "name": "definition-wrong-digest",
+      "contract_id": "domain-profile-definition-v1",
+      "baseline": "domain-profile-definition-v1",
+      "valid": false,
+      "changes": [
+        {
+          "path": [
+            "coordinate",
+            "definition_digest"
+          ],
+          "value": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
+        }
+      ]
+    },
+    {
+      "name": "schema-wrong-digest",
+      "contract_id": "domain-profile-definition-v1",
+      "baseline": "domain-profile-definition-v1",
+      "valid": false,
+      "changes": [
+        {
+          "path": [
+            "profile_schema",
+            "schema_digest"
+          ],
+          "value": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
+        }
+      ]
+    },
+    {
+      "name": "schema-wrong-id",
+      "contract_id": "domain-profile-definition-v1",
+      "baseline": "domain-profile-definition-v1",
+      "valid": false,
+      "changes": [
+        {
+          "path": [
+            "profile_schema",
+            "schema_id"
+          ],
+          "value": "urn:other:schema"
+        }
+      ]
+    },
+    {
+      "name": "schema-wrong-dialect",
+      "contract_id": "domain-profile-definition-v1",
+      "baseline": "domain-profile-definition-v1",
+      "valid": false,
+      "changes": [
+        {
+          "path": [
+            "profile_schema",
+            "schema_document",
+            "$schema"
+          ],
+          "value": "urn:other:dialect"
+        }
+      ]
+    },
+    {
+      "name": "definition-file-authority",
+      "contract_id": "domain-profile-definition-v1",
+      "baseline": "domain-profile-definition-v1",
+      "valid": false,
+      "changes": [
+        {
+          "path": [
+            "coordinate",
+            "authority"
+          ],
+          "value": "file:///private/file"
+        }
+      ]
+    },
+    {
+      "name": "definition-data-authority",
+      "contract_id": "domain-profile-definition-v1",
+      "baseline": "domain-profile-definition-v1",
+      "valid": false,
+      "changes": [
+        {
+          "path": [
+            "coordinate",
+            "authority"
+          ],
+          "value": "data:text/plain,private"
+        }
+      ]
+    },
+    {
+      "name": "semantic-secret-authority",
+      "contract_id": "domain-profile-definition-v1",
+      "baseline": "domain-profile-definition-v1",
+      "valid": false,
+      "changes": [
+        {
+          "path": [
+            "semantic_contract",
+            "authority"
+          ],
+          "value": "https://example.invalid/?token=private"
+        }
+      ]
+    },
+    {
+      "name": "semantic-fragment-authority",
+      "contract_id": "domain-profile-definition-v1",
+      "baseline": "domain-profile-definition-v1",
+      "valid": false,
+      "changes": [
+        {
+          "path": [
+            "semantic_contract",
+            "authority"
+          ],
+          "value": "https://example.invalid/#fragment"
+        }
+      ]
+    },
+    {
+      "name": "schema-nonboolean-vocabulary",
+      "contract_id": "domain-profile-definition-v1",
+      "baseline": "domain-profile-definition-v1",
+      "valid": false,
+      "changes": [
+        {
+          "path": [
+            "profile_schema",
+            "schema_document",
+            "$vocabulary"
+          ],
+          "value": {
+            "urn:example:vocabulary": 1
+          }
+        }
+      ]
+    },
+    {
+      "name": "schema-vocabulary-mismatch",
+      "contract_id": "domain-profile-definition-v1",
+      "baseline": "domain-profile-definition-v1",
+      "valid": false,
+      "changes": [
+        {
+          "path": [
+            "profile_schema",
+            "required_vocabularies"
+          ],
+          "value": [
+            "urn:example:missing"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "definition-unsorted-contexts",
+      "contract_id": "domain-profile-definition-v1",
+      "baseline": "domain-profile-definition-v1",
+      "valid": false,
+      "changes": [
+        {
+          "path": [
+            "allowed_contexts"
+          ],
+          "value": [
+            "z",
+            "a"
+          ]
+        },
+        {
+          "path": [
+            "coordinate",
+            "definition_digest"
+          ],
+          "value": "sha256:f2365f9f972fcfa8b0a3dc8d98d2f5dae6506077582ba18ee4adad412933774f"
+        }
+      ]
+    },
+    {
+      "name": "definition-duplicate-contexts",
+      "contract_id": "domain-profile-definition-v1",
+      "baseline": "domain-profile-definition-v1",
+      "valid": false,
+      "changes": [
+        {
+          "path": [
+            "allowed_contexts"
+          ],
+          "value": [
+            "a",
+            "a"
+          ]
+        },
+        {
+          "path": [
+            "coordinate",
+            "definition_digest"
+          ],
+          "value": "sha256:dfa85abf93b8a27aeb17e6398ed34ebe142a5bee1459943bf1a5779a648bb18a"
+        }
+      ]
+    },
+    {
+      "name": "support-unsorted-operations",
+      "contract_id": "domain-profile-support-declaration-v1",
+      "baseline": "domain-profile-support-declaration-v1",
+      "valid": false,
+      "changes": [
+        {
+          "path": [
+            "operations"
+          ],
+          "value": [
+            "structural-validation",
+            "semantic-validation"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "support-duplicate-operations",
+      "contract_id": "domain-profile-support-declaration-v1",
+      "baseline": "domain-profile-support-declaration-v1",
+      "valid": false,
+      "changes": [
+        {
+          "path": [
+            "operations"
+          ],
+          "value": [
+            "structural-validation",
+            "structural-validation"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "support-secret-vocabulary",
+      "contract_id": "domain-profile-support-declaration-v1",
+      "baseline": "domain-profile-support-declaration-v1",
+      "valid": false,
+      "changes": [
+        {
+          "path": [
+            "supported_vocabularies"
+          ],
+          "value": [
+            "https://example.invalid/?password=private"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "support-file-dialect",
+      "contract_id": "domain-profile-support-declaration-v1",
+      "baseline": "domain-profile-support-declaration-v1",
+      "valid": false,
+      "changes": [
+        {
+          "path": [
+            "supported_schema_dialects"
+          ],
+          "value": [
+            "file:///private/schema"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "policy-unsorted-operations",
+      "contract_id": "domain-profile-admission-policy-v1",
+      "baseline": "domain-profile-admission-policy-v1",
+      "valid": false,
+      "changes": [
+        {
+          "path": [
+            "required_operations"
+          ],
+          "value": [
+            "typed-report",
+            "execution"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "policy-duplicate-operations",
+      "contract_id": "domain-profile-admission-policy-v1",
+      "baseline": "domain-profile-admission-policy-v1",
+      "valid": false,
+      "changes": [
+        {
+          "path": [
+            "required_operations"
+          ],
+          "value": [
+            "execution",
+            "execution"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "binding-unsorted-evidence",
+      "contract_id": "domain-profile-binding-v1",
+      "baseline": "domain-profile-binding-v1",
+      "valid": false,
+      "changes": [
+        {
+          "path": [
+            "provenance",
+            "basis"
+          ],
+          "value": "observed"
+        },
+        {
+          "path": [
+            "provenance",
+            "evidence_refs"
+          ],
+          "value": [
+            "z",
+            "a"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "binding-duplicate-evidence",
+      "contract_id": "domain-profile-binding-v1",
+      "baseline": "domain-profile-binding-v1",
+      "valid": false,
+      "changes": [
+        {
+          "path": [
+            "provenance",
+            "basis"
+          ],
+          "value": "observed"
+        },
+        {
+          "path": [
+            "provenance",
+            "evidence_refs"
+          ],
+          "value": [
+            "a",
+            "a"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "binding-duplicate-child",
+      "contract_id": "domain-profile-binding-v1",
+      "baseline": "domain-profile-binding-v1",
+      "valid": false,
+      "changes": [
+        {
+          "path": [
+            "children"
+          ],
+          "value": [
+            {
+              "schema_version": "domain-profile-binding/v1",
+              "binding_id": "child",
+              "coordinate": {
+                "namespace": "org.openrae.standard",
+                "authority": "https://openrae.org/profiles",
+                "profile_id": "repository",
+                "revision": "1.0.0",
+                "definition_digest": "sha256:aab59f13afb071f88828242ca97ed2359551ff651853369d935418d07d3be35d"
+              },
+              "owner": {
+                "owning_contract_id": "artifact-requirement/v1",
+                "canonical_address": "#/source/artifact_requirement",
+                "concept_family": "tools-and-artifacts",
+                "lifecycle_phase": "authoring",
+                "context": "artifact-acquisition",
+                "use": "constraint"
+              },
+              "value": {
+                "name": "reference-repository"
+              },
+              "provenance": {
+                "basis": "author-supplied",
+                "source_ref": "urn:example:binding-source",
+                "evidence_refs": []
+              },
+              "children": []
+            },
+            {
+              "schema_version": "domain-profile-binding/v1",
+              "binding_id": "child",
+              "coordinate": {
+                "namespace": "org.openrae.standard",
+                "authority": "https://openrae.org/profiles",
+                "profile_id": "repository",
+                "revision": "1.0.0",
+                "definition_digest": "sha256:aab59f13afb071f88828242ca97ed2359551ff651853369d935418d07d3be35d"
+              },
+              "owner": {
+                "owning_contract_id": "artifact-requirement/v1",
+                "canonical_address": "#/source/artifact_requirement",
+                "concept_family": "tools-and-artifacts",
+                "lifecycle_phase": "authoring",
+                "context": "artifact-acquisition",
+                "use": "constraint"
+              },
+              "value": {
+                "name": "reference-repository"
+              },
+              "provenance": {
+                "basis": "author-supplied",
+                "source_ref": "urn:example:binding-source",
+                "evidence_refs": []
+              },
+              "children": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "context-definition-limit",
+      "contract_id": "domain-profile-resolution-context-v1",
+      "baseline": "domain-profile-resolution-context-v1",
+      "valid": false,
+      "changes": [
+        {
+          "path": [
+            "definitions"
+          ],
+          "value": [
+            {
+              "definition": {
+                "schema_version": "domain-profile-definition/v1",
+                "coordinate": {
+                  "namespace": "org.openrae.standard",
+                  "authority": "https://openrae.org/profiles",
+                  "profile_id": "repository",
+                  "revision": "1.0.0",
+                  "definition_digest": "sha256:aab59f13afb071f88828242ca97ed2359551ff651853369d935418d07d3be35d"
+                },
+                "profile_schema": {
+                  "dialect": "https://json-schema.org/draft/2020-12/schema",
+                  "schema_id": "urn:example:schema:repository",
+                  "revision": "1.0.0",
+                  "schema_digest": "sha256:6a68b701e172337e7afaa58d25e42852ee73074de8605b854b6505251faaaa81",
+                  "required_vocabularies": [],
+                  "schema_document": {
+                    "$schema": "https://json-schema.org/draft/2020-12/schema",
+                    "$id": "urn:example:schema:repository",
+                    "type": "object",
+                    "properties": {
+                      "name": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "name"
+                    ],
+                    "additionalProperties": false
+                  }
+                },
+                "semantic_contract": {
+                  "authority": "https://openrae.org/profiles",
+                  "contract_id": "repository-semantics",
+                  "revision": "1.0.0",
+                  "digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+                },
+                "allowed_contexts": [
+                  "artifact-acquisition"
+                ]
+              },
+              "provenance": {
+                "source_locator": "urn:example:definition",
+                "source_digest": "sha256:aab59f13afb071f88828242ca97ed2359551ff651853369d935418d07d3be35d",
+                "trust_decision_id": "local-source"
+              }
+            },
+            {
+              "definition": {
+                "schema_version": "domain-profile-definition/v1",
+                "coordinate": {
+                  "namespace": "org.openrae.standard",
+                  "authority": "https://openrae.org/profiles",
+                  "profile_id": "repository",
+                  "revision": "1.0.0",
+                  "definition_digest": "sha256:aab59f13afb071f88828242ca97ed2359551ff651853369d935418d07d3be35d"
+                },
+                "profile_schema": {
+                  "dialect": "https://json-schema.org/draft/2020-12/schema",
+                  "schema_id": "urn:example:schema:repository",
+                  "revision": "1.0.0",
+                  "schema_digest": "sha256:6a68b701e172337e7afaa58d25e42852ee73074de8605b854b6505251faaaa81",
+                  "required_vocabularies": [],
+                  "schema_document": {
+                    "$schema": "https://json-schema.org/draft/2020-12/schema",
+                    "$id": "urn:example:schema:repository",
+                    "type": "object",
+                    "properties": {
+                      "name": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "name"
+                    ],
+                    "additionalProperties": false
+                  }
+                },
+                "semantic_contract": {
+                  "authority": "https://openrae.org/profiles",
+                  "contract_id": "repository-semantics",
+                  "revision": "1.0.0",
+                  "digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+                },
+                "allowed_contexts": [
+                  "artifact-acquisition"
+                ]
+              },
+              "provenance": {
+                "source_locator": "urn:example:definition",
+                "source_digest": "sha256:aab59f13afb071f88828242ca97ed2359551ff651853369d935418d07d3be35d",
+                "trust_decision_id": "local-source"
+              }
+            }
+          ]
+        },
+        {
+          "path": [
+            "limits",
+            "max_definitions"
+          ],
+          "value": 1
+        }
+      ]
+    },
+    {
+      "name": "context-wrong-source-digest",
+      "contract_id": "domain-profile-resolution-context-v1",
+      "baseline": "domain-profile-resolution-context-v1",
+      "valid": false,
+      "changes": [
+        {
+          "path": [
+            "definitions"
+          ],
+          "value": [
+            {
+              "definition": {
+                "schema_version": "domain-profile-definition/v1",
+                "coordinate": {
+                  "namespace": "org.openrae.standard",
+                  "authority": "https://openrae.org/profiles",
+                  "profile_id": "repository",
+                  "revision": "1.0.0",
+                  "definition_digest": "sha256:aab59f13afb071f88828242ca97ed2359551ff651853369d935418d07d3be35d"
+                },
+                "profile_schema": {
+                  "dialect": "https://json-schema.org/draft/2020-12/schema",
+                  "schema_id": "urn:example:schema:repository",
+                  "revision": "1.0.0",
+                  "schema_digest": "sha256:6a68b701e172337e7afaa58d25e42852ee73074de8605b854b6505251faaaa81",
+                  "required_vocabularies": [],
+                  "schema_document": {
+                    "$schema": "https://json-schema.org/draft/2020-12/schema",
+                    "$id": "urn:example:schema:repository",
+                    "type": "object",
+                    "properties": {
+                      "name": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "name"
+                    ],
+                    "additionalProperties": false
+                  }
+                },
+                "semantic_contract": {
+                  "authority": "https://openrae.org/profiles",
+                  "contract_id": "repository-semantics",
+                  "revision": "1.0.0",
+                  "digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+                },
+                "allowed_contexts": [
+                  "artifact-acquisition"
+                ]
+              },
+              "provenance": {
+                "source_locator": "urn:example:definition",
+                "source_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+                "trust_decision_id": "local-source"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "context-file-source",
+      "contract_id": "domain-profile-resolution-context-v1",
+      "baseline": "domain-profile-resolution-context-v1",
+      "valid": false,
+      "changes": [
+        {
+          "path": [
+            "definitions"
+          ],
+          "value": [
+            {
+              "definition": {
+                "schema_version": "domain-profile-definition/v1",
+                "coordinate": {
+                  "namespace": "org.openrae.standard",
+                  "authority": "https://openrae.org/profiles",
+                  "profile_id": "repository",
+                  "revision": "1.0.0",
+                  "definition_digest": "sha256:aab59f13afb071f88828242ca97ed2359551ff651853369d935418d07d3be35d"
+                },
+                "profile_schema": {
+                  "dialect": "https://json-schema.org/draft/2020-12/schema",
+                  "schema_id": "urn:example:schema:repository",
+                  "revision": "1.0.0",
+                  "schema_digest": "sha256:6a68b701e172337e7afaa58d25e42852ee73074de8605b854b6505251faaaa81",
+                  "required_vocabularies": [],
+                  "schema_document": {
+                    "$schema": "https://json-schema.org/draft/2020-12/schema",
+                    "$id": "urn:example:schema:repository",
+                    "type": "object",
+                    "properties": {
+                      "name": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "name"
+                    ],
+                    "additionalProperties": false
+                  }
+                },
+                "semantic_contract": {
+                  "authority": "https://openrae.org/profiles",
+                  "contract_id": "repository-semantics",
+                  "revision": "1.0.0",
+                  "digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+                },
+                "allowed_contexts": [
+                  "artifact-acquisition"
+                ]
+              },
+              "provenance": {
+                "source_locator": "file:///private/definition",
+                "source_digest": "sha256:aab59f13afb071f88828242ca97ed2359551ff651853369d935418d07d3be35d",
+                "trust_decision_id": "local-source"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "context-fragment-authority",
+      "contract_id": "domain-profile-resolution-context-v1",
+      "baseline": "domain-profile-resolution-context-v1",
+      "valid": false,
+      "changes": [
+        {
+          "path": [
+            "namespace_admissions"
+          ],
+          "value": [
+            {
+              "namespace": "org.openrae.standard",
+              "authority": "urn:example:authority#fragment",
+              "trust_decision_id": "local-source"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

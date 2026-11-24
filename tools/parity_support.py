@@ -22,6 +22,11 @@ SHA256_PREFIX = "sha256:"
 MANIFEST_FILE = "manifest.json"
 
 
+def is_native_semantic_fixture(path: Path, fixtures_root: Path) -> bool:
+    """Select the semantic fixture family owned by the native SDL runner."""
+    return path.is_relative_to(fixtures_root / "sdl/semantic-vectors-v1")
+
+
 @dataclass(frozen=True)
 class Case:
     """One invocation of a surface command with its input files."""

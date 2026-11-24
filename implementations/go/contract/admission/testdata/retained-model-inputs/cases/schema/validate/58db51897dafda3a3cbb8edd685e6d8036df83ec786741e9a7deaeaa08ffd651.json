@@ -1,0 +1,14 @@
+{
+  "args": [
+    "semantic-profile-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:2eeb5abbb1c13645e54e117fbbd5b671a6a4735302b1311322c1a45810afb857"
+  },
+  "name": "regression/d7fb50617fa63da8aca1e6d788bb1fe4e0f26d77a918485b3202de97af3d652d",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

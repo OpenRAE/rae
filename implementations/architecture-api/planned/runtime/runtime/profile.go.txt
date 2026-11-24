@@ -1,0 +1,60 @@
+package profile
+
+type ID string
+
+const (
+	P0 ID = "P0"
+	P1 ID = "P1"
+	P2 ID = "P2"
+	P3 ID = "P3"
+)
+
+type ActorBoundary string
+type RecoveryObservationRequirement string
+type Capability string
+type Claim struct{ Identifier, Description string }
+type Declaration struct {
+	Profile                           ID
+	Label                             string
+	Guarantees, Nonclaims             []Claim
+	OneTargetPerStore, OneRunPerStore bool
+	ActorBoundary                     ActorBoundary
+	RecoveryObservation               RecoveryObservationRequirement
+	RequiredCapabilities              []Capability
+	Available                         bool
+}
+type StoreCapabilities struct{ capabilities []Capability }
+
+func NewStoreCapabilities(capabilities []Capability) (StoreCapabilities, error)
+func (s StoreCapabilities) Values() []Capability
+
+var ErrProfileUnavailable error
+
+func DeclarationFor(id ID) (Declaration, error)
+func Select(id ID) (Declaration, error)
+func RequireCapabilities(declaration Declaration, available []Capability) error
+func CoreCapabilities() []Capability
+
+const (
+	StoreEphemeral            Capability                     = "store.ephemeral"
+	StoreDurable              Capability                     = "store.durable"
+	StoreAtomicClaims         Capability                     = "store.atomic-claims"
+	StoreAtomicTerminal       Capability                     = "store.atomic-terminal"
+	StoreRevisionCAS          Capability                     = "store.revision-cas"
+	StoreAudit                Capability                     = "store.audit"
+	StoreScopeBound           Capability                     = "store.scope-bound"
+	StoreOwnerLease           Capability                     = "store.owner-lease"
+	CoreActorContext          Capability                     = "core.actor-context"
+	CoreMutationAuthority     Capability                     = "core.mutation-authority"
+	CoreStartupReconciliation Capability                     = "core.startup-reconciliation"
+	HTTPAuthenticatedIdentity Capability                     = "http.authenticated-identity"
+	HTTPSingleWorker          Capability                     = "http.single-worker"
+	HTTPBoundedAdmission      Capability                     = "http.bounded-admission"
+	HTTPRevisionReads         Capability                     = "http.revision-reads"
+	Embedder                  ActorBoundary                  = "embedder"
+	AuthenticatedHTTP         ActorBoundary                  = "authenticated-http"
+	Unavailable               ActorBoundary                  = "unavailable"
+	NotApplicable             RecoveryObservationRequirement = "not-applicable"
+	OptionalIndeterminate     RecoveryObservationRequirement = "optional-indeterminate"
+	FutureUnspecified         RecoveryObservationRequirement = "future-unspecified"
+)

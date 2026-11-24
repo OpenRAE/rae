@@ -1,0 +1,14 @@
+{
+  "args": [
+    "controlled-vocabularies-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:5510d90cb6fe8d5b4aa4e91e47b4d72ff7cbfe42b02a02f62e7dcd393c7c88d3"
+  },
+  "name": "regression/e102592cf6de70464d925283da0073fae1cbb5d49f2e460c72b2c56bf7cb4393",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

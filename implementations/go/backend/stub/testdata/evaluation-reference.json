@@ -1,0 +1,297 @@
+[
+  {
+    "name": "default",
+    "plan": {
+      "operations": [
+        {
+          "action": "create",
+          "address": "evaluation.objective.test",
+          "resource_type": "objective",
+          "payload": {
+            "result_contract": {}
+          }
+        }
+      ],
+      "diagnostics": [],
+      "startup_order": []
+    },
+    "results": {
+      "evaluation.objective.test": {
+        "state_schema_version": "evaluation-result-state/v1",
+        "resource_type": "objective",
+        "run_id": "evaluation-run",
+        "status": "ready",
+        "observed_at": "2026-01-02T03:04:05Z",
+        "updated_at": "2026-01-02T03:04:05Z",
+        "detail": "stub result for evaluation.objective.test",
+        "evidence_refs": []
+      }
+    },
+    "history": {
+      "evaluation.objective.test": [
+        {
+          "event_type": "evaluation_started",
+          "timestamp": "2026-01-02T03:04:05Z",
+          "status": "running",
+          "passed": null,
+          "score": null,
+          "max_score": null,
+          "detail": null,
+          "evidence_refs": [],
+          "details": {}
+        },
+        {
+          "event_type": "evaluation_ready",
+          "timestamp": "2026-01-02T03:04:05Z",
+          "status": "ready",
+          "passed": null,
+          "score": null,
+          "max_score": null,
+          "detail": "stub result for evaluation.objective.test",
+          "evidence_refs": [],
+          "details": {}
+        }
+      ]
+    },
+    "changed": [
+      "evaluation.objective.test"
+    ]
+  },
+  {
+    "name": "score",
+    "plan": {
+      "operations": [
+        {
+          "action": "create",
+          "address": "evaluation.objective.test",
+          "resource_type": "objective",
+          "payload": {
+            "result_contract": {
+              "supports_score": true
+            }
+          }
+        }
+      ],
+      "diagnostics": [],
+      "startup_order": []
+    },
+    "results": {
+      "evaluation.objective.test": {
+        "state_schema_version": "evaluation-result-state/v1",
+        "resource_type": "objective",
+        "run_id": "evaluation-run",
+        "status": "ready",
+        "observed_at": "2026-01-02T03:04:05Z",
+        "updated_at": "2026-01-02T03:04:05Z",
+        "detail": "stub result for evaluation.objective.test",
+        "evidence_refs": [],
+        "score": 100,
+        "max_score": 100
+      }
+    },
+    "history": {
+      "evaluation.objective.test": [
+        {
+          "event_type": "evaluation_started",
+          "timestamp": "2026-01-02T03:04:05Z",
+          "status": "running",
+          "passed": null,
+          "score": null,
+          "max_score": null,
+          "detail": null,
+          "evidence_refs": [],
+          "details": {}
+        },
+        {
+          "event_type": "evaluation_ready",
+          "timestamp": "2026-01-02T03:04:05Z",
+          "status": "ready",
+          "passed": null,
+          "score": 100,
+          "max_score": 100,
+          "detail": "stub result for evaluation.objective.test",
+          "evidence_refs": [],
+          "details": {}
+        }
+      ]
+    },
+    "changed": [
+      "evaluation.objective.test"
+    ]
+  },
+  {
+    "name": "zero",
+    "plan": {
+      "operations": [
+        {
+          "action": "create",
+          "address": "evaluation.objective.test",
+          "resource_type": "objective",
+          "payload": {
+            "result_contract": {
+              "supports_score": true,
+              "fixed_max_score": 0,
+              "supports_passed": true
+            }
+          }
+        }
+      ],
+      "diagnostics": [],
+      "startup_order": []
+    },
+    "results": {
+      "evaluation.objective.test": {
+        "state_schema_version": "evaluation-result-state/v1",
+        "resource_type": "objective",
+        "run_id": "evaluation-run",
+        "status": "ready",
+        "observed_at": "2026-01-02T03:04:05Z",
+        "updated_at": "2026-01-02T03:04:05Z",
+        "detail": "stub result for evaluation.objective.test",
+        "evidence_refs": [],
+        "score": 0,
+        "max_score": 0,
+        "passed": true
+      }
+    },
+    "history": {
+      "evaluation.objective.test": [
+        {
+          "event_type": "evaluation_started",
+          "timestamp": "2026-01-02T03:04:05Z",
+          "status": "running",
+          "passed": null,
+          "score": null,
+          "max_score": null,
+          "detail": null,
+          "evidence_refs": [],
+          "details": {}
+        },
+        {
+          "event_type": "evaluation_ready",
+          "timestamp": "2026-01-02T03:04:05Z",
+          "status": "ready",
+          "passed": true,
+          "score": 0,
+          "max_score": 0,
+          "detail": "stub result for evaluation.objective.test",
+          "evidence_refs": [],
+          "details": {}
+        }
+      ]
+    },
+    "changed": [
+      "evaluation.objective.test"
+    ]
+  },
+  {
+    "name": "truthy",
+    "plan": {
+      "operations": [
+        {
+          "action": "create",
+          "address": "evaluation.objective.test",
+          "resource_type": "objective",
+          "payload": {
+            "result_contract": {
+              "supports_score": "yes",
+              "supports_passed": [
+                1
+              ]
+            }
+          }
+        }
+      ],
+      "diagnostics": [],
+      "startup_order": []
+    },
+    "results": {
+      "evaluation.objective.test": {
+        "state_schema_version": "evaluation-result-state/v1",
+        "resource_type": "objective",
+        "run_id": "evaluation-run",
+        "status": "ready",
+        "observed_at": "2026-01-02T03:04:05Z",
+        "updated_at": "2026-01-02T03:04:05Z",
+        "detail": "stub result for evaluation.objective.test",
+        "evidence_refs": [],
+        "score": 100,
+        "max_score": 100,
+        "passed": true
+      }
+    },
+    "history": {
+      "evaluation.objective.test": [
+        {
+          "event_type": "evaluation_started",
+          "timestamp": "2026-01-02T03:04:05Z",
+          "status": "running",
+          "passed": null,
+          "score": null,
+          "max_score": null,
+          "detail": null,
+          "evidence_refs": [],
+          "details": {}
+        },
+        {
+          "event_type": "evaluation_ready",
+          "timestamp": "2026-01-02T03:04:05Z",
+          "status": "ready",
+          "passed": true,
+          "score": 100,
+          "max_score": 100,
+          "detail": "stub result for evaluation.objective.test",
+          "evidence_refs": [],
+          "details": {}
+        }
+      ]
+    },
+    "changed": [
+      "evaluation.objective.test"
+    ]
+  },
+  {
+    "name": "proposition",
+    "plan": {
+      "operations": [
+        {
+          "action": "create",
+          "address": "evaluation.proposition.test",
+          "resource_type": "proposition",
+          "payload": {
+            "result_contract": {}
+          }
+        }
+      ],
+      "diagnostics": [],
+      "startup_order": []
+    },
+    "results": {},
+    "history": {},
+    "changed": [
+      "evaluation.proposition.test"
+    ]
+  },
+  {
+    "name": "assertion",
+    "plan": {
+      "operations": [
+        {
+          "action": "create",
+          "address": "evaluation.assertion.test",
+          "resource_type": "assertion",
+          "payload": {
+            "result_contract": {}
+          }
+        }
+      ],
+      "diagnostics": [],
+      "startup_order": []
+    },
+    "results": {},
+    "history": {},
+    "changed": [
+      "evaluation.assertion.test"
+    ]
+  }
+]

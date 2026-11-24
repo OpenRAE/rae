@@ -1,0 +1,16 @@
+name: node-binding-policies
+features:
+  setup: {type: configuration}
+conditions:
+  healthy: {command: 'true', interval: 1}
+injects:
+  announce: {description: announcement}
+nodes:
+  host:
+    type: compute
+    roles: {operator: {username: root}}
+    features: {setup: operator}
+    conditions: {healthy: operator}
+    injects: {announce: operator}
+execution_policy:
+  default: {policy_id: ambient, response: terminate}

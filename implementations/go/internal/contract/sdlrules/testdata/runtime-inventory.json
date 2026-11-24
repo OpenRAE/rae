@@ -1,0 +1,1717 @@
+{
+  "reference": "17bf4515bf12747af69c8598a2fc82d73e9651b9",
+  "sources": [
+    "raes/_runtime_service_family_registry.py",
+    "raes/runtime_inventory.py"
+  ],
+  "Collections": [
+    {
+      "Collection": "service_listeners",
+      "Identity": "service_listener_id",
+      "Children": null
+    },
+    {
+      "Collection": "applications",
+      "Identity": "application_id",
+      "Children": null
+    },
+    {
+      "Collection": "database_services",
+      "Identity": "database_service_id",
+      "Children": [
+        {
+          "Collection": "databases",
+          "Identity": "database_id",
+          "Children": null
+        }
+      ]
+    },
+    {
+      "Collection": "dns_services",
+      "Identity": "dns_service_id",
+      "Children": [
+        {
+          "Collection": "zones",
+          "Identity": "zone_id",
+          "Children": [
+            {
+              "Collection": "rrsets",
+              "Identity": "rrset_id",
+              "Children": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "Collection": "identity_authorities",
+      "Identity": "identity_authority_id",
+      "Children": [
+        {
+          "Collection": "services",
+          "Identity": "service_id",
+          "Children": null
+        },
+        {
+          "Collection": "subjects",
+          "Identity": "subject_id",
+          "Children": null
+        },
+        {
+          "Collection": "policies",
+          "Identity": "policy_id",
+          "Children": null
+        },
+        {
+          "Collection": "relationships",
+          "Identity": "relationship_id",
+          "Children": null
+        },
+        {
+          "Collection": "resource_scopes",
+          "Identity": "scope_id",
+          "Children": null
+        },
+        {
+          "Collection": "identity_uses",
+          "Identity": "use_id",
+          "Children": null
+        },
+        {
+          "Collection": "access_observations",
+          "Identity": "observation_id",
+          "Children": null
+        }
+      ]
+    },
+    {
+      "Collection": "file_services",
+      "Identity": "file_service_id",
+      "Children": [
+        {
+          "Collection": "shares",
+          "Identity": "share_id",
+          "Children": null
+        },
+        {
+          "Collection": "principals",
+          "Identity": "principal_id",
+          "Children": null
+        },
+        {
+          "Collection": "access_rules",
+          "Identity": "rule_id",
+          "Children": null
+        },
+        {
+          "Collection": "access_observations",
+          "Identity": "observation_id",
+          "Children": null
+        }
+      ]
+    },
+    {
+      "Collection": "mail_services",
+      "Identity": "mail_service_id",
+      "Children": [
+        {
+          "Collection": "components",
+          "Identity": "component_id",
+          "Children": null
+        },
+        {
+          "Collection": "listeners",
+          "Identity": "listener_id",
+          "Children": null
+        },
+        {
+          "Collection": "domains",
+          "Identity": "domain_id",
+          "Children": null
+        },
+        {
+          "Collection": "mailbox_stores",
+          "Identity": "store_id",
+          "Children": null
+        },
+        {
+          "Collection": "mailboxes",
+          "Identity": "mailbox_id",
+          "Children": null
+        },
+        {
+          "Collection": "aliases",
+          "Identity": "alias_id",
+          "Children": null
+        },
+        {
+          "Collection": "routing_rules",
+          "Identity": "rule_id",
+          "Children": null
+        },
+        {
+          "Collection": "queues",
+          "Identity": "queue_id",
+          "Children": null
+        },
+        {
+          "Collection": "settings",
+          "Identity": "setting_id",
+          "Children": null
+        }
+      ]
+    },
+    {
+      "Collection": "network_sensors",
+      "Identity": "network_sensor_id",
+      "Children": null
+    },
+    {
+      "Collection": "network_detection_engines",
+      "Identity": "network_detection_engine_id",
+      "Children": [
+        {
+          "Collection": "rule_sources",
+          "Identity": "source_id",
+          "Children": null
+        },
+        {
+          "Collection": "network_sets",
+          "Identity": "set_id",
+          "Children": null
+        },
+        {
+          "Collection": "output_streams",
+          "Identity": "stream_id",
+          "Children": null
+        },
+        {
+          "Collection": "control_channels",
+          "Identity": "channel_id",
+          "Children": null
+        }
+      ]
+    },
+    {
+      "Collection": "security_monitoring_managers",
+      "Identity": "security_monitoring_manager_id",
+      "Children": [
+        {
+          "Collection": "listeners",
+          "Identity": "listener_id",
+          "Children": null
+        },
+        {
+          "Collection": "components",
+          "Identity": "component_id",
+          "Children": null
+        },
+        {
+          "Collection": "agents",
+          "Identity": "agent_id",
+          "Children": null
+        },
+        {
+          "Collection": "agent_groups",
+          "Identity": "group_id",
+          "Children": null
+        },
+        {
+          "Collection": "content_sets",
+          "Identity": "content_id",
+          "Children": null
+        },
+        {
+          "Collection": "detection_definitions",
+          "Identity": "definition_id",
+          "Children": null
+        },
+        {
+          "Collection": "settings",
+          "Identity": "setting_id",
+          "Children": null
+        }
+      ]
+    },
+    {
+      "Collection": "ssh_servers",
+      "Identity": "ssh_server_id",
+      "Children": [
+        {
+          "Collection": "match_rules",
+          "Identity": "match_id",
+          "Children": null
+        }
+      ]
+    },
+    {
+      "Collection": "app_authorizations",
+      "Identity": "app_authorization_id",
+      "Children": [
+        {
+          "Collection": "principals",
+          "Identity": "principal_id",
+          "Children": null
+        },
+        {
+          "Collection": "roles",
+          "Identity": "role_id",
+          "Children": null
+        },
+        {
+          "Collection": "permission_grants",
+          "Identity": "grant_id",
+          "Children": null
+        },
+        {
+          "Collection": "role_mappings",
+          "Identity": "mapping_id",
+          "Children": null
+        },
+        {
+          "Collection": "tenants",
+          "Identity": "tenant_id",
+          "Children": null
+        }
+      ]
+    },
+    {
+      "Collection": "scheduled_jobs",
+      "Identity": "scheduled_job_id",
+      "Children": null
+    },
+    {
+      "Collection": "datastore_services",
+      "Identity": "datastore_service_id",
+      "Children": [
+        {
+          "Collection": "nodes",
+          "Identity": "node_id",
+          "Children": [
+            {
+              "Collection": "plugins",
+              "Identity": "plugin_id",
+              "Children": null
+            },
+            {
+              "Collection": "endpoints",
+              "Identity": "endpoint_id",
+              "Children": null
+            }
+          ]
+        },
+        {
+          "Collection": "partitions",
+          "Identity": "partition_id",
+          "Children": null
+        },
+        {
+          "Collection": "templates",
+          "Identity": "template_id",
+          "Children": null
+        },
+        {
+          "Collection": "mappings",
+          "Identity": "mapping_id",
+          "Children": null
+        },
+        {
+          "Collection": "settings",
+          "Identity": "setting_id",
+          "Children": null
+        }
+      ]
+    },
+    {
+      "Collection": "platform_applications",
+      "Identity": "platform_application_id",
+      "Children": [
+        {
+          "Collection": "secrets",
+          "Identity": "secret_id",
+          "Children": [
+            {
+              "Collection": "versions",
+              "Identity": "version_id",
+              "Children": null
+            },
+            {
+              "Collection": "consumers",
+              "Identity": "selection_id",
+              "Children": null
+            }
+          ]
+        },
+        {
+          "Collection": "cloud_limits",
+          "Identity": "limit_id",
+          "Children": null
+        },
+        {
+          "Collection": "capabilities",
+          "Identity": "capability_id",
+          "Children": null
+        },
+        {
+          "Collection": "organizations",
+          "Identity": "organization_id",
+          "Children": null
+        },
+        {
+          "Collection": "tenants",
+          "Identity": "tenant_id",
+          "Children": null
+        },
+        {
+          "Collection": "content_objects",
+          "Identity": "content_object_id",
+          "Children": null
+        },
+        {
+          "Collection": "markings",
+          "Identity": "marking_id",
+          "Children": null
+        },
+        {
+          "Collection": "upstream_bindings",
+          "Identity": "binding_id",
+          "Children": null
+        },
+        {
+          "Collection": "connectors",
+          "Identity": "connector_id",
+          "Children": null
+        },
+        {
+          "Collection": "settings",
+          "Identity": "setting_id",
+          "Children": null
+        }
+      ]
+    },
+    {
+      "Collection": "forwarding_agents",
+      "Identity": "forwarding_agent_id",
+      "Children": [
+        {
+          "Collection": "sources",
+          "Identity": "source_id",
+          "Children": null
+        },
+        {
+          "Collection": "transforms",
+          "Identity": "transform_id",
+          "Children": null
+        },
+        {
+          "Collection": "ship_targets",
+          "Identity": "target_id",
+          "Children": null
+        },
+        {
+          "Collection": "reload_channels",
+          "Identity": "reload_channel_id",
+          "Children": null
+        },
+        {
+          "Collection": "settings",
+          "Identity": "setting_id",
+          "Children": null
+        }
+      ]
+    },
+    {
+      "Collection": "orchestration_authorities",
+      "Identity": "orchestration_authority_id",
+      "Children": [
+        {
+          "Collection": "spawn_templates",
+          "Identity": "template_id",
+          "Children": null
+        },
+        {
+          "Collection": "realized_children",
+          "Identity": "workload_id",
+          "Children": null
+        }
+      ]
+    }
+  ],
+  "Lookups": [
+    {
+      "Family": "service-listeners",
+      "Pointer": "",
+      "Identity": "service_listener_id"
+    },
+    {
+      "Family": "service-listeners",
+      "Pointer": "/0",
+      "Identity": ""
+    },
+    {
+      "Family": "service-listeners",
+      "Pointer": "/0/missing",
+      "Identity": ""
+    },
+    {
+      "Family": "service-listeners",
+      "Pointer": "/01/nodes",
+      "Identity": ""
+    },
+    {
+      "Family": "service-listeners",
+      "Pointer": "/\u0661/nodes",
+      "Identity": ""
+    },
+    {
+      "Family": "service-listeners",
+      "Pointer": "/0/no~1des",
+      "Identity": ""
+    },
+    {
+      "Family": "service-listeners",
+      "Pointer": "nodes",
+      "Identity": ""
+    },
+    {
+      "Family": "service-listeners",
+      "Pointer": "//nodes",
+      "Identity": ""
+    },
+    {
+      "Family": "service-listeners",
+      "Pointer": "/-1/nodes",
+      "Identity": ""
+    },
+    {
+      "Family": "service-listeners",
+      "Pointer": "/+1/nodes",
+      "Identity": ""
+    },
+    {
+      "Family": "service-listeners",
+      "Pointer": "/0/nodes/0/plugins/0",
+      "Identity": ""
+    },
+    {
+      "Family": "applications",
+      "Pointer": "",
+      "Identity": "application_id"
+    },
+    {
+      "Family": "applications",
+      "Pointer": "/0",
+      "Identity": ""
+    },
+    {
+      "Family": "applications",
+      "Pointer": "/0/missing",
+      "Identity": ""
+    },
+    {
+      "Family": "applications",
+      "Pointer": "/01/nodes",
+      "Identity": ""
+    },
+    {
+      "Family": "applications",
+      "Pointer": "/\u0661/nodes",
+      "Identity": ""
+    },
+    {
+      "Family": "applications",
+      "Pointer": "/0/no~1des",
+      "Identity": ""
+    },
+    {
+      "Family": "applications",
+      "Pointer": "nodes",
+      "Identity": ""
+    },
+    {
+      "Family": "applications",
+      "Pointer": "//nodes",
+      "Identity": ""
+    },
+    {
+      "Family": "applications",
+      "Pointer": "/-1/nodes",
+      "Identity": ""
+    },
+    {
+      "Family": "applications",
+      "Pointer": "/+1/nodes",
+      "Identity": ""
+    },
+    {
+      "Family": "applications",
+      "Pointer": "/0/nodes/0/plugins/0",
+      "Identity": ""
+    },
+    {
+      "Family": "database-services",
+      "Pointer": "",
+      "Identity": "database_service_id"
+    },
+    {
+      "Family": "database-services",
+      "Pointer": "/0/databases",
+      "Identity": "database_id"
+    },
+    {
+      "Family": "database-services",
+      "Pointer": "/0",
+      "Identity": ""
+    },
+    {
+      "Family": "database-services",
+      "Pointer": "/0/missing",
+      "Identity": ""
+    },
+    {
+      "Family": "database-services",
+      "Pointer": "/01/nodes",
+      "Identity": ""
+    },
+    {
+      "Family": "database-services",
+      "Pointer": "/\u0661/nodes",
+      "Identity": ""
+    },
+    {
+      "Family": "database-services",
+      "Pointer": "/0/no~1des",
+      "Identity": ""
+    },
+    {
+      "Family": "database-services",
+      "Pointer": "nodes",
+      "Identity": ""
+    },
+    {
+      "Family": "database-services",
+      "Pointer": "//nodes",
+      "Identity": ""
+    },
+    {
+      "Family": "database-services",
+      "Pointer": "/-1/nodes",
+      "Identity": ""
+    },
+    {
+      "Family": "database-services",
+      "Pointer": "/+1/nodes",
+      "Identity": ""
+    },
+    {
+      "Family": "database-services",
+      "Pointer": "/0/nodes/0/plugins/0",
+      "Identity": ""
+    },
+    {
+      "Family": "dns-services",
+      "Pointer": "",
+      "Identity": "dns_service_id"
+    },
+    {
+      "Family": "dns-services",
+      "Pointer": "/0/zones",
+      "Identity": "zone_id"
+    },
+    {
+      "Family": "dns-services",
+      "Pointer": "/0/zones/1/rrsets",
+      "Identity": "rrset_id"
+    },
+    {
+      "Family": "dns-services",
+      "Pointer": "/0",
+      "Identity": ""
+    },
+    {
+      "Family": "dns-services",
+      "Pointer": "/0/missing",
+      "Identity": ""
+    },
+    {
+      "Family": "dns-services",
+      "Pointer": "/01/nodes",
+      "Identity": ""
+    },
+    {
+      "Family": "dns-services",
+      "Pointer": "/\u0661/nodes",
+      "Identity": ""
+    },
+    {
+      "Family": "dns-services",
+      "Pointer": "/0/no~1des",
+      "Identity": ""
+    },
+    {
+      "Family": "dns-services",
+      "Pointer": "nodes",
+      "Identity": ""
+    },
+    {
+      "Family": "dns-services",
+      "Pointer": "//nodes",
+      "Identity": ""
+    },
+    {
+      "Family": "dns-services",
+      "Pointer": "/-1/nodes",
+      "Identity": ""
+    },
+    {
+      "Family": "dns-services",
+      "Pointer": "/+1/nodes",
+      "Identity": ""
+    },
+    {
+      "Family": "dns-services",
+      "Pointer": "/0/nodes/0/plugins/0",
+      "Identity": ""
+    },
+    {
+      "Family": "identity-authorities",
+      "Pointer": "",
+      "Identity": "identity_authority_id"
+    },
+    {
+      "Family": "identity-authorities",
+      "Pointer": "/0/services",
+      "Identity": "service_id"
+    },
+    {
+      "Family": "identity-authorities",
+      "Pointer": "/0/subjects",
+      "Identity": "subject_id"
+    },
+    {
+      "Family": "identity-authorities",
+      "Pointer": "/0/policies",
+      "Identity": "policy_id"
+    },
+    {
+      "Family": "identity-authorities",
+      "Pointer": "/0/relationships",
+      "Identity": "relationship_id"
+    },
+    {
+      "Family": "identity-authorities",
+      "Pointer": "/0/resource_scopes",
+      "Identity": "scope_id"
+    },
+    {
+      "Family": "identity-authorities",
+      "Pointer": "/0/identity_uses",
+      "Identity": "use_id"
+    },
+    {
+      "Family": "identity-authorities",
+      "Pointer": "/0/access_observations",
+      "Identity": "observation_id"
+    },
+    {
+      "Family": "identity-authorities",
+      "Pointer": "/0",
+      "Identity": ""
+    },
+    {
+      "Family": "identity-authorities",
+      "Pointer": "/0/missing",
+      "Identity": ""
+    },
+    {
+      "Family": "identity-authorities",
+      "Pointer": "/01/nodes",
+      "Identity": ""
+    },
+    {
+      "Family": "identity-authorities",
+      "Pointer": "/\u0661/nodes",
+      "Identity": ""
+    },
+    {
+      "Family": "identity-authorities",
+      "Pointer": "/0/no~1des",
+      "Identity": ""
+    },
+    {
+      "Family": "identity-authorities",
+      "Pointer": "nodes",
+      "Identity": ""
+    },
+    {
+      "Family": "identity-authorities",
+      "Pointer": "//nodes",
+      "Identity": ""
+    },
+    {
+      "Family": "identity-authorities",
+      "Pointer": "/-1/nodes",
+      "Identity": ""
+    },
+    {
+      "Family": "identity-authorities",
+      "Pointer": "/+1/nodes",
+      "Identity": ""
+    },
+    {
+      "Family": "identity-authorities",
+      "Pointer": "/0/nodes/0/plugins/0",
+      "Identity": ""
+    },
+    {
+      "Family": "file-services",
+      "Pointer": "",
+      "Identity": "file_service_id"
+    },
+    {
+      "Family": "file-services",
+      "Pointer": "/0/shares",
+      "Identity": "share_id"
+    },
+    {
+      "Family": "file-services",
+      "Pointer": "/0/principals",
+      "Identity": "principal_id"
+    },
+    {
+      "Family": "file-services",
+      "Pointer": "/0/access_rules",
+      "Identity": "rule_id"
+    },
+    {
+      "Family": "file-services",
+      "Pointer": "/0/access_observations",
+      "Identity": "observation_id"
+    },
+    {
+      "Family": "file-services",
+      "Pointer": "/0",
+      "Identity": ""
+    },
+    {
+      "Family": "file-services",
+      "Pointer": "/0/missing",
+      "Identity": ""
+    },
+    {
+      "Family": "file-services",
+      "Pointer": "/01/nodes",
+      "Identity": ""
+    },
+    {
+      "Family": "file-services",
+      "Pointer": "/\u0661/nodes",
+      "Identity": ""
+    },
+    {
+      "Family": "file-services",
+      "Pointer": "/0/no~1des",
+      "Identity": ""
+    },
+    {
+      "Family": "file-services",
+      "Pointer": "nodes",
+      "Identity": ""
+    },
+    {
+      "Family": "file-services",
+      "Pointer": "//nodes",
+      "Identity": ""
+    },
+    {
+      "Family": "file-services",
+      "Pointer": "/-1/nodes",
+      "Identity": ""
+    },
+    {
+      "Family": "file-services",
+      "Pointer": "/+1/nodes",
+      "Identity": ""
+    },
+    {
+      "Family": "file-services",
+      "Pointer": "/0/nodes/0/plugins/0",
+      "Identity": ""
+    },
+    {
+      "Family": "mail-services",
+      "Pointer": "",
+      "Identity": "mail_service_id"
+    },
+    {
+      "Family": "mail-services",
+      "Pointer": "/0/components",
+      "Identity": "component_id"
+    },
+    {
+      "Family": "mail-services",
+      "Pointer": "/0/listeners",
+      "Identity": "listener_id"
+    },
+    {
+      "Family": "mail-services",
+      "Pointer": "/0/domains",
+      "Identity": "domain_id"
+    },
+    {
+      "Family": "mail-services",
+      "Pointer": "/0/mailbox_stores",
+      "Identity": "store_id"
+    },
+    {
+      "Family": "mail-services",
+      "Pointer": "/0/mailboxes",
+      "Identity": "mailbox_id"
+    },
+    {
+      "Family": "mail-services",
+      "Pointer": "/0/aliases",
+      "Identity": "alias_id"
+    },
+    {
+      "Family": "mail-services",
+      "Pointer": "/0/routing_rules",
+      "Identity": "rule_id"
+    },
+    {
+      "Family": "mail-services",
+      "Pointer": "/0/queues",
+      "Identity": "queue_id"
+    },
+    {
+      "Family": "mail-services",
+      "Pointer": "/0/settings",
+      "Identity": "setting_id"
+    },
+    {
+      "Family": "mail-services",
+      "Pointer": "/0",
+      "Identity": ""
+    },
+    {
+      "Family": "mail-services",
+      "Pointer": "/0/missing",
+      "Identity": ""
+    },
+    {
+      "Family": "mail-services",
+      "Pointer": "/01/nodes",
+      "Identity": ""
+    },
+    {
+      "Family": "mail-services",
+      "Pointer": "/\u0661/nodes",
+      "Identity": ""
+    },
+    {
+      "Family": "mail-services",
+      "Pointer": "/0/no~1des",
+      "Identity": ""
+    },
+    {
+      "Family": "mail-services",
+      "Pointer": "nodes",
+      "Identity": ""
+    },
+    {
+      "Family": "mail-services",
+      "Pointer": "//nodes",
+      "Identity": ""
+    },
+    {
+      "Family": "mail-services",
+      "Pointer": "/-1/nodes",
+      "Identity": ""
+    },
+    {
+      "Family": "mail-services",
+      "Pointer": "/+1/nodes",
+      "Identity": ""
+    },
+    {
+      "Family": "mail-services",
+      "Pointer": "/0/nodes/0/plugins/0",
+      "Identity": ""
+    },
+    {
+      "Family": "network-sensors",
+      "Pointer": "",
+      "Identity": "network_sensor_id"
+    },
+    {
+      "Family": "network-sensors",
+      "Pointer": "/0",
+      "Identity": ""
+    },
+    {
+      "Family": "network-sensors",
+      "Pointer": "/0/missing",
+      "Identity": ""
+    },
+    {
+      "Family": "network-sensors",
+      "Pointer": "/01/nodes",
+      "Identity": ""
+    },
+    {
+      "Family": "network-sensors",
+      "Pointer": "/\u0661/nodes",
+      "Identity": ""
+    },
+    {
+      "Family": "network-sensors",
+      "Pointer": "/0/no~1des",
+      "Identity": ""
+    },
+    {
+      "Family": "network-sensors",
+      "Pointer": "nodes",
+      "Identity": ""
+    },
+    {
+      "Family": "network-sensors",
+      "Pointer": "//nodes",
+      "Identity": ""
+    },
+    {
+      "Family": "network-sensors",
+      "Pointer": "/-1/nodes",
+      "Identity": ""
+    },
+    {
+      "Family": "network-sensors",
+      "Pointer": "/+1/nodes",
+      "Identity": ""
+    },
+    {
+      "Family": "network-sensors",
+      "Pointer": "/0/nodes/0/plugins/0",
+      "Identity": ""
+    },
+    {
+      "Family": "network-detection-engines",
+      "Pointer": "",
+      "Identity": "network_detection_engine_id"
+    },
+    {
+      "Family": "network-detection-engines",
+      "Pointer": "/0/rule_sources",
+      "Identity": "source_id"
+    },
+    {
+      "Family": "network-detection-engines",
+      "Pointer": "/0/network_sets",
+      "Identity": "set_id"
+    },
+    {
+      "Family": "network-detection-engines",
+      "Pointer": "/0/output_streams",
+      "Identity": "stream_id"
+    },
+    {
+      "Family": "network-detection-engines",
+      "Pointer": "/0/control_channels",
+      "Identity": "channel_id"
+    },
+    {
+      "Family": "network-detection-engines",
+      "Pointer": "/0",
+      "Identity": ""
+    },
+    {
+      "Family": "network-detection-engines",
+      "Pointer": "/0/missing",
+      "Identity": ""
+    },
+    {
+      "Family": "network-detection-engines",
+      "Pointer": "/01/nodes",
+      "Identity": ""
+    },
+    {
+      "Family": "network-detection-engines",
+      "Pointer": "/\u0661/nodes",
+      "Identity": ""
+    },
+    {
+      "Family": "network-detection-engines",
+      "Pointer": "/0/no~1des",
+      "Identity": ""
+    },
+    {
+      "Family": "network-detection-engines",
+      "Pointer": "nodes",
+      "Identity": ""
+    },
+    {
+      "Family": "network-detection-engines",
+      "Pointer": "//nodes",
+      "Identity": ""
+    },
+    {
+      "Family": "network-detection-engines",
+      "Pointer": "/-1/nodes",
+      "Identity": ""
+    },
+    {
+      "Family": "network-detection-engines",
+      "Pointer": "/+1/nodes",
+      "Identity": ""
+    },
+    {
+      "Family": "network-detection-engines",
+      "Pointer": "/0/nodes/0/plugins/0",
+      "Identity": ""
+    },
+    {
+      "Family": "security-monitoring-managers",
+      "Pointer": "",
+      "Identity": "security_monitoring_manager_id"
+    },
+    {
+      "Family": "security-monitoring-managers",
+      "Pointer": "/0/listeners",
+      "Identity": "listener_id"
+    },
+    {
+      "Family": "security-monitoring-managers",
+      "Pointer": "/0/components",
+      "Identity": "component_id"
+    },
+    {
+      "Family": "security-monitoring-managers",
+      "Pointer": "/0/agents",
+      "Identity": "agent_id"
+    },
+    {
+      "Family": "security-monitoring-managers",
+      "Pointer": "/0/agent_groups",
+      "Identity": "group_id"
+    },
+    {
+      "Family": "security-monitoring-managers",
+      "Pointer": "/0/content_sets",
+      "Identity": "content_id"
+    },
+    {
+      "Family": "security-monitoring-managers",
+      "Pointer": "/0/detection_definitions",
+      "Identity": "definition_id"
+    },
+    {
+      "Family": "security-monitoring-managers",
+      "Pointer": "/0/settings",
+      "Identity": "setting_id"
+    },
+    {
+      "Family": "security-monitoring-managers",
+      "Pointer": "/0",
+      "Identity": ""
+    },
+    {
+      "Family": "security-monitoring-managers",
+      "Pointer": "/0/missing",
+      "Identity": ""
+    },
+    {
+      "Family": "security-monitoring-managers",
+      "Pointer": "/01/nodes",
+      "Identity": ""
+    },
+    {
+      "Family": "security-monitoring-managers",
+      "Pointer": "/\u0661/nodes",
+      "Identity": ""
+    },
+    {
+      "Family": "security-monitoring-managers",
+      "Pointer": "/0/no~1des",
+      "Identity": ""
+    },
+    {
+      "Family": "security-monitoring-managers",
+      "Pointer": "nodes",
+      "Identity": ""
+    },
+    {
+      "Family": "security-monitoring-managers",
+      "Pointer": "//nodes",
+      "Identity": ""
+    },
+    {
+      "Family": "security-monitoring-managers",
+      "Pointer": "/-1/nodes",
+      "Identity": ""
+    },
+    {
+      "Family": "security-monitoring-managers",
+      "Pointer": "/+1/nodes",
+      "Identity": ""
+    },
+    {
+      "Family": "security-monitoring-managers",
+      "Pointer": "/0/nodes/0/plugins/0",
+      "Identity": ""
+    },
+    {
+      "Family": "ssh-servers",
+      "Pointer": "",
+      "Identity": "ssh_server_id"
+    },
+    {
+      "Family": "ssh-servers",
+      "Pointer": "/0/match_rules",
+      "Identity": "match_id"
+    },
+    {
+      "Family": "ssh-servers",
+      "Pointer": "/0",
+      "Identity": ""
+    },
+    {
+      "Family": "ssh-servers",
+      "Pointer": "/0/missing",
+      "Identity": ""
+    },
+    {
+      "Family": "ssh-servers",
+      "Pointer": "/01/nodes",
+      "Identity": ""
+    },
+    {
+      "Family": "ssh-servers",
+      "Pointer": "/\u0661/nodes",
+      "Identity": ""
+    },
+    {
+      "Family": "ssh-servers",
+      "Pointer": "/0/no~1des",
+      "Identity": ""
+    },
+    {
+      "Family": "ssh-servers",
+      "Pointer": "nodes",
+      "Identity": ""
+    },
+    {
+      "Family": "ssh-servers",
+      "Pointer": "//nodes",
+      "Identity": ""
+    },
+    {
+      "Family": "ssh-servers",
+      "Pointer": "/-1/nodes",
+      "Identity": ""
+    },
+    {
+      "Family": "ssh-servers",
+      "Pointer": "/+1/nodes",
+      "Identity": ""
+    },
+    {
+      "Family": "ssh-servers",
+      "Pointer": "/0/nodes/0/plugins/0",
+      "Identity": ""
+    },
+    {
+      "Family": "app-authorizations",
+      "Pointer": "",
+      "Identity": "app_authorization_id"
+    },
+    {
+      "Family": "app-authorizations",
+      "Pointer": "/0/principals",
+      "Identity": "principal_id"
+    },
+    {
+      "Family": "app-authorizations",
+      "Pointer": "/0/roles",
+      "Identity": "role_id"
+    },
+    {
+      "Family": "app-authorizations",
+      "Pointer": "/0/permission_grants",
+      "Identity": "grant_id"
+    },
+    {
+      "Family": "app-authorizations",
+      "Pointer": "/0/role_mappings",
+      "Identity": "mapping_id"
+    },
+    {
+      "Family": "app-authorizations",
+      "Pointer": "/0/tenants",
+      "Identity": "tenant_id"
+    },
+    {
+      "Family": "app-authorizations",
+      "Pointer": "/0",
+      "Identity": ""
+    },
+    {
+      "Family": "app-authorizations",
+      "Pointer": "/0/missing",
+      "Identity": ""
+    },
+    {
+      "Family": "app-authorizations",
+      "Pointer": "/01/nodes",
+      "Identity": ""
+    },
+    {
+      "Family": "app-authorizations",
+      "Pointer": "/\u0661/nodes",
+      "Identity": ""
+    },
+    {
+      "Family": "app-authorizations",
+      "Pointer": "/0/no~1des",
+      "Identity": ""
+    },
+    {
+      "Family": "app-authorizations",
+      "Pointer": "nodes",
+      "Identity": ""
+    },
+    {
+      "Family": "app-authorizations",
+      "Pointer": "//nodes",
+      "Identity": ""
+    },
+    {
+      "Family": "app-authorizations",
+      "Pointer": "/-1/nodes",
+      "Identity": ""
+    },
+    {
+      "Family": "app-authorizations",
+      "Pointer": "/+1/nodes",
+      "Identity": ""
+    },
+    {
+      "Family": "app-authorizations",
+      "Pointer": "/0/nodes/0/plugins/0",
+      "Identity": ""
+    },
+    {
+      "Family": "scheduled-jobs",
+      "Pointer": "",
+      "Identity": "scheduled_job_id"
+    },
+    {
+      "Family": "scheduled-jobs",
+      "Pointer": "/0",
+      "Identity": ""
+    },
+    {
+      "Family": "scheduled-jobs",
+      "Pointer": "/0/missing",
+      "Identity": ""
+    },
+    {
+      "Family": "scheduled-jobs",
+      "Pointer": "/01/nodes",
+      "Identity": ""
+    },
+    {
+      "Family": "scheduled-jobs",
+      "Pointer": "/\u0661/nodes",
+      "Identity": ""
+    },
+    {
+      "Family": "scheduled-jobs",
+      "Pointer": "/0/no~1des",
+      "Identity": ""
+    },
+    {
+      "Family": "scheduled-jobs",
+      "Pointer": "nodes",
+      "Identity": ""
+    },
+    {
+      "Family": "scheduled-jobs",
+      "Pointer": "//nodes",
+      "Identity": ""
+    },
+    {
+      "Family": "scheduled-jobs",
+      "Pointer": "/-1/nodes",
+      "Identity": ""
+    },
+    {
+      "Family": "scheduled-jobs",
+      "Pointer": "/+1/nodes",
+      "Identity": ""
+    },
+    {
+      "Family": "scheduled-jobs",
+      "Pointer": "/0/nodes/0/plugins/0",
+      "Identity": ""
+    },
+    {
+      "Family": "datastore-services",
+      "Pointer": "",
+      "Identity": "datastore_service_id"
+    },
+    {
+      "Family": "datastore-services",
+      "Pointer": "/0/nodes",
+      "Identity": "node_id"
+    },
+    {
+      "Family": "datastore-services",
+      "Pointer": "/0/nodes/1/plugins",
+      "Identity": "plugin_id"
+    },
+    {
+      "Family": "datastore-services",
+      "Pointer": "/0/nodes/1/endpoints",
+      "Identity": "endpoint_id"
+    },
+    {
+      "Family": "datastore-services",
+      "Pointer": "/0/partitions",
+      "Identity": "partition_id"
+    },
+    {
+      "Family": "datastore-services",
+      "Pointer": "/0/templates",
+      "Identity": "template_id"
+    },
+    {
+      "Family": "datastore-services",
+      "Pointer": "/0/mappings",
+      "Identity": "mapping_id"
+    },
+    {
+      "Family": "datastore-services",
+      "Pointer": "/0/settings",
+      "Identity": "setting_id"
+    },
+    {
+      "Family": "datastore-services",
+      "Pointer": "/0",
+      "Identity": ""
+    },
+    {
+      "Family": "datastore-services",
+      "Pointer": "/0/missing",
+      "Identity": ""
+    },
+    {
+      "Family": "datastore-services",
+      "Pointer": "/01/nodes",
+      "Identity": ""
+    },
+    {
+      "Family": "datastore-services",
+      "Pointer": "/\u0661/nodes",
+      "Identity": ""
+    },
+    {
+      "Family": "datastore-services",
+      "Pointer": "/0/no~1des",
+      "Identity": ""
+    },
+    {
+      "Family": "datastore-services",
+      "Pointer": "nodes",
+      "Identity": ""
+    },
+    {
+      "Family": "datastore-services",
+      "Pointer": "//nodes",
+      "Identity": ""
+    },
+    {
+      "Family": "datastore-services",
+      "Pointer": "/-1/nodes",
+      "Identity": ""
+    },
+    {
+      "Family": "datastore-services",
+      "Pointer": "/+1/nodes",
+      "Identity": ""
+    },
+    {
+      "Family": "datastore-services",
+      "Pointer": "/0/nodes/0/plugins/0",
+      "Identity": ""
+    },
+    {
+      "Family": "platform-applications",
+      "Pointer": "",
+      "Identity": "platform_application_id"
+    },
+    {
+      "Family": "platform-applications",
+      "Pointer": "/0/secrets",
+      "Identity": "secret_id"
+    },
+    {
+      "Family": "platform-applications",
+      "Pointer": "/0/secrets/1/versions",
+      "Identity": "version_id"
+    },
+    {
+      "Family": "platform-applications",
+      "Pointer": "/0/secrets/1/consumers",
+      "Identity": "selection_id"
+    },
+    {
+      "Family": "platform-applications",
+      "Pointer": "/0/cloud_limits",
+      "Identity": "limit_id"
+    },
+    {
+      "Family": "platform-applications",
+      "Pointer": "/0/capabilities",
+      "Identity": "capability_id"
+    },
+    {
+      "Family": "platform-applications",
+      "Pointer": "/0/organizations",
+      "Identity": "organization_id"
+    },
+    {
+      "Family": "platform-applications",
+      "Pointer": "/0/tenants",
+      "Identity": "tenant_id"
+    },
+    {
+      "Family": "platform-applications",
+      "Pointer": "/0/content_objects",
+      "Identity": "content_object_id"
+    },
+    {
+      "Family": "platform-applications",
+      "Pointer": "/0/markings",
+      "Identity": "marking_id"
+    },
+    {
+      "Family": "platform-applications",
+      "Pointer": "/0/upstream_bindings",
+      "Identity": "binding_id"
+    },
+    {
+      "Family": "platform-applications",
+      "Pointer": "/0/connectors",
+      "Identity": "connector_id"
+    },
+    {
+      "Family": "platform-applications",
+      "Pointer": "/0/settings",
+      "Identity": "setting_id"
+    },
+    {
+      "Family": "platform-applications",
+      "Pointer": "/0",
+      "Identity": ""
+    },
+    {
+      "Family": "platform-applications",
+      "Pointer": "/0/missing",
+      "Identity": ""
+    },
+    {
+      "Family": "platform-applications",
+      "Pointer": "/01/nodes",
+      "Identity": ""
+    },
+    {
+      "Family": "platform-applications",
+      "Pointer": "/\u0661/nodes",
+      "Identity": ""
+    },
+    {
+      "Family": "platform-applications",
+      "Pointer": "/0/no~1des",
+      "Identity": ""
+    },
+    {
+      "Family": "platform-applications",
+      "Pointer": "nodes",
+      "Identity": ""
+    },
+    {
+      "Family": "platform-applications",
+      "Pointer": "//nodes",
+      "Identity": ""
+    },
+    {
+      "Family": "platform-applications",
+      "Pointer": "/-1/nodes",
+      "Identity": ""
+    },
+    {
+      "Family": "platform-applications",
+      "Pointer": "/+1/nodes",
+      "Identity": ""
+    },
+    {
+      "Family": "platform-applications",
+      "Pointer": "/0/nodes/0/plugins/0",
+      "Identity": ""
+    },
+    {
+      "Family": "forwarding-agents",
+      "Pointer": "",
+      "Identity": "forwarding_agent_id"
+    },
+    {
+      "Family": "forwarding-agents",
+      "Pointer": "/0/sources",
+      "Identity": "source_id"
+    },
+    {
+      "Family": "forwarding-agents",
+      "Pointer": "/0/transforms",
+      "Identity": "transform_id"
+    },
+    {
+      "Family": "forwarding-agents",
+      "Pointer": "/0/ship_targets",
+      "Identity": "target_id"
+    },
+    {
+      "Family": "forwarding-agents",
+      "Pointer": "/0/reload_channels",
+      "Identity": "reload_channel_id"
+    },
+    {
+      "Family": "forwarding-agents",
+      "Pointer": "/0/settings",
+      "Identity": "setting_id"
+    },
+    {
+      "Family": "forwarding-agents",
+      "Pointer": "/0",
+      "Identity": ""
+    },
+    {
+      "Family": "forwarding-agents",
+      "Pointer": "/0/missing",
+      "Identity": ""
+    },
+    {
+      "Family": "forwarding-agents",
+      "Pointer": "/01/nodes",
+      "Identity": ""
+    },
+    {
+      "Family": "forwarding-agents",
+      "Pointer": "/\u0661/nodes",
+      "Identity": ""
+    },
+    {
+      "Family": "forwarding-agents",
+      "Pointer": "/0/no~1des",
+      "Identity": ""
+    },
+    {
+      "Family": "forwarding-agents",
+      "Pointer": "nodes",
+      "Identity": ""
+    },
+    {
+      "Family": "forwarding-agents",
+      "Pointer": "//nodes",
+      "Identity": ""
+    },
+    {
+      "Family": "forwarding-agents",
+      "Pointer": "/-1/nodes",
+      "Identity": ""
+    },
+    {
+      "Family": "forwarding-agents",
+      "Pointer": "/+1/nodes",
+      "Identity": ""
+    },
+    {
+      "Family": "forwarding-agents",
+      "Pointer": "/0/nodes/0/plugins/0",
+      "Identity": ""
+    },
+    {
+      "Family": "orchestration-authorities",
+      "Pointer": "",
+      "Identity": "orchestration_authority_id"
+    },
+    {
+      "Family": "orchestration-authorities",
+      "Pointer": "/0/spawn_templates",
+      "Identity": "template_id"
+    },
+    {
+      "Family": "orchestration-authorities",
+      "Pointer": "/0/realized_children",
+      "Identity": "workload_id"
+    },
+    {
+      "Family": "orchestration-authorities",
+      "Pointer": "/0",
+      "Identity": ""
+    },
+    {
+      "Family": "orchestration-authorities",
+      "Pointer": "/0/missing",
+      "Identity": ""
+    },
+    {
+      "Family": "orchestration-authorities",
+      "Pointer": "/01/nodes",
+      "Identity": ""
+    },
+    {
+      "Family": "orchestration-authorities",
+      "Pointer": "/\u0661/nodes",
+      "Identity": ""
+    },
+    {
+      "Family": "orchestration-authorities",
+      "Pointer": "/0/no~1des",
+      "Identity": ""
+    },
+    {
+      "Family": "orchestration-authorities",
+      "Pointer": "nodes",
+      "Identity": ""
+    },
+    {
+      "Family": "orchestration-authorities",
+      "Pointer": "//nodes",
+      "Identity": ""
+    },
+    {
+      "Family": "orchestration-authorities",
+      "Pointer": "/-1/nodes",
+      "Identity": ""
+    },
+    {
+      "Family": "orchestration-authorities",
+      "Pointer": "/+1/nodes",
+      "Identity": ""
+    },
+    {
+      "Family": "orchestration-authorities",
+      "Pointer": "/0/nodes/0/plugins/0",
+      "Identity": ""
+    },
+    {
+      "Family": "not-a-family",
+      "Pointer": "",
+      "Identity": ""
+    },
+    {
+      "Family": "not-a-family",
+      "Pointer": "/0/nodes",
+      "Identity": ""
+    }
+  ]
+}

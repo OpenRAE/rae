@@ -39,6 +39,21 @@ func TestCanonicalRefusesUnknownCarriersAndKeepsNumericKinds(t *testing.T) {
 	}
 }
 
+func TestEncodeKeepsExactIntegersOutsideTheCanonicalRange(t *testing.T) {
+	called := false
+	if _, err := Encode(map[string]any{"x": unknownCarrier{called: &called}}, Default()); !errors.Is(err, ErrInput) || called {
+		t.Errorf("Encode(unknown carrier) error = %v, callback = %t, want refusal before callback", err, called)
+	}
+	large := map[string]any{"n": json.Number("1000000000000000000"), "b": big.NewInt(-9007199254740993)}
+	got, err := Encode(large, Default())
+	if err != nil || string(got) != `{"b":-9007199254740993,"n":1000000000000000000}` {
+		t.Errorf("Encode(large integers) = %s, %v", got, err)
+	}
+	if _, err := Canonical(large, Default()); err == nil {
+		t.Error("Canonical(large integers) error = nil, want the RFC 8785 range refusal")
+	}
+}
+
 func TestValueBudgetsCoverKeysTypesDepthAndCycles(t *testing.T) {
 	defaults := Default()
 	for _, value := range []any{math.NaN(), math.Inf(1), "\xff", map[string]any{"\xff": 1},

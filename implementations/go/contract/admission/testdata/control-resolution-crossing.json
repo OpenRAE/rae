@@ -1,0 +1,67 @@
+{
+  "event_id": "crossing-1",
+  "schema_name": "participant-crossing-occurrence",
+  "schema_version": "1.0.0",
+  "event_type": "participant-crossing-occurrence",
+  "extension_policy": "closed",
+  "participant_address": "participants.student",
+  "episode_id": "episode-1",
+  "occurred_at": "2026-09-20T00:00:00Z",
+  "recorded_at": "2026-09-20T00:00:00Z",
+  "ingested_at": "2026-09-20T00:00:00Z",
+  "clock_authority": "clock-1",
+  "ordering_basis": "logical_clock",
+  "actor_ref": "teacher",
+  "producer_ref": "runtime",
+  "provenance_refs": [
+    "result-evidence"
+  ],
+  "evidence_refs": [
+    "result-evidence"
+  ],
+  "object_marking_refs": [
+    "public"
+  ],
+  "authorization_scope": "teaching-authority",
+  "occurrence": {
+    "direction": "ingress",
+    "interaction_kind": "observation",
+    "audience_scope_ref": "student-audience",
+    "subject": {
+      "subject_kind": "participant-observation",
+      "contract_id": "participant-observation-envelope-v1",
+      "subject_ref": "observation-1",
+      "subject_revision": "rev1",
+      "subject_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "participant_address": "participants.student",
+      "episode_id": "episode-1"
+    },
+    "controller_ref": "teacher",
+    "authority_basis_refs": [
+      "teaching-authority"
+    ],
+    "policy": {
+      "policy_id": "teaching-policy",
+      "policy_revision": "rev1",
+      "policy_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "policy_decision_ref": "crossing-decision-1",
+      "decision_cut_ref": "cut-1",
+      "effective_order": 1,
+      "valid_from_order": 0,
+      "valid_until_order": 20
+    },
+    "effective_order": 1,
+    "order_model": "logical_clock",
+    "backend_posture": "exact",
+    "loss_and_limitations": [
+      "explicit-flows-only"
+    ],
+    "stage": "requested",
+    "request_id": "request-1",
+    "requested_operation": "admission",
+    "action_or_projection_ref": "observation-1",
+    "required_evidence_refs": [
+      "result-evidence"
+    ]
+  }
+}

@@ -81,6 +81,26 @@ func designCases() []designCase {
 	}
 }
 
+// A package outside its layer directory must be the public path of a planned
+// consumer package of the same layer in the product module.
+func TestPackagesMayImplementTheirPlannedConsumerPath(t *testing.T) {
+	model := func(layer, path string) *Model {
+		m := validModel()
+		m.Modules = append(m.Modules, Module{Dir: "implementations/go", Path: "example.com/go"})
+		m.Packages = append(m.Packages, Package{Dir: "implementations/go/base/clock", Layer: "base", Public: true, Doc: "public clock"})
+		m.ConsumerAPI = &ConsumerAPI{Packages: []ConsumerPackage{{Owner: "rae", Path: path, Layer: layer}}}
+		return m
+	}
+	if findings := model("base", "base/clock").checkPackages(); len(findings) != 0 {
+		t.Errorf("checkPackages(consumer path) = %v, want no findings", findings)
+	}
+	for _, m := range []*Model{model("core", "base/clock"), model("base", "base/other")} {
+		if findings := m.checkPackages(); !hasFinding(findings, "ARCH-003", "not a planned consumer package") {
+			t.Errorf("checkPackages(unplanned public path) = %v, want an ARCH-003 finding", findings)
+		}
+	}
+}
+
 func TestCheckDesignAcceptsAValidModel(t *testing.T) {
 	if findings := validModel().CheckDesign(); len(findings) != 0 {
 		t.Errorf("CheckDesign() = %v, want no findings", findings)

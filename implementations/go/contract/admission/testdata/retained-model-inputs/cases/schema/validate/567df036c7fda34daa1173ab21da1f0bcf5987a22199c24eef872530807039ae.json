@@ -1,0 +1,14 @@
+{
+  "args": [
+    "backend-profile-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:f70b8505a5c0055416db86c533e2e5bf08b11e5a514f076223b6d6c36215a092"
+  },
+  "name": "backend-profile-v1/routed/contracts/profiles/backend/orchestration-capable.json",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

@@ -1,0 +1,419 @@
+{
+  "reference": "ControlledVocabularyCatalogModel and ControlledVocabularyDefinitionModel",
+  "cases": [
+    {
+      "name": "valid",
+      "payload": {
+        "schema_version": "controlled-vocabularies/v1",
+        "vocabularies": {
+          "test": {
+            "title": "Test",
+            "description": "Syntax and scope boundary.",
+            "kind": "vocabulary",
+            "governed_scopes": [
+              "implementation_kind"
+            ],
+            "extension_policy": "governed-extension",
+            "extension_pattern": "(?<=a)b",
+            "terms": {
+              "base": {
+                "title": "Base",
+                "description": "Base term."
+              }
+            }
+          }
+        }
+      },
+      "valid": true
+    },
+    {
+      "name": "unknown-scope",
+      "payload": {
+        "schema_version": "controlled-vocabularies/v1",
+        "vocabularies": {
+          "test": {
+            "title": "Test",
+            "description": "Syntax and scope boundary.",
+            "kind": "vocabulary",
+            "governed_scopes": [
+              "unknown.scope"
+            ],
+            "extension_policy": "governed-extension",
+            "extension_pattern": "(?<=a)b",
+            "terms": {
+              "base": {
+                "title": "Base",
+                "description": "Base term."
+              }
+            }
+          }
+        }
+      },
+      "valid": false
+    },
+    {
+      "name": "duplicate-scope",
+      "payload": {
+        "schema_version": "controlled-vocabularies/v1",
+        "vocabularies": {
+          "test": {
+            "title": "Test",
+            "description": "Syntax and scope boundary.",
+            "kind": "vocabulary",
+            "governed_scopes": [
+              "implementation_kind",
+              "implementation_kind"
+            ],
+            "extension_policy": "governed-extension",
+            "extension_pattern": "(?<=a)b",
+            "terms": {
+              "base": {
+                "title": "Base",
+                "description": "Base term."
+              }
+            }
+          }
+        }
+      },
+      "valid": false
+    },
+    {
+      "name": "missing-scope",
+      "payload": {
+        "schema_version": "controlled-vocabularies/v1",
+        "vocabularies": {
+          "test": {
+            "title": "Test",
+            "description": "Syntax and scope boundary.",
+            "kind": "vocabulary",
+            "governed_scopes": [],
+            "extension_policy": "governed-extension",
+            "extension_pattern": "(?<=a)b",
+            "terms": {
+              "base": {
+                "title": "Base",
+                "description": "Base term."
+              }
+            }
+          }
+        }
+      },
+      "valid": false
+    },
+    {
+      "name": "missing-pattern",
+      "payload": {
+        "schema_version": "controlled-vocabularies/v1",
+        "vocabularies": {
+          "test": {
+            "title": "Test",
+            "description": "Syntax and scope boundary.",
+            "kind": "vocabulary",
+            "governed_scopes": [
+              "implementation_kind"
+            ],
+            "extension_policy": "governed-extension",
+            "terms": {
+              "base": {
+                "title": "Base",
+                "description": "Base term."
+              }
+            }
+          }
+        }
+      },
+      "valid": false
+    },
+    {
+      "name": "enum-extension",
+      "payload": {
+        "schema_version": "controlled-vocabularies/v1",
+        "vocabularies": {
+          "test": {
+            "title": "Test",
+            "description": "Syntax and scope boundary.",
+            "kind": "enumeration",
+            "governed_scopes": [
+              "implementation_kind"
+            ],
+            "extension_policy": "governed-extension",
+            "extension_pattern": "(?<=a)b",
+            "terms": {
+              "base": {
+                "title": "Base",
+                "description": "Base term."
+              }
+            }
+          }
+        }
+      },
+      "valid": false
+    },
+    {
+      "name": "closed-pattern",
+      "payload": {
+        "schema_version": "controlled-vocabularies/v1",
+        "vocabularies": {
+          "test": {
+            "title": "Test",
+            "description": "Syntax and scope boundary.",
+            "kind": "vocabulary",
+            "governed_scopes": [
+              "implementation_kind"
+            ],
+            "extension_policy": "closed",
+            "extension_pattern": "(?<=a)b",
+            "terms": {
+              "base": {
+                "title": "Base",
+                "description": "Base term."
+              }
+            }
+          }
+        }
+      },
+      "valid": false
+    },
+    {
+      "name": "closed-valid",
+      "payload": {
+        "schema_version": "controlled-vocabularies/v1",
+        "vocabularies": {
+          "test": {
+            "title": "Test",
+            "description": "Syntax and scope boundary.",
+            "kind": "vocabulary",
+            "governed_scopes": [
+              "implementation_kind"
+            ],
+            "extension_policy": "closed",
+            "extension_pattern": null,
+            "terms": {
+              "base": {
+                "title": "Base",
+                "description": "Base term."
+              }
+            }
+          }
+        }
+      },
+      "valid": true
+    },
+    {
+      "name": "invalid-pattern",
+      "payload": {
+        "schema_version": "controlled-vocabularies/v1",
+        "vocabularies": {
+          "test": {
+            "title": "Test",
+            "description": "Syntax and scope boundary.",
+            "kind": "vocabulary",
+            "governed_scopes": [
+              "implementation_kind"
+            ],
+            "extension_policy": "governed-extension",
+            "extension_pattern": "[",
+            "terms": {
+              "base": {
+                "title": "Base",
+                "description": "Base term."
+              }
+            }
+          }
+        }
+      },
+      "valid": false
+    },
+    {
+      "name": "variable-lookbehind",
+      "payload": {
+        "schema_version": "controlled-vocabularies/v1",
+        "vocabularies": {
+          "test": {
+            "title": "Test",
+            "description": "Syntax and scope boundary.",
+            "kind": "vocabulary",
+            "governed_scopes": [
+              "implementation_kind"
+            ],
+            "extension_policy": "governed-extension",
+            "extension_pattern": "(?<=a*)b",
+            "terms": {
+              "base": {
+                "title": "Base",
+                "description": "Base term."
+              }
+            }
+          }
+        }
+      },
+      "valid": false
+    },
+    {
+      "name": "possessive-valid",
+      "payload": {
+        "schema_version": "controlled-vocabularies/v1",
+        "vocabularies": {
+          "test": {
+            "title": "Test",
+            "description": "Syntax and scope boundary.",
+            "kind": "vocabulary",
+            "governed_scopes": [
+              "implementation_kind"
+            ],
+            "extension_policy": "governed-extension",
+            "extension_pattern": "a++",
+            "terms": {
+              "base": {
+                "title": "Base",
+                "description": "Base term."
+              }
+            }
+          }
+        }
+      },
+      "valid": true
+    },
+    {
+      "name": "duplicate-owner",
+      "payload": {
+        "schema_version": "controlled-vocabularies/v1",
+        "vocabularies": {
+          "test": {
+            "title": "Test",
+            "description": "Syntax and scope boundary.",
+            "kind": "vocabulary",
+            "governed_scopes": [
+              "implementation_kind"
+            ],
+            "extension_policy": "governed-extension",
+            "extension_pattern": "(?<=a)b",
+            "terms": {
+              "base": {
+                "title": "Base",
+                "description": "Base term."
+              }
+            }
+          },
+          "other": {
+            "title": "Test",
+            "description": "Syntax and scope boundary.",
+            "kind": "vocabulary",
+            "governed_scopes": [
+              "implementation_kind"
+            ],
+            "extension_policy": "governed-extension",
+            "extension_pattern": "(?<=a)b",
+            "terms": {
+              "base": {
+                "title": "Base",
+                "description": "Base term."
+              }
+            }
+          }
+        }
+      },
+      "valid": false
+    },
+    {
+      "name": "term-key-blank",
+      "payload": {
+        "schema_version": "controlled-vocabularies/v1",
+        "vocabularies": {
+          "test": {
+            "title": "Test",
+            "description": "Syntax and scope boundary.",
+            "kind": "vocabulary",
+            "governed_scopes": [
+              "implementation_kind"
+            ],
+            "extension_policy": "governed-extension",
+            "extension_pattern": "(?<=a)b",
+            "terms": {
+              "": {
+                "title": "T",
+                "description": "D"
+              }
+            }
+          }
+        }
+      },
+      "valid": false
+    },
+    {
+      "name": "term-key-uppercase",
+      "payload": {
+        "schema_version": "controlled-vocabularies/v1",
+        "vocabularies": {
+          "test": {
+            "title": "Test",
+            "description": "Syntax and scope boundary.",
+            "kind": "vocabulary",
+            "governed_scopes": [
+              "implementation_kind"
+            ],
+            "extension_policy": "governed-extension",
+            "extension_pattern": "(?<=a)b",
+            "terms": {
+              "Bad": {
+                "title": "T",
+                "description": "D"
+              }
+            }
+          }
+        }
+      },
+      "valid": false
+    },
+    {
+      "name": "term-key-trailing-newline",
+      "payload": {
+        "schema_version": "controlled-vocabularies/v1",
+        "vocabularies": {
+          "test": {
+            "title": "Test",
+            "description": "Syntax and scope boundary.",
+            "kind": "vocabulary",
+            "governed_scopes": [
+              "implementation_kind"
+            ],
+            "extension_policy": "governed-extension",
+            "extension_pattern": "(?<=a)b",
+            "terms": {
+              "key\n": {
+                "title": "T",
+                "description": "D"
+              }
+            }
+          }
+        }
+      },
+      "valid": false
+    },
+    {
+      "name": "allowed-time-scope",
+      "payload": {
+        "schema_version": "controlled-vocabularies/v1",
+        "vocabularies": {
+          "test": {
+            "title": "Test",
+            "description": "Syntax and scope boundary.",
+            "kind": "vocabulary",
+            "governed_scopes": [
+              "capabilities.time.supported_domain_kinds"
+            ],
+            "extension_policy": "governed-extension",
+            "extension_pattern": "(?<=a)b",
+            "terms": {
+              "base": {
+                "title": "Base",
+                "description": "Base term."
+              }
+            }
+          }
+        }
+      },
+      "valid": true
+    }
+  ]
+}

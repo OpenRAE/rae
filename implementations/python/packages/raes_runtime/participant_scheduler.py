@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 from asyncio import CancelledError
-from collections.abc import Callable, Iterable
+from collections.abc import Callable, Iterable, Mapping
+from dataclasses import dataclass
 from typing import TypedDict, Unpack
 
 from raes_contracts.contracts import ParticipantAutonomousExecutionStateModel
@@ -24,6 +25,13 @@ from .participant_invocation_tool_settlement import (
     InvocationToolActionConfiguration,
     settle_invocation_tool_sessions,
 )
+from .participant_release import (
+    ReleaseDisposition,
+    participant_disposition,
+    release_diagnostic,
+    released_participant_addresses,
+    waiting_participant_addresses,
+)
 from .participant_resource_budgets import initialize_participant_resource_budgets
 from .participant_scheduler_initialization import (
     clock_tick as _clock_tick,
@@ -39,6 +47,7 @@ from .participant_scheduler_operations import (
     run_policy_due_concurrently,
 )
 from .participant_scheduler_policy import _policy_digest
+from .participant_scheduler_release import execution_service_accepts_work
 from .participant_scheduler_time import cadence as _cadence
 from .participant_scheduler_time import cadence_missed_result, clock_coordinate
 
@@ -63,10 +72,6 @@ def _missing_execution_service_result(
     )
 
 
-def _execution_service_accepts_work(service: ParticipantExecutionServiceStateModel) -> bool:
-    return service.observed_lifecycle == "running" and service.accepting_new_work and service.readiness == "ready"
-
-
 def _execution_service_has_capacity(service: ParticipantExecutionServiceStateModel) -> bool:
     return service.reserved + service.in_flight < service.capacity
 
@@ -76,7 +81,7 @@ def _capacity_blocked_due_result(
     current_tick: int,
     run: SchedulerRunState,
 ) -> ApplyResult | None:
-    for participant_address in policy.participant_addresses:
+    for participant_address in released_participant_addresses(policy, run.working):
         key = f"{policy.address}.state.{participant_address}"
         state = ParticipantAutonomousExecutionStateModel.model_validate(
             run.working.participant_autonomous_execution_states[key]
@@ -116,7 +121,7 @@ def _run_serial_due(
     activity_controls: dict[str, ParticipantActivityRandomControl],
     run: SchedulerRunState,
 ) -> None:
-    for participant_address in policy.participant_addresses:
+    for participant_address in released_participant_addresses(policy, run.working):
         run_participant_due(
             participant_due_context(
                 policy,
@@ -133,11 +138,92 @@ def _run_serial_due(
             break
 
 
+@dataclass(frozen=True)
+class _StartContext:
+    policy: ParticipantAutonomousExecutionRuntime
+    time_model: CompiledTimeModel
+    participant_runtime: object
+    activity_controls: dict[str, ParticipantActivityRandomControl]
+
+
+def _start_or_hold(
+    context: _StartContext,
+    snapshot: RuntimeSnapshot,
+    dispositions: Iterable[tuple[str, ReleaseDisposition]],
+    *,
+    delayed: bool,
+) -> ApplyResult:
+    """Start each released participant; report each held one; refuse an unsupported one."""
+    working = snapshot
+    changed: list[str] = []
+    diagnostics: list[Diagnostic] = []
+    for participant_address, disposition in dispositions:
+        if disposition is ReleaseDisposition.RELEASED:
+            started = _initialize_participant(
+                context.policy,
+                context.time_model,
+                context.participant_runtime,
+                working,
+                participant_address,
+                context.activity_controls,
+                delayed=delayed,
+            )
+            if not started.success:
+                return started
+            working = started.snapshot
+            changed.extend(started.changed_addresses)
+            continue
+        diagnostic = release_diagnostic(disposition, context.policy.address, participant_address)
+        if disposition is ReleaseDisposition.UNSUPPORTED:
+            return ApplyResult(success=False, snapshot=working, diagnostics=[diagnostic])
+        diagnostics.append(diagnostic)
+    return ApplyResult(success=True, snapshot=working, diagnostics=diagnostics, changed_addresses=changed)
+
+
+def _release_waiting_participants(
+    context: _StartContext,
+    release_assertions: Mapping[str, tuple[str, ...]],
+    run: SchedulerRunState,
+) -> None:
+    waiting = waiting_participant_addresses(context.policy, run.working)
+    result = _start_or_hold(
+        context,
+        run.working,
+        ((address, participant_disposition(release_assertions, run.working, address)) for address in waiting),
+        delayed=True,
+    )
+    if not result.success:
+        run.failure = result
+        return
+    run.working = result.snapshot
+    run.changed.extend(result.changed_addresses)
+    run.diagnostics.extend(result.diagnostics)
+
+
+def _run_released_due(
+    context: _StartContext,
+    service: ParticipantExecutionServiceStateModel,
+    run: SchedulerRunState,
+) -> None:
+    policy, time_model = context.policy, context.time_model
+    cadence_ticks = _cadence(policy, time_model)[1] if policy.profile == "participant-autonomous-execution/v1" else 0
+    current_tick = _clock_tick(run.working, policy.clock_address)
+    if not _execution_service_has_capacity(service):
+        run.failure = _capacity_blocked_due_result(policy, current_tick, run)
+    elif not run_policy_due_concurrently(
+        policy, time_model, context.participant_runtime, current_tick, cadence_ticks, run
+    ):
+        _run_serial_due(
+            policy, time_model, context.participant_runtime, current_tick, cadence_ticks, context.activity_controls, run
+        )
+
+
 def _run_due_policy(
     policy: ParticipantAutonomousExecutionRuntime,
     time_model: CompiledTimeModel,
     participant_runtime: object,
     activity_controls: dict[str, ParticipantActivityRandomControl],
+    release_assertions: Mapping[str, tuple[str, ...]],
     run: SchedulerRunState,
 ) -> None:
     service_payload = run.working.participant_execution_services.get(policy.address)
@@ -145,15 +231,11 @@ def _run_due_policy(
         run.failure = _missing_execution_service_result(policy, run)
         return
     service = ParticipantExecutionServiceStateModel.model_validate(service_payload)
-    if not _execution_service_accepts_work(service):
-        return
-    cadence_ticks = _cadence(policy, time_model)[1] if policy.profile == "participant-autonomous-execution/v1" else 0
-    current_tick = _clock_tick(run.working, policy.clock_address)
-    if not _execution_service_has_capacity(service):
-        run.failure = _capacity_blocked_due_result(policy, current_tick, run)
-        return
-    if not run_policy_due_concurrently(policy, time_model, participant_runtime, current_tick, cadence_ticks, run):
-        _run_serial_due(policy, time_model, participant_runtime, current_tick, cadence_ticks, activity_controls, run)
+    if execution_service_accepts_work(service):
+        context = _StartContext(policy, time_model, participant_runtime, activity_controls)
+        _release_waiting_participants(context, release_assertions, run)
+        if run.failure is None:
+            _run_released_due(context, service, run)
 
 
 def _initialize_governed_resources(
@@ -191,24 +273,27 @@ def _initialize_policy(
     participant_runtime: object,
     snapshot: RuntimeSnapshot,
     activity_controls: dict[str, ParticipantActivityRandomControl],
+    release_assertions: Mapping[str, tuple[str, ...]],
 ) -> ApplyResult:
-    working = snapshot
-    changed: list[str] = []
-    failure = None
-    for participant_address in policy.participant_addresses:
-        participant_result = _initialize_participant(
-            policy,
-            time_model,
-            participant_runtime,
-            working,
-            participant_address,
-            activity_controls,
-        )
-        if not participant_result.success:
-            failure = participant_result
-            break
-        working = participant_result.snapshot
-        changed.extend(participant_result.changed_addresses)
+    released = set(released_participant_addresses(policy, snapshot))
+    participants = _start_or_hold(
+        _StartContext(policy, time_model, participant_runtime, activity_controls),
+        snapshot,
+        (
+            (
+                address,
+                ReleaseDisposition.RELEASED
+                if address in released
+                else participant_disposition(release_assertions, snapshot, address),
+            )
+            for address in policy.participant_addresses
+        ),
+        delayed=False,
+    )
+    working = participants.snapshot
+    changed = list(participants.changed_addresses)
+    diagnostics = list(participants.diagnostics)
+    failure = None if participants.success else participants
     if failure is None:
         services = dict(working.participant_execution_services)
         expected_service = execution_service_state(
@@ -255,6 +340,7 @@ def _initialize_policy(
     return failure or ApplyResult(
         success=True,
         snapshot=working,
+        diagnostics=diagnostics,
         changed_addresses=list(dict.fromkeys(changed)),
     )
 
@@ -278,10 +364,14 @@ class ParticipantScheduler:
         snapshot: RuntimeSnapshot,
         activity_controls: dict[str, ParticipantActivityRandomControl] | None = None,
         resource_capabilities: object | None = None,
+        *,
+        release_assertions: Mapping[str, tuple[str, ...]],
     ) -> ApplyResult:
+        """Initialize policies; start only participants whose starting assertions are true."""
         working = snapshot
         resolved_activity_controls = activity_controls or {}
         changed: list[str] = []
+        diagnostics: list[Diagnostic] = []
         normalized_policies = tuple(policies)
         initialized = _initialize_governed_resources(normalized_policies, working, resource_capabilities)
         if not initialized.success:
@@ -294,14 +384,17 @@ class ParticipantScheduler:
                 participant_runtime,
                 working,
                 resolved_activity_controls,
+                release_assertions,
             )
             if not policy_result.success:
                 return policy_result
             working = policy_result.snapshot
             changed.extend(policy_result.changed_addresses)
+            diagnostics.extend(policy_result.diagnostics)
         return ApplyResult(
             success=True,
             snapshot=working,
+            diagnostics=diagnostics,
             changed_addresses=list(dict.fromkeys(changed)),
         )
 
@@ -312,9 +405,13 @@ class ParticipantScheduler:
         participant_runtime: object,
         snapshot: RuntimeSnapshot,
         activity_controls: dict[str, ParticipantActivityRandomControl] | None = None,
+        *,
+        release_assertions: Mapping[str, tuple[str, ...]],
         **options: Unpack[RunDueOptions],
     ) -> ApplyResult:
-        """Run each due action; on cancellation, give the settled state to ``cancellation_sink``.
+        """Release ready participants, then run each due action.
+
+        On cancellation, give the settled state to ``cancellation_sink``.
 
         A cancelled concurrent batch has fenced its indeterminate native work in the
         scheduler state. The commit owner must commit that state before the
@@ -335,7 +432,9 @@ class ParticipantScheduler:
         resolved_activity_controls = activity_controls or {}
         try:
             for policy in policies:
-                _run_due_policy(policy, time_model, participant_runtime, resolved_activity_controls, run)
+                _run_due_policy(
+                    policy, time_model, participant_runtime, resolved_activity_controls, release_assertions, run
+                )
                 if run.failure is not None or run.deferred_cancellation is not None:
                     break
             if run.deferred_cancellation is not None:
@@ -393,11 +492,19 @@ class ParticipantScheduler:
         snapshot: RuntimeSnapshot,
         clock_address: str,
         lifecycle_state: str,
+        *,
+        policies: Iterable[ParticipantAutonomousExecutionRuntime],
     ) -> ApplyResult:
+        """Pause or resume a clock, including policies whose participants still wait for release."""
         return set_execution_clock_lifecycle(
             snapshot,
             clock_address,
             lifecycle_state,
+            waiting_policy_addresses=frozenset(
+                policy.address
+                for policy in policies
+                if policy.clock_address == clock_address and waiting_participant_addresses(policy, snapshot)
+            ),
         )
 
 

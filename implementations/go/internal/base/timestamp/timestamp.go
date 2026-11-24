@@ -10,7 +10,7 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/OpenRAE/rae/implementations/go/internal/base/fault"
+	"github.com/OpenRAE/rae/implementations/go/base/fault"
 )
 
 // ErrInput reports invalid timestamp text.

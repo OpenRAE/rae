@@ -1,0 +1,14 @@
+{
+  "args": [
+    "authoring-adapter-vector-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:b0c7ec54f66b66475445de91a9aea56c9f377520ac20ba0feb4ee6d1b5b2de12"
+  },
+  "name": "regression/069b1b5e3aa367ebf16052635edfe75a7739cb7b238fe5329f71db866a8860ed",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

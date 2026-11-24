@@ -28,6 +28,7 @@ const Schema = "raes-go-architecture/v2"
 // Model is the machine-readable architecture of the repository's Go code.
 // Each directory in it is relative to the repository root.
 type Model struct {
+	ConsumerAPI    *ConsumerAPI      `json:"consumer_api,omitempty"`
 	Configurations []Configuration   `json:"configurations"`
 	Overview       string            `json:"overview"`
 	Sources        map[string]string `json:"sources"`
@@ -35,6 +36,47 @@ type Model struct {
 	Modules        []Module          `json:"modules"`
 	Layers         []Layer           `json:"layers"`
 	Packages       []Package         `json:"packages"`
+}
+
+// ConsumerAPI declares the public imports and their delivery commitments.
+// A package at its public path implements one; the others remain planned.
+type ConsumerAPI struct {
+	Design   string            `json:"design"`
+	Modules  []ConsumerModule  `json:"modules"`
+	Packages []ConsumerPackage `json:"packages"`
+	Commands []ConsumerCommand `json:"commands"`
+}
+
+// ConsumerCommand names the sole publisher and public dependencies of a binary.
+type ConsumerCommand struct {
+	Name       string   `json:"name"`
+	Owner      string   `json:"owner"`
+	EntryPoint string   `json:"entrypoint"`
+	Uses       []string `json:"uses"`
+}
+
+// ConsumerModule identifies a repository owner. An empty module is pending approval.
+type ConsumerModule struct {
+	Owner      string `json:"owner"`
+	Repository string `json:"repository"`
+	Module     string `json:"module"`
+}
+
+// ConsumerPackage commits a public path, operations, dependencies and delivery owners.
+// Uses names packages as owner:path. Existing names the package that issue 1892
+// relocated to its public path.
+type ConsumerPackage struct {
+	Owner              string   `json:"owner"`
+	Path               string   `json:"path"`
+	Layer              string   `json:"layer"`
+	Symbols            []string `json:"symbols"`
+	Uses               []string `json:"uses"`
+	Issues             []int    `json:"issues"`
+	Consumers          []string `json:"consumers"`
+	Existing           string   `json:"existing,omitempty"`
+	ExistingAPISHA256  string   `json:"existing_api_sha256,omitempty"`
+	Declarations       string   `json:"declarations,omitempty"`
+	DeclarationsSHA256 string   `json:"declarations_sha256,omitempty"`
 }
 
 // Module is a Go module: the directory that holds its go.mod, and its module path.
@@ -63,13 +105,14 @@ type External struct {
 // Package is a Go package. A public package is visible to the layers that use
 // its layer; a package is always visible inside its own layer.
 type Package struct {
-	Design  string              `json:"design"`
-	API     map[string][]string `json:"api"`
-	Dir     string              `json:"dir"`
-	Layer   string              `json:"layer"`
-	Public  bool                `json:"public"`
-	Doc     string              `json:"doc"`
-	Imports []string            `json:"imports"`
+	Design   string              `json:"design"`
+	API      map[string][]string `json:"api"`
+	APIFiles map[string][]string `json:"api_files,omitempty"`
+	Dir      string              `json:"dir"`
+	Layer    string              `json:"layer"`
+	Public   bool                `json:"public"`
+	Doc      string              `json:"doc"`
+	Imports  []string            `json:"imports"`
 }
 
 // Finding is one way in which the model, the code, or the rule table breaks a rule.
@@ -114,13 +157,16 @@ func Load(fsys fs.FS, name string) (*Model, error) {
 	if model.Schema != Schema {
 		return nil, fmt.Errorf("%s: schema is %q, want %q", name, model.Schema, Schema)
 	}
+	if err := model.loadAPIFiles(fsys); err != nil {
+		return nil, err
+	}
 	return &model, nil
 }
 
 // CheckDesign checks the rules that the model must meet on its own, before any
 // code exists.
 func (m *Model) CheckDesign() []Finding {
-	return slices.Concat(m.checkModules(), m.checkLayers(), m.checkExternal(), m.checkPackages(), m.checkImports(), m.checkPackageCycles(), m.checkAPIShape())
+	return slices.Concat(m.checkModules(), m.checkLayers(), m.checkExternal(), m.checkPackages(), m.checkImports(), m.checkPackageCycles(), m.checkAPIShape(), m.checkConsumerAPI())
 }
 
 func (m *Model) checkModules() []Finding {
@@ -250,9 +296,9 @@ func (m *Model) packageProblem(pkg Package, duplicate bool) (problem, fix string
 		return fmt.Sprintf("the package names layer %q, which the model does not declare.", pkg.Layer),
 			"assign the package to a declared layer."
 	}
-	if !within(pkg.Dir, layer.Dir) {
-		return fmt.Sprintf("the package is outside %s, the directory of its layer %s.", layer.Dir, layer.Name),
-			fmt.Sprintf("move the package under %s, or assign it to the layer that owns its directory.", layer.Dir)
+	if !within(pkg.Dir, layer.Dir) && !m.consumerLocation(pkg) {
+		return fmt.Sprintf("the package is outside %s, the directory of its layer %s, and is not a planned consumer package of that layer.", layer.Dir, layer.Name),
+			fmt.Sprintf("move the package under %s or to the public path of its planned consumer package, or assign it to the layer that owns its directory.", layer.Dir)
 	}
 	if !slices.ContainsFunc(m.Modules, func(module Module) bool { return within(pkg.Dir, module.Dir) }) {
 		return "the package is outside every declared module.",
@@ -361,31 +407,6 @@ func (m *Model) checkPackageCycles() []Finding {
 		}
 	}
 	return nil
-}
-
-func (m *Model) checkAPIShape() []Finding {
-	var findings []Finding
-	ids := map[string]bool{}
-	for _, config := range m.Configurations {
-		if config.ID == "" || ids[config.ID] || config.GOOS == "" || config.GOARCH == "" {
-			findings = append(findings, Finding{Rule: ruleAPI, Location: config.ID, Problem: "a build configuration needs a unique ID, GOOS and GOARCH.", Fix: "declare an explicit supported build context."})
-		}
-		ids[config.ID] = true
-	}
-	if len(ids) == 0 {
-		findings = append(findings, Finding{Rule: ruleAPI, Location: "configurations", Problem: "no API build configuration is declared.", Fix: "declare supported GOOS, GOARCH and tags."})
-	}
-	for _, pkg := range m.Packages {
-		if !documentPath(pkg.Design) || len(pkg.API) != len(ids) {
-			findings = append(findings, Finding{Rule: ruleAPI, Location: pkg.Dir, Problem: "the package needs an owning design and an API snapshot for each build configuration.", Fix: "declare the design and intended API before writing code."})
-		}
-		for id, api := range pkg.API {
-			if !ids[id] || api == nil || !slices.IsSorted(api) {
-				findings = append(findings, Finding{Rule: ruleAPI, Location: pkg.Dir, Problem: "the API snapshot has an unknown configuration, null surface or unsorted declarations.", Fix: "use sorted typed declarations for each supported configuration."})
-			}
-		}
-	}
-	return findings
 }
 
 // uniqueJSON rejects ambiguous keys and excessive nesting before strict decoding.

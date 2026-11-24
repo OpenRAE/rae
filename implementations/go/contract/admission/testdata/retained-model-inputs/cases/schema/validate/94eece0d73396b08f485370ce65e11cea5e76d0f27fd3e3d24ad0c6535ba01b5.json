@@ -1,0 +1,14 @@
+{
+  "args": [
+    "fipa-communicative-acts-source-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:7245329fcaf74683cbc10735fbb880d6d0f955e87bceebf32acaa5d45cedb500"
+  },
+  "name": "regression/5f0a3cf7bc2b263dd27f0054f26fbc311c7fca7ee3aa0a3d79f7849f31047ce3",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

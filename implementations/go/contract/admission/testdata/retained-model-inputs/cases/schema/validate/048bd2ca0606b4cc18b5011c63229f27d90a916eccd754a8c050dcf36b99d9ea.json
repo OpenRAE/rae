@@ -1,0 +1,14 @@
+{
+  "args": [
+    "semantic-projection-report-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:eaabca69077e494e048cd99b0b59e3a40a40199a072b0e75ad39f9a26d1ebeaf"
+  },
+  "name": "semantic-projection-report-v1/routed/contracts/fixtures/concept-authority/semantic-projection-report-v1/valid/declared-attack-enterprise.json",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

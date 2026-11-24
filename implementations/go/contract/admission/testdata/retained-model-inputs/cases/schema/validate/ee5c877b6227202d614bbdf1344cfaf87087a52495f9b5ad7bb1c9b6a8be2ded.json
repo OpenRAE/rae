@@ -1,0 +1,14 @@
+{
+  "args": [
+    "backend-profile-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:4c69d7692460f2d53ff370a0ab6c62d493882f7d44f733b4abba7020c5c6f4bc"
+  },
+  "name": "backend-profile-v1/routed/contracts/profiles/backend/observability-evidence.json",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

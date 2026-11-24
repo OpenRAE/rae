@@ -1,0 +1,14 @@
+{
+  "args": [
+    "workflow-cancellation-request-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:ca3d163bab055381827226140568f3bef7eaac187cebd76878e0b63e9e442356"
+  },
+  "name": "regression/cadb43c1f4a261332995ff8be5f109d556ccb7070e3ddd2a5de3617d2815c1bc",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

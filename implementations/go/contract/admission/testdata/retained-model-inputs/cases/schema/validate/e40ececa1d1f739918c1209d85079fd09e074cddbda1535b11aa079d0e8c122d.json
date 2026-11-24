@@ -1,0 +1,14 @@
+{
+  "args": [
+    "nist-csf-defensive-categories-source-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:39b4d621070674707d129980b97e3c35acf8815eea6ea69da10dbf3618c70d02"
+  },
+  "name": "nist-csf-defensive-categories-source-v1/routed/contracts/concept-authority/nist-csf-defensive-categories-source-v1.json",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

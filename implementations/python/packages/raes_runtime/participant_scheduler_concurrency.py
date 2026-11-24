@@ -15,6 +15,7 @@ from raes_contracts.participant_binding import ParticipantActionAdmissionRequest
 from raes_processor.models import CompiledTimeModel, ParticipantAutonomousExecutionRuntime
 
 from .participant_interaction_conflicts import bindings_semantically_conflict as _bindings_semantically_conflict
+from .participant_release import released_participant_addresses
 from .participant_scheduler_concurrent_dispatch import (
     _CONCURRENT_SNAPSHOT_ISOLATION_FAILED,
     _ConcurrentBatch,
@@ -48,7 +49,7 @@ def _due_contexts(
 
     contexts: list[_DueActionContext] = []
     states: list[ParticipantAutonomousExecutionStateModel] = []
-    for participant_address in policy.participant_addresses:
+    for participant_address in released_participant_addresses(policy, run.working):
         key = f"{policy.address}.state.{participant_address}"
         state = ParticipantAutonomousExecutionStateModel.model_validate(
             run.working.participant_autonomous_execution_states[key]

@@ -1,4 +1,4 @@
-# JSON ingress, JSON Pointers, URI safety, and addresses in Go
+# JSON ingress, JSON pointers, URI safety, and addresses in Go
 
 Issue #1779 ports the shared primitives to Go.
 This part ports the strict JSON ingress, the JSON Pointer tokens, the URI safety check, and the compiled addresses.
@@ -70,7 +70,8 @@ flowchart LR
 
 ## Supporting artifacts
 
-- `implementations/go/internal/base/ingress/`, `jsonpointer/`, `urisafety/`, and `address/`
+- `implementations/go/base/ingress/` and `implementations/go/base/address/` (public since #1892)
+- `implementations/go/internal/base/jsonpointer/` and `implementations/go/internal/base/urisafety/`
 - The Python reference modules in `implementations/python/packages/raes_contracts/`
 
 ## References and document review
@@ -97,13 +98,13 @@ those dependencies before implementation. Reference results must not be
 replaced with hand-written Go expectations. Compatibility exceptions require
 an explicit maintainer decision and separately visible reference results.
 
-The standard JSON decoder cannot preserve duplicate detection or the reference
-error precedence without a token adapter, and replaces lone surrogates. A
+Without a token adapter, the standard JSON decoder cannot keep duplicate
+detection or the reference error precedence. It also replaces lone surrogates. A
 streaming token adapter also imposes its 10,000-depth ceiling. The existing
 parser is therefore retained rather than replaced with another parser. The
 standard URI parser rejects malformed percent escapes and accepts different
-scheme/host syntax, so the small compatibility splitter stays isolated in
-`urisafety`; `netip` and the maintained Unicode tables do the complex host and
+scheme/host syntax. Thus the small compatibility splitter stays isolated in
+`urisafety`. `netip` and the maintained Unicode tables do the complex host and
 normalization work. No network requests or value-bearing logs are added.
 
 PR #1820 incorporates this work and its review repairs as the single delivery
@@ -137,6 +138,6 @@ The `ingress-exception` cases store the unchanged Python result alongside the
 approved Go refusal and the decision identifier `maintainer-1822-2026-11-02`.
 The checker checks the Go result against that explicit field, rather than
 silently rewriting the reference result. Ordinary cases retain strict parity.
-This decision keeps ingress consistent with the existing Go canonical encoder's
-strict Unicode boundary; it does not change the Python release or published
-schemas, and leaves the separate Python-compatible ASCII canonical encoder unchanged.
+This decision keeps ingress consistent with the strict Unicode boundary of the
+existing Go canonical encoder. It does not change the Python release or the
+published schemas. The separate Python-compatible ASCII canonical encoder stays unchanged.

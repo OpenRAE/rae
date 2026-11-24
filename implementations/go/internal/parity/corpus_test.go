@@ -13,7 +13,7 @@ import (
 // skips each command without a runner, so its output reports the commands
 // that the Go implementation does not cover yet.
 func TestCorpus(t *testing.T) {
-	cases, err := Load(os.DirFS("testdata"))
+	cases, err := loadTestCases()
 	if err != nil {
 		t.Fatalf("Load(testdata) error = %v", err)
 	}
@@ -61,7 +61,7 @@ func checkCases(t *testing.T, run Runner, cases []Case) {
 			if err != nil {
 				t.Fatalf("run(%s) error = %v", c.Name, err)
 			}
-			diff, err := compareResults(expectedResult(t, c), got)
+			diff, err := compareCaseResults(c, expectedResult(t, c), got)
 			if err != nil {
 				t.Fatalf("compareResults() error = %v", err)
 			}

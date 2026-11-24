@@ -1,0 +1,117 @@
+package trial
+
+import (
+	"context"
+	"github.com/OpenRAE/rae/implementations/go/contract/admission"
+	"github.com/OpenRAE/rae/implementations/go/contract/binding"
+	"github.com/OpenRAE/rae/implementations/go/contract/diagnostic"
+	"github.com/OpenRAE/rae/implementations/go/contract/validation"
+	"github.com/OpenRAE/rae/implementations/go/processor/planning"
+	"github.com/OpenRAE/rae/implementations/go/sdl"
+)
+
+type ParticipantManifestKey = admission.ParticipantManifestKey
+type ApparatusManifestKey = admission.ApparatusManifestKey
+type ConfigurationValidatorKey struct{ ValidatorID, ValidatorVersion string }
+type ControlContextProvider interface {
+	ForScenario(ctx context.Context, family sdl.Scenario) (admission.ParticipantControlContextValidator, error)
+}
+type Limits struct {
+	MaxCoordinates, MaxDomainValuesPerPoint, MaxProductOutputs int
+	MaxBindingsPerEntry, MaxDrawsPerEntry, MaxDiagnostics      int
+	MaxMixedProfiles, MaxMixedContextWork, MaxPlanBytes        int
+}
+type MixedCompositionLimits struct {
+	MaxSourceBytes, MaxJSONDepth, MaxJSONNodes, MaxComponents, MaxAllocations int
+	MaxEdges, MaxPhases, MaxTransitions, MaxNestedProfiles, MaxContextWork    int
+}
+
+func DefaultLimits() Limits
+func (limits Limits) Validate() error
+func DefaultMixedCompositionLimits() MixedCompositionLimits
+func (limits MixedCompositionLimits) Validate() error
+
+type Request struct {
+	Family                                   sdl.Scenario
+	Task                                     binding.ExperimentTaskV1
+	Experiment                               validation.Value
+	InputRefs, Apparatus, ExecutionAuthority admission.Fragment
+	RealizationEnvelope                      validation.Value
+	ApparatusManifests                       map[ApparatusManifestKey]admission.ApparatusManifest
+	ParticipantManifests                     map[ParticipantManifestKey]binding.ParticipantImplementationManifestV1
+	CaptureSpecs                             map[string]binding.ExperimentCaptureSpecV1
+	RealizationAssignments                   map[string]admission.Fragment
+	MixedProfiles, MixedRealizationEnvelopes map[string]validation.Value
+	MixedProfileContexts                     map[string]admission.MixedCompositionContext
+	SourcePlans                              map[string]binding.AdmittedTrialPlanV1
+	Limits                                   Limits
+	MixedCompositionLimits                   MixedCompositionLimits
+	ParticipantConfigurationValidators       map[ConfigurationValidatorKey]admission.ParticipantConfigurationValidator
+	ParticipantControlContextValidators      map[ConfigurationValidatorKey]admission.ParticipantControlContextValidator
+	ParticipantControlContextFactories       map[ConfigurationValidatorKey]ControlContextProvider
+}
+type Result struct {
+	Plan        *binding.AdmittedTrialPlanV1
+	Diagnostics []diagnostic.Diagnostic
+}
+type ScheduledEntry struct {
+	PlanEntryID, RunID string
+	DispatchOrdinal    int
+}
+type BatchSchedule struct {
+	PlanID, PlanDigest, SchedulingPolicyID string
+	AdmittedParallelismCeiling             int
+	IsolationProofRef                      *string
+	Entries                                []ScheduledEntry
+}
+
+func Compile(request Request) (Result, error)
+func CompileContext(ctx context.Context, request Request) (Result, error)
+func Readmit(ctx context.Context, plan binding.AdmittedTrialPlanV1, request Request) (binding.AdmittedTrialPlanV1, error)
+type ReplacementRequest struct {
+	Compilation Request
+	OriginalPlan binding.AdmittedTrialPlanV1
+	RootEntryID string
+	ParentRun binding.ExperimentRunV1
+	CleanupReceipts []binding.TrialCleanupReceiptV1
+	PreviousAllocations []ReplacementResult
+}
+type ReplacementResult struct {
+	Plan *binding.AdmittedTrialPlanV1
+	SupersededRun, ParentRun *binding.ExperimentRunV1
+	CleanupReceipts []binding.TrialCleanupReceiptV1
+	Diagnostics []diagnostic.Diagnostic
+}
+func CompileReplacement(ctx context.Context, request ReplacementRequest) (ReplacementResult, error)
+func RealizationAssignmentKey(coordinate admission.Fragment) (string, error)
+func PlanBatchSchedule(plan binding.AdmittedTrialPlanV1) (BatchSchedule, error)
+func PlanBatchScheduleValue(plan validation.Value) (BatchSchedule, error)
+
+type RealizationInputs struct {
+	Plan                 binding.AdmittedTrialPlanV1
+	Family               sdl.Scenario
+	Experiment           validation.Value
+	Task                 binding.ExperimentTaskV1
+	CaptureSpecs         map[string]binding.ExperimentCaptureSpecV1
+	ApparatusManifests   map[ApparatusManifestKey]admission.ApparatusManifest
+	RealizationEnvelope  validation.Value
+	BackendKey           ApparatusManifestKey
+	ParticipantManifests map[ParticipantManifestKey]binding.ParticipantImplementationManifestV1
+}
+type Realization struct {
+	Instantiated              sdl.InstantiatedScenario
+	SnapshotDigest            string
+	ExecutionPlan             planning.ExecutionPlan
+	ProvisioningPlan          binding.ProvisioningPlanV1
+	OrchestrationPlan         binding.OrchestrationPlanV1
+	EvaluationPlan            binding.EvaluationPlanV1
+	ProcessorPlanRefs         []admission.Fragment
+	ParticipantConfigurations []binding.ParticipantConfigurationResultV1
+}
+type RealizationOptions struct {
+	ArtifactAvailability []planning.ArtifactAvailability
+	TargetName           *string
+}
+
+func InstantiateEntry(plan binding.AdmittedTrialPlanV1, entryID string, family sdl.Scenario) (sdl.InstantiatedScenario, error)
+func RealizeEntry(inputs RealizationInputs, entryID string, options RealizationOptions) (Realization, error)

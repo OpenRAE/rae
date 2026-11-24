@@ -65,7 +65,7 @@ func checkCorpusInventory(fsys fs.FS, cases []Case) error {
 }
 
 func checkSurfaceInventory(inventory corpusInventory, keys map[string]bool) error {
-	for _, surface := range []string{"cli", "mcp", "http", "schema", "canonical", "randstream", "primitive"} {
+	for _, surface := range []string{"cli", "mcp", "http", "schema", termCanonical, "randstream", "primitive"} {
 		if len(inventory.Surfaces[surface]) == 0 {
 			return fmt.Errorf("corpus surface inventory lacks %q", surface)
 		}

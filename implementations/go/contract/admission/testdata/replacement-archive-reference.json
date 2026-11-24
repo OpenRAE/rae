@@ -1,0 +1,2671 @@
+{
+  "sources": {
+    "implementations/python/packages/raes_processor/trial_compiler/replacement.py": "ca7c8bba737179d907bf89a92da98179b135b99f7a6b2a57492b378419e349c0",
+    "implementations/python/packages/raes_processor/trial_compiler/replacement_inputs.py": "867180d1ac5abdff983e9672500ff77690fbe27e4fe04cf4e5a1c087b28e1531",
+    "implementations/python/tests/test_issue_1396_trial_replacement.py": "4076ea30f14bad1408ff7491fd9a96f7312f130bf86aff8d17d2c06399e130ba"
+  },
+  "cases": [
+    {
+      "name": "fresh",
+      "run": {
+        "schema_version": "experiment-run/v1",
+        "run_id": "archival-run-f25a81118d3e17d991bbea3a4736b17ebaab3ed696d20d24ba1046399af743d3",
+        "run_version": "1.0.0",
+        "task_ref": {
+          "ref_kind": "task",
+          "ref_id": "task-techvault-red-team-v1",
+          "ref_version": "1.0.0"
+        },
+        "scenario_snapshot_ref": {
+          "ref_kind": "scenario-snapshot",
+          "ref_id": "compiler-family",
+          "ref_version": "raes-sdl-instantiated-snapshot/v2",
+          "ref_digest": "sha256:f27fdb5fd67a3998901a518c8a152d819b3af5fcfe01c5e2119e641f5a57e06f",
+          "ref_path": null
+        },
+        "trial_provenance": {
+          "plan_id": "trial-plan-8152a63b982edf026e7489f063901ea688ab54080f4ce93629c7fbb4b57be797",
+          "plan_digest": "sha256:f9c6915e4c7ea01422d32257052a5af37434b4f95069ecef9ed26b342ebff44b",
+          "plan_entry_id": "trial-entry-b0af0a985e96f63b7946d3036afcae9b51e44680d82fb6a32beaa55ec841a276",
+          "entry_digest": "sha256:013ca986bef5a577696a780c96d84c400219c7d593cf1d252542b279727101ba",
+          "admitted_run_id": "archival-run-f25a81118d3e17d991bbea3a4736b17ebaab3ed696d20d24ba1046399af743d3",
+          "coordinate": {
+            "condition_id": null,
+            "block_id": null,
+            "replicate_id": "replicate-000001"
+          },
+          "instantiated_scenario_digest": "sha256:f27fdb5fd67a3998901a518c8a152d819b3af5fcfe01c5e2119e641f5a57e06f",
+          "processor_plan_refs": [
+            {
+              "plan_kind": "provisioning",
+              "artifact_ref": {
+                "ref_kind": "other",
+                "ref_id": "archival-run-f25a81118d3e17d991bbea3a4736b17ebaab3ed696d20d24ba1046399af743d3:provisioning",
+                "ref_version": "provisioning-plan-v1",
+                "ref_digest": "sha256:4fbaf14b0b2a2b8dba28a198826fc3d744d9edf7df8edc1c5bee5a882ecd3ff1",
+                "ref_path": null
+              }
+            },
+            {
+              "plan_kind": "orchestration",
+              "artifact_ref": {
+                "ref_kind": "other",
+                "ref_id": "archival-run-f25a81118d3e17d991bbea3a4736b17ebaab3ed696d20d24ba1046399af743d3:orchestration",
+                "ref_version": "orchestration-plan-v1",
+                "ref_digest": "sha256:d126d54f7b380d788b1fce28ebb28344a68f92b376ab673f36eed837fe3afa12",
+                "ref_path": null
+              }
+            },
+            {
+              "plan_kind": "evaluation",
+              "artifact_ref": {
+                "ref_kind": "other",
+                "ref_id": "archival-run-f25a81118d3e17d991bbea3a4736b17ebaab3ed696d20d24ba1046399af743d3:evaluation",
+                "ref_version": "evaluation-plan-v1",
+                "ref_digest": "sha256:9daae2a7a240dd346318cd48aa0064d77f8944e5adecf02b4f9b17daccc30d60",
+                "ref_path": null
+              }
+            }
+          ],
+          "execution_attempts": [
+            {
+              "execution_attempt_id": "attempt:archival-run-f25a81118d3e17d991bbea3a4736b17ebaab3ed696d20d24ba1046399af743d3",
+              "cleanup_receipt_ref": "cleanup:archival-run-f25a81118d3e17d991bbea3a4736b17ebaab3ed696d20d24ba1046399af743d3",
+              "operation_refs": []
+            }
+          ],
+          "terminal_attempt_id": "attempt:archival-run-f25a81118d3e17d991bbea3a4736b17ebaab3ed696d20d24ba1046399af743d3"
+        },
+        "difficulty_provenance": null,
+        "apparatus_context": {
+          "schema_version": "experiment-apparatus-context/v1",
+          "apparatus_context_id": "apparatus-techvault-reference",
+          "context_version": "1.0.0",
+          "declared_at": "2026-05-26T00:00:00Z",
+          "components": {
+            "processor": {
+              "component_kind": "processor",
+              "identity": {
+                "name": "raes-reference-processor",
+                "version": "0.1.0"
+              },
+              "manifest_ref": {
+                "ref_kind": "manifest",
+                "ref_id": "raes-reference-processor",
+                "ref_version": "processor-manifest/v2",
+                "ref_digest": null,
+                "ref_path": null,
+                "subject_ref": {
+                  "ref_kind": "processor",
+                  "ref_id": "raes-reference-processor",
+                  "ref_version": "0.1.0",
+                  "ref_digest": null,
+                  "ref_path": null
+                }
+              },
+              "compatibility_refs": [],
+              "observed": true,
+              "limitations": []
+            },
+            "backend": {
+              "component_kind": "backend",
+              "identity": {
+                "name": "stub-backend",
+                "version": "0.1.0"
+              },
+              "manifest_ref": {
+                "ref_kind": "manifest",
+                "ref_id": "stub-backend",
+                "ref_version": "backend-manifest/v2",
+                "ref_digest": null,
+                "ref_path": null,
+                "subject_ref": {
+                  "ref_kind": "backend",
+                  "ref_id": "stub-backend",
+                  "ref_version": "0.1.0",
+                  "ref_digest": null,
+                  "ref_path": null
+                }
+              },
+              "compatibility_refs": [],
+              "observed": true,
+              "limitations": []
+            },
+            "participant-policy": {
+              "component_kind": "participant-implementation",
+              "identity": {
+                "name": "reference-red-agent",
+                "version": "1.0.0"
+              },
+              "manifest_ref": {
+                "ref_kind": "manifest",
+                "ref_id": "reference-red-agent",
+                "ref_version": "participant-implementation-manifest/v1",
+                "ref_digest": null,
+                "ref_path": null,
+                "subject_ref": {
+                  "ref_kind": "participant-implementation",
+                  "ref_id": "reference-red-agent",
+                  "ref_version": "1.0.0",
+                  "ref_digest": null,
+                  "ref_path": null
+                }
+              },
+              "compatibility_refs": [],
+              "observed": true,
+              "limitations": []
+            }
+          },
+          "selected_manifests": [
+            {
+              "ref_kind": "manifest",
+              "ref_id": "raes-reference-processor",
+              "ref_version": "processor-manifest/v2",
+              "ref_digest": null,
+              "ref_path": null,
+              "subject_ref": {
+                "ref_kind": "processor",
+                "ref_id": "raes-reference-processor",
+                "ref_version": "0.1.0",
+                "ref_digest": null,
+                "ref_path": null
+              }
+            },
+            {
+              "ref_kind": "manifest",
+              "ref_id": "stub-backend",
+              "ref_version": "backend-manifest/v2",
+              "ref_digest": null,
+              "ref_path": null,
+              "subject_ref": {
+                "ref_kind": "backend",
+                "ref_id": "stub-backend",
+                "ref_version": "0.1.0",
+                "ref_digest": null,
+                "ref_path": null
+              }
+            },
+            {
+              "ref_kind": "manifest",
+              "ref_id": "reference-red-agent",
+              "ref_version": "participant-implementation-manifest/v1",
+              "ref_digest": null,
+              "ref_path": null,
+              "subject_ref": {
+                "ref_kind": "participant-implementation",
+                "ref_id": "reference-red-agent",
+                "ref_version": "1.0.0",
+                "ref_digest": null,
+                "ref_path": null
+              }
+            }
+          ],
+          "compatibility_declarations": [
+            {
+              "ref_kind": "profile",
+              "ref_id": "reference-stack-v1",
+              "ref_version": "semantic-profile/v1"
+            },
+            {
+              "ref_kind": "capability",
+              "ref_id": "workflow-results",
+              "ref_version": null
+            },
+            {
+              "ref_kind": "capability",
+              "ref_id": "evaluation-results",
+              "ref_version": null
+            }
+          ],
+          "configuration_parameters": [
+            {
+              "name": "worker-count",
+              "value": 1,
+              "value_kind": "apparatus",
+              "redaction": "none"
+            }
+          ],
+          "stochastic_controls": [
+            {
+              "control_id": "task-seed",
+              "role": "seed",
+              "value": 12345,
+              "description": "Seed supplied to task randomization.",
+              "executable_binding": null
+            }
+          ],
+          "clocks": [
+            {
+              "clock_id": "range-wall-clock",
+              "authority": "backend wall clock",
+              "time_domain": "wall-clock",
+              "synchronization": "NTP synchronized before run seal."
+            }
+          ],
+          "measurement_channels": [
+            {
+              "ref_kind": "measurement-channel",
+              "ref_id": "evaluation-history-channel",
+              "ref_version": "1.0.0"
+            }
+          ],
+          "observed_setup_evidence": [
+            {
+              "artifact_id": "setup-attestation",
+              "role": "apparatus-evidence",
+              "media_type": "application/json",
+              "uri": "runs/run-techvault-001/setup.json",
+              "checksum": {
+                "algorithm": "sha256",
+                "value": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+              },
+              "size_bytes": 2048,
+              "created_at": "2026-05-26T00:09:30Z",
+              "source": "stub-backend setup attestation",
+              "satisfies_refs": [],
+              "sensitivity": "internal",
+              "description": null
+            }
+          ],
+          "known_limitations": [
+            {
+              "category": "apparatus",
+              "note": "The stub backend is a conformance apparatus, not a fidelity claim.",
+              "mitigation": null
+            }
+          ]
+        },
+        "participant_implementation_provenance": {
+          "schema_version": "participant-implementation-provenance/v1",
+          "run_id": "archival-run-f25a81118d3e17d991bbea3a4736b17ebaab3ed696d20d24ba1046399af743d3",
+          "participant_implementations": [
+            {
+              "participant_address": "participants.red",
+              "implementation_identity": {
+                "name": "reference-red-agent",
+                "version": "1.0.0"
+              },
+              "manifest_ref": "contracts/fixtures/participant-implementation-manifest/reference.json",
+              "manifest_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+              "configuration_ref": null,
+              "configuration_digest": null,
+              "selected_decision_surface_mode": "policy-directed",
+              "participant_contract_versions": [
+                "participant-episode-state-envelope-v1",
+                "participant-behavior-history-event-stream-v1"
+              ],
+              "exposure_policy": {
+                "policy_id": "red-agent-policy",
+                "policy_version": "1.0.0",
+                "policy_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+                "exposure_policy_kinds": [
+                  "task-statement",
+                  "tool-affordance"
+                ],
+                "disclosed_refs": [
+                  "scenario.tasks.red"
+                ],
+                "withheld_refs": [
+                  "scenario.hidden.answer-key"
+                ],
+                "tool_affordance_refs": [
+                  "tool.shell"
+                ],
+                "visibility_scope_refs": [
+                  "participants.red.visible"
+                ],
+                "constraints": {}
+              }
+            }
+          ],
+          "processor_manifest_ref": "processor-manifest-v2:raes-reference-processor",
+          "backend_manifest_ref": "backend-manifest-v2:stub-backend",
+          "metadata": {}
+        },
+        "parameter_set": [
+          {
+            "name": "difficulty",
+            "value": "standard",
+            "value_kind": "protocol",
+            "redaction": "none"
+          }
+        ],
+        "realized_bindings": [],
+        "stochastic_controls": [
+          {
+            "control_id": "sample-control",
+            "role": "sampling",
+            "value": null,
+            "description": null,
+            "executable_binding": {
+              "profile_ref": {
+                "ref_kind": "profile",
+                "ref_id": "blake3-xof-v1",
+                "ref_version": "random-stream-profile/v1",
+                "ref_digest": null,
+                "ref_path": null
+              },
+              "namespace": "compiler-sampling",
+              "root_entropy": {
+                "kind": "public-seed",
+                "encoding": "hex-fixed-width",
+                "value": "0101010101010101010101010101010101010101010101010101010101010101"
+              }
+            }
+          }
+        ],
+        "stochastic_draws": [
+          {
+            "control_id": "sample-control",
+            "address": {
+              "namespace": "compiler-sampling",
+              "trial_coordinate": {
+                "condition_id": null,
+                "block_id": null,
+                "replicate_id": "replicate-000001"
+              },
+              "selection_policy_id": "sample-path",
+              "variation_point_id": "payload-path",
+              "draw_purpose": "sampling-selection",
+              "local_coordinate": 0
+            },
+            "transform_id": "bounded-integer",
+            "transform_version": "1",
+            "local_coordinate": 0,
+            "outcome": {
+              "kind": "public-value",
+              "value": "0"
+            },
+            "rejection_attempts": 0,
+            "rejection_exhausted": false
+          }
+        ],
+        "started_at": "2026-05-26T00:10:00Z",
+        "ended_at": "2026-05-26T00:40:00Z",
+        "clock_context": {
+          "clock_id": "range-wall-clock",
+          "authority": "backend wall clock",
+          "time_domain": "wall-clock",
+          "synchronization": null
+        },
+        "realized_time_model": null,
+        "run_status": "failed",
+        "outcome_status": "failed",
+        "traceability": {
+          "capture_spec_refs": [
+            {
+              "ref_kind": "capture-spec",
+              "ref_id": "capture-techvault-evidence-v1",
+              "ref_version": "1.0.0"
+            }
+          ],
+          "evidence_record_refs": [
+            {
+              "ref_kind": "evidence-record",
+              "ref_id": "evidence-techvault-network-trace-001",
+              "ref_version": "1.0.0"
+            }
+          ],
+          "derived_measure_refs": [
+            {
+              "ref_kind": "derived-measure",
+              "ref_id": "measure-techvault-foothold-001",
+              "ref_version": "1.0.0"
+            }
+          ],
+          "claim_refs": [
+            {
+              "ref_kind": "result",
+              "ref_id": "foothold-achieved-result",
+              "ref_version": null,
+              "ref_digest": null,
+              "ref_path": null
+            }
+          ],
+          "notes": [
+            "The run provenance chain binds the declared capture spec, raw evidence record, derived foothold measure, and result claim."
+          ]
+        },
+        "realized_form_disclosures": [
+          {
+            "concern_id": "composed-scenario-snapshot",
+            "concern_kind": "scenario-module",
+            "basis": "processor-realized",
+            "realized_by_ref": {
+              "ref_kind": "processor",
+              "ref_id": "raes-reference-processor",
+              "ref_version": "0.1.0",
+              "ref_digest": null,
+              "ref_path": null
+            },
+            "authored_ref": {
+              "ref_kind": "scenario",
+              "ref_id": "scenario-techvault",
+              "ref_version": null,
+              "ref_digest": null,
+              "ref_path": null
+            },
+            "realized_ref": {
+              "ref_kind": "scenario-snapshot",
+              "ref_id": "scenario-techvault",
+              "ref_version": "2026-05-26",
+              "ref_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+              "ref_path": null
+            },
+            "realized_value_summary": null,
+            "disclosure": "The processor resolved the authored TechVault scenario into the canonical composed scenario snapshot used by this run.",
+            "evidence_refs": [
+              {
+                "ref_kind": "evidence-record",
+                "ref_id": "evidence-techvault-network-trace-001",
+                "ref_version": "1.0.0"
+              }
+            ],
+            "typed_description": null
+          }
+        ],
+        "augmentation_disclosures": [],
+        "materialization_attestations": [],
+        "evidence_artifacts": [
+          {
+            "artifact_id": "auth-log-evidence",
+            "role": "observation",
+            "media_type": "application/json",
+            "uri": "runs/run-techvault-001/evaluation-history.json",
+            "checksum": {
+              "algorithm": "sha256",
+              "value": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+            },
+            "size_bytes": 4096,
+            "created_at": "2026-05-26T00:40:00Z",
+            "source": "stub-backend evaluator history export",
+            "satisfies_refs": [
+              {
+                "ref_kind": "evidence",
+                "ref_id": "auth-log-evidence",
+                "ref_version": null
+              }
+            ],
+            "sensitivity": "internal",
+            "description": null
+          }
+        ],
+        "result_summaries": {
+          "foothold-achieved-result": {
+            "metric_id": "foothold-achieved",
+            "value": true,
+            "value_status": "reported",
+            "evidence_refs": [
+              {
+                "ref_kind": "evidence",
+                "ref_id": "auth-log-evidence"
+              }
+            ],
+            "uncertainty": null,
+            "notes": null
+          }
+        },
+        "deviations": [],
+        "invalidation": null,
+        "used_refs": [
+          {
+            "ref_kind": "task",
+            "ref_id": "task-techvault-red-team-v1",
+            "ref_version": "1.0.0",
+            "ref_digest": null,
+            "ref_path": null
+          }
+        ],
+        "generated_refs": [
+          {
+            "ref_kind": "result",
+            "ref_id": "foothold-achieved-result",
+            "ref_version": null,
+            "ref_digest": null,
+            "ref_path": null
+          }
+        ],
+        "derived_from_refs": [],
+        "validation_basis_disclosures": [],
+        "evidence_requirement_relations": []
+      },
+      "child": {
+        "schema_version": "admitted-trial-plan/v1",
+        "plan_id": "replacement-plan-9a8ba877374af4e4de83dd5471a783a5575c33147f3b13316226c3b088605cec",
+        "profiles": {
+          "coordinate_profile": "trial-coordinate-v1",
+          "entry_identity_profile": "trial-entry-identity-v1",
+          "run_identity_profile": "archival-run-identity-v1",
+          "canonicalization_profile": "jcs-sha256-v1",
+          "integrity_profile": "acyclic-digest-chain-v1",
+          "compiler_profile": "trial-compiler-replacement-v1",
+          "selection_policy_profile": "experiment-selection-v1",
+          "random_stream_profile": "blake3-xof-v1",
+          "execution_control_profile": "attempt-control-v1",
+          "cleanup_profile": "trial-cleanup-v1",
+          "isolation_profile": "scheduler-isolation-v1"
+        },
+        "input_refs": {
+          "authoring_input_ref": {
+            "ref_kind": "authoring-input",
+            "ref_id": "spec-techvault-red-tactic-sweep-v1",
+            "ref_version": "1.0.0",
+            "ref_digest": "sha256:e53f7cf8d920887572ef1f52f17cd68a782ca8af2de468705866d8b363966546",
+            "ref_path": null
+          },
+          "task_ref": {
+            "ref_kind": "task",
+            "ref_id": "task-techvault-red-team-v1",
+            "ref_version": "1.0.0"
+          },
+          "task_digest": "sha256:81b6eb789e575ce0e09bedd5ad3430a92f8404328edb715c25b3d0fab24adffc",
+          "scenario_family_ref": {
+            "ref_kind": "scenario-family",
+            "ref_id": "compiler-family",
+            "ref_version": "expanded-scenario-family/v1",
+            "ref_digest": "sha256:7c4fb8b018851aadf8cfdd66be8f8ec30bdfd85a0c8da60c800fa8c142886ff5"
+          },
+          "capture_spec_refs": [
+            {
+              "ref_kind": "capture-spec",
+              "ref_id": "capture-techvault-evidence-v1",
+              "ref_version": "1.0.0",
+              "ref_digest": "sha256:23209f366685c7f6a0885dc2b0a01fb94cdf004294c245fabbf4cd436534f2be",
+              "ref_path": null
+            }
+          ],
+          "binding_descriptor_set_ref": null,
+          "study_ref": null,
+          "associated_artifact_set_ref": null
+        },
+        "stochastic_controls": {
+          "sample-control": {
+            "control_id": "sample-control",
+            "role": "sampling",
+            "value": null,
+            "description": null,
+            "executable_binding": {
+              "profile_ref": {
+                "ref_kind": "profile",
+                "ref_id": "blake3-xof-v1",
+                "ref_version": "random-stream-profile/v1",
+                "ref_digest": null,
+                "ref_path": null
+              },
+              "namespace": "compiler-sampling",
+              "root_entropy": {
+                "kind": "public-seed",
+                "encoding": "hex-fixed-width",
+                "value": "0101010101010101010101010101010101010101010101010101010101010101"
+              }
+            }
+          }
+        },
+        "cleanup_plans": {
+          "trial-cleanup-2513f077f6005552401cf75243bff97be6d036c679a6628a71d0c37fb59576aa": {
+            "schema_version": "trial-cleanup-plan/v1",
+            "plan_id": "trial-cleanup-2513f077f6005552401cf75243bff97be6d036c679a6628a71d0c37fb59576aa",
+            "plan_entry_id": "trial-entry-31e803c92770f3d02a63d4db2624292582a98dd4644fe610704ebdcd534e6428",
+            "run_id": "archival-run-d9b3f7394fe9a7a3260fbaaa9aea998d160656d02db07433353a5c9bf227e7e5",
+            "clean_state": {
+              "mode": "fresh",
+              "boundary_refs": [
+                "range"
+              ],
+              "verification_probe_refs": [
+                "probe:fresh"
+              ],
+              "reusable_state_claim_ref": null
+            },
+            "resource_boundaries": {
+              "range": {
+                "boundary_id": "range",
+                "resource_kind": "range-instance",
+                "owner_ref": "apparatus:range",
+                "resource_refs": [
+                  "range:compiler-fixture"
+                ]
+              }
+            },
+            "cleanup_obligations": {
+              "destroy": {
+                "obligation_id": "destroy",
+                "boundary_refs": [
+                  "range"
+                ],
+                "action_kind": "destroy",
+                "action_profile_ref": null,
+                "triggers": [
+                  "success",
+                  "failure",
+                  "cancellation",
+                  "timeout",
+                  "abort"
+                ],
+                "requirement": "required",
+                "depends_on": [],
+                "idempotency": "idempotent",
+                "compensation_refs": [],
+                "verification_probe_refs": [
+                  "probe:absent"
+                ],
+                "timeout_seconds": 120
+              }
+            },
+            "retry_policy": {
+              "max_attempts": 1,
+              "after_effect_policy": "disallow",
+              "reset_obligation_refs": [],
+              "compensation_refs": []
+            }
+          }
+        },
+        "isolation_proof": null,
+        "replacement_policy": {
+          "schema_version": "trial-replacement-policy/v1",
+          "max_replacements": 2,
+          "replace_on": [
+            "failed",
+            "invalidated"
+          ]
+        },
+        "replacement_origin": {
+          "root_plan_id": "trial-plan-8152a63b982edf026e7489f063901ea688ab54080f4ce93629c7fbb4b57be797",
+          "root_plan_digest": "sha256:f9c6915e4c7ea01422d32257052a5af37434b4f95069ecef9ed26b342ebff44b",
+          "root_entry_id": "trial-entry-b0af0a985e96f63b7946d3036afcae9b51e44680d82fb6a32beaa55ec841a276",
+          "ordinal": 1,
+          "parent_plan_id": "trial-plan-8152a63b982edf026e7489f063901ea688ab54080f4ce93629c7fbb4b57be797",
+          "parent_plan_digest": "sha256:f9c6915e4c7ea01422d32257052a5af37434b4f95069ecef9ed26b342ebff44b",
+          "parent_entry_id": "trial-entry-b0af0a985e96f63b7946d3036afcae9b51e44680d82fb6a32beaa55ec841a276",
+          "parent_run_id": "archival-run-f25a81118d3e17d991bbea3a4736b17ebaab3ed696d20d24ba1046399af743d3",
+          "parent_run_version": "1.0.0",
+          "parent_run_digest": "sha256:a842c28f13200ed47d9f827d3bc2f7a3129b875254e1b79537ad486da669ac8b",
+          "cleanup_receipt_ref": "cleanup:archival-run-f25a81118d3e17d991bbea3a4736b17ebaab3ed696d20d24ba1046399af743d3"
+        },
+        "entries": {
+          "trial-entry-31e803c92770f3d02a63d4db2624292582a98dd4644fe610704ebdcd534e6428": {
+            "plan_entry_id": "trial-entry-31e803c92770f3d02a63d4db2624292582a98dd4644fe610704ebdcd534e6428",
+            "coordinate": {
+              "condition_id": null,
+              "block_id": null,
+              "replicate_id": "replicate-000003"
+            },
+            "run_id": "archival-run-d9b3f7394fe9a7a3260fbaaa9aea998d160656d02db07433353a5c9bf227e7e5",
+            "selections": [
+              {
+                "variation_point_id": "payload-path",
+                "origin_policy_id": "sample-path",
+                "origin_policy_kind": "sample",
+                "outcome": {
+                  "kind": "literal",
+                  "value": "/opt/b"
+                }
+              }
+            ],
+            "bindings": [],
+            "stochastic_draws": [
+              {
+                "control_id": "sample-control",
+                "address": {
+                  "namespace": "compiler-sampling",
+                  "trial_coordinate": {
+                    "condition_id": null,
+                    "block_id": null,
+                    "replicate_id": "replicate-000003"
+                  },
+                  "selection_policy_id": "sample-path",
+                  "variation_point_id": "payload-path",
+                  "draw_purpose": "sampling-selection",
+                  "local_coordinate": 0
+                },
+                "transform_id": "bounded-integer",
+                "transform_version": "1",
+                "local_coordinate": 0,
+                "outcome": {
+                  "kind": "public-value",
+                  "value": "1"
+                },
+                "rejection_attempts": 0,
+                "rejection_exhausted": false
+              }
+            ],
+            "apparatus": {
+              "manifest_refs": [
+                {
+                  "ref_kind": "manifest",
+                  "ref_id": "backend-a",
+                  "ref_version": "backend-manifest/v2",
+                  "ref_digest": "sha256:008eb08b684941aa5ca6769f522a7c3cf01d9b290a3a9813f3af3063ea4de2e7",
+                  "ref_path": null,
+                  "subject_ref": {
+                    "ref_kind": "backend",
+                    "ref_id": "backend-a",
+                    "ref_version": "1",
+                    "ref_digest": null,
+                    "ref_path": null
+                  }
+                },
+                {
+                  "ref_kind": "manifest",
+                  "ref_id": "raes-reference-processor",
+                  "ref_version": "processor-manifest/v2",
+                  "ref_digest": "sha256:2bb05867d61bc5bd37852a0a37ef9b9084f4e78c5075b809bac2b7ec59784d8e",
+                  "ref_path": null,
+                  "subject_ref": {
+                    "ref_kind": "processor",
+                    "ref_id": "raes-reference-processor",
+                    "ref_version": "0.2.0",
+                    "ref_digest": null,
+                    "ref_path": null
+                  }
+                }
+              ],
+              "realization_envelope": {
+                "contract_id": "realization-envelope-v1",
+                "envelope_id": "libvirt-qemu.generic.v1",
+                "schema_version": "realization-envelope/v1",
+                "digest": "sha256:1c768fa96dda900757ca48a66ddd741c62dbd5bd86e1356e75e3cc559ece92e0",
+                "configuration_digest": "sha256:cf7e5b0d28c25293d254c463a23958f66f92776579872fce8abbeb1227347b4b"
+              },
+              "capability_refs": [
+                "evaluation-results",
+                "workflow-results"
+              ]
+            },
+            "execution_controls": {
+              "attempt_timeout_seconds": 600,
+              "on_timeout": "cleanup-and-fail",
+              "on_cancellation": "cleanup-and-fail",
+              "cleanup_plan_ref": "trial-cleanup-2513f077f6005552401cf75243bff97be6d036c679a6628a71d0c37fb59576aa"
+            },
+            "instantiation_provenance": {
+              "plan_id": "replacement-plan-9a8ba877374af4e4de83dd5471a783a5575c33147f3b13316226c3b088605cec",
+              "plan_entry_id": "trial-entry-31e803c92770f3d02a63d4db2624292582a98dd4644fe610704ebdcd534e6428",
+              "run_id": "archival-run-d9b3f7394fe9a7a3260fbaaa9aea998d160656d02db07433353a5c9bf227e7e5",
+              "scenario_family_id": "compiler-family"
+            },
+            "entry_digest": "sha256:9c4698d5991b60e9cd5d9fe0da874457a65cd55a113ebd08d4ac276c81dc5316"
+          }
+        },
+        "admission": {
+          "admitted_at_stage": "admitted-sealed",
+          "entry_count": 1,
+          "limitations": [],
+          "diagnostics": []
+        },
+        "plan_digest": "sha256:623d672a21856c90a6f73cd36bb1abeb99520198b78431c4b254779ca4f1d856"
+      },
+      "superseded": {
+        "schema_version": "experiment-run/v1",
+        "run_id": "archival-run-f25a81118d3e17d991bbea3a4736b17ebaab3ed696d20d24ba1046399af743d3",
+        "run_version": "1.0.0.superseded-1",
+        "task_ref": {
+          "ref_kind": "task",
+          "ref_id": "task-techvault-red-team-v1",
+          "ref_version": "1.0.0"
+        },
+        "scenario_snapshot_ref": {
+          "ref_kind": "scenario-snapshot",
+          "ref_id": "compiler-family",
+          "ref_version": "raes-sdl-instantiated-snapshot/v2",
+          "ref_digest": "sha256:f27fdb5fd67a3998901a518c8a152d819b3af5fcfe01c5e2119e641f5a57e06f",
+          "ref_path": null
+        },
+        "trial_provenance": {
+          "plan_id": "trial-plan-8152a63b982edf026e7489f063901ea688ab54080f4ce93629c7fbb4b57be797",
+          "plan_digest": "sha256:f9c6915e4c7ea01422d32257052a5af37434b4f95069ecef9ed26b342ebff44b",
+          "plan_entry_id": "trial-entry-b0af0a985e96f63b7946d3036afcae9b51e44680d82fb6a32beaa55ec841a276",
+          "entry_digest": "sha256:013ca986bef5a577696a780c96d84c400219c7d593cf1d252542b279727101ba",
+          "admitted_run_id": "archival-run-f25a81118d3e17d991bbea3a4736b17ebaab3ed696d20d24ba1046399af743d3",
+          "coordinate": {
+            "condition_id": null,
+            "block_id": null,
+            "replicate_id": "replicate-000001"
+          },
+          "instantiated_scenario_digest": "sha256:f27fdb5fd67a3998901a518c8a152d819b3af5fcfe01c5e2119e641f5a57e06f",
+          "processor_plan_refs": [
+            {
+              "plan_kind": "provisioning",
+              "artifact_ref": {
+                "ref_kind": "other",
+                "ref_id": "archival-run-f25a81118d3e17d991bbea3a4736b17ebaab3ed696d20d24ba1046399af743d3:provisioning",
+                "ref_version": "provisioning-plan-v1",
+                "ref_digest": "sha256:4fbaf14b0b2a2b8dba28a198826fc3d744d9edf7df8edc1c5bee5a882ecd3ff1",
+                "ref_path": null
+              }
+            },
+            {
+              "plan_kind": "orchestration",
+              "artifact_ref": {
+                "ref_kind": "other",
+                "ref_id": "archival-run-f25a81118d3e17d991bbea3a4736b17ebaab3ed696d20d24ba1046399af743d3:orchestration",
+                "ref_version": "orchestration-plan-v1",
+                "ref_digest": "sha256:d126d54f7b380d788b1fce28ebb28344a68f92b376ab673f36eed837fe3afa12",
+                "ref_path": null
+              }
+            },
+            {
+              "plan_kind": "evaluation",
+              "artifact_ref": {
+                "ref_kind": "other",
+                "ref_id": "archival-run-f25a81118d3e17d991bbea3a4736b17ebaab3ed696d20d24ba1046399af743d3:evaluation",
+                "ref_version": "evaluation-plan-v1",
+                "ref_digest": "sha256:9daae2a7a240dd346318cd48aa0064d77f8944e5adecf02b4f9b17daccc30d60",
+                "ref_path": null
+              }
+            }
+          ],
+          "execution_attempts": [
+            {
+              "execution_attempt_id": "attempt:archival-run-f25a81118d3e17d991bbea3a4736b17ebaab3ed696d20d24ba1046399af743d3",
+              "cleanup_receipt_ref": "cleanup:archival-run-f25a81118d3e17d991bbea3a4736b17ebaab3ed696d20d24ba1046399af743d3",
+              "operation_refs": []
+            }
+          ],
+          "terminal_attempt_id": "attempt:archival-run-f25a81118d3e17d991bbea3a4736b17ebaab3ed696d20d24ba1046399af743d3"
+        },
+        "difficulty_provenance": null,
+        "apparatus_context": {
+          "schema_version": "experiment-apparatus-context/v1",
+          "apparatus_context_id": "apparatus-techvault-reference",
+          "context_version": "1.0.0",
+          "declared_at": "2026-05-26T00:00:00Z",
+          "components": {
+            "processor": {
+              "component_kind": "processor",
+              "identity": {
+                "name": "raes-reference-processor",
+                "version": "0.1.0"
+              },
+              "manifest_ref": {
+                "ref_kind": "manifest",
+                "ref_id": "raes-reference-processor",
+                "ref_version": "processor-manifest/v2",
+                "ref_digest": null,
+                "ref_path": null,
+                "subject_ref": {
+                  "ref_kind": "processor",
+                  "ref_id": "raes-reference-processor",
+                  "ref_version": "0.1.0",
+                  "ref_digest": null,
+                  "ref_path": null
+                }
+              },
+              "compatibility_refs": [],
+              "observed": true,
+              "limitations": []
+            },
+            "backend": {
+              "component_kind": "backend",
+              "identity": {
+                "name": "stub-backend",
+                "version": "0.1.0"
+              },
+              "manifest_ref": {
+                "ref_kind": "manifest",
+                "ref_id": "stub-backend",
+                "ref_version": "backend-manifest/v2",
+                "ref_digest": null,
+                "ref_path": null,
+                "subject_ref": {
+                  "ref_kind": "backend",
+                  "ref_id": "stub-backend",
+                  "ref_version": "0.1.0",
+                  "ref_digest": null,
+                  "ref_path": null
+                }
+              },
+              "compatibility_refs": [],
+              "observed": true,
+              "limitations": []
+            },
+            "participant-policy": {
+              "component_kind": "participant-implementation",
+              "identity": {
+                "name": "reference-red-agent",
+                "version": "1.0.0"
+              },
+              "manifest_ref": {
+                "ref_kind": "manifest",
+                "ref_id": "reference-red-agent",
+                "ref_version": "participant-implementation-manifest/v1",
+                "ref_digest": null,
+                "ref_path": null,
+                "subject_ref": {
+                  "ref_kind": "participant-implementation",
+                  "ref_id": "reference-red-agent",
+                  "ref_version": "1.0.0",
+                  "ref_digest": null,
+                  "ref_path": null
+                }
+              },
+              "compatibility_refs": [],
+              "observed": true,
+              "limitations": []
+            }
+          },
+          "selected_manifests": [
+            {
+              "ref_kind": "manifest",
+              "ref_id": "raes-reference-processor",
+              "ref_version": "processor-manifest/v2",
+              "ref_digest": null,
+              "ref_path": null,
+              "subject_ref": {
+                "ref_kind": "processor",
+                "ref_id": "raes-reference-processor",
+                "ref_version": "0.1.0",
+                "ref_digest": null,
+                "ref_path": null
+              }
+            },
+            {
+              "ref_kind": "manifest",
+              "ref_id": "stub-backend",
+              "ref_version": "backend-manifest/v2",
+              "ref_digest": null,
+              "ref_path": null,
+              "subject_ref": {
+                "ref_kind": "backend",
+                "ref_id": "stub-backend",
+                "ref_version": "0.1.0",
+                "ref_digest": null,
+                "ref_path": null
+              }
+            },
+            {
+              "ref_kind": "manifest",
+              "ref_id": "reference-red-agent",
+              "ref_version": "participant-implementation-manifest/v1",
+              "ref_digest": null,
+              "ref_path": null,
+              "subject_ref": {
+                "ref_kind": "participant-implementation",
+                "ref_id": "reference-red-agent",
+                "ref_version": "1.0.0",
+                "ref_digest": null,
+                "ref_path": null
+              }
+            }
+          ],
+          "compatibility_declarations": [
+            {
+              "ref_kind": "profile",
+              "ref_id": "reference-stack-v1",
+              "ref_version": "semantic-profile/v1"
+            },
+            {
+              "ref_kind": "capability",
+              "ref_id": "workflow-results",
+              "ref_version": null
+            },
+            {
+              "ref_kind": "capability",
+              "ref_id": "evaluation-results",
+              "ref_version": null
+            }
+          ],
+          "configuration_parameters": [
+            {
+              "name": "worker-count",
+              "value": 1,
+              "value_kind": "apparatus",
+              "redaction": "none"
+            }
+          ],
+          "stochastic_controls": [
+            {
+              "control_id": "task-seed",
+              "role": "seed",
+              "value": 12345,
+              "description": "Seed supplied to task randomization.",
+              "executable_binding": null
+            }
+          ],
+          "clocks": [
+            {
+              "clock_id": "range-wall-clock",
+              "authority": "backend wall clock",
+              "time_domain": "wall-clock",
+              "synchronization": "NTP synchronized before run seal."
+            }
+          ],
+          "measurement_channels": [
+            {
+              "ref_kind": "measurement-channel",
+              "ref_id": "evaluation-history-channel",
+              "ref_version": "1.0.0"
+            }
+          ],
+          "observed_setup_evidence": [
+            {
+              "artifact_id": "setup-attestation",
+              "role": "apparatus-evidence",
+              "media_type": "application/json",
+              "uri": "runs/run-techvault-001/setup.json",
+              "checksum": {
+                "algorithm": "sha256",
+                "value": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+              },
+              "size_bytes": 2048,
+              "created_at": "2026-05-26T00:09:30Z",
+              "source": "stub-backend setup attestation",
+              "satisfies_refs": [],
+              "sensitivity": "internal",
+              "description": null
+            }
+          ],
+          "known_limitations": [
+            {
+              "category": "apparatus",
+              "note": "The stub backend is a conformance apparatus, not a fidelity claim.",
+              "mitigation": null
+            }
+          ]
+        },
+        "participant_implementation_provenance": {
+          "schema_version": "participant-implementation-provenance/v1",
+          "run_id": "archival-run-f25a81118d3e17d991bbea3a4736b17ebaab3ed696d20d24ba1046399af743d3",
+          "participant_implementations": [
+            {
+              "participant_address": "participants.red",
+              "implementation_identity": {
+                "name": "reference-red-agent",
+                "version": "1.0.0"
+              },
+              "manifest_ref": "contracts/fixtures/participant-implementation-manifest/reference.json",
+              "manifest_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+              "configuration_ref": null,
+              "configuration_digest": null,
+              "selected_decision_surface_mode": "policy-directed",
+              "participant_contract_versions": [
+                "participant-episode-state-envelope-v1",
+                "participant-behavior-history-event-stream-v1"
+              ],
+              "exposure_policy": {
+                "policy_id": "red-agent-policy",
+                "policy_version": "1.0.0",
+                "policy_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+                "exposure_policy_kinds": [
+                  "task-statement",
+                  "tool-affordance"
+                ],
+                "disclosed_refs": [
+                  "scenario.tasks.red"
+                ],
+                "withheld_refs": [
+                  "scenario.hidden.answer-key"
+                ],
+                "tool_affordance_refs": [
+                  "tool.shell"
+                ],
+                "visibility_scope_refs": [
+                  "participants.red.visible"
+                ],
+                "constraints": {}
+              }
+            }
+          ],
+          "processor_manifest_ref": "processor-manifest-v2:raes-reference-processor",
+          "backend_manifest_ref": "backend-manifest-v2:stub-backend",
+          "metadata": {}
+        },
+        "parameter_set": [
+          {
+            "name": "difficulty",
+            "value": "standard",
+            "value_kind": "protocol",
+            "redaction": "none"
+          }
+        ],
+        "realized_bindings": [],
+        "stochastic_controls": [
+          {
+            "control_id": "sample-control",
+            "role": "sampling",
+            "value": null,
+            "description": null,
+            "executable_binding": {
+              "profile_ref": {
+                "ref_kind": "profile",
+                "ref_id": "blake3-xof-v1",
+                "ref_version": "random-stream-profile/v1",
+                "ref_digest": null,
+                "ref_path": null
+              },
+              "namespace": "compiler-sampling",
+              "root_entropy": {
+                "kind": "public-seed",
+                "encoding": "hex-fixed-width",
+                "value": "0101010101010101010101010101010101010101010101010101010101010101"
+              }
+            }
+          }
+        ],
+        "stochastic_draws": [
+          {
+            "control_id": "sample-control",
+            "address": {
+              "namespace": "compiler-sampling",
+              "trial_coordinate": {
+                "condition_id": null,
+                "block_id": null,
+                "replicate_id": "replicate-000001"
+              },
+              "selection_policy_id": "sample-path",
+              "variation_point_id": "payload-path",
+              "draw_purpose": "sampling-selection",
+              "local_coordinate": 0
+            },
+            "transform_id": "bounded-integer",
+            "transform_version": "1",
+            "local_coordinate": 0,
+            "outcome": {
+              "kind": "public-value",
+              "value": "0"
+            },
+            "rejection_attempts": 0,
+            "rejection_exhausted": false
+          }
+        ],
+        "started_at": "2026-05-26T00:10:00Z",
+        "ended_at": "2026-05-26T00:40:00Z",
+        "clock_context": {
+          "clock_id": "range-wall-clock",
+          "authority": "backend wall clock",
+          "time_domain": "wall-clock",
+          "synchronization": null
+        },
+        "realized_time_model": null,
+        "run_status": "superseded",
+        "outcome_status": "failed",
+        "traceability": {
+          "capture_spec_refs": [
+            {
+              "ref_kind": "capture-spec",
+              "ref_id": "capture-techvault-evidence-v1",
+              "ref_version": "1.0.0"
+            }
+          ],
+          "evidence_record_refs": [
+            {
+              "ref_kind": "evidence-record",
+              "ref_id": "evidence-techvault-network-trace-001",
+              "ref_version": "1.0.0"
+            }
+          ],
+          "derived_measure_refs": [
+            {
+              "ref_kind": "derived-measure",
+              "ref_id": "measure-techvault-foothold-001",
+              "ref_version": "1.0.0"
+            }
+          ],
+          "claim_refs": [
+            {
+              "ref_kind": "result",
+              "ref_id": "foothold-achieved-result",
+              "ref_version": null,
+              "ref_digest": null,
+              "ref_path": null
+            }
+          ],
+          "notes": [
+            "The run provenance chain binds the declared capture spec, raw evidence record, derived foothold measure, and result claim."
+          ]
+        },
+        "realized_form_disclosures": [
+          {
+            "concern_id": "composed-scenario-snapshot",
+            "concern_kind": "scenario-module",
+            "basis": "processor-realized",
+            "realized_by_ref": {
+              "ref_kind": "processor",
+              "ref_id": "raes-reference-processor",
+              "ref_version": "0.1.0",
+              "ref_digest": null,
+              "ref_path": null
+            },
+            "authored_ref": {
+              "ref_kind": "scenario",
+              "ref_id": "scenario-techvault",
+              "ref_version": null,
+              "ref_digest": null,
+              "ref_path": null
+            },
+            "realized_ref": {
+              "ref_kind": "scenario-snapshot",
+              "ref_id": "scenario-techvault",
+              "ref_version": "2026-05-26",
+              "ref_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+              "ref_path": null
+            },
+            "realized_value_summary": null,
+            "disclosure": "The processor resolved the authored TechVault scenario into the canonical composed scenario snapshot used by this run.",
+            "evidence_refs": [
+              {
+                "ref_kind": "evidence-record",
+                "ref_id": "evidence-techvault-network-trace-001",
+                "ref_version": "1.0.0"
+              }
+            ],
+            "typed_description": null
+          }
+        ],
+        "augmentation_disclosures": [],
+        "materialization_attestations": [],
+        "evidence_artifacts": [
+          {
+            "artifact_id": "auth-log-evidence",
+            "role": "observation",
+            "media_type": "application/json",
+            "uri": "runs/run-techvault-001/evaluation-history.json",
+            "checksum": {
+              "algorithm": "sha256",
+              "value": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+            },
+            "size_bytes": 4096,
+            "created_at": "2026-05-26T00:40:00Z",
+            "source": "stub-backend evaluator history export",
+            "satisfies_refs": [
+              {
+                "ref_kind": "evidence",
+                "ref_id": "auth-log-evidence",
+                "ref_version": null
+              }
+            ],
+            "sensitivity": "internal",
+            "description": null
+          }
+        ],
+        "result_summaries": {
+          "foothold-achieved-result": {
+            "metric_id": "foothold-achieved",
+            "value": true,
+            "value_status": "reported",
+            "evidence_refs": [
+              {
+                "ref_kind": "evidence",
+                "ref_id": "auth-log-evidence"
+              }
+            ],
+            "uncertainty": null,
+            "notes": null
+          }
+        },
+        "deviations": [],
+        "invalidation": {
+          "invalidated_at": "2026-05-26T00:40:00Z",
+          "reason": "failed trial replaced under the admitted experiment policy",
+          "superseded_by": {
+            "ref_kind": "run",
+            "ref_id": "archival-run-d9b3f7394fe9a7a3260fbaaa9aea998d160656d02db07433353a5c9bf227e7e5",
+            "ref_version": "1",
+            "ref_digest": null,
+            "ref_path": null
+          }
+        },
+        "used_refs": [
+          {
+            "ref_kind": "task",
+            "ref_id": "task-techvault-red-team-v1",
+            "ref_version": "1.0.0",
+            "ref_digest": null,
+            "ref_path": null
+          }
+        ],
+        "generated_refs": [
+          {
+            "ref_kind": "result",
+            "ref_id": "foothold-achieved-result",
+            "ref_version": null,
+            "ref_digest": null,
+            "ref_path": null
+          }
+        ],
+        "derived_from_refs": [
+          {
+            "ref_kind": "run",
+            "ref_id": "archival-run-f25a81118d3e17d991bbea3a4736b17ebaab3ed696d20d24ba1046399af743d3",
+            "ref_version": "1.0.0",
+            "ref_digest": null,
+            "ref_path": null
+          }
+        ],
+        "validation_basis_disclosures": [],
+        "evidence_requirement_relations": []
+      }
+    },
+    {
+      "name": "second",
+      "run": {
+        "schema_version": "experiment-run/v1",
+        "run_id": "archival-run-d9b3f7394fe9a7a3260fbaaa9aea998d160656d02db07433353a5c9bf227e7e5",
+        "run_version": "1",
+        "task_ref": {
+          "ref_kind": "task",
+          "ref_id": "task-techvault-red-team-v1",
+          "ref_version": "1.0.0"
+        },
+        "scenario_snapshot_ref": {
+          "ref_kind": "scenario-snapshot",
+          "ref_id": "compiler-family",
+          "ref_version": "raes-sdl-instantiated-snapshot/v2",
+          "ref_digest": "sha256:ef99d81a5c749537bd6bb69d856d81b34e2b502da156ad22e22c6f095b32e0d7",
+          "ref_path": null
+        },
+        "trial_provenance": {
+          "plan_id": "replacement-plan-9a8ba877374af4e4de83dd5471a783a5575c33147f3b13316226c3b088605cec",
+          "plan_digest": "sha256:623d672a21856c90a6f73cd36bb1abeb99520198b78431c4b254779ca4f1d856",
+          "plan_entry_id": "trial-entry-31e803c92770f3d02a63d4db2624292582a98dd4644fe610704ebdcd534e6428",
+          "entry_digest": "sha256:9c4698d5991b60e9cd5d9fe0da874457a65cd55a113ebd08d4ac276c81dc5316",
+          "admitted_run_id": "archival-run-d9b3f7394fe9a7a3260fbaaa9aea998d160656d02db07433353a5c9bf227e7e5",
+          "coordinate": {
+            "condition_id": null,
+            "block_id": null,
+            "replicate_id": "replicate-000003"
+          },
+          "instantiated_scenario_digest": "sha256:ef99d81a5c749537bd6bb69d856d81b34e2b502da156ad22e22c6f095b32e0d7",
+          "processor_plan_refs": [
+            {
+              "plan_kind": "provisioning",
+              "artifact_ref": {
+                "ref_kind": "other",
+                "ref_id": "archival-run-d9b3f7394fe9a7a3260fbaaa9aea998d160656d02db07433353a5c9bf227e7e5:provisioning",
+                "ref_version": "provisioning-plan-v1",
+                "ref_digest": "sha256:4cf24e6a34904de7cc2a5d725406748856cc7a1df962c8414a9a63e7186c7e47",
+                "ref_path": null
+              }
+            },
+            {
+              "plan_kind": "orchestration",
+              "artifact_ref": {
+                "ref_kind": "other",
+                "ref_id": "archival-run-d9b3f7394fe9a7a3260fbaaa9aea998d160656d02db07433353a5c9bf227e7e5:orchestration",
+                "ref_version": "orchestration-plan-v1",
+                "ref_digest": "sha256:d126d54f7b380d788b1fce28ebb28344a68f92b376ab673f36eed837fe3afa12",
+                "ref_path": null
+              }
+            },
+            {
+              "plan_kind": "evaluation",
+              "artifact_ref": {
+                "ref_kind": "other",
+                "ref_id": "archival-run-d9b3f7394fe9a7a3260fbaaa9aea998d160656d02db07433353a5c9bf227e7e5:evaluation",
+                "ref_version": "evaluation-plan-v1",
+                "ref_digest": "sha256:0eb8b03849548f268ac1c027f41e639185d6a22258eeec2407feab0e3079a8fe",
+                "ref_path": null
+              }
+            }
+          ],
+          "execution_attempts": [
+            {
+              "execution_attempt_id": "attempt:archival-run-d9b3f7394fe9a7a3260fbaaa9aea998d160656d02db07433353a5c9bf227e7e5",
+              "cleanup_receipt_ref": "cleanup:archival-run-d9b3f7394fe9a7a3260fbaaa9aea998d160656d02db07433353a5c9bf227e7e5",
+              "operation_refs": []
+            }
+          ],
+          "terminal_attempt_id": "attempt:archival-run-d9b3f7394fe9a7a3260fbaaa9aea998d160656d02db07433353a5c9bf227e7e5"
+        },
+        "difficulty_provenance": null,
+        "apparatus_context": {
+          "schema_version": "experiment-apparatus-context/v1",
+          "apparatus_context_id": "apparatus-techvault-reference",
+          "context_version": "1.0.0",
+          "declared_at": "2026-05-26T00:00:00Z",
+          "components": {
+            "processor": {
+              "component_kind": "processor",
+              "identity": {
+                "name": "raes-reference-processor",
+                "version": "0.1.0"
+              },
+              "manifest_ref": {
+                "ref_kind": "manifest",
+                "ref_id": "raes-reference-processor",
+                "ref_version": "processor-manifest/v2",
+                "ref_digest": null,
+                "ref_path": null,
+                "subject_ref": {
+                  "ref_kind": "processor",
+                  "ref_id": "raes-reference-processor",
+                  "ref_version": "0.1.0",
+                  "ref_digest": null,
+                  "ref_path": null
+                }
+              },
+              "compatibility_refs": [],
+              "observed": true,
+              "limitations": []
+            },
+            "backend": {
+              "component_kind": "backend",
+              "identity": {
+                "name": "stub-backend",
+                "version": "0.1.0"
+              },
+              "manifest_ref": {
+                "ref_kind": "manifest",
+                "ref_id": "stub-backend",
+                "ref_version": "backend-manifest/v2",
+                "ref_digest": null,
+                "ref_path": null,
+                "subject_ref": {
+                  "ref_kind": "backend",
+                  "ref_id": "stub-backend",
+                  "ref_version": "0.1.0",
+                  "ref_digest": null,
+                  "ref_path": null
+                }
+              },
+              "compatibility_refs": [],
+              "observed": true,
+              "limitations": []
+            },
+            "participant-policy": {
+              "component_kind": "participant-implementation",
+              "identity": {
+                "name": "reference-red-agent",
+                "version": "1.0.0"
+              },
+              "manifest_ref": {
+                "ref_kind": "manifest",
+                "ref_id": "reference-red-agent",
+                "ref_version": "participant-implementation-manifest/v1",
+                "ref_digest": null,
+                "ref_path": null,
+                "subject_ref": {
+                  "ref_kind": "participant-implementation",
+                  "ref_id": "reference-red-agent",
+                  "ref_version": "1.0.0",
+                  "ref_digest": null,
+                  "ref_path": null
+                }
+              },
+              "compatibility_refs": [],
+              "observed": true,
+              "limitations": []
+            }
+          },
+          "selected_manifests": [
+            {
+              "ref_kind": "manifest",
+              "ref_id": "raes-reference-processor",
+              "ref_version": "processor-manifest/v2",
+              "ref_digest": null,
+              "ref_path": null,
+              "subject_ref": {
+                "ref_kind": "processor",
+                "ref_id": "raes-reference-processor",
+                "ref_version": "0.1.0",
+                "ref_digest": null,
+                "ref_path": null
+              }
+            },
+            {
+              "ref_kind": "manifest",
+              "ref_id": "stub-backend",
+              "ref_version": "backend-manifest/v2",
+              "ref_digest": null,
+              "ref_path": null,
+              "subject_ref": {
+                "ref_kind": "backend",
+                "ref_id": "stub-backend",
+                "ref_version": "0.1.0",
+                "ref_digest": null,
+                "ref_path": null
+              }
+            },
+            {
+              "ref_kind": "manifest",
+              "ref_id": "reference-red-agent",
+              "ref_version": "participant-implementation-manifest/v1",
+              "ref_digest": null,
+              "ref_path": null,
+              "subject_ref": {
+                "ref_kind": "participant-implementation",
+                "ref_id": "reference-red-agent",
+                "ref_version": "1.0.0",
+                "ref_digest": null,
+                "ref_path": null
+              }
+            }
+          ],
+          "compatibility_declarations": [
+            {
+              "ref_kind": "profile",
+              "ref_id": "reference-stack-v1",
+              "ref_version": "semantic-profile/v1"
+            },
+            {
+              "ref_kind": "capability",
+              "ref_id": "workflow-results",
+              "ref_version": null
+            },
+            {
+              "ref_kind": "capability",
+              "ref_id": "evaluation-results",
+              "ref_version": null
+            }
+          ],
+          "configuration_parameters": [
+            {
+              "name": "worker-count",
+              "value": 1,
+              "value_kind": "apparatus",
+              "redaction": "none"
+            }
+          ],
+          "stochastic_controls": [
+            {
+              "control_id": "task-seed",
+              "role": "seed",
+              "value": 12345,
+              "description": "Seed supplied to task randomization.",
+              "executable_binding": null
+            }
+          ],
+          "clocks": [
+            {
+              "clock_id": "range-wall-clock",
+              "authority": "backend wall clock",
+              "time_domain": "wall-clock",
+              "synchronization": "NTP synchronized before run seal."
+            }
+          ],
+          "measurement_channels": [
+            {
+              "ref_kind": "measurement-channel",
+              "ref_id": "evaluation-history-channel",
+              "ref_version": "1.0.0"
+            }
+          ],
+          "observed_setup_evidence": [
+            {
+              "artifact_id": "setup-attestation",
+              "role": "apparatus-evidence",
+              "media_type": "application/json",
+              "uri": "runs/run-techvault-001/setup.json",
+              "checksum": {
+                "algorithm": "sha256",
+                "value": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+              },
+              "size_bytes": 2048,
+              "created_at": "2026-05-26T00:09:30Z",
+              "source": "stub-backend setup attestation",
+              "satisfies_refs": [],
+              "sensitivity": "internal",
+              "description": null
+            }
+          ],
+          "known_limitations": [
+            {
+              "category": "apparatus",
+              "note": "The stub backend is a conformance apparatus, not a fidelity claim.",
+              "mitigation": null
+            }
+          ]
+        },
+        "participant_implementation_provenance": {
+          "schema_version": "participant-implementation-provenance/v1",
+          "run_id": "archival-run-d9b3f7394fe9a7a3260fbaaa9aea998d160656d02db07433353a5c9bf227e7e5",
+          "participant_implementations": [
+            {
+              "participant_address": "participants.red",
+              "implementation_identity": {
+                "name": "reference-red-agent",
+                "version": "1.0.0"
+              },
+              "manifest_ref": "contracts/fixtures/participant-implementation-manifest/reference.json",
+              "manifest_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+              "configuration_ref": null,
+              "configuration_digest": null,
+              "selected_decision_surface_mode": "policy-directed",
+              "participant_contract_versions": [
+                "participant-episode-state-envelope-v1",
+                "participant-behavior-history-event-stream-v1"
+              ],
+              "exposure_policy": {
+                "policy_id": "red-agent-policy",
+                "policy_version": "1.0.0",
+                "policy_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+                "exposure_policy_kinds": [
+                  "task-statement",
+                  "tool-affordance"
+                ],
+                "disclosed_refs": [
+                  "scenario.tasks.red"
+                ],
+                "withheld_refs": [
+                  "scenario.hidden.answer-key"
+                ],
+                "tool_affordance_refs": [
+                  "tool.shell"
+                ],
+                "visibility_scope_refs": [
+                  "participants.red.visible"
+                ],
+                "constraints": {}
+              }
+            }
+          ],
+          "processor_manifest_ref": "processor-manifest-v2:raes-reference-processor",
+          "backend_manifest_ref": "backend-manifest-v2:stub-backend",
+          "metadata": {}
+        },
+        "parameter_set": [
+          {
+            "name": "difficulty",
+            "value": "standard",
+            "value_kind": "protocol",
+            "redaction": "none"
+          }
+        ],
+        "realized_bindings": [],
+        "stochastic_controls": [
+          {
+            "control_id": "sample-control",
+            "role": "sampling",
+            "value": null,
+            "description": null,
+            "executable_binding": {
+              "profile_ref": {
+                "ref_kind": "profile",
+                "ref_id": "blake3-xof-v1",
+                "ref_version": "random-stream-profile/v1",
+                "ref_digest": null,
+                "ref_path": null
+              },
+              "namespace": "compiler-sampling",
+              "root_entropy": {
+                "kind": "public-seed",
+                "encoding": "hex-fixed-width",
+                "value": "0101010101010101010101010101010101010101010101010101010101010101"
+              }
+            }
+          }
+        ],
+        "stochastic_draws": [
+          {
+            "control_id": "sample-control",
+            "address": {
+              "namespace": "compiler-sampling",
+              "trial_coordinate": {
+                "condition_id": null,
+                "block_id": null,
+                "replicate_id": "replicate-000003"
+              },
+              "selection_policy_id": "sample-path",
+              "variation_point_id": "payload-path",
+              "draw_purpose": "sampling-selection",
+              "local_coordinate": 0
+            },
+            "transform_id": "bounded-integer",
+            "transform_version": "1",
+            "local_coordinate": 0,
+            "outcome": {
+              "kind": "public-value",
+              "value": "1"
+            },
+            "rejection_attempts": 0,
+            "rejection_exhausted": false
+          }
+        ],
+        "started_at": "2026-05-26T00:10:00Z",
+        "ended_at": "2026-05-26T00:40:00Z",
+        "clock_context": {
+          "clock_id": "range-wall-clock",
+          "authority": "backend wall clock",
+          "time_domain": "wall-clock",
+          "synchronization": null
+        },
+        "realized_time_model": null,
+        "run_status": "failed",
+        "outcome_status": "failed",
+        "traceability": {
+          "capture_spec_refs": [
+            {
+              "ref_kind": "capture-spec",
+              "ref_id": "capture-techvault-evidence-v1",
+              "ref_version": "1.0.0"
+            }
+          ],
+          "evidence_record_refs": [
+            {
+              "ref_kind": "evidence-record",
+              "ref_id": "evidence-techvault-network-trace-001",
+              "ref_version": "1.0.0"
+            }
+          ],
+          "derived_measure_refs": [
+            {
+              "ref_kind": "derived-measure",
+              "ref_id": "measure-techvault-foothold-001",
+              "ref_version": "1.0.0"
+            }
+          ],
+          "claim_refs": [
+            {
+              "ref_kind": "result",
+              "ref_id": "foothold-achieved-result",
+              "ref_version": null,
+              "ref_digest": null,
+              "ref_path": null
+            }
+          ],
+          "notes": [
+            "The run provenance chain binds the declared capture spec, raw evidence record, derived foothold measure, and result claim."
+          ]
+        },
+        "realized_form_disclosures": [
+          {
+            "concern_id": "composed-scenario-snapshot",
+            "concern_kind": "scenario-module",
+            "basis": "processor-realized",
+            "realized_by_ref": {
+              "ref_kind": "processor",
+              "ref_id": "raes-reference-processor",
+              "ref_version": "0.1.0",
+              "ref_digest": null,
+              "ref_path": null
+            },
+            "authored_ref": {
+              "ref_kind": "scenario",
+              "ref_id": "scenario-techvault",
+              "ref_version": null,
+              "ref_digest": null,
+              "ref_path": null
+            },
+            "realized_ref": {
+              "ref_kind": "scenario-snapshot",
+              "ref_id": "scenario-techvault",
+              "ref_version": "2026-05-26",
+              "ref_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+              "ref_path": null
+            },
+            "realized_value_summary": null,
+            "disclosure": "The processor resolved the authored TechVault scenario into the canonical composed scenario snapshot used by this run.",
+            "evidence_refs": [
+              {
+                "ref_kind": "evidence-record",
+                "ref_id": "evidence-techvault-network-trace-001",
+                "ref_version": "1.0.0"
+              }
+            ],
+            "typed_description": null
+          }
+        ],
+        "augmentation_disclosures": [],
+        "materialization_attestations": [],
+        "evidence_artifacts": [
+          {
+            "artifact_id": "auth-log-evidence",
+            "role": "observation",
+            "media_type": "application/json",
+            "uri": "runs/run-techvault-001/evaluation-history.json",
+            "checksum": {
+              "algorithm": "sha256",
+              "value": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+            },
+            "size_bytes": 4096,
+            "created_at": "2026-05-26T00:40:00Z",
+            "source": "stub-backend evaluator history export",
+            "satisfies_refs": [
+              {
+                "ref_kind": "evidence",
+                "ref_id": "auth-log-evidence",
+                "ref_version": null
+              }
+            ],
+            "sensitivity": "internal",
+            "description": null
+          }
+        ],
+        "result_summaries": {
+          "foothold-achieved-result": {
+            "metric_id": "foothold-achieved",
+            "value": true,
+            "value_status": "reported",
+            "evidence_refs": [
+              {
+                "ref_kind": "evidence",
+                "ref_id": "auth-log-evidence"
+              }
+            ],
+            "uncertainty": null,
+            "notes": null
+          }
+        },
+        "deviations": [],
+        "invalidation": null,
+        "used_refs": [
+          {
+            "ref_kind": "task",
+            "ref_id": "task-techvault-red-team-v1",
+            "ref_version": "1.0.0",
+            "ref_digest": null,
+            "ref_path": null
+          }
+        ],
+        "generated_refs": [
+          {
+            "ref_kind": "result",
+            "ref_id": "foothold-achieved-result",
+            "ref_version": null,
+            "ref_digest": null,
+            "ref_path": null
+          }
+        ],
+        "derived_from_refs": [],
+        "validation_basis_disclosures": [],
+        "evidence_requirement_relations": []
+      },
+      "child": {
+        "schema_version": "admitted-trial-plan/v1",
+        "plan_id": "replacement-plan-55f3017f9fbc85e7ce54e08cd1fab16d02ecccee9383115b1b778194f7ca55b6",
+        "profiles": {
+          "coordinate_profile": "trial-coordinate-v1",
+          "entry_identity_profile": "trial-entry-identity-v1",
+          "run_identity_profile": "archival-run-identity-v1",
+          "canonicalization_profile": "jcs-sha256-v1",
+          "integrity_profile": "acyclic-digest-chain-v1",
+          "compiler_profile": "trial-compiler-replacement-v1",
+          "selection_policy_profile": "experiment-selection-v1",
+          "random_stream_profile": "blake3-xof-v1",
+          "execution_control_profile": "attempt-control-v1",
+          "cleanup_profile": "trial-cleanup-v1",
+          "isolation_profile": "scheduler-isolation-v1"
+        },
+        "input_refs": {
+          "authoring_input_ref": {
+            "ref_kind": "authoring-input",
+            "ref_id": "spec-techvault-red-tactic-sweep-v1",
+            "ref_version": "1.0.0",
+            "ref_digest": "sha256:e53f7cf8d920887572ef1f52f17cd68a782ca8af2de468705866d8b363966546",
+            "ref_path": null
+          },
+          "task_ref": {
+            "ref_kind": "task",
+            "ref_id": "task-techvault-red-team-v1",
+            "ref_version": "1.0.0"
+          },
+          "task_digest": "sha256:81b6eb789e575ce0e09bedd5ad3430a92f8404328edb715c25b3d0fab24adffc",
+          "scenario_family_ref": {
+            "ref_kind": "scenario-family",
+            "ref_id": "compiler-family",
+            "ref_version": "expanded-scenario-family/v1",
+            "ref_digest": "sha256:7c4fb8b018851aadf8cfdd66be8f8ec30bdfd85a0c8da60c800fa8c142886ff5"
+          },
+          "capture_spec_refs": [
+            {
+              "ref_kind": "capture-spec",
+              "ref_id": "capture-techvault-evidence-v1",
+              "ref_version": "1.0.0",
+              "ref_digest": "sha256:23209f366685c7f6a0885dc2b0a01fb94cdf004294c245fabbf4cd436534f2be",
+              "ref_path": null
+            }
+          ],
+          "binding_descriptor_set_ref": null,
+          "study_ref": null,
+          "associated_artifact_set_ref": null
+        },
+        "stochastic_controls": {
+          "sample-control": {
+            "control_id": "sample-control",
+            "role": "sampling",
+            "value": null,
+            "description": null,
+            "executable_binding": {
+              "profile_ref": {
+                "ref_kind": "profile",
+                "ref_id": "blake3-xof-v1",
+                "ref_version": "random-stream-profile/v1",
+                "ref_digest": null,
+                "ref_path": null
+              },
+              "namespace": "compiler-sampling",
+              "root_entropy": {
+                "kind": "public-seed",
+                "encoding": "hex-fixed-width",
+                "value": "0101010101010101010101010101010101010101010101010101010101010101"
+              }
+            }
+          }
+        },
+        "cleanup_plans": {
+          "trial-cleanup-6339de88a79df89834ac1e885e7cd81e874d092493c2bd29e5e1968fac331010": {
+            "schema_version": "trial-cleanup-plan/v1",
+            "plan_id": "trial-cleanup-6339de88a79df89834ac1e885e7cd81e874d092493c2bd29e5e1968fac331010",
+            "plan_entry_id": "trial-entry-e9e3ba1402f15b19235fc8ed7f225ec81195ca19f688a24eda3a686597cc571b",
+            "run_id": "archival-run-e41883d5d280fbe0f7db032485ac1ee102a49db6069cb20843d87999625b7c8e",
+            "clean_state": {
+              "mode": "fresh",
+              "boundary_refs": [
+                "range"
+              ],
+              "verification_probe_refs": [
+                "probe:fresh"
+              ],
+              "reusable_state_claim_ref": null
+            },
+            "resource_boundaries": {
+              "range": {
+                "boundary_id": "range",
+                "resource_kind": "range-instance",
+                "owner_ref": "apparatus:range",
+                "resource_refs": [
+                  "range:compiler-fixture"
+                ]
+              }
+            },
+            "cleanup_obligations": {
+              "destroy": {
+                "obligation_id": "destroy",
+                "boundary_refs": [
+                  "range"
+                ],
+                "action_kind": "destroy",
+                "action_profile_ref": null,
+                "triggers": [
+                  "success",
+                  "failure",
+                  "cancellation",
+                  "timeout",
+                  "abort"
+                ],
+                "requirement": "required",
+                "depends_on": [],
+                "idempotency": "idempotent",
+                "compensation_refs": [],
+                "verification_probe_refs": [
+                  "probe:absent"
+                ],
+                "timeout_seconds": 120
+              }
+            },
+            "retry_policy": {
+              "max_attempts": 1,
+              "after_effect_policy": "disallow",
+              "reset_obligation_refs": [],
+              "compensation_refs": []
+            }
+          }
+        },
+        "isolation_proof": null,
+        "replacement_policy": {
+          "schema_version": "trial-replacement-policy/v1",
+          "max_replacements": 2,
+          "replace_on": [
+            "failed",
+            "invalidated"
+          ]
+        },
+        "replacement_origin": {
+          "root_plan_id": "trial-plan-8152a63b982edf026e7489f063901ea688ab54080f4ce93629c7fbb4b57be797",
+          "root_plan_digest": "sha256:f9c6915e4c7ea01422d32257052a5af37434b4f95069ecef9ed26b342ebff44b",
+          "root_entry_id": "trial-entry-b0af0a985e96f63b7946d3036afcae9b51e44680d82fb6a32beaa55ec841a276",
+          "ordinal": 2,
+          "parent_plan_id": "replacement-plan-9a8ba877374af4e4de83dd5471a783a5575c33147f3b13316226c3b088605cec",
+          "parent_plan_digest": "sha256:623d672a21856c90a6f73cd36bb1abeb99520198b78431c4b254779ca4f1d856",
+          "parent_entry_id": "trial-entry-31e803c92770f3d02a63d4db2624292582a98dd4644fe610704ebdcd534e6428",
+          "parent_run_id": "archival-run-d9b3f7394fe9a7a3260fbaaa9aea998d160656d02db07433353a5c9bf227e7e5",
+          "parent_run_version": "1",
+          "parent_run_digest": "sha256:5a9e9708c4809a69ca6bc9595aa3f01f9bee6bf82e01ddd7d01e5e71c3fa2938",
+          "cleanup_receipt_ref": "cleanup:archival-run-d9b3f7394fe9a7a3260fbaaa9aea998d160656d02db07433353a5c9bf227e7e5"
+        },
+        "entries": {
+          "trial-entry-e9e3ba1402f15b19235fc8ed7f225ec81195ca19f688a24eda3a686597cc571b": {
+            "plan_entry_id": "trial-entry-e9e3ba1402f15b19235fc8ed7f225ec81195ca19f688a24eda3a686597cc571b",
+            "coordinate": {
+              "condition_id": null,
+              "block_id": null,
+              "replicate_id": "replicate-000004"
+            },
+            "run_id": "archival-run-e41883d5d280fbe0f7db032485ac1ee102a49db6069cb20843d87999625b7c8e",
+            "selections": [
+              {
+                "variation_point_id": "payload-path",
+                "origin_policy_id": "sample-path",
+                "origin_policy_kind": "sample",
+                "outcome": {
+                  "kind": "literal",
+                  "value": "/opt/b"
+                }
+              }
+            ],
+            "bindings": [],
+            "stochastic_draws": [
+              {
+                "control_id": "sample-control",
+                "address": {
+                  "namespace": "compiler-sampling",
+                  "trial_coordinate": {
+                    "condition_id": null,
+                    "block_id": null,
+                    "replicate_id": "replicate-000004"
+                  },
+                  "selection_policy_id": "sample-path",
+                  "variation_point_id": "payload-path",
+                  "draw_purpose": "sampling-selection",
+                  "local_coordinate": 0
+                },
+                "transform_id": "bounded-integer",
+                "transform_version": "1",
+                "local_coordinate": 0,
+                "outcome": {
+                  "kind": "public-value",
+                  "value": "1"
+                },
+                "rejection_attempts": 0,
+                "rejection_exhausted": false
+              }
+            ],
+            "apparatus": {
+              "manifest_refs": [
+                {
+                  "ref_kind": "manifest",
+                  "ref_id": "backend-a",
+                  "ref_version": "backend-manifest/v2",
+                  "ref_digest": "sha256:008eb08b684941aa5ca6769f522a7c3cf01d9b290a3a9813f3af3063ea4de2e7",
+                  "ref_path": null,
+                  "subject_ref": {
+                    "ref_kind": "backend",
+                    "ref_id": "backend-a",
+                    "ref_version": "1",
+                    "ref_digest": null,
+                    "ref_path": null
+                  }
+                },
+                {
+                  "ref_kind": "manifest",
+                  "ref_id": "raes-reference-processor",
+                  "ref_version": "processor-manifest/v2",
+                  "ref_digest": "sha256:2bb05867d61bc5bd37852a0a37ef9b9084f4e78c5075b809bac2b7ec59784d8e",
+                  "ref_path": null,
+                  "subject_ref": {
+                    "ref_kind": "processor",
+                    "ref_id": "raes-reference-processor",
+                    "ref_version": "0.2.0",
+                    "ref_digest": null,
+                    "ref_path": null
+                  }
+                }
+              ],
+              "realization_envelope": {
+                "contract_id": "realization-envelope-v1",
+                "envelope_id": "libvirt-qemu.generic.v1",
+                "schema_version": "realization-envelope/v1",
+                "digest": "sha256:1c768fa96dda900757ca48a66ddd741c62dbd5bd86e1356e75e3cc559ece92e0",
+                "configuration_digest": "sha256:cf7e5b0d28c25293d254c463a23958f66f92776579872fce8abbeb1227347b4b"
+              },
+              "capability_refs": [
+                "evaluation-results",
+                "workflow-results"
+              ]
+            },
+            "execution_controls": {
+              "attempt_timeout_seconds": 600,
+              "on_timeout": "cleanup-and-fail",
+              "on_cancellation": "cleanup-and-fail",
+              "cleanup_plan_ref": "trial-cleanup-6339de88a79df89834ac1e885e7cd81e874d092493c2bd29e5e1968fac331010"
+            },
+            "instantiation_provenance": {
+              "plan_id": "replacement-plan-55f3017f9fbc85e7ce54e08cd1fab16d02ecccee9383115b1b778194f7ca55b6",
+              "plan_entry_id": "trial-entry-e9e3ba1402f15b19235fc8ed7f225ec81195ca19f688a24eda3a686597cc571b",
+              "run_id": "archival-run-e41883d5d280fbe0f7db032485ac1ee102a49db6069cb20843d87999625b7c8e",
+              "scenario_family_id": "compiler-family"
+            },
+            "entry_digest": "sha256:a67ce8313016c3923d7a79de6b53acd5ebfb1d14ed94301809eacd472b844b00"
+          }
+        },
+        "admission": {
+          "admitted_at_stage": "admitted-sealed",
+          "entry_count": 1,
+          "limitations": [],
+          "diagnostics": []
+        },
+        "plan_digest": "sha256:f554acd7882e5ff47acd97bfe37958c690fdb41c9d53fec9040ac77f83073ce6"
+      },
+      "superseded": {
+        "schema_version": "experiment-run/v1",
+        "run_id": "archival-run-d9b3f7394fe9a7a3260fbaaa9aea998d160656d02db07433353a5c9bf227e7e5",
+        "run_version": "1.superseded-2",
+        "task_ref": {
+          "ref_kind": "task",
+          "ref_id": "task-techvault-red-team-v1",
+          "ref_version": "1.0.0"
+        },
+        "scenario_snapshot_ref": {
+          "ref_kind": "scenario-snapshot",
+          "ref_id": "compiler-family",
+          "ref_version": "raes-sdl-instantiated-snapshot/v2",
+          "ref_digest": "sha256:ef99d81a5c749537bd6bb69d856d81b34e2b502da156ad22e22c6f095b32e0d7",
+          "ref_path": null
+        },
+        "trial_provenance": {
+          "plan_id": "replacement-plan-9a8ba877374af4e4de83dd5471a783a5575c33147f3b13316226c3b088605cec",
+          "plan_digest": "sha256:623d672a21856c90a6f73cd36bb1abeb99520198b78431c4b254779ca4f1d856",
+          "plan_entry_id": "trial-entry-31e803c92770f3d02a63d4db2624292582a98dd4644fe610704ebdcd534e6428",
+          "entry_digest": "sha256:9c4698d5991b60e9cd5d9fe0da874457a65cd55a113ebd08d4ac276c81dc5316",
+          "admitted_run_id": "archival-run-d9b3f7394fe9a7a3260fbaaa9aea998d160656d02db07433353a5c9bf227e7e5",
+          "coordinate": {
+            "condition_id": null,
+            "block_id": null,
+            "replicate_id": "replicate-000003"
+          },
+          "instantiated_scenario_digest": "sha256:ef99d81a5c749537bd6bb69d856d81b34e2b502da156ad22e22c6f095b32e0d7",
+          "processor_plan_refs": [
+            {
+              "plan_kind": "provisioning",
+              "artifact_ref": {
+                "ref_kind": "other",
+                "ref_id": "archival-run-d9b3f7394fe9a7a3260fbaaa9aea998d160656d02db07433353a5c9bf227e7e5:provisioning",
+                "ref_version": "provisioning-plan-v1",
+                "ref_digest": "sha256:4cf24e6a34904de7cc2a5d725406748856cc7a1df962c8414a9a63e7186c7e47",
+                "ref_path": null
+              }
+            },
+            {
+              "plan_kind": "orchestration",
+              "artifact_ref": {
+                "ref_kind": "other",
+                "ref_id": "archival-run-d9b3f7394fe9a7a3260fbaaa9aea998d160656d02db07433353a5c9bf227e7e5:orchestration",
+                "ref_version": "orchestration-plan-v1",
+                "ref_digest": "sha256:d126d54f7b380d788b1fce28ebb28344a68f92b376ab673f36eed837fe3afa12",
+                "ref_path": null
+              }
+            },
+            {
+              "plan_kind": "evaluation",
+              "artifact_ref": {
+                "ref_kind": "other",
+                "ref_id": "archival-run-d9b3f7394fe9a7a3260fbaaa9aea998d160656d02db07433353a5c9bf227e7e5:evaluation",
+                "ref_version": "evaluation-plan-v1",
+                "ref_digest": "sha256:0eb8b03849548f268ac1c027f41e639185d6a22258eeec2407feab0e3079a8fe",
+                "ref_path": null
+              }
+            }
+          ],
+          "execution_attempts": [
+            {
+              "execution_attempt_id": "attempt:archival-run-d9b3f7394fe9a7a3260fbaaa9aea998d160656d02db07433353a5c9bf227e7e5",
+              "cleanup_receipt_ref": "cleanup:archival-run-d9b3f7394fe9a7a3260fbaaa9aea998d160656d02db07433353a5c9bf227e7e5",
+              "operation_refs": []
+            }
+          ],
+          "terminal_attempt_id": "attempt:archival-run-d9b3f7394fe9a7a3260fbaaa9aea998d160656d02db07433353a5c9bf227e7e5"
+        },
+        "difficulty_provenance": null,
+        "apparatus_context": {
+          "schema_version": "experiment-apparatus-context/v1",
+          "apparatus_context_id": "apparatus-techvault-reference",
+          "context_version": "1.0.0",
+          "declared_at": "2026-05-26T00:00:00Z",
+          "components": {
+            "processor": {
+              "component_kind": "processor",
+              "identity": {
+                "name": "raes-reference-processor",
+                "version": "0.1.0"
+              },
+              "manifest_ref": {
+                "ref_kind": "manifest",
+                "ref_id": "raes-reference-processor",
+                "ref_version": "processor-manifest/v2",
+                "ref_digest": null,
+                "ref_path": null,
+                "subject_ref": {
+                  "ref_kind": "processor",
+                  "ref_id": "raes-reference-processor",
+                  "ref_version": "0.1.0",
+                  "ref_digest": null,
+                  "ref_path": null
+                }
+              },
+              "compatibility_refs": [],
+              "observed": true,
+              "limitations": []
+            },
+            "backend": {
+              "component_kind": "backend",
+              "identity": {
+                "name": "stub-backend",
+                "version": "0.1.0"
+              },
+              "manifest_ref": {
+                "ref_kind": "manifest",
+                "ref_id": "stub-backend",
+                "ref_version": "backend-manifest/v2",
+                "ref_digest": null,
+                "ref_path": null,
+                "subject_ref": {
+                  "ref_kind": "backend",
+                  "ref_id": "stub-backend",
+                  "ref_version": "0.1.0",
+                  "ref_digest": null,
+                  "ref_path": null
+                }
+              },
+              "compatibility_refs": [],
+              "observed": true,
+              "limitations": []
+            },
+            "participant-policy": {
+              "component_kind": "participant-implementation",
+              "identity": {
+                "name": "reference-red-agent",
+                "version": "1.0.0"
+              },
+              "manifest_ref": {
+                "ref_kind": "manifest",
+                "ref_id": "reference-red-agent",
+                "ref_version": "participant-implementation-manifest/v1",
+                "ref_digest": null,
+                "ref_path": null,
+                "subject_ref": {
+                  "ref_kind": "participant-implementation",
+                  "ref_id": "reference-red-agent",
+                  "ref_version": "1.0.0",
+                  "ref_digest": null,
+                  "ref_path": null
+                }
+              },
+              "compatibility_refs": [],
+              "observed": true,
+              "limitations": []
+            }
+          },
+          "selected_manifests": [
+            {
+              "ref_kind": "manifest",
+              "ref_id": "raes-reference-processor",
+              "ref_version": "processor-manifest/v2",
+              "ref_digest": null,
+              "ref_path": null,
+              "subject_ref": {
+                "ref_kind": "processor",
+                "ref_id": "raes-reference-processor",
+                "ref_version": "0.1.0",
+                "ref_digest": null,
+                "ref_path": null
+              }
+            },
+            {
+              "ref_kind": "manifest",
+              "ref_id": "stub-backend",
+              "ref_version": "backend-manifest/v2",
+              "ref_digest": null,
+              "ref_path": null,
+              "subject_ref": {
+                "ref_kind": "backend",
+                "ref_id": "stub-backend",
+                "ref_version": "0.1.0",
+                "ref_digest": null,
+                "ref_path": null
+              }
+            },
+            {
+              "ref_kind": "manifest",
+              "ref_id": "reference-red-agent",
+              "ref_version": "participant-implementation-manifest/v1",
+              "ref_digest": null,
+              "ref_path": null,
+              "subject_ref": {
+                "ref_kind": "participant-implementation",
+                "ref_id": "reference-red-agent",
+                "ref_version": "1.0.0",
+                "ref_digest": null,
+                "ref_path": null
+              }
+            }
+          ],
+          "compatibility_declarations": [
+            {
+              "ref_kind": "profile",
+              "ref_id": "reference-stack-v1",
+              "ref_version": "semantic-profile/v1"
+            },
+            {
+              "ref_kind": "capability",
+              "ref_id": "workflow-results",
+              "ref_version": null
+            },
+            {
+              "ref_kind": "capability",
+              "ref_id": "evaluation-results",
+              "ref_version": null
+            }
+          ],
+          "configuration_parameters": [
+            {
+              "name": "worker-count",
+              "value": 1,
+              "value_kind": "apparatus",
+              "redaction": "none"
+            }
+          ],
+          "stochastic_controls": [
+            {
+              "control_id": "task-seed",
+              "role": "seed",
+              "value": 12345,
+              "description": "Seed supplied to task randomization.",
+              "executable_binding": null
+            }
+          ],
+          "clocks": [
+            {
+              "clock_id": "range-wall-clock",
+              "authority": "backend wall clock",
+              "time_domain": "wall-clock",
+              "synchronization": "NTP synchronized before run seal."
+            }
+          ],
+          "measurement_channels": [
+            {
+              "ref_kind": "measurement-channel",
+              "ref_id": "evaluation-history-channel",
+              "ref_version": "1.0.0"
+            }
+          ],
+          "observed_setup_evidence": [
+            {
+              "artifact_id": "setup-attestation",
+              "role": "apparatus-evidence",
+              "media_type": "application/json",
+              "uri": "runs/run-techvault-001/setup.json",
+              "checksum": {
+                "algorithm": "sha256",
+                "value": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+              },
+              "size_bytes": 2048,
+              "created_at": "2026-05-26T00:09:30Z",
+              "source": "stub-backend setup attestation",
+              "satisfies_refs": [],
+              "sensitivity": "internal",
+              "description": null
+            }
+          ],
+          "known_limitations": [
+            {
+              "category": "apparatus",
+              "note": "The stub backend is a conformance apparatus, not a fidelity claim.",
+              "mitigation": null
+            }
+          ]
+        },
+        "participant_implementation_provenance": {
+          "schema_version": "participant-implementation-provenance/v1",
+          "run_id": "archival-run-d9b3f7394fe9a7a3260fbaaa9aea998d160656d02db07433353a5c9bf227e7e5",
+          "participant_implementations": [
+            {
+              "participant_address": "participants.red",
+              "implementation_identity": {
+                "name": "reference-red-agent",
+                "version": "1.0.0"
+              },
+              "manifest_ref": "contracts/fixtures/participant-implementation-manifest/reference.json",
+              "manifest_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+              "configuration_ref": null,
+              "configuration_digest": null,
+              "selected_decision_surface_mode": "policy-directed",
+              "participant_contract_versions": [
+                "participant-episode-state-envelope-v1",
+                "participant-behavior-history-event-stream-v1"
+              ],
+              "exposure_policy": {
+                "policy_id": "red-agent-policy",
+                "policy_version": "1.0.0",
+                "policy_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+                "exposure_policy_kinds": [
+                  "task-statement",
+                  "tool-affordance"
+                ],
+                "disclosed_refs": [
+                  "scenario.tasks.red"
+                ],
+                "withheld_refs": [
+                  "scenario.hidden.answer-key"
+                ],
+                "tool_affordance_refs": [
+                  "tool.shell"
+                ],
+                "visibility_scope_refs": [
+                  "participants.red.visible"
+                ],
+                "constraints": {}
+              }
+            }
+          ],
+          "processor_manifest_ref": "processor-manifest-v2:raes-reference-processor",
+          "backend_manifest_ref": "backend-manifest-v2:stub-backend",
+          "metadata": {}
+        },
+        "parameter_set": [
+          {
+            "name": "difficulty",
+            "value": "standard",
+            "value_kind": "protocol",
+            "redaction": "none"
+          }
+        ],
+        "realized_bindings": [],
+        "stochastic_controls": [
+          {
+            "control_id": "sample-control",
+            "role": "sampling",
+            "value": null,
+            "description": null,
+            "executable_binding": {
+              "profile_ref": {
+                "ref_kind": "profile",
+                "ref_id": "blake3-xof-v1",
+                "ref_version": "random-stream-profile/v1",
+                "ref_digest": null,
+                "ref_path": null
+              },
+              "namespace": "compiler-sampling",
+              "root_entropy": {
+                "kind": "public-seed",
+                "encoding": "hex-fixed-width",
+                "value": "0101010101010101010101010101010101010101010101010101010101010101"
+              }
+            }
+          }
+        ],
+        "stochastic_draws": [
+          {
+            "control_id": "sample-control",
+            "address": {
+              "namespace": "compiler-sampling",
+              "trial_coordinate": {
+                "condition_id": null,
+                "block_id": null,
+                "replicate_id": "replicate-000003"
+              },
+              "selection_policy_id": "sample-path",
+              "variation_point_id": "payload-path",
+              "draw_purpose": "sampling-selection",
+              "local_coordinate": 0
+            },
+            "transform_id": "bounded-integer",
+            "transform_version": "1",
+            "local_coordinate": 0,
+            "outcome": {
+              "kind": "public-value",
+              "value": "1"
+            },
+            "rejection_attempts": 0,
+            "rejection_exhausted": false
+          }
+        ],
+        "started_at": "2026-05-26T00:10:00Z",
+        "ended_at": "2026-05-26T00:40:00Z",
+        "clock_context": {
+          "clock_id": "range-wall-clock",
+          "authority": "backend wall clock",
+          "time_domain": "wall-clock",
+          "synchronization": null
+        },
+        "realized_time_model": null,
+        "run_status": "superseded",
+        "outcome_status": "failed",
+        "traceability": {
+          "capture_spec_refs": [
+            {
+              "ref_kind": "capture-spec",
+              "ref_id": "capture-techvault-evidence-v1",
+              "ref_version": "1.0.0"
+            }
+          ],
+          "evidence_record_refs": [
+            {
+              "ref_kind": "evidence-record",
+              "ref_id": "evidence-techvault-network-trace-001",
+              "ref_version": "1.0.0"
+            }
+          ],
+          "derived_measure_refs": [
+            {
+              "ref_kind": "derived-measure",
+              "ref_id": "measure-techvault-foothold-001",
+              "ref_version": "1.0.0"
+            }
+          ],
+          "claim_refs": [
+            {
+              "ref_kind": "result",
+              "ref_id": "foothold-achieved-result",
+              "ref_version": null,
+              "ref_digest": null,
+              "ref_path": null
+            }
+          ],
+          "notes": [
+            "The run provenance chain binds the declared capture spec, raw evidence record, derived foothold measure, and result claim."
+          ]
+        },
+        "realized_form_disclosures": [
+          {
+            "concern_id": "composed-scenario-snapshot",
+            "concern_kind": "scenario-module",
+            "basis": "processor-realized",
+            "realized_by_ref": {
+              "ref_kind": "processor",
+              "ref_id": "raes-reference-processor",
+              "ref_version": "0.1.0",
+              "ref_digest": null,
+              "ref_path": null
+            },
+            "authored_ref": {
+              "ref_kind": "scenario",
+              "ref_id": "scenario-techvault",
+              "ref_version": null,
+              "ref_digest": null,
+              "ref_path": null
+            },
+            "realized_ref": {
+              "ref_kind": "scenario-snapshot",
+              "ref_id": "scenario-techvault",
+              "ref_version": "2026-05-26",
+              "ref_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+              "ref_path": null
+            },
+            "realized_value_summary": null,
+            "disclosure": "The processor resolved the authored TechVault scenario into the canonical composed scenario snapshot used by this run.",
+            "evidence_refs": [
+              {
+                "ref_kind": "evidence-record",
+                "ref_id": "evidence-techvault-network-trace-001",
+                "ref_version": "1.0.0"
+              }
+            ],
+            "typed_description": null
+          }
+        ],
+        "augmentation_disclosures": [],
+        "materialization_attestations": [],
+        "evidence_artifacts": [
+          {
+            "artifact_id": "auth-log-evidence",
+            "role": "observation",
+            "media_type": "application/json",
+            "uri": "runs/run-techvault-001/evaluation-history.json",
+            "checksum": {
+              "algorithm": "sha256",
+              "value": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+            },
+            "size_bytes": 4096,
+            "created_at": "2026-05-26T00:40:00Z",
+            "source": "stub-backend evaluator history export",
+            "satisfies_refs": [
+              {
+                "ref_kind": "evidence",
+                "ref_id": "auth-log-evidence",
+                "ref_version": null
+              }
+            ],
+            "sensitivity": "internal",
+            "description": null
+          }
+        ],
+        "result_summaries": {
+          "foothold-achieved-result": {
+            "metric_id": "foothold-achieved",
+            "value": true,
+            "value_status": "reported",
+            "evidence_refs": [
+              {
+                "ref_kind": "evidence",
+                "ref_id": "auth-log-evidence"
+              }
+            ],
+            "uncertainty": null,
+            "notes": null
+          }
+        },
+        "deviations": [],
+        "invalidation": {
+          "invalidated_at": "2026-05-26T00:40:00Z",
+          "reason": "failed trial replaced under the admitted experiment policy",
+          "superseded_by": {
+            "ref_kind": "run",
+            "ref_id": "archival-run-e41883d5d280fbe0f7db032485ac1ee102a49db6069cb20843d87999625b7c8e",
+            "ref_version": "1",
+            "ref_digest": null,
+            "ref_path": null
+          }
+        },
+        "used_refs": [
+          {
+            "ref_kind": "task",
+            "ref_id": "task-techvault-red-team-v1",
+            "ref_version": "1.0.0",
+            "ref_digest": null,
+            "ref_path": null
+          }
+        ],
+        "generated_refs": [
+          {
+            "ref_kind": "result",
+            "ref_id": "foothold-achieved-result",
+            "ref_version": null,
+            "ref_digest": null,
+            "ref_path": null
+          }
+        ],
+        "derived_from_refs": [
+          {
+            "ref_kind": "run",
+            "ref_id": "archival-run-d9b3f7394fe9a7a3260fbaaa9aea998d160656d02db07433353a5c9bf227e7e5",
+            "ref_version": "1",
+            "ref_digest": null,
+            "ref_path": null
+          }
+        ],
+        "validation_basis_disclosures": [],
+        "evidence_requirement_relations": []
+      }
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+package comparison
+
+import (
+ "github.com/OpenRAE/rae/implementations/go/contract/admission"
+ "github.com/OpenRAE/rae/implementations/go/contract/profile"
+ "github.com/OpenRAE/rae/implementations/go/contract/validation"
+ "github.com/OpenRAE/rae/implementations/go/sdl"
+)
+
+type Artifact = artifactMarker
+type artifactMarker interface { isArtifact() }
+type Options struct {
+ BeforeScope, AfterScope []Artifact
+ TransformationReport validation.Value
+ EvidenceDigests []string
+}
+func FromScenario(source sdl.Scenario)(Artifact,error)
+func FromDocument(source validation.Value)(Artifact,error)
+func FromModule(source admission.Fragment)(Artifact,error)
+func Coordinate(artifact Artifact, scenarioProjectionVersion string, exactRepresentation admission.Fragment)(admission.Fragment,error)
+func BuildImpactScope(before, after []Artifact, roots []string, closureStatus, scopeID, scenarioProjectionVersion string)(admission.Fragment,error)
+func Analyze(governed profile.ComparisonProfile, request validation.Value, before, after Artifact, options Options)(validation.Value,error)

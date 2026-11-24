@@ -56,3 +56,51 @@ jobs:
             echo "271afe45e06d3d99a245f586ca0f797eae36de9ede7a6a6ee547d34e939af9a3  $bundle/tools/pr_body_issue_scope.py" | sha256sum --check --strict
           fi
           python -I -S "$validator"
+
+  go-body-guard:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      GOTOOLCHAIN: local
+      GOFLAGS: -mod=readonly
+      CGO_ENABLED: "0"
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+          ref: ${{ github.event.pull_request.base.sha }}
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: "3.14.7"
+      - name: Install uv
+        uses: astral-sh/setup-uv@18d369b23da25a81e9458561248e1aafff6a70fa # v10.3.1
+        with:
+          enable-cache: false
+          version: "0.13.4"
+      - name: Install the locked Go toolchain
+        run: |
+          kit="${RUNNER_TEMP}/go-kit"
+          mkdir "${kit}"
+          uv run --project implementations/tooling/python --frozen --no-default-groups python \
+            -m tools.bootstrap_profile fetch-inputs public-ubuntu-24.04-x86_64 "${kit}" --artifact-id go
+          uv run --project implementations/tooling/python --frozen --no-default-groups python \
+            -m tools.bootstrap_profile install-go public-ubuntu-24.04-x86_64 "${kit}" --go-artifact-id go > "${kit}/go.json"
+          echo "${kit}/$(jq -r .path "${kit}/go.json")/bin" >> "${GITHUB_PATH}"
+      - name: Validate pull request body with the base-owned Go guard
+        id: validate-go-body
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # This file is from the immutable base checkout. Only the introducing
+          # PR may lack the native job; the enforced Python guard covers it.
+          if ! grep -q '^  go-body-guard:' .github/workflows/pr-body-policy.yml; then
+            echo "Native body guard awaits its reviewed base bootstrap; Python body policy remains enforced."
+            exit 0
+          fi
+          if [ ! -f implementations/tooling/go/cmd/policycheck/main.go ]; then
+            echo "::error::Established base revision has no native body validator."
+            exit 1
+          fi
+          guard="${RUNNER_TEMP}/pr-body-policycheck-go"
+          go -C implementations/tooling/go build -trimpath -mod=readonly -o "${guard}" ./cmd/policycheck
+          "${guard}" --tool pr-body --event-path "${GITHUB_EVENT_PATH}"

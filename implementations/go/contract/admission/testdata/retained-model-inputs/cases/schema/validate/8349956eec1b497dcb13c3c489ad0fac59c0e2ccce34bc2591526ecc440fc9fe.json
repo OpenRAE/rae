@@ -1,0 +1,14 @@
+{
+  "args": [
+    "random-stream-vector-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:02568d24fb7fce022b26f6a10618c4ebf9f9f225acfb09b781d05c202d219ac5"
+  },
+  "name": "random-stream-vector-v1/routed/contracts/fixtures/random-stream-vectors/blake3-xof-v1/largest-canonical-coordinate.json",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

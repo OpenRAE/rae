@@ -123,6 +123,7 @@ func (m *Model) View() string {
 		consumer := !strings.Contains("/"+pkg.Dir+"/", "/internal/") && !strings.Contains(pkg.Dir, "/cmd/")
 		fmt.Fprintf(&out, "| `%s` | %s | %t | %t | %s |\n", pkg.Dir, pkg.Layer, pkg.Public, consumer, strings.Join(pkg.Imports, ", "))
 	}
+	m.consumerView(&out)
 	out.WriteString("\n| Trust-view evidence | SHA-256 |\n| --- | --- |\n")
 	for _, name := range slices.Sorted(maps.Keys(m.Sources)) {
 		fmt.Fprintf(&out, "| `%s` | `%s` |\n", name, m.Sources[name])
@@ -132,6 +133,44 @@ func (m *Model) View() string {
 	}
 	out.WriteString("\n<!-- /go-view -->\n")
 	return out.String()
+}
+
+func (m *Model) consumerView(out *strings.Builder) {
+	a := m.ConsumerAPI
+	if a == nil {
+		return
+	}
+	modules := map[string]string{}
+	out.WriteString("\n| Consumer repository owner | Module |\n| --- | --- |\n")
+	for _, module := range a.Modules {
+		prefix := module.Module
+		if prefix == "" {
+			prefix = "RUNTIME"
+		}
+		modules[module.Owner] = prefix
+		status := "`" + prefix + "`"
+		if module.Module == "" {
+			status += " (approval pending #1893)"
+		}
+		fmt.Fprintf(out, "| %s | %s |\n", module.Owner, status)
+	}
+	out.WriteString("\n| Planned public package | Owner | Operations / types | Public dependencies | Consumers | Delivery issues |\n| --- | --- | --- | --- | --- | --- |\n")
+	for _, p := range a.Packages {
+		issues := make([]string, 0, len(p.Issues))
+		for _, issue := range p.Issues {
+			issues = append(issues, fmt.Sprintf("#%d", issue))
+		}
+		fmt.Fprintf(out, "| `%s/%s` | %s | %s | %s | %s | %s |\n", modules[p.Owner], p.Path, p.Owner, strings.Join(p.Symbols, ", "), strings.Join(p.Uses, ", "), strings.Join(p.Consumers, ", "), strings.Join(issues, ", "))
+	}
+	out.WriteString("\n| Executable | Publisher | Entry point | Public composition dependencies |\n| --- | --- | --- | --- |\n")
+	for _, command := range a.Commands {
+		fmt.Fprintf(out, "| `%s` | %s | `%s/%s` | %s |\n", command.Name, command.Owner, modules[command.Owner], command.EntryPoint, strings.Join(command.Uses, ", "))
+	}
+	content, err := json.Marshal(a)
+	if err != nil {
+		panic(err) // The closed string, slice and integer model is JSON-encodable.
+	}
+	fmt.Fprintln(out, "\n<!-- go-consumer "+contentDigest(content)+" -->")
 }
 
 func (m *Model) componentCommitment(layer Layer) string {

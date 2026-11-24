@@ -1,0 +1,4286 @@
+{
+  "specification": "raes-contract-invariant-rules/v1",
+  "review_revision": "036d1af96",
+  "rules": [
+    {
+      "contract_id": "admitted-trial-plan-v1",
+      "schema_pointer": "#",
+      "description": "An admitted trial plan keeps map keys equal to embedded ids, keeps plan/entry/run identities distinct, gives every entry a unique logical coordinate and archival run_id, resolves cleanup and stochastic-control joins (with each draw addressed to its entry coordinate), exact mixed-composition profile inputs, and isolation-proof entries within the sealed plan, requires values duplicated from incumbent authorities (random-stream profile, binding condition/family) to agree, forbids bounded-parallel entries from sharing resources, matches admission cardinality, binds a replacement profile to a distinct single-entry child within the original replacement budget, and binds the complete plan with a recomputed plan_digest over the entry set.",
+      "id": "admitted-trial-plan-identity-joins-and-integrity",
+      "inputs": [
+        {
+          "contract_id": "admitted-trial-plan-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "admitted-trial-plan-v1",
+      "schema_pointer": "#/$defs/AdmittedTrialEntryModel",
+      "description": "An admitted trial entry keeps run_id distinct from plan_entry_id, records unique resolved variation selections and non-exhausted stochastic draws, matches its instantiation provenance to the entry identity, and binds its content with a recomputed entry_digest.",
+      "id": "admitted-trial-entry-resolved-and-integrity-bound",
+      "inputs": [
+        {
+          "contract_id": "admitted-trial-plan-v1",
+          "instance_path": "#/entries"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "admitted-trial-plan-v1",
+      "schema_pointer": "#/$defs/ExperimentManifestReferenceModel",
+      "description": "Manifest digest qualifiers are limited to processor/backend manifest refs that can be checked against concrete manifest payload digests; manifest path qualifiers are not accepted in v1.",
+      "id": "manifest-reference-digest-scope-valid",
+      "inputs": [
+        {
+          "contract_id": "experiment-task-v1",
+          "instance_path": "#/$defs/ExperimentManifestReferenceModel"
+        },
+        {
+          "contract_id": "experiment-apparatus-context-v1",
+          "instance_path": "#/$defs/ExperimentManifestReferenceModel"
+        },
+        {
+          "contract_id": "experiment-run-v1",
+          "instance_path": "#/$defs/ExperimentManifestReferenceModel"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "admitted-trial-plan-v1",
+      "schema_pointer": "#/$defs/ExperimentScenarioSelectionDescriptorModel",
+      "description": "Typed selection identity binds the exact source condition, factor and canonical scenario target. Parent condition, plan and archive validation also checks source levels, family pins and owner joins.",
+      "id": "experiment-selection-treatment-identity-valid",
+      "inputs": [
+        {
+          "contract_id": "experiment-authoring-input-v1",
+          "instance_path": "#/run_plan/allocation/condition_assignments"
+        },
+        {
+          "contract_id": "experiment-study-v1",
+          "instance_path": "#/run_allocation/condition_assignments"
+        },
+        {
+          "contract_id": "admitted-trial-plan-v1",
+          "instance_path": "#/entries"
+        },
+        {
+          "contract_id": "experiment-run-v1",
+          "instance_path": "#/realized_selections"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "admitted-trial-plan-v1",
+      "schema_pointer": "#/$defs/ParticipantConfigurationResultModel",
+      "description": "The configuration digest must be the RFC 8785/JCS digest of the complete normalized configuration.",
+      "id": "participant-configuration-digest-valid",
+      "inputs": [
+        {
+          "contract_id": "participant-configuration-result-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "admitted-trial-plan-v1",
+      "schema_pointer": "#/$defs/RandomStreamDrawRecordModel",
+      "description": "local_coordinate must match address.local_coordinate.",
+      "id": "random-stream-draw-record-local-coordinate-matches-address",
+      "inputs": [
+        {
+          "contract_id": "experiment-run-v1",
+          "instance_path": "#/stochastic_draws"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "admitted-trial-plan-v1",
+      "schema_pointer": "#/$defs/RandomStreamDrawRecordModel",
+      "description": "outcome must be present exactly when rejection_exhausted is false, and absent when true.",
+      "id": "random-stream-draw-record-outcome-matches-exhaustion",
+      "inputs": [
+        {
+          "contract_id": "experiment-run-v1",
+          "instance_path": "#/stochastic_draws"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "admitted-trial-plan-v1",
+      "schema_pointer": "#/$defs/SchedulerIsolationProofModel",
+      "description": "Scheduling defaults to serial; bounded parallelism requires independent evidence for range, capacity, ports, storage, control-plane locks, secret scope, and cleanup.",
+      "id": "scheduler-isolation-serial-default-and-complete-parallel-proof",
+      "inputs": [
+        {
+          "contract_id": "scheduler-isolation-proof-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "admitted-trial-plan-v1",
+      "schema_pointer": "#/$defs/StreamAddressModel",
+      "description": "draw_purpose must be a term from the random_streams.draw_purpose controlled vocabulary.",
+      "id": "random-stream-address-draw-purpose-governed",
+      "inputs": [
+        {
+          "contract_id": "controlled-vocabularies-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "admitted-trial-plan-v1",
+      "schema_pointer": "#/$defs/TrialCleanupPlanModel",
+      "description": "Cleanup boundary and dependency references resolve, ordering is acyclic, required cleanup is verifiable, and retries after non-idempotent effects declare required retry-triggered reset obligations covering the affected boundaries or compensation.",
+      "id": "trial-cleanup-plan-references-and-retry-safe",
+      "inputs": [
+        {
+          "contract_id": "trial-cleanup-plan-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "admitted-trial-plan-v1",
+      "schema_pointer": "#/$defs/TrialReplacementPolicyModel",
+      "description": "Replacement triggers are unique; a positive additional-trial bound requires selected triggers, and zero requires none. Omission supplies no allocation permission.",
+      "id": "trial-replacement-policy-explicit-and-bounded",
+      "inputs": [
+        {
+          "contract_id": "experiment-authoring-input-v1",
+          "instance_path": "#/run_plan/replacement_policy"
+        },
+        {
+          "contract_id": "admitted-trial-plan-v1",
+          "instance_path": "#/replacement_policy"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "artifact-requirement-v1",
+      "schema_pointer": "#",
+      "description": "An exact requirement's immutable artifact id must equal the enclosing Source selector name.",
+      "id": "exact-source-artifact-id-match",
+      "inputs": [
+        {
+          "contract_id": "artifact-requirement-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "artifact-requirement-v1",
+      "schema_pointer": "#",
+      "description": "An exact requirement's immutable artifact version must equal the enclosing Source selector version.",
+      "id": "exact-source-version-match",
+      "inputs": [
+        {
+          "contract_id": "artifact-requirement-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "artifact-requirement-v1",
+      "schema_pointer": "#",
+      "description": "Every materialization locked_input_id must resolve to a locked input declared by the same artifact requirement.",
+      "id": "materialization-locked-input-join",
+      "inputs": [
+        {
+          "contract_id": "artifact-requirement-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "artifact-transformation-report-v1",
+      "schema_pointer": "#",
+      "description": "Success carries a complete target digest; refusal carries no target and at least one bounded diagnostic.",
+      "id": "artifact-transformation-all-or-none",
+      "inputs": [
+        {
+          "contract_id": "artifact-transformation-report-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "artifact-transformation-report-v1",
+      "schema_pointer": "#",
+      "description": "Checks, identities, mappings, losses, diagnostics, and evidence use stable closed ordering.",
+      "id": "artifact-transformation-deterministic-order",
+      "inputs": [
+        {
+          "contract_id": "artifact-transformation-report-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "associated-artifact-manifest-v1",
+      "schema_pointer": "#",
+      "description": "Full conformance requires matching the concrete parent, recomputing the canonical set digest, and binding every checksum and size to an explicitly supplied bounded byte stream.",
+      "id": "associated-artifact-parent-set-and-byte-binding",
+      "inputs": [
+        {
+          "contract_id": "associated-artifact-manifest-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "authoring-adapter-comparison-v1",
+      "schema_pointer": "#",
+      "description": "Axes must remain applicable to their evidence; success requires semantic companion evidence.",
+      "id": "authoring-comparison-evidence-shape",
+      "inputs": [
+        {
+          "contract_id": "authoring-adapter-comparison-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "authoring-adapter-vector-v1",
+      "schema_pointer": "#",
+      "description": "Exact UTF-8 source and closed operation digests must match; outcomes must bind artifacts.",
+      "id": "authoring-vector-bound-inputs",
+      "inputs": [
+        {
+          "contract_id": "authoring-adapter-vector-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "backend-manifest-v2",
+      "schema_pointer": "#/$defs/ExecutionPolicyCapabilities",
+      "description": "Execution choices are complete, bounded and consistent; scope identities and references are unique, effective evidence resolves exactly, and unsupported continuation claims fail closed. See specs/sdl/execution-recovery.md for the portable semantic obligations.",
+      "id": "execution-policy-executionpolicycapabilities",
+      "inputs": [
+        {
+          "contract_id": "backend-operation-capabilities-v1",
+          "instance_path": "#/execution_policy"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "backend-materialization-attestation-v1",
+      "schema_pointer": "#",
+      "description": "SDL bytes require bounded parsing and semantic, original-authority, complete inventory and execution-context validation after materialization hooks.",
+      "id": "backend-materialization-submission-admission",
+      "inputs": [
+        {
+          "contract_id": "backend-materialization-attestation-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "backend-operation-capabilities-v1",
+      "schema_pointer": "#",
+      "description": "Before invocation require installed support, matching declaration and current exact-context willingness.",
+      "id": "backend-operation-contextual-admission",
+      "inputs": [
+        {
+          "contract_id": "backend-operation-request-v1",
+          "instance_path": "#"
+        },
+        {
+          "contract_id": "backend-operation-capabilities-v1",
+          "instance_path": "#"
+        },
+        {
+          "contract_id": "backend-operation-response-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "backend-operation-capabilities-v1",
+      "schema_pointer": "#",
+      "description": "Validate unique collections, calendar instants, budget bounds, scope and honest effect/outcome claims; structural validity does not prove backend truth or runtime authority.",
+      "id": "backend-operation-local-consistency",
+      "inputs": [
+        {
+          "contract_id": "backend-operation-capabilities-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "backend-operation-capabilities-v1",
+      "schema_pointer": "#/$defs/ExecutionPolicyCapabilities",
+      "description": "Execution choices are complete, bounded and consistent; scope identities and references are unique, effective evidence resolves exactly, and unsupported continuation claims fail closed. See specs/sdl/execution-recovery.md for the portable semantic obligations.",
+      "id": "execution-policy-executionpolicycapabilities",
+      "inputs": [
+        {
+          "contract_id": "backend-operation-capabilities-v1",
+          "instance_path": "#/execution_policy"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "backend-operation-control-v1",
+      "schema_pointer": "#",
+      "description": "Validate unique collections, calendar instants, budget bounds, scope and honest effect/outcome claims; structural validity does not prove backend truth or runtime authority.",
+      "id": "backend-operation-local-consistency",
+      "inputs": [
+        {
+          "contract_id": "backend-operation-control-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "backend-operation-request-v1",
+      "schema_pointer": "#",
+      "description": "Validate unique collections, calendar instants, budget bounds, scope and honest effect/outcome claims; structural validity does not prove backend truth or runtime authority.",
+      "id": "backend-operation-local-consistency",
+      "inputs": [
+        {
+          "contract_id": "backend-operation-request-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "backend-operation-response-v1",
+      "schema_pointer": "#",
+      "description": "Validate unique collections, calendar instants, budget bounds, scope and honest effect/outcome claims; structural validity does not prove backend truth or runtime authority.",
+      "id": "backend-operation-local-consistency",
+      "inputs": [
+        {
+          "contract_id": "backend-operation-response-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "backend-operation-response-v1",
+      "schema_pointer": "#",
+      "description": "Require exact request binding and commitment, scoped residuals and independently bound controls when present.",
+      "id": "backend-operation-response-binding",
+      "inputs": [
+        {
+          "contract_id": "backend-operation-request-v1",
+          "instance_path": "#"
+        },
+        {
+          "contract_id": "backend-operation-response-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "backend-realization-preparation-v1",
+      "schema_pointer": "#/$defs/EffectiveExecutionPolicy",
+      "description": "Execution choices are complete, bounded and consistent; scope identities and references are unique, effective evidence resolves exactly, and unsupported continuation claims fail closed. See specs/sdl/execution-recovery.md for the portable semantic obligations.",
+      "id": "execution-policy-effectiveexecutionpolicy",
+      "inputs": [
+        {
+          "contract_id": "provisioning-plan-v1",
+          "instance_path": "#/operations"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "backend-realization-preparation-v1",
+      "schema_pointer": "#/$defs/ExecutionPolicy",
+      "description": "Execution choices are complete, bounded and consistent; scope identities and references are unique, effective evidence resolves exactly, and unsupported continuation claims fail closed. See specs/sdl/execution-recovery.md for the portable semantic obligations.",
+      "id": "execution-policy-executionpolicy",
+      "inputs": [
+        {
+          "contract_id": "sdl-authoring-input-v1",
+          "instance_path": "#/execution_policy"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "backend-realization-preparation-v1",
+      "schema_pointer": "#/$defs/PreparationOperationModel",
+      "description": "Execution choices are complete, bounded and consistent; scope identities and references are unique, effective evidence resolves exactly, and unsupported continuation claims fail closed. See specs/sdl/execution-recovery.md for the portable semantic obligations.",
+      "id": "execution-policy-preparationoperationmodel",
+      "inputs": [
+        {
+          "contract_id": "provisioning-plan-v1",
+          "instance_path": "#/operations"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "backend-runtime-descendants-v1",
+      "schema_pointer": "#",
+      "description": "Descendant identities, source and reporting attempts, causal receipts, complete coverage, original structural authority and lifecycle transitions require the trusted runtime predecessor.",
+      "id": "runtime-descendant-inventory-admission",
+      "inputs": [
+        {
+          "contract_id": "backend-runtime-descendants-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "batch-execution-receipt-v1",
+      "schema_pointer": "#",
+      "description": "A batch execution receipt keeps attempt identity distinct from plan, entry, and run identities, records the canonical dispatch ordinal under the closed canonical order policy, cites an isolation proof plus live lease evidence only for bounded parallelism (serial default cites neither), and references the cleanup receipt that proves its terminal cleanup.",
+      "id": "batch-execution-receipt-binds-plan-schedule-and-attempt",
+      "inputs": [
+        {
+          "contract_id": "batch-execution-receipt-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "behavioral-relation-profile-v1",
+      "schema_pointer": "#",
+      "description": "Catalog, profile, carrier, observation projection, and claim coordinates must resolve exactly through the shared behavioral claim validator.",
+      "id": "behavioral-relation-profile-claim-resolution",
+      "inputs": [
+        {
+          "contract_id": "behavioral-relation-profile-v1",
+          "instance_path": "#"
+        },
+        {
+          "contract_id": "behavioral-relations-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "behavioral-relation-profile-v1",
+      "schema_pointer": "#",
+      "description": "The closed relation-specific parameter variant must match the profile relation, carrier, projection, finite domains, local refs, limitations, and explicit nonclaims.",
+      "id": "behavioral-relation-profile-local-join",
+      "inputs": [
+        {
+          "contract_id": "behavioral-relation-profile-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "behavioral-relations-v1",
+      "schema_pointer": "#",
+      "description": "Relation map keys, bibliography references, claim-surface relation references, and worked-example keys must resolve exactly inside one taxonomy revision.",
+      "id": "behavioral-relations-reference-resolution",
+      "inputs": [
+        {
+          "contract_id": "behavioral-relations-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "evaluation-plan-v1",
+      "schema_pointer": "#/$defs/EffectiveExecutionPolicy",
+      "description": "Execution choices are complete, bounded and consistent; scope identities and references are unique, effective evidence resolves exactly, and unsupported continuation claims fail closed. See specs/sdl/execution-recovery.md for the portable semantic obligations.",
+      "id": "execution-policy-effectiveexecutionpolicy",
+      "inputs": [
+        {
+          "contract_id": "provisioning-plan-v1",
+          "instance_path": "#/operations"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "evaluation-plan-v1",
+      "schema_pointer": "#/$defs/ExecutionPolicy",
+      "description": "Execution choices are complete, bounded and consistent; scope identities and references are unique, effective evidence resolves exactly, and unsupported continuation claims fail closed. See specs/sdl/execution-recovery.md for the portable semantic obligations.",
+      "id": "execution-policy-executionpolicy",
+      "inputs": [
+        {
+          "contract_id": "sdl-authoring-input-v1",
+          "instance_path": "#/execution_policy"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "evaluation-plan-v1",
+      "schema_pointer": "#/$defs/PlanOperationModel",
+      "description": "Execution choices are complete, bounded and consistent; scope identities and references are unique, effective evidence resolves exactly, and unsupported continuation claims fail closed. See specs/sdl/execution-recovery.md for the portable semantic obligations.",
+      "id": "execution-policy-planoperationmodel",
+      "inputs": [
+        {
+          "contract_id": "provisioning-plan-v1",
+          "instance_path": "#/operations"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "experiment-apparatus-context-v1",
+      "schema_pointer": "#",
+      "description": "Apparatus declared_at and observed_setup_evidence created_at values must be valid RFC 3339 date-times, including only known valid UTC leap-second instants.",
+      "id": "apparatus-archival-times-rfc3339-valid",
+      "inputs": [
+        {
+          "contract_id": "experiment-apparatus-context-v1",
+          "instance_path": "#/declared_at"
+        },
+        {
+          "contract_id": "experiment-apparatus-context-v1",
+          "instance_path": "#/observed_setup_evidence"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "experiment-apparatus-context-v1",
+      "schema_pointer": "#",
+      "description": "Canonical processor and backend manifest_ref values must resolve to manifest payloads with matching identities and mutual compatibility declarations.",
+      "id": "apparatus-manifest-payload-identity-valid",
+      "inputs": [
+        {
+          "contract_id": "experiment-apparatus-context-v1",
+          "instance_path": "#"
+        },
+        {
+          "contract_id": "processor-manifest-v2",
+          "instance_path": "#"
+        },
+        {
+          "contract_id": "backend-manifest-v2",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "experiment-apparatus-context-v1",
+      "schema_pointer": "#",
+      "description": "The canonical processor and backend component manifest_ref values must be present in selected_manifests; digest-qualified selected manifests must be canonical component manifests.",
+      "id": "canonical-apparatus-manifest-selected",
+      "inputs": [
+        {
+          "contract_id": "experiment-apparatus-context-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "experiment-apparatus-context-v1",
+      "schema_pointer": "#/$defs/ExperimentManifestReferenceModel",
+      "description": "Manifest digest qualifiers are limited to processor/backend manifest refs that can be checked against concrete manifest payload digests; manifest path qualifiers are not accepted in v1.",
+      "id": "manifest-reference-digest-scope-valid",
+      "inputs": [
+        {
+          "contract_id": "experiment-task-v1",
+          "instance_path": "#/$defs/ExperimentManifestReferenceModel"
+        },
+        {
+          "contract_id": "experiment-apparatus-context-v1",
+          "instance_path": "#/$defs/ExperimentManifestReferenceModel"
+        },
+        {
+          "contract_id": "experiment-run-v1",
+          "instance_path": "#/$defs/ExperimentManifestReferenceModel"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "experiment-authoring-input-v1",
+      "schema_pointer": "#",
+      "description": "Explicit bindings must cover every compared condition and resolve exact declared factor levels.",
+      "id": "experiment-binding-source-joins-valid",
+      "inputs": [
+        {
+          "contract_id": "experiment-authoring-input-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "experiment-authoring-input-v1",
+      "schema_pointer": "#",
+      "description": "Factorial intent resolves exact declared levels, bounded Cartesian output, collision-free bindings, and matching supplied materializations before authoring admission.",
+      "id": "experiment-factorial-generation-valid",
+      "inputs": [
+        {
+          "contract_id": "experiment-authoring-input-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "experiment-authoring-input-v1",
+      "schema_pointer": "#",
+      "description": "Selection strata and binding references must resolve declared factors, levels, conditions, variation points, and allocation counts.",
+      "id": "experiment-selection-factor-joins-valid",
+      "inputs": [
+        {
+          "contract_id": "experiment-authoring-input-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "experiment-authoring-input-v1",
+      "schema_pointer": "#",
+      "description": "Selection policy ids, bounds, references, stochastic controls, and supported exact profiles must form one finite, acyclic, fail-closed authoring registry.",
+      "id": "experiment-selection-policies-valid",
+      "inputs": [
+        {
+          "contract_id": "experiment-authoring-input-v1",
+          "instance_path": "#/run_plan/selection_policies"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "experiment-authoring-input-v1",
+      "schema_pointer": "#",
+      "description": "When a run plan declares an allocation with blocking factors, every blocking factor must be a declared experiment-spec factor.",
+      "id": "experiment-spec-blocking-factors-declared",
+      "inputs": [
+        {
+          "contract_id": "experiment-authoring-input-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "experiment-authoring-input-v1",
+      "schema_pointer": "#",
+      "description": "In every binding posture, each condition assignment must reference a factor and level declared by the containing experiment spec. Authors define these local declarations; no domain catalog is required.",
+      "id": "experiment-spec-condition-factor-levels-declared",
+      "inputs": [
+        {
+          "contract_id": "experiment-authoring-input-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "experiment-authoring-input-v1",
+      "schema_pointer": "#",
+      "description": "Prospective run-scoped evidence requirement relations must identify this exact authoring input and its intended scenario snapshot.",
+      "id": "run-plan-evidence-requirement-relation-owner-valid",
+      "inputs": [
+        {
+          "contract_id": "experiment-authoring-input-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "experiment-authoring-input-v1",
+      "schema_pointer": "#/$defs/ExperimentApparatusConstraintModel",
+      "description": "Every allowed processor/backend identity reference must have a matching required manifest ref_id with matching manifest id, subject identity, and manifest schema version.",
+      "id": "apparatus-constraint-identity-manifest-resolves",
+      "inputs": [
+        {
+          "contract_id": "experiment-task-v1",
+          "instance_path": "#/apparatus_constraints"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "experiment-authoring-input-v1",
+      "schema_pointer": "#/$defs/ExperimentBindingDescriptorSetModel",
+      "description": "Binding ids must be unique and target resolution must be injective within each source condition.",
+      "id": "binding-descriptors-canonical-targets-injective",
+      "inputs": [
+        {
+          "contract_id": "experiment-binding-descriptors-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "experiment-authoring-input-v1",
+      "schema_pointer": "#/$defs/ExperimentEvidenceRequirementRelationModel",
+      "description": "Evidence requirement relations must resolve an exact immutable SDL declaration and a separately identified capture requirement. Refinements preserve every declared base dimension and strengthen at least one governed dimension; extensions remain independent obligations.",
+      "id": "evidence-requirement-relation-lineage-valid",
+      "inputs": [
+        {
+          "contract_id": "sdl-authoring-input-v1",
+          "instance_path": "#/evidence_requirements"
+        },
+        {
+          "contract_id": "experiment-capture-spec-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "experiment-authoring-input-v1",
+      "schema_pointer": "#/$defs/ExperimentManifestReferenceModel",
+      "description": "Manifest digest qualifiers are limited to processor/backend manifest refs that can be checked against concrete manifest payload digests; manifest path qualifiers are not accepted in v1.",
+      "id": "manifest-reference-digest-scope-valid",
+      "inputs": [
+        {
+          "contract_id": "experiment-task-v1",
+          "instance_path": "#/$defs/ExperimentManifestReferenceModel"
+        },
+        {
+          "contract_id": "experiment-apparatus-context-v1",
+          "instance_path": "#/$defs/ExperimentManifestReferenceModel"
+        },
+        {
+          "contract_id": "experiment-run-v1",
+          "instance_path": "#/$defs/ExperimentManifestReferenceModel"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "experiment-authoring-input-v1",
+      "schema_pointer": "#/$defs/ExperimentRunAllocationPlanModel",
+      "description": "Run-allocation compared_conditions, condition_assignments keys, embedded condition ids, blocking factor ids, factor-level combinations, and run-level criteria signatures must be internally coherent.",
+      "id": "run-allocation-condition-assignments-valid",
+      "inputs": [
+        {
+          "contract_id": "experiment-study-v1",
+          "instance_path": "#/run_allocation"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "experiment-authoring-input-v1",
+      "schema_pointer": "#/$defs/ExperimentRunPlanModel",
+      "description": "Difficulty variants resolve fixed admitted selection policies; condition policy ids resolve the bounded registry and match explicit fixed, adaptive, or scaffolded allocation conditions.",
+      "id": "difficulty-policy-registry-valid",
+      "inputs": [
+        {
+          "contract_id": "experiment-authoring-input-v1",
+          "instance_path": "#/run_plan/difficulty_policy_registry"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "experiment-authoring-input-v1",
+      "schema_pointer": "#/$defs/ExperimentRunPlanModel",
+      "description": "A run plan must declare exactly one of allocation or target_run_count, and every red-variant selection map key must equal its embedded variant_id.",
+      "id": "run-plan-exactly-one-run-count-source",
+      "inputs": [
+        {
+          "contract_id": "experiment-authoring-input-v1",
+          "instance_path": "#/run_plan"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "experiment-authoring-input-v1",
+      "schema_pointer": "#/$defs/ExperimentScenarioSelectionDescriptorModel",
+      "description": "Typed selection identity binds the exact source condition, factor and canonical scenario target. Parent condition, plan and archive validation also checks source levels, family pins and owner joins.",
+      "id": "experiment-selection-treatment-identity-valid",
+      "inputs": [
+        {
+          "contract_id": "experiment-authoring-input-v1",
+          "instance_path": "#/run_plan/allocation/condition_assignments"
+        },
+        {
+          "contract_id": "experiment-study-v1",
+          "instance_path": "#/run_allocation/condition_assignments"
+        },
+        {
+          "contract_id": "admitted-trial-plan-v1",
+          "instance_path": "#/entries"
+        },
+        {
+          "contract_id": "experiment-run-v1",
+          "instance_path": "#/realized_selections"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "experiment-authoring-input-v1",
+      "schema_pointer": "#/$defs/TrialReplacementPolicyModel",
+      "description": "Replacement triggers are unique; a positive additional-trial bound requires selected triggers, and zero requires none. Omission supplies no allocation permission.",
+      "id": "trial-replacement-policy-explicit-and-bounded",
+      "inputs": [
+        {
+          "contract_id": "experiment-authoring-input-v1",
+          "instance_path": "#/run_plan/replacement_policy"
+        },
+        {
+          "contract_id": "admitted-trial-plan-v1",
+          "instance_path": "#/replacement_policy"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "experiment-binding-descriptors-v1",
+      "schema_pointer": "#",
+      "description": "Binding ids must be unique and target resolution must be injective within each source condition.",
+      "id": "binding-descriptors-canonical-targets-injective",
+      "inputs": [
+        {
+          "contract_id": "experiment-binding-descriptors-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "experiment-capture-spec-v1",
+      "schema_pointer": "#",
+      "description": "Every required media type must have a registered content-proof path and be supported by its declared output_contract.",
+      "id": "capture-media-type-provable",
+      "inputs": [
+        {
+          "contract_id": "experiment-capture-spec-v1",
+          "instance_path": "#/capture_requirements"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "experiment-capture-spec-v1",
+      "schema_pointer": "#",
+      "description": "Every capture_requirements object key must match the embedded requirement_id value, capture window ids must be unique, and window_refs must resolve to declared capture_windows.",
+      "id": "capture-requirement-key-matches-requirement-id",
+      "inputs": [
+        {
+          "contract_id": "experiment-capture-spec-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "experiment-capture-spec-v1",
+      "schema_pointer": "#/$defs/ExperimentCaptureWindowModel",
+      "description": "Capture window ends_at must not precede starts_at when both timestamps are present.",
+      "id": "capture-window-interval-valid",
+      "inputs": [
+        {
+          "contract_id": "experiment-capture-spec-v1",
+          "instance_path": "#/capture_windows"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "experiment-derived-measure-v1",
+      "schema_pointer": "#",
+      "description": "generated_at must be a valid RFC 3339 date-time.",
+      "id": "derived-measure-generated-at-valid",
+      "inputs": [
+        {
+          "contract_id": "experiment-derived-measure-v1",
+          "instance_path": "#/generated_at"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "experiment-derived-measure-v1",
+      "schema_pointer": "#",
+      "description": "Reported derived measures must include a value; missing/withheld/not-applicable measures must not.",
+      "id": "derived-measure-reported-value-present",
+      "inputs": [
+        {
+          "contract_id": "experiment-derived-measure-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "experiment-evidence-record-v1",
+      "schema_pointer": "#",
+      "description": "Typed descriptions preserve bounded supplied values, explicit knowledge, coverage and source identities; they do not carry author closure or establish capture satisfaction. Withheld evidence carries no known values. Profile owners bind to the fact scope and capture carrier; nested profile basis and evidence join fact provenance.",
+      "id": "evidence-description-nonauthoritative",
+      "inputs": [
+        {
+          "contract_id": "experiment-evidence-record-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "experiment-evidence-record-v1",
+      "schema_pointer": "#",
+      "description": "captured_at must be a valid RFC 3339 date-time.",
+      "id": "evidence-record-captured-at-valid",
+      "inputs": [
+        {
+          "contract_id": "experiment-evidence-record-v1",
+          "instance_path": "#/captured_at"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "experiment-evidence-record-v1",
+      "schema_pointer": "#",
+      "description": "Evidence records must carry raw content as an artifact reference, content URI with checksum, or bounded payload summary; redacted/withheld records must disclose loss.",
+      "id": "evidence-record-raw-content-present",
+      "inputs": [
+        {
+          "contract_id": "experiment-evidence-record-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "experiment-run-v1",
+      "schema_pointer": "#",
+      "description": "Difficulty provenance must match the exact digest-bound authoring input, allocated condition, task, and immutable policy snapshot.",
+      "id": "adaptive-difficulty-authoring-admission-valid",
+      "inputs": [
+        {
+          "contract_id": "experiment-authoring-input-v1",
+          "instance_path": "#"
+        },
+        {
+          "contract_id": "experiment-run-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "experiment-run-v1",
+      "schema_pointer": "#",
+      "description": "Difficulty decisions and interventions match the archival run id, remain within the run time window, and preserve fixed/adaptive/scaffolded policy provenance.",
+      "id": "adaptive-difficulty-run-provenance-valid",
+      "inputs": [
+        {
+          "contract_id": "experiment-run-v1",
+          "instance_path": "#/difficulty_provenance"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "experiment-run-v1",
+      "schema_pointer": "#",
+      "description": "Every augmentation disclosure evidence ref must also appear in the run traceability evidence refs, and augmentation_id values must be unique within the run.",
+      "id": "augmentation-disclosure-evidence-refs-traced",
+      "inputs": [
+        {
+          "contract_id": "experiment-run-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "experiment-run-v1",
+      "schema_pointer": "#",
+      "description": "ended_at must be greater than or equal to started_at.",
+      "id": "ended-at-not-before-started-at",
+      "inputs": [
+        {
+          "contract_id": "experiment-run-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "experiment-run-v1",
+      "schema_pointer": "#",
+      "description": "When present, trial provenance binds the archival run id to one admitted plan entry, the canonical instantiated snapshot, all three published processor-plan projections, and distinct execution attempts.",
+      "id": "experiment-run-admitted-trial-provenance",
+      "inputs": [
+        {
+          "contract_id": "admitted-trial-plan-v1",
+          "instance_path": "#"
+        },
+        {
+          "contract_id": "experiment-run-v1",
+          "instance_path": "#/trial_provenance"
+        },
+        {
+          "contract_id": "trial-cleanup-receipt-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "experiment-run-v1",
+      "schema_pointer": "#",
+      "description": "Participant implementation apparatus components must resolve to run-level participant provenance.",
+      "id": "participant-implementation-provenance-resolves",
+      "inputs": [
+        {
+          "contract_id": "experiment-run-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "experiment-run-v1",
+      "schema_pointer": "#",
+      "description": "Every realized-form disclosure evidence ref must also appear in the run traceability evidence refs.",
+      "id": "realized-form-evidence-refs-traced",
+      "inputs": [
+        {
+          "contract_id": "experiment-run-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "experiment-run-v1",
+      "schema_pointer": "#",
+      "description": "When present, realized-time provenance must match the run id and its declared model digest.",
+      "id": "realized-time-model-bound-to-run",
+      "inputs": [
+        {
+          "contract_id": "experiment-run-v1",
+          "instance_path": "#/realized_time_model"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "experiment-run-v1",
+      "schema_pointer": "#",
+      "description": "Every result_summaries evidence_refs ref_id must match an evidence_artifacts artifact_id.",
+      "id": "result-evidence-ref-resolves",
+      "inputs": [
+        {
+          "contract_id": "experiment-run-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "experiment-run-v1",
+      "schema_pointer": "#",
+      "description": "Run started_at, ended_at, invalidation invalidated_at, and evidence_artifacts created_at values must be valid RFC 3339 date-times, including only known valid UTC leap-second instants.",
+      "id": "run-archival-times-rfc3339-valid",
+      "inputs": [
+        {
+          "contract_id": "experiment-run-v1",
+          "instance_path": "#/started_at"
+        },
+        {
+          "contract_id": "experiment-run-v1",
+          "instance_path": "#/ended_at"
+        },
+        {
+          "contract_id": "experiment-run-v1",
+          "instance_path": "#/invalidation"
+        },
+        {
+          "contract_id": "experiment-run-v1",
+          "instance_path": "#/evidence_artifacts"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "experiment-run-v1",
+      "schema_pointer": "#",
+      "description": "Archived run-scoped evidence requirement relations must identify this exact run and scenario snapshot.",
+      "id": "run-evidence-requirement-relation-owner-valid",
+      "inputs": [
+        {
+          "contract_id": "experiment-run-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "experiment-run-v1",
+      "schema_pointer": "#",
+      "description": "Execution accounting preserves unique ordered attempts, run-bound evidence and cleanup, exact start and bounded end times, and status consistent with the observed lifecycle. Archival accounting agrees with admitted trial provenance identities, attempts, operation references and cleanup membership.",
+      "id": "run-execution-accounting-consistent",
+      "inputs": [
+        {
+          "contract_id": "experiment-run-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "experiment-run-v1",
+      "schema_pointer": "#",
+      "description": "Materialization records belong to this run and materialization disclosure carriers bind exactly one archived record; the original scenario snapshot reference is not replaced.",
+      "id": "run-materialization-carriers-archived",
+      "inputs": [
+        {
+          "contract_id": "experiment-run-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "experiment-run-v1",
+      "schema_pointer": "#",
+      "description": "Every validation_basis_disclosures entry must declare subject_kind='experiment_run' and a subject_ref matching this run's run_id/run_version.",
+      "id": "run-validation-basis-disclosure-identity-matches",
+      "inputs": [
+        {
+          "contract_id": "experiment-run-v1",
+          "instance_path": "#/validation_basis_disclosures"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "experiment-run-v1",
+      "schema_pointer": "#",
+      "description": "Every stochastic_draws control_id must resolve to a stochastic_controls control_id with an executable_binding on the same run, and each draw's address.namespace and transform_id/transform_version must match that binding's namespace and admitted profile transforms.",
+      "id": "stochastic-draws-control-ref-resolves",
+      "inputs": [
+        {
+          "contract_id": "experiment-run-v1",
+          "instance_path": "#/stochastic_draws"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "experiment-run-v1",
+      "schema_pointer": "#",
+      "description": "Run apparatus and result metric ids must satisfy the referenced task protocol. Content-backed evidence is additionally required by authoritative task/run validation.",
+      "id": "task-run-protocol-binding-valid",
+      "inputs": [
+        {
+          "contract_id": "experiment-task-v1",
+          "instance_path": "#"
+        },
+        {
+          "contract_id": "experiment-run-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "experiment-run-v1",
+      "schema_pointer": "#/$defs/ExperimentApparatusContextModel",
+      "description": "Canonical processor and backend manifest_ref values must resolve to manifest payloads with matching identities and mutual compatibility declarations.",
+      "id": "apparatus-manifest-payload-identity-valid",
+      "inputs": [
+        {
+          "contract_id": "experiment-apparatus-context-v1",
+          "instance_path": "#"
+        },
+        {
+          "contract_id": "processor-manifest-v2",
+          "instance_path": "#"
+        },
+        {
+          "contract_id": "backend-manifest-v2",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "experiment-run-v1",
+      "schema_pointer": "#/$defs/ExperimentApparatusContextModel",
+      "description": "The canonical processor and backend component manifest_ref values must be present in selected_manifests; digest-qualified selected manifests must be canonical component manifests.",
+      "id": "canonical-apparatus-manifest-selected",
+      "inputs": [
+        {
+          "contract_id": "experiment-apparatus-context-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "experiment-run-v1",
+      "schema_pointer": "#/$defs/ExperimentAugmentationDisclosureModel",
+      "description": "Augmentation disclosures must keep environment-visible, participant-visible, and comparability-relevant semantics explicit and must use processor/backend authority.",
+      "id": "augmentation-disclosure-semantics-valid",
+      "inputs": [
+        {
+          "contract_id": "experiment-run-v1",
+          "instance_path": "#/augmentation_disclosures"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "experiment-run-v1",
+      "schema_pointer": "#/$defs/ExperimentEvidenceRecordModel",
+      "description": "Typed descriptions preserve bounded supplied values, explicit knowledge, coverage and source identities; they do not carry author closure or establish capture satisfaction. Withheld evidence carries no known values. Profile owners bind to the fact scope and capture carrier; nested profile basis and evidence join fact provenance.",
+      "id": "evidence-description-nonauthoritative",
+      "inputs": [
+        {
+          "contract_id": "experiment-evidence-record-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "experiment-run-v1",
+      "schema_pointer": "#/$defs/ExperimentEvidenceRecordModel",
+      "description": "captured_at must be a valid RFC 3339 date-time.",
+      "id": "evidence-record-captured-at-valid",
+      "inputs": [
+        {
+          "contract_id": "experiment-evidence-record-v1",
+          "instance_path": "#/captured_at"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "experiment-run-v1",
+      "schema_pointer": "#/$defs/ExperimentEvidenceRecordModel",
+      "description": "Evidence records must carry raw content as an artifact reference, content URI with checksum, or bounded payload summary; redacted/withheld records must disclose loss.",
+      "id": "evidence-record-raw-content-present",
+      "inputs": [
+        {
+          "contract_id": "experiment-evidence-record-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "experiment-run-v1",
+      "schema_pointer": "#/$defs/ExperimentEvidenceRequirementRelationModel",
+      "description": "Evidence requirement relations must resolve an exact immutable SDL declaration and a separately identified capture requirement. Refinements preserve every declared base dimension and strengthen at least one governed dimension; extensions remain independent obligations.",
+      "id": "evidence-requirement-relation-lineage-valid",
+      "inputs": [
+        {
+          "contract_id": "sdl-authoring-input-v1",
+          "instance_path": "#/evidence_requirements"
+        },
+        {
+          "contract_id": "experiment-capture-spec-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "experiment-run-v1",
+      "schema_pointer": "#/$defs/ExperimentManifestReferenceModel",
+      "description": "Manifest digest qualifiers are limited to processor/backend manifest refs that can be checked against concrete manifest payload digests; manifest path qualifiers are not accepted in v1.",
+      "id": "manifest-reference-digest-scope-valid",
+      "inputs": [
+        {
+          "contract_id": "experiment-task-v1",
+          "instance_path": "#/$defs/ExperimentManifestReferenceModel"
+        },
+        {
+          "contract_id": "experiment-apparatus-context-v1",
+          "instance_path": "#/$defs/ExperimentManifestReferenceModel"
+        },
+        {
+          "contract_id": "experiment-run-v1",
+          "instance_path": "#/$defs/ExperimentManifestReferenceModel"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "experiment-run-v1",
+      "schema_pointer": "#/$defs/ExperimentRealizedFormDisclosureModel",
+      "description": "Typed descriptions preserve explicit knowledge, bounded recursive values and coverage separately from author authority, with versioned sources and exact extension coordinates. Profile owners bind to the fact scope and realization-description carrier; nested profile basis and evidence join fact provenance.",
+      "id": "realized-description-nonauthoritative",
+      "inputs": [
+        {
+          "contract_id": "experiment-run-v1",
+          "instance_path": "#/realized_form_disclosures"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "experiment-run-v1",
+      "schema_pointer": "#/$defs/ExperimentRealizedFormDisclosureModel",
+      "description": "Every realized-form disclosure must name a realized reference or value summary and use the right processor/backend realization authority for processor-realized and backend-realized concerns.",
+      "id": "realized-form-disclosure-substantive",
+      "inputs": [
+        {
+          "contract_id": "experiment-run-v1",
+          "instance_path": "#/realized_form_disclosures"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "experiment-run-v1",
+      "schema_pointer": "#/$defs/ExperimentRunTraceabilityModel",
+      "description": "Run provenance traceability references must be duplicate-free, and claim refs must be grounded by at least one derived measure ref.",
+      "id": "run-traceability-refs-unique",
+      "inputs": [
+        {
+          "contract_id": "experiment-run-v1",
+          "instance_path": "#/traceability"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "experiment-run-v1",
+      "schema_pointer": "#/$defs/ExperimentScenarioSelectionDescriptorModel",
+      "description": "Typed selection identity binds the exact source condition, factor and canonical scenario target. Parent condition, plan and archive validation also checks source levels, family pins and owner joins.",
+      "id": "experiment-selection-treatment-identity-valid",
+      "inputs": [
+        {
+          "contract_id": "experiment-authoring-input-v1",
+          "instance_path": "#/run_plan/allocation/condition_assignments"
+        },
+        {
+          "contract_id": "experiment-study-v1",
+          "instance_path": "#/run_allocation/condition_assignments"
+        },
+        {
+          "contract_id": "admitted-trial-plan-v1",
+          "instance_path": "#/entries"
+        },
+        {
+          "contract_id": "experiment-run-v1",
+          "instance_path": "#/realized_selections"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "experiment-run-v1",
+      "schema_pointer": "#/$defs/ParticipantConfigurationResultModel",
+      "description": "The configuration digest must be the RFC 8785/JCS digest of the complete normalized configuration.",
+      "id": "participant-configuration-digest-valid",
+      "inputs": [
+        {
+          "contract_id": "participant-configuration-result-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "experiment-run-v1",
+      "schema_pointer": "#/$defs/RandomStreamDrawRecordModel",
+      "description": "local_coordinate must match address.local_coordinate.",
+      "id": "random-stream-draw-record-local-coordinate-matches-address",
+      "inputs": [
+        {
+          "contract_id": "experiment-run-v1",
+          "instance_path": "#/stochastic_draws"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "experiment-run-v1",
+      "schema_pointer": "#/$defs/RandomStreamDrawRecordModel",
+      "description": "outcome must be present exactly when rejection_exhausted is false, and absent when true.",
+      "id": "random-stream-draw-record-outcome-matches-exhaustion",
+      "inputs": [
+        {
+          "contract_id": "experiment-run-v1",
+          "instance_path": "#/stochastic_draws"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "experiment-run-v1",
+      "schema_pointer": "#/$defs/StreamAddressModel",
+      "description": "draw_purpose must be a term from the random_streams.draw_purpose controlled vocabulary.",
+      "id": "random-stream-address-draw-purpose-governed",
+      "inputs": [
+        {
+          "contract_id": "controlled-vocabularies-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "experiment-run-v1",
+      "schema_pointer": "#/$defs/TrialCleanupReceiptModel",
+      "description": "A cleanup receipt keeps attempt identity distinct, reports cleanup independently from trial outcome, reports an attempted result for every required obligation owed by the terminal trigger, keeps results consistent with obligation triggers, requires successful required results when cleanup succeeded, and permits clean-state claims only after verified success.",
+      "id": "trial-cleanup-receipt-binds-plan-and-required-outcomes",
+      "inputs": [
+        {
+          "contract_id": "trial-cleanup-plan-v1",
+          "instance_path": "#"
+        },
+        {
+          "contract_id": "trial-cleanup-receipt-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "experiment-run-v1",
+      "schema_pointer": "#/$defs/ValidationBasisDisclosureModel",
+      "description": "A required gate not passed, a not_applicable gate outcome, a below-minimum achieved_strength, and a public/audience-restricted audience each require an explicit, profile-declared limitation (the audience-restricted case specifically requires the audience_restricted category).",
+      "id": "validation-basis-claim-capped-and-disclosed",
+      "inputs": [
+        {
+          "contract_id": "validation-basis-disclosure-v1",
+          "instance_path": "#"
+        },
+        {
+          "contract_id": "experiment-task-v1",
+          "instance_path": "#/validation_basis_disclosures"
+        },
+        {
+          "contract_id": "experiment-run-v1",
+          "instance_path": "#/validation_basis_disclosures"
+        },
+        {
+          "contract_id": "experiment-study-v1",
+          "instance_path": "#/validation_basis_disclosures"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "experiment-run-v1",
+      "schema_pointer": "#/$defs/ValidationBasisDisclosureModel",
+      "description": "gate_results gate_kind values must be unique, drawn from the resolved profile's required/optional union, and every required gate_kind must be present.",
+      "id": "validation-basis-gate-rows-declared",
+      "inputs": [
+        {
+          "contract_id": "validation-basis-disclosure-v1",
+          "instance_path": "#"
+        },
+        {
+          "contract_id": "experiment-task-v1",
+          "instance_path": "#/validation_basis_disclosures"
+        },
+        {
+          "contract_id": "experiment-run-v1",
+          "instance_path": "#/validation_basis_disclosures"
+        },
+        {
+          "contract_id": "experiment-study-v1",
+          "instance_path": "#/validation_basis_disclosures"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "experiment-run-v1",
+      "schema_pointer": "#/$defs/ValidationBasisDisclosureModel",
+      "description": "profile_id/profile_version/subject_kind must resolve one validation profile that declares the subject kind, and subject_ref.ref_kind must match the profile's ONE subject_kind mapping.",
+      "id": "validation-basis-profile-join-resolves",
+      "inputs": [
+        {
+          "contract_id": "validation-basis-disclosure-v1",
+          "instance_path": "#"
+        },
+        {
+          "contract_id": "experiment-task-v1",
+          "instance_path": "#/validation_basis_disclosures"
+        },
+        {
+          "contract_id": "experiment-run-v1",
+          "instance_path": "#/validation_basis_disclosures"
+        },
+        {
+          "contract_id": "experiment-study-v1",
+          "instance_path": "#/validation_basis_disclosures"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "experiment-run-v1",
+      "schema_pointer": "#/$defs/ValidationBasisDisclosureModel",
+      "description": "achieved_strength must be supported by ADR-072-ordered passed gate rows for its own rank (structural never implies semantic; semantic never implies behavioral); evidence_backed/falsification_backed additionally require at least one evidence_ref.",
+      "id": "validation-basis-strength-ordering-valid",
+      "inputs": [
+        {
+          "contract_id": "validation-basis-disclosure-v1",
+          "instance_path": "#"
+        },
+        {
+          "contract_id": "experiment-task-v1",
+          "instance_path": "#/validation_basis_disclosures"
+        },
+        {
+          "contract_id": "experiment-run-v1",
+          "instance_path": "#/validation_basis_disclosures"
+        },
+        {
+          "contract_id": "experiment-study-v1",
+          "instance_path": "#/validation_basis_disclosures"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "experiment-study-v1",
+      "schema_pointer": "#",
+      "description": "Any adaptive or scaffolded allocation condition requires an analysis plan and explicit validity notes.",
+      "id": "adaptive-difficulty-study-validity-treatment-required",
+      "inputs": [
+        {
+          "contract_id": "experiment-study-v1",
+          "instance_path": "#/run_allocation"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "experiment-study-v1",
+      "schema_pointer": "#",
+      "description": "Study and benchmark records must include research questions, revisioned behavioral claim bindings, run allocation, a substantive analysis plan, and validity notes.",
+      "id": "claim-bearing-study-analysis-plan-required",
+      "inputs": [
+        {
+          "contract_id": "experiment-study-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "experiment-study-v1",
+      "schema_pointer": "#",
+      "description": "Study analysis_plan metrics must have result_summaries, including explicit missing/withheld statuses, in included evaluation runs.",
+      "id": "study-analysis-metrics-covered-by-evaluation-run-results",
+      "inputs": [
+        {
+          "contract_id": "experiment-study-v1",
+          "instance_path": "#"
+        },
+        {
+          "contract_id": "experiment-task-v1",
+          "instance_path": "#"
+        },
+        {
+          "contract_id": "experiment-run-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "experiment-study-v1",
+      "schema_pointer": "#",
+      "description": "Study analysis_plan metrics must be declared by included experiment task protocols.",
+      "id": "study-analysis-metrics-grounded-in-task-protocols",
+      "inputs": [
+        {
+          "contract_id": "experiment-study-v1",
+          "instance_path": "#"
+        },
+        {
+          "contract_id": "experiment-task-v1",
+          "instance_path": "#"
+        },
+        {
+          "contract_id": "experiment-run-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "experiment-study-v1",
+      "schema_pointer": "#",
+      "description": "Study analysis_plan evaluation-run members must resolve unambiguously and exclude invalidated, superseded, and not-evaluated runs.",
+      "id": "study-analysis-runs-eligible",
+      "inputs": [
+        {
+          "contract_id": "experiment-study-v1",
+          "instance_path": "#"
+        },
+        {
+          "contract_id": "experiment-run-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "experiment-study-v1",
+      "schema_pointer": "#",
+      "description": "Study report_artifacts and export_artifacts created_at values must be valid RFC 3339 date-times, including only known valid UTC leap-second instants.",
+      "id": "study-archival-times-rfc3339-valid",
+      "inputs": [
+        {
+          "contract_id": "experiment-study-v1",
+          "instance_path": "#/report_artifacts"
+        },
+        {
+          "contract_id": "experiment-study-v1",
+          "instance_path": "#/export_artifacts"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "experiment-study-v1",
+      "schema_pointer": "#",
+      "description": "Every study behavioral claim must resolve against the canonical taxonomy revision, include a required observation projection, and keep bounded evidence out of universal quantifiers.",
+      "id": "study-behavioral-claim-catalog-resolution",
+      "inputs": [
+        {
+          "contract_id": "experiment-study-v1",
+          "instance_path": "#/behavioral_claims"
+        },
+        {
+          "contract_id": "behavioral-relations-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "experiment-study-v1",
+      "schema_pointer": "#",
+      "description": "Study-scoped evidence requirement relations must identify this exact study authority.",
+      "id": "study-evidence-requirement-relation-owner-valid",
+      "inputs": [
+        {
+          "contract_id": "experiment-study-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "experiment-study-v1",
+      "schema_pointer": "#",
+      "description": "Study run_allocation compared_conditions must be represented by eligible included evaluation-run membership groupings that meet target_runs_per_condition, use operational blocking factors, and satisfy exactly one distinct factor-level combination and auditable condition assignment.",
+      "id": "study-run-allocation-covered-by-evaluation-run-members",
+      "inputs": [
+        {
+          "contract_id": "experiment-study-v1",
+          "instance_path": "#"
+        },
+        {
+          "contract_id": "experiment-task-v1",
+          "instance_path": "#"
+        },
+        {
+          "contract_id": "experiment-run-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "experiment-study-v1",
+      "schema_pointer": "#",
+      "description": "When run_allocation compares evaluation runs, every shared stochastic_controls control_id across those runs must use a consistent executable_binding profile_ref and namespace, and either all or none of the runs that share the control_id may carry an executable_binding (EXP-718 common random numbers / controlled-variation comparability).",
+      "id": "study-run-allocation-stochastic-control-consistency",
+      "inputs": [
+        {
+          "contract_id": "experiment-study-v1",
+          "instance_path": "#/run_allocation"
+        },
+        {
+          "contract_id": "experiment-run-v1",
+          "instance_path": "#/stochastic_controls"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "experiment-study-v1",
+      "schema_pointer": "#",
+      "description": "Every validation_basis_disclosures entry must declare subject_kind='experiment_study' and a subject_ref matching this study's study_id/study_version.",
+      "id": "study-validation-basis-disclosure-identity-matches",
+      "inputs": [
+        {
+          "contract_id": "experiment-study-v1",
+          "instance_path": "#/validation_basis_disclosures"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "experiment-study-v1",
+      "schema_pointer": "#/$defs/ExperimentAnalysisPlanModel",
+      "description": "Analysis plans must name metrics plus structured statistical, uncertainty, multiplicity, and missing-data policies.",
+      "id": "analysis-plan-substantive-methods-required",
+      "inputs": [
+        {
+          "contract_id": "experiment-study-v1",
+          "instance_path": "#/analysis_plan"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "experiment-study-v1",
+      "schema_pointer": "#/$defs/ExperimentEvidenceRequirementRelationModel",
+      "description": "Evidence requirement relations must resolve an exact immutable SDL declaration and a separately identified capture requirement. Refinements preserve every declared base dimension and strengthen at least one governed dimension; extensions remain independent obligations.",
+      "id": "evidence-requirement-relation-lineage-valid",
+      "inputs": [
+        {
+          "contract_id": "sdl-authoring-input-v1",
+          "instance_path": "#/evidence_requirements"
+        },
+        {
+          "contract_id": "experiment-capture-spec-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "experiment-study-v1",
+      "schema_pointer": "#/$defs/ExperimentRunAllocationPlanModel",
+      "description": "Run-allocation compared_conditions, condition_assignments keys, embedded condition ids, blocking factor ids, factor-level combinations, and run-level criteria signatures must be internally coherent.",
+      "id": "run-allocation-condition-assignments-valid",
+      "inputs": [
+        {
+          "contract_id": "experiment-study-v1",
+          "instance_path": "#/run_allocation"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "experiment-study-v1",
+      "schema_pointer": "#/$defs/ExperimentScenarioSelectionDescriptorModel",
+      "description": "Typed selection identity binds the exact source condition, factor and canonical scenario target. Parent condition, plan and archive validation also checks source levels, family pins and owner joins.",
+      "id": "experiment-selection-treatment-identity-valid",
+      "inputs": [
+        {
+          "contract_id": "experiment-authoring-input-v1",
+          "instance_path": "#/run_plan/allocation/condition_assignments"
+        },
+        {
+          "contract_id": "experiment-study-v1",
+          "instance_path": "#/run_allocation/condition_assignments"
+        },
+        {
+          "contract_id": "admitted-trial-plan-v1",
+          "instance_path": "#/entries"
+        },
+        {
+          "contract_id": "experiment-run-v1",
+          "instance_path": "#/realized_selections"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "experiment-study-v1",
+      "schema_pointer": "#/$defs/ValidationBasisDisclosureModel",
+      "description": "A required gate not passed, a not_applicable gate outcome, a below-minimum achieved_strength, and a public/audience-restricted audience each require an explicit, profile-declared limitation (the audience-restricted case specifically requires the audience_restricted category).",
+      "id": "validation-basis-claim-capped-and-disclosed",
+      "inputs": [
+        {
+          "contract_id": "validation-basis-disclosure-v1",
+          "instance_path": "#"
+        },
+        {
+          "contract_id": "experiment-task-v1",
+          "instance_path": "#/validation_basis_disclosures"
+        },
+        {
+          "contract_id": "experiment-run-v1",
+          "instance_path": "#/validation_basis_disclosures"
+        },
+        {
+          "contract_id": "experiment-study-v1",
+          "instance_path": "#/validation_basis_disclosures"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "experiment-study-v1",
+      "schema_pointer": "#/$defs/ValidationBasisDisclosureModel",
+      "description": "gate_results gate_kind values must be unique, drawn from the resolved profile's required/optional union, and every required gate_kind must be present.",
+      "id": "validation-basis-gate-rows-declared",
+      "inputs": [
+        {
+          "contract_id": "validation-basis-disclosure-v1",
+          "instance_path": "#"
+        },
+        {
+          "contract_id": "experiment-task-v1",
+          "instance_path": "#/validation_basis_disclosures"
+        },
+        {
+          "contract_id": "experiment-run-v1",
+          "instance_path": "#/validation_basis_disclosures"
+        },
+        {
+          "contract_id": "experiment-study-v1",
+          "instance_path": "#/validation_basis_disclosures"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "experiment-study-v1",
+      "schema_pointer": "#/$defs/ValidationBasisDisclosureModel",
+      "description": "profile_id/profile_version/subject_kind must resolve one validation profile that declares the subject kind, and subject_ref.ref_kind must match the profile's ONE subject_kind mapping.",
+      "id": "validation-basis-profile-join-resolves",
+      "inputs": [
+        {
+          "contract_id": "validation-basis-disclosure-v1",
+          "instance_path": "#"
+        },
+        {
+          "contract_id": "experiment-task-v1",
+          "instance_path": "#/validation_basis_disclosures"
+        },
+        {
+          "contract_id": "experiment-run-v1",
+          "instance_path": "#/validation_basis_disclosures"
+        },
+        {
+          "contract_id": "experiment-study-v1",
+          "instance_path": "#/validation_basis_disclosures"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "experiment-study-v1",
+      "schema_pointer": "#/$defs/ValidationBasisDisclosureModel",
+      "description": "achieved_strength must be supported by ADR-072-ordered passed gate rows for its own rank (structural never implies semantic; semantic never implies behavioral); evidence_backed/falsification_backed additionally require at least one evidence_ref.",
+      "id": "validation-basis-strength-ordering-valid",
+      "inputs": [
+        {
+          "contract_id": "validation-basis-disclosure-v1",
+          "instance_path": "#"
+        },
+        {
+          "contract_id": "experiment-task-v1",
+          "instance_path": "#/validation_basis_disclosures"
+        },
+        {
+          "contract_id": "experiment-run-v1",
+          "instance_path": "#/validation_basis_disclosures"
+        },
+        {
+          "contract_id": "experiment-study-v1",
+          "instance_path": "#/validation_basis_disclosures"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "experiment-task-v1",
+      "schema_pointer": "#",
+      "description": "Task artifact_refs created_at values must be valid RFC 3339 date-times, including only known valid UTC leap-second instants.",
+      "id": "task-archival-times-rfc3339-valid",
+      "inputs": [
+        {
+          "contract_id": "experiment-task-v1",
+          "instance_path": "#/artifact_refs"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "experiment-task-v1",
+      "schema_pointer": "#",
+      "description": "Task-scoped evidence requirement relations must identify this exact task and scenario snapshot.",
+      "id": "task-evidence-requirement-relation-owner-valid",
+      "inputs": [
+        {
+          "contract_id": "experiment-task-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "experiment-task-v1",
+      "schema_pointer": "#",
+      "description": "Every validation_basis_disclosures entry must declare subject_kind='experiment_task' and a subject_ref matching this task's task_id/task_version.",
+      "id": "task-validation-basis-disclosure-identity-matches",
+      "inputs": [
+        {
+          "contract_id": "experiment-task-v1",
+          "instance_path": "#/validation_basis_disclosures"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "experiment-task-v1",
+      "schema_pointer": "#/$defs/ExperimentApparatusConstraintModel",
+      "description": "Every allowed processor/backend identity reference must have a matching required manifest ref_id with matching manifest id, subject identity, and manifest schema version.",
+      "id": "apparatus-constraint-identity-manifest-resolves",
+      "inputs": [
+        {
+          "contract_id": "experiment-task-v1",
+          "instance_path": "#/apparatus_constraints"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "experiment-task-v1",
+      "schema_pointer": "#/$defs/ExperimentEvaluationProtocolModel",
+      "description": "Every metric_definitions object key must match the embedded metric_id value.",
+      "id": "metric-definition-key-matches-metric-id",
+      "inputs": [
+        {
+          "contract_id": "experiment-task-v1",
+          "instance_path": "#/evaluation_protocol"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "experiment-task-v1",
+      "schema_pointer": "#/$defs/ExperimentEvidenceRequirementRelationModel",
+      "description": "Evidence requirement relations must resolve an exact immutable SDL declaration and a separately identified capture requirement. Refinements preserve every declared base dimension and strengthen at least one governed dimension; extensions remain independent obligations.",
+      "id": "evidence-requirement-relation-lineage-valid",
+      "inputs": [
+        {
+          "contract_id": "sdl-authoring-input-v1",
+          "instance_path": "#/evidence_requirements"
+        },
+        {
+          "contract_id": "experiment-capture-spec-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "experiment-task-v1",
+      "schema_pointer": "#/$defs/ExperimentManifestReferenceModel",
+      "description": "Manifest digest qualifiers are limited to processor/backend manifest refs that can be checked against concrete manifest payload digests; manifest path qualifiers are not accepted in v1.",
+      "id": "manifest-reference-digest-scope-valid",
+      "inputs": [
+        {
+          "contract_id": "experiment-task-v1",
+          "instance_path": "#/$defs/ExperimentManifestReferenceModel"
+        },
+        {
+          "contract_id": "experiment-apparatus-context-v1",
+          "instance_path": "#/$defs/ExperimentManifestReferenceModel"
+        },
+        {
+          "contract_id": "experiment-run-v1",
+          "instance_path": "#/$defs/ExperimentManifestReferenceModel"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "experiment-task-v1",
+      "schema_pointer": "#/$defs/ValidationBasisDisclosureModel",
+      "description": "A required gate not passed, a not_applicable gate outcome, a below-minimum achieved_strength, and a public/audience-restricted audience each require an explicit, profile-declared limitation (the audience-restricted case specifically requires the audience_restricted category).",
+      "id": "validation-basis-claim-capped-and-disclosed",
+      "inputs": [
+        {
+          "contract_id": "validation-basis-disclosure-v1",
+          "instance_path": "#"
+        },
+        {
+          "contract_id": "experiment-task-v1",
+          "instance_path": "#/validation_basis_disclosures"
+        },
+        {
+          "contract_id": "experiment-run-v1",
+          "instance_path": "#/validation_basis_disclosures"
+        },
+        {
+          "contract_id": "experiment-study-v1",
+          "instance_path": "#/validation_basis_disclosures"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "experiment-task-v1",
+      "schema_pointer": "#/$defs/ValidationBasisDisclosureModel",
+      "description": "gate_results gate_kind values must be unique, drawn from the resolved profile's required/optional union, and every required gate_kind must be present.",
+      "id": "validation-basis-gate-rows-declared",
+      "inputs": [
+        {
+          "contract_id": "validation-basis-disclosure-v1",
+          "instance_path": "#"
+        },
+        {
+          "contract_id": "experiment-task-v1",
+          "instance_path": "#/validation_basis_disclosures"
+        },
+        {
+          "contract_id": "experiment-run-v1",
+          "instance_path": "#/validation_basis_disclosures"
+        },
+        {
+          "contract_id": "experiment-study-v1",
+          "instance_path": "#/validation_basis_disclosures"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "experiment-task-v1",
+      "schema_pointer": "#/$defs/ValidationBasisDisclosureModel",
+      "description": "profile_id/profile_version/subject_kind must resolve one validation profile that declares the subject kind, and subject_ref.ref_kind must match the profile's ONE subject_kind mapping.",
+      "id": "validation-basis-profile-join-resolves",
+      "inputs": [
+        {
+          "contract_id": "validation-basis-disclosure-v1",
+          "instance_path": "#"
+        },
+        {
+          "contract_id": "experiment-task-v1",
+          "instance_path": "#/validation_basis_disclosures"
+        },
+        {
+          "contract_id": "experiment-run-v1",
+          "instance_path": "#/validation_basis_disclosures"
+        },
+        {
+          "contract_id": "experiment-study-v1",
+          "instance_path": "#/validation_basis_disclosures"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "experiment-task-v1",
+      "schema_pointer": "#/$defs/ValidationBasisDisclosureModel",
+      "description": "achieved_strength must be supported by ADR-072-ordered passed gate rows for its own rank (structural never implies semantic; semantic never implies behavioral); evidence_backed/falsification_backed additionally require at least one evidence_ref.",
+      "id": "validation-basis-strength-ordering-valid",
+      "inputs": [
+        {
+          "contract_id": "validation-basis-disclosure-v1",
+          "instance_path": "#"
+        },
+        {
+          "contract_id": "experiment-task-v1",
+          "instance_path": "#/validation_basis_disclosures"
+        },
+        {
+          "contract_id": "experiment-run-v1",
+          "instance_path": "#/validation_basis_disclosures"
+        },
+        {
+          "contract_id": "experiment-study-v1",
+          "instance_path": "#/validation_basis_disclosures"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "exploit-path-analysis-evidence-v1",
+      "schema_pointer": "#",
+      "description": "The snapshot, normalized graph, query, search configuration, witness final state, and unsupported reason code joins must validate against their canonical contract digests and diagnostics.",
+      "id": "exploit-path-evidence-digest-joins",
+      "inputs": [
+        {
+          "contract_id": "exploit-path-analysis-evidence-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "external-concept-bindings-v1",
+      "schema_pointer": "#",
+      "description": "Exact assertions must declare no loss; approximate and lossy assertions must describe loss.",
+      "id": "external-concept-approximation-loss-consistent",
+      "inputs": [
+        {
+          "contract_id": "external-concept-bindings-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "external-concept-bindings-v1",
+      "schema_pointer": "#",
+      "description": "Binding map keys must equal binding ids and semantic assertion identities must be unique.",
+      "id": "external-concept-binding-identities",
+      "inputs": [
+        {
+          "contract_id": "external-concept-bindings-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "external-concept-bindings-v1",
+      "schema_pointer": "#",
+      "description": "Numeric confidence scores and calibration profile references must be supplied together.",
+      "id": "external-concept-confidence-calibrated",
+      "inputs": [
+        {
+          "contract_id": "external-concept-bindings-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "external-concept-bindings-v1",
+      "schema_pointer": "#",
+      "description": "Participant eligibility references must be unique within one availability assertion.",
+      "id": "external-concept-participants-unique",
+      "inputs": [
+        {
+          "contract_id": "external-concept-bindings-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "external-concept-bindings-v1",
+      "schema_pointer": "#",
+      "description": "Completed review statuses require review references, while unreviewed assertions forbid them.",
+      "id": "external-concept-review-evidence-consistent",
+      "inputs": [
+        {
+          "contract_id": "external-concept-bindings-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "external-concept-bindings-v1",
+      "schema_pointer": "#",
+      "description": "External scheme source locators must be absolute, inert, credential-free, fragment-free URIs.",
+      "id": "external-concept-source-locator-safe",
+      "inputs": [
+        {
+          "contract_id": "external-concept-bindings-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "external-concept-bindings-v1",
+      "schema_pointer": "#",
+      "description": "Every external scheme coordinate must declare a source locator, a content digest, or both.",
+      "id": "external-concept-source-pinned",
+      "inputs": [
+        {
+          "contract_id": "external-concept-bindings-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "inject-occurrence-correlation-v1",
+      "schema_pointer": "#",
+      "description": "Validate that the correlation joins an inject occurrence and an outcome of that same occurrence; structural validity proves no effect, delivery or observation.",
+      "id": "inject-occurrence-correlation-local-consistency",
+      "inputs": [
+        {
+          "contract_id": "inject-occurrence-correlation-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "inject-occurrence-correlation-v1",
+      "schema_pointer": "#",
+      "description": "A received correlation equals the join recomputed from its occurrence, invocation and validated outcome; only a successful applied world effect with a produced result yields one.",
+      "id": "inject-occurrence-correlation-source",
+      "inputs": [
+        {
+          "contract_id": "inject-occurrence-v1",
+          "instance_path": "#"
+        },
+        {
+          "contract_id": "backend-operation-request-v1",
+          "instance_path": "#"
+        },
+        {
+          "contract_id": "inject-occurrence-outcome-v1",
+          "instance_path": "#"
+        },
+        {
+          "contract_id": "inject-occurrence-correlation-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "inject-occurrence-outcome-v1",
+      "schema_pointer": "#",
+      "description": "Readback answers one backend invocation that commands the exact claimed occurrence under its operation and admission context, carries its evidence requirements and keeps attempt identities distinct from the claims. It reports every selected binding in request order, and binding residual effects stay inside an admitted resource scope. This grants no dispatch; an adopting runtime still validates and commits the terminal state.",
+      "id": "inject-occurrence-outcome-binding",
+      "inputs": [
+        {
+          "contract_id": "inject-occurrence-v1",
+          "instance_path": "#"
+        },
+        {
+          "contract_id": "backend-operation-request-v1",
+          "instance_path": "#"
+        },
+        {
+          "contract_id": "inject-occurrence-outcome-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "inject-occurrence-outcome-v1",
+      "schema_pointer": "#",
+      "description": "Validate per-binding readback bases, the fan-out effect aggregate and settlement by a start refusal with proven absence or a backend outcome; structural validity proves no effect, delivery or observation.",
+      "id": "inject-occurrence-outcome-local-consistency",
+      "inputs": [
+        {
+          "contract_id": "inject-occurrence-outcome-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "inject-occurrence-v1",
+      "schema_pointer": "#",
+      "description": "Validate the embedded request, an orchestration admission context for its target and run, an order token whose scope is that run and whose predecessor is the requested head, and distinct request key, occurrence, operation and slot identities; structural validity grants no trigger authority.",
+      "id": "inject-occurrence-local-consistency",
+      "inputs": [
+        {
+          "contract_id": "inject-occurrence-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "inject-occurrence-v1",
+      "schema_pointer": "#",
+      "description": "Retry keys, occurrences, operations, schedule slots, order positions and order predecessors are each claimed at most once in one target/run store, so no two claims follow the same head; head tokens are opaque, so the head chain itself is not checked.",
+      "id": "inject-occurrence-unique-claims",
+      "inputs": [
+        {
+          "contract_id": "inject-occurrence-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "inject-trigger-request-v1",
+      "schema_pointer": "#",
+      "description": "Only the original actor, key and request commitment retrieve the original claim; changed content conflicts and no retry admits, rebases or dispatches again.",
+      "id": "inject-trigger-exact-retry",
+      "inputs": [
+        {
+          "contract_id": "inject-occurrence-v1",
+          "instance_path": "#"
+        },
+        {
+          "contract_id": "inject-trigger-request-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "inject-trigger-request-v1",
+      "schema_pointer": "#",
+      "description": "Validate compiled inject, node, event, script and story address families, the pinned orchestration plan, binding addresses rendered exactly from their node and the requested inject, and unique binding/instance pairs; structural validity grants no trigger authority and does not resolve bindings against the plan.",
+      "id": "inject-trigger-request-local-consistency",
+      "inputs": [
+        {
+          "contract_id": "inject-trigger-request-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "instantiated-scenario-snapshot-v1",
+      "schema_pointer": "#",
+      "description": "Service-target content must resolve to one named service, retain exact tenant/reset ownership and content ordering, and bind observed-state postconditions to participant observation boundaries.",
+      "id": "initial-service-state-semantics",
+      "inputs": [
+        {
+          "contract_id": "instantiated-scenario-snapshot-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "instantiated-scenario-snapshot-v1",
+      "schema_pointer": "#",
+      "description": "Explicit temporal bindings must resolve the action's shared clock, constraint and selected event. Dwell conditions require authorized observation boundaries and observable support and evidence. Numeric parameters are revalidated after binding.",
+      "id": "participant-shared-time-source-bindings",
+      "inputs": [
+        {
+          "contract_id": "instantiated-scenario-snapshot-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "instantiated-scenario-snapshot-v1",
+      "schema_pointer": "#",
+      "description": "Stateful resource consumers and dependencies must resolve unambiguously, use the POSIX v1 path dialect, and must not collide on a consumer node mount destination.",
+      "id": "stateful-cross-resource-semantics",
+      "inputs": [
+        {
+          "contract_id": "instantiated-scenario-snapshot-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "instantiated-scenario-snapshot-v1",
+      "schema_pointer": "#",
+      "description": "Generated artifact output names and paths, consumers, and dependency entries must be unique, and generated artifact consumers must be read-only. Explicit selections must name declared consumer-selectable outputs; SSH artifact consumers must select outputs and every consumer-selectable SSH output must be selected.",
+      "id": "stateful-generated-artifact-semantics",
+      "inputs": [
+        {
+          "contract_id": "instantiated-scenario-snapshot-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "instantiated-scenario-snapshot-v1",
+      "schema_pointer": "#",
+      "description": "Persistent volume consumers and dependency entries must be unique and access cardinality must match the declared portable access mode.",
+      "id": "stateful-persistent-volume-semantics",
+      "inputs": [
+        {
+          "contract_id": "instantiated-scenario-snapshot-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "instantiated-scenario-snapshot-v1",
+      "schema_pointer": "#/$defs/ExecutionPolicy",
+      "description": "Execution choices are complete, bounded and consistent; scope identities and references are unique, effective evidence resolves exactly, and unsupported continuation claims fail closed. See specs/sdl/execution-recovery.md for the portable semantic obligations.",
+      "id": "execution-policy-executionpolicy",
+      "inputs": [
+        {
+          "contract_id": "sdl-authoring-input-v1",
+          "instance_path": "#/execution_policy"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "instantiated-scenario-snapshot-v1",
+      "schema_pointer": "#/$defs/ExecutionPolicyDocument",
+      "description": "Execution choices are complete, bounded and consistent; scope identities and references are unique, effective evidence resolves exactly, and unsupported continuation claims fail closed. See specs/sdl/execution-recovery.md for the portable semantic obligations.",
+      "id": "execution-policy-executionpolicydocument",
+      "inputs": [
+        {
+          "contract_id": "sdl-authoring-input-v1",
+          "instance_path": "#/execution_policy"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "instantiated-scenario-snapshot-v1",
+      "schema_pointer": "#/$defs/ParticipantControlContextAssetModel",
+      "description": "Full conformance requires trusted exact version, lifecycle, authority, recipient, cut and content agreement.",
+      "id": "control-context-trusted-agreement",
+      "inputs": [
+        {
+          "contract_id": "participant-control-context-asset-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "instantiated-scenario-v1",
+      "schema_pointer": "#",
+      "description": "Service-target content must resolve to one named service, retain exact tenant/reset ownership and content ordering, and bind observed-state postconditions to participant observation boundaries.",
+      "id": "initial-service-state-semantics",
+      "inputs": [
+        {
+          "contract_id": "instantiated-scenario-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "instantiated-scenario-v1",
+      "schema_pointer": "#",
+      "description": "Explicit temporal bindings must resolve the action's shared clock, constraint and selected event. Dwell conditions require authorized observation boundaries and observable support and evidence. Numeric parameters are revalidated after binding.",
+      "id": "participant-shared-time-source-bindings",
+      "inputs": [
+        {
+          "contract_id": "instantiated-scenario-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "instantiated-scenario-v1",
+      "schema_pointer": "#",
+      "description": "Stateful resource consumers and dependencies must resolve unambiguously, use the POSIX v1 path dialect, and must not collide on a consumer node mount destination.",
+      "id": "stateful-cross-resource-semantics",
+      "inputs": [
+        {
+          "contract_id": "instantiated-scenario-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "instantiated-scenario-v1",
+      "schema_pointer": "#",
+      "description": "Generated artifact output names and paths, consumers, and dependency entries must be unique, and generated artifact consumers must be read-only. Explicit selections must name declared consumer-selectable outputs; SSH artifact consumers must select outputs and every consumer-selectable SSH output must be selected.",
+      "id": "stateful-generated-artifact-semantics",
+      "inputs": [
+        {
+          "contract_id": "instantiated-scenario-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "instantiated-scenario-v1",
+      "schema_pointer": "#",
+      "description": "Persistent volume consumers and dependency entries must be unique and access cardinality must match the declared portable access mode.",
+      "id": "stateful-persistent-volume-semantics",
+      "inputs": [
+        {
+          "contract_id": "instantiated-scenario-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "instantiated-scenario-v1",
+      "schema_pointer": "#/$defs/ExecutionPolicy",
+      "description": "Execution choices are complete, bounded and consistent; scope identities and references are unique, effective evidence resolves exactly, and unsupported continuation claims fail closed. See specs/sdl/execution-recovery.md for the portable semantic obligations.",
+      "id": "execution-policy-executionpolicy",
+      "inputs": [
+        {
+          "contract_id": "sdl-authoring-input-v1",
+          "instance_path": "#/execution_policy"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "instantiated-scenario-v1",
+      "schema_pointer": "#/$defs/ExecutionPolicyDocument",
+      "description": "Execution choices are complete, bounded and consistent; scope identities and references are unique, effective evidence resolves exactly, and unsupported continuation claims fail closed. See specs/sdl/execution-recovery.md for the portable semantic obligations.",
+      "id": "execution-policy-executionpolicydocument",
+      "inputs": [
+        {
+          "contract_id": "sdl-authoring-input-v1",
+          "instance_path": "#/execution_policy"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "instantiated-scenario-v1",
+      "schema_pointer": "#/$defs/ParticipantControlContextAssetModel",
+      "description": "Full conformance requires trusted exact version, lifecycle, authority, recipient, cut and content agreement.",
+      "id": "control-context-trusted-agreement",
+      "inputs": [
+        {
+          "contract_id": "participant-control-context-asset-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "materialization-archive-record-v1",
+      "schema_pointer": "#",
+      "description": "The typed record must join protected immutable published SDL bytes to their size, checksum, semantic identity, run and operation; metadata alone does not prove delivery.",
+      "id": "materialization-archive-byte-and-lineage-binding",
+      "inputs": [
+        {
+          "contract_id": "materialization-archive-record-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "materialized-scenario-v1",
+      "schema_pointer": "#",
+      "description": "Service-target content must resolve to one named service, retain exact tenant/reset ownership and content ordering, and bind observed-state postconditions to participant observation boundaries.",
+      "id": "initial-service-state-semantics",
+      "inputs": [
+        {
+          "contract_id": "materialized-scenario-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "materialized-scenario-v1",
+      "schema_pointer": "#",
+      "description": "Complete origins, source/plan/predecessor/producer identity and realized inventory require the admitted source and execution context; descriptive admission grants no execution authority.",
+      "id": "materialized-sdl-source-and-inventory-binding",
+      "inputs": [
+        {
+          "contract_id": "materialized-scenario-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "materialized-scenario-v1",
+      "schema_pointer": "#",
+      "description": "Explicit temporal bindings must resolve the action's shared clock, constraint and selected event. Dwell conditions require authorized observation boundaries and observable support and evidence. Numeric parameters are revalidated after binding.",
+      "id": "participant-shared-time-source-bindings",
+      "inputs": [
+        {
+          "contract_id": "materialized-scenario-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "materialized-scenario-v1",
+      "schema_pointer": "#",
+      "description": "Stateful resource consumers and dependencies must resolve unambiguously, use the POSIX v1 path dialect, and must not collide on a consumer node mount destination.",
+      "id": "stateful-cross-resource-semantics",
+      "inputs": [
+        {
+          "contract_id": "materialized-scenario-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "materialized-scenario-v1",
+      "schema_pointer": "#",
+      "description": "Generated artifact output names and paths, consumers, and dependency entries must be unique, and generated artifact consumers must be read-only. Explicit selections must name declared consumer-selectable outputs; SSH artifact consumers must select outputs and every consumer-selectable SSH output must be selected.",
+      "id": "stateful-generated-artifact-semantics",
+      "inputs": [
+        {
+          "contract_id": "materialized-scenario-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "materialized-scenario-v1",
+      "schema_pointer": "#",
+      "description": "Persistent volume consumers and dependency entries must be unique and access cardinality must match the declared portable access mode.",
+      "id": "stateful-persistent-volume-semantics",
+      "inputs": [
+        {
+          "contract_id": "materialized-scenario-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "materialized-scenario-v1",
+      "schema_pointer": "#/$defs/ExecutionPolicy",
+      "description": "Execution choices are complete, bounded and consistent; scope identities and references are unique, effective evidence resolves exactly, and unsupported continuation claims fail closed. See specs/sdl/execution-recovery.md for the portable semantic obligations.",
+      "id": "execution-policy-executionpolicy",
+      "inputs": [
+        {
+          "contract_id": "sdl-authoring-input-v1",
+          "instance_path": "#/execution_policy"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "materialized-scenario-v1",
+      "schema_pointer": "#/$defs/ExecutionPolicyDocument",
+      "description": "Execution choices are complete, bounded and consistent; scope identities and references are unique, effective evidence resolves exactly, and unsupported continuation claims fail closed. See specs/sdl/execution-recovery.md for the portable semantic obligations.",
+      "id": "execution-policy-executionpolicydocument",
+      "inputs": [
+        {
+          "contract_id": "sdl-authoring-input-v1",
+          "instance_path": "#/execution_policy"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "materialized-scenario-v1",
+      "schema_pointer": "#/$defs/ParticipantControlContextAssetModel",
+      "description": "Full conformance requires trusted exact version, lifecycle, authority, recipient, cut and content agreement.",
+      "id": "control-context-trusted-agreement",
+      "inputs": [
+        {
+          "contract_id": "participant-control-context-asset-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "mixed-backend-execution-binding-v1",
+      "schema_pointer": "#",
+      "description": "Require exactly one matching binding per active edge and one-to-one component-changing transition of the admitted sealed profile, with governed order, preserved compiled subjects, declared loss and the edge's admitted temporal coupling.",
+      "id": "mixed-backend-binding-profile-join",
+      "inputs": [
+        {
+          "contract_id": "mixed-participant-composition-profile-v1",
+          "instance_path": "#"
+        },
+        {
+          "contract_id": "mixed-backend-execution-binding-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "mixed-backend-execution-binding-v1",
+      "schema_pointer": "#",
+      "description": "Before invocation require the shared request to commit to this binding, its operation kind and its installed bridge or transfer service, then installed support and current exact-context willingness.",
+      "id": "mixed-backend-contextual-admission",
+      "inputs": [
+        {
+          "contract_id": "mixed-backend-execution-binding-v1",
+          "instance_path": "#"
+        },
+        {
+          "contract_id": "backend-operation-request-v1",
+          "instance_path": "#"
+        },
+        {
+          "contract_id": "backend-operation-capabilities-v1",
+          "instance_path": "#"
+        },
+        {
+          "contract_id": "backend-operation-response-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "mixed-backend-execution-binding-v1",
+      "schema_pointer": "#",
+      "description": "Validate closed bounded fields, unique collections, a preserved compiled subject, distinct handoff components and a distinct pinned service for each role, so no two roles share a service reference or digest; structural validity does not prove backend truth, installation or runtime authority.",
+      "id": "mixed-backend-local-consistency",
+      "inputs": [
+        {
+          "contract_id": "mixed-backend-execution-binding-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "mixed-backend-stage-report-v1",
+      "schema_pointer": "#",
+      "description": "Validate closed bounded fields, unique collections and honest stage evidence; structural validity does not prove backend truth, installation or runtime authority.",
+      "id": "mixed-backend-local-consistency",
+      "inputs": [
+        {
+          "contract_id": "mixed-backend-stage-report-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "mixed-backend-stage-report-v1",
+      "schema_pointer": "#",
+      "description": "Require exact invocation binding and commitment, a trusted time model resolved under the binding's time-model reference and digest, each report's sequence equal to its stage's fixed chain position (time grant 1, execution or handoff 2, delivery or owner readback 3, observation 4) with reports accepted in ascending sequence, prerequisite stage order, the pinned producer for each stage, grant coordinates equal to the committed time readback, a committed composition state that still activates the edge or holds the handoff's source component without its destination, a handoff fenced on that state's head and phase revision, an ordered grant and accepted start before invocation stages, success or failure outcomes equal to the state the stages and trusted readbacks establish, and shared evidence that cites only supplied stage reports.",
+      "id": "mixed-backend-stage-transcript",
+      "inputs": [
+        {
+          "contract_id": "mixed-backend-execution-binding-v1",
+          "instance_path": "#"
+        },
+        {
+          "contract_id": "backend-operation-request-v1",
+          "instance_path": "#"
+        },
+        {
+          "contract_id": "backend-operation-response-v1",
+          "instance_path": "#"
+        },
+        {
+          "contract_id": "mixed-backend-stage-report-v1",
+          "instance_path": "#"
+        },
+        {
+          "contract_id": "time-model-v1",
+          "instance_path": "#"
+        },
+        {
+          "contract_id": "time-runtime-state-v1",
+          "instance_path": "#"
+        },
+        {
+          "contract_id": "runtime-snapshot-v1",
+          "instance_path": "#/mixed_composition_states"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "mixed-participant-composition-profile-v1",
+      "schema_pointer": "#",
+      "description": "The sealed root has exact keyed identities, closed references, one provider per target and phase, complete finite phase membership, mode-specific realization rules, and a matching canonical digest.",
+      "id": "mixed-composition-root-local-graph-valid",
+      "inputs": [
+        {
+          "contract_id": "mixed-participant-composition-profile-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "mixed-participant-composition-profile-v1",
+      "schema_pointer": "#",
+      "description": "Schema validity does not resolve scenario targets, manifests, envelopes, participant features, crossing policies, clocks, evidence, or nested profiles; trusted contextual validation is required.",
+      "id": "mixed-composition-trusted-context-required",
+      "inputs": [
+        {
+          "contract_id": "mixed-participant-composition-profile-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "mixed-participant-composition-profile-v1",
+      "schema_pointer": "#/$defs/ExperimentManifestReferenceModel",
+      "description": "Manifest digest qualifiers are limited to processor/backend manifest refs that can be checked against concrete manifest payload digests; manifest path qualifiers are not accepted in v1.",
+      "id": "manifest-reference-digest-scope-valid",
+      "inputs": [
+        {
+          "contract_id": "experiment-task-v1",
+          "instance_path": "#/$defs/ExperimentManifestReferenceModel"
+        },
+        {
+          "contract_id": "experiment-apparatus-context-v1",
+          "instance_path": "#/$defs/ExperimentManifestReferenceModel"
+        },
+        {
+          "contract_id": "experiment-run-v1",
+          "instance_path": "#/$defs/ExperimentManifestReferenceModel"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "orchestration-plan-v1",
+      "schema_pointer": "#/$defs/EffectiveExecutionPolicy",
+      "description": "Execution choices are complete, bounded and consistent; scope identities and references are unique, effective evidence resolves exactly, and unsupported continuation claims fail closed. See specs/sdl/execution-recovery.md for the portable semantic obligations.",
+      "id": "execution-policy-effectiveexecutionpolicy",
+      "inputs": [
+        {
+          "contract_id": "provisioning-plan-v1",
+          "instance_path": "#/operations"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "orchestration-plan-v1",
+      "schema_pointer": "#/$defs/ExecutionPolicy",
+      "description": "Execution choices are complete, bounded and consistent; scope identities and references are unique, effective evidence resolves exactly, and unsupported continuation claims fail closed. See specs/sdl/execution-recovery.md for the portable semantic obligations.",
+      "id": "execution-policy-executionpolicy",
+      "inputs": [
+        {
+          "contract_id": "sdl-authoring-input-v1",
+          "instance_path": "#/execution_policy"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "orchestration-plan-v1",
+      "schema_pointer": "#/$defs/PlanOperationModel",
+      "description": "Execution choices are complete, bounded and consistent; scope identities and references are unique, effective evidence resolves exactly, and unsupported continuation claims fail closed. See specs/sdl/execution-recovery.md for the portable semantic obligations.",
+      "id": "execution-policy-planoperationmodel",
+      "inputs": [
+        {
+          "contract_id": "provisioning-plan-v1",
+          "instance_path": "#/operations"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "participant-behavior-history-event-stream-v1",
+      "schema_pointer": "#",
+      "description": "Deadline bindings require event evidence; dwell requires continuous coverage of a nonempty interval, a condition and an observation boundary. Bounds are segment-relative and the selected event is declared.",
+      "id": "participant-shared-time-binding-shape",
+      "inputs": [
+        {
+          "contract_id": "participant-behavior-history-event-stream-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "participant-behavior-history-event-stream-v1",
+      "schema_pointer": "#/$defs/ParticipantStreamAddressModel",
+      "description": "draw_purpose must be governed and policy_address/participant_address must be compiled autonomous participant addresses.",
+      "id": "participant-random-stream-address-governed",
+      "inputs": [
+        {
+          "contract_id": "controlled-vocabularies-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "participant-configuration-result-v1",
+      "schema_pointer": "#",
+      "description": "The configuration digest must be the RFC 8785/JCS digest of the complete normalized configuration.",
+      "id": "participant-configuration-digest-valid",
+      "inputs": [
+        {
+          "contract_id": "participant-configuration-result-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "participant-context-view-v1",
+      "schema_pointer": "#",
+      "description": "Participant-visible context views drawing on an archival evidence_record or derived_measure source layer must mediate that source through transformation.input_source_ids.",
+      "id": "context-view-sem216-archival-source-mediated",
+      "inputs": [
+        {
+          "contract_id": "participant-context-view-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "participant-context-view-v1",
+      "schema_pointer": "#",
+      "description": "Participant-visible context views must not set payload_ref to a raw archival evidence_record or derived_measure source ref; payload_ref must identify the transformed, redacted view output.",
+      "id": "context-view-sem216-payload-not-raw-archival",
+      "inputs": [
+        {
+          "contract_id": "participant-context-view-v1",
+          "instance_path": "#/payload_ref"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "participant-control-context-asset-v1",
+      "schema_pointer": "#",
+      "description": "Full conformance requires trusted exact version, lifecycle, authority, recipient, cut and content agreement.",
+      "id": "control-context-trusted-agreement",
+      "inputs": [
+        {
+          "contract_id": "participant-control-context-asset-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "participant-control-context-change-v1",
+      "schema_pointer": "#",
+      "description": "Full conformance requires trusted exact version, lifecycle, authority, recipient, cut and content agreement.",
+      "id": "control-context-trusted-agreement",
+      "inputs": [
+        {
+          "contract_id": "participant-control-context-change-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "participant-control-context-record-v1",
+      "schema_pointer": "#",
+      "description": "Full conformance requires trusted exact version, lifecycle, authority, recipient, cut and content agreement.",
+      "id": "control-context-trusted-agreement",
+      "inputs": [
+        {
+          "contract_id": "participant-control-context-record-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "participant-control-evaluation-v1",
+      "schema_pointer": "#",
+      "description": "Validate closed selection dependencies and exact trusted evaluation context; structural validity is not execution authority.",
+      "id": "participant-control-resolved-context",
+      "inputs": [
+        {
+          "contract_id": "participant-control-evaluation-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "participant-control-evaluation-v2",
+      "schema_pointer": "#",
+      "description": "Validate closed selection dependencies and exact trusted evaluation context; structural validity is not execution authority.",
+      "id": "participant-control-resolved-context",
+      "inputs": [
+        {
+          "contract_id": "participant-control-evaluation-v2",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "participant-control-occurrence-v1",
+      "schema_pointer": "#",
+      "description": "Every occurrence must resolve one matching compiled ACT-617 declaration and preserve participant, episode, controller, authority, policy revision, order, proposal, target, and semantic identity joins.",
+      "id": "participant-control-occurrence-context-agreement",
+      "inputs": [
+        {
+          "contract_id": "participant-control-occurrence-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "participant-control-occurrence-v1",
+      "schema_pointer": "#",
+      "description": "Proposal, approval, denial, direction, intervention, handoff, override, and cancellation remain distinct from action admission, execution, delivery, observation, and audit evidence.",
+      "id": "participant-control-occurrence-not-lifecycle-evidence",
+      "inputs": [
+        {
+          "contract_id": "participant-control-occurrence-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "participant-control-occurrence-v2",
+      "schema_pointer": "#",
+      "description": "actor_ref equals the acting controller_ref: the accepted record's, or the rejected attempt's.",
+      "id": "participant-control-occurrence-v2-acting-controller",
+      "inputs": [
+        {
+          "contract_id": "participant-control-occurrence-v2",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "participant-control-occurrence-v2",
+      "schema_pointer": "#",
+      "description": "Every v2 occurrence must fold under its episode's exact pinned rev1 policy at its participant-wide position: exact state, revision and history head, acting source controller and scope, order and windows, script cursor, target identity, revision, liveness and evaluated validity bounds.",
+      "id": "participant-control-occurrence-v2-context-agreement",
+      "inputs": [
+        {
+          "contract_id": "participant-control-occurrence-v2",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "participant-control-occurrence-v2",
+      "schema_pointer": "#",
+      "description": "An accepted occurrence's expected_history_head equals occurrence_revision - 1.",
+      "id": "participant-control-occurrence-v2-history-head",
+      "inputs": [
+        {
+          "contract_id": "participant-control-occurrence-v2",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "participant-control-occurrence-v2",
+      "schema_pointer": "#",
+      "description": "An accepted occurrence's resulting_state_revision equals expected_state_revision + 1 for every kind.",
+      "id": "participant-control-occurrence-v2-revision-advance",
+      "inputs": [
+        {
+          "contract_id": "participant-control-occurrence-v2",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "participant-control-occurrence-v2",
+      "schema_pointer": "#",
+      "description": "An accepted occurrence satisfies valid_from_order <= effective_order <= valid_until_order (inclusive).",
+      "id": "participant-control-occurrence-v2-validity-bounds",
+      "inputs": [
+        {
+          "contract_id": "participant-control-occurrence-v2",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "participant-control-selection-v1",
+      "schema_pointer": "#",
+      "description": "Validate closed selection dependencies and exact trusted evaluation context; structural validity is not execution authority.",
+      "id": "participant-control-selection-graph",
+      "inputs": [
+        {
+          "contract_id": "participant-control-selection-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "participant-control-selection-v2",
+      "schema_pointer": "#",
+      "description": "Validate closed selection dependencies and exact trusted evaluation context; structural validity is not execution authority.",
+      "id": "participant-control-selection-graph",
+      "inputs": [
+        {
+          "contract_id": "participant-control-selection-v2",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "participant-crossing-occurrence-v1",
+      "schema_pointer": "#",
+      "description": "Every crossing fact must resolve typed subjects, exact policy revisions, predecessor stages, evidence, markings, and order coordinates without retroactive authorization or identity reuse.",
+      "id": "participant-crossing-context-agreement",
+      "inputs": [
+        {
+          "contract_id": "participant-crossing-occurrence-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "participant-crossing-occurrence-v1",
+      "schema_pointer": "#",
+      "description": "Requested, decided, transformed, disclosed, attempted, delivered, observed, and audited facts remain independently addressable and do not imply one another.",
+      "id": "participant-crossing-stage-separation",
+      "inputs": [
+        {
+          "contract_id": "participant-crossing-occurrence-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "participant-decision-surface-v1",
+      "schema_pointer": "#",
+      "description": "Candidate, constrained-form, and open-ended action references must resolve to action entries and their governed selection shapes.",
+      "id": "decision-surface-entry-reference-agreement",
+      "inputs": [
+        {
+          "contract_id": "participant-decision-surface-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "participant-decision-surface-v1",
+      "schema_pointer": "#",
+      "description": "Surface membership or presentation carries no selection, admission, execution, result, or outcome fact; those facts remain in their existing lifecycle contracts.",
+      "id": "decision-surface-presentation-not-lifecycle-evidence",
+      "inputs": [
+        {
+          "contract_id": "participant-decision-surface-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "participant-decision-surface-v1",
+      "schema_pointer": "#",
+      "description": "Every serialized context, action, and affordance reference must have one participant-, audience-, order-, immutable-policy-, authorization-, marking-, evidence-, and provenance-bound exposure decision; realized delivery is an optional item- and delivery-authorization-bound occurrence.",
+      "id": "decision-surface-sem226-item-exposure-agreement",
+      "inputs": [
+        {
+          "contract_id": "participant-decision-surface-v1",
+          "instance_path": "#/exposure_bindings"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "participant-decision-surface-v2",
+      "schema_pointer": "#",
+      "description": "A surface is actionable only in delivered state, with delivery bound to the canonical participant view.",
+      "id": "decision-surface-v2-delivery-before-selection",
+      "inputs": [
+        {
+          "contract_id": "participant-decision-surface-v2",
+          "instance_path": "#/delivery"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "participant-decision-surface-v2",
+      "schema_pointer": "#",
+      "description": "Each exposed item is bound to the derivation state cut and exact policy decision, independently of the participant decision epoch.",
+      "id": "decision-surface-v2-exact-cut-policy",
+      "inputs": [
+        {
+          "contract_id": "participant-decision-surface-v2",
+          "instance_path": "#/assurance"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "participant-decision-surface-v2",
+      "schema_pointer": "#",
+      "description": "Assurance declares whether participant-visible memory persists across episodes; an episode-local claim requires an authoritative reset of every participant-visible memory channel.",
+      "id": "decision-surface-v2-explicit-memory-scope",
+      "inputs": [
+        {
+          "contract_id": "participant-decision-surface-v2",
+          "instance_path": "#/assurance"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "participant-decision-surface-v2",
+      "schema_pointer": "#",
+      "description": "The participant view contains only participant-available choice material; derivation, policy, evidence, provenance, and delivery remain in separate assurance and delivery planes.",
+      "id": "decision-surface-v2-plane-separation",
+      "inputs": [
+        {
+          "contract_id": "participant-decision-surface-v2",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "participant-flow-control-relation-v1",
+      "schema_pointer": "#",
+      "description": "Every label, derivation, release, sink decision, and carrier binding must resolve an exact SEM-233 profile and exact incumbent runtime-fact, API-409, API-423, action-admission, capability, authority, and history decision state before it can be trusted.",
+      "id": "participant-flow-control-resolved-context",
+      "inputs": [
+        {
+          "contract_id": "participant-flow-control-relation-v1",
+          "instance_path": "#"
+        },
+        {
+          "contract_id": "runtime-fact-binding-plane-v1",
+          "instance_path": "#"
+        },
+        {
+          "contract_id": "participant-control-occurrence-v1",
+          "instance_path": "#"
+        },
+        {
+          "contract_id": "participant-crossing-occurrence-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "participant-history-view-v1",
+      "schema_pointer": "#",
+      "description": "Deadline bindings require event evidence; dwell requires continuous coverage of a nonempty interval, a condition and an observation boundary. Bounds are segment-relative and the selected event is declared.",
+      "id": "participant-shared-time-binding-shape",
+      "inputs": [
+        {
+          "contract_id": "participant-history-view-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "participant-history-view-v1",
+      "schema_pointer": "#/$defs/ParticipantStreamAddressModel",
+      "description": "draw_purpose must be governed and policy_address/participant_address must be compiled autonomous participant addresses.",
+      "id": "participant-random-stream-address-governed",
+      "inputs": [
+        {
+          "contract_id": "controlled-vocabularies-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "participant-information-state-record-v1",
+      "schema_pointer": "#",
+      "description": "Strong information-state claims resolve one profile, occurrence history, typed source set, proof digest, and exact participant/episode/cut/projection/memory coordinate.",
+      "id": "participant-information-state-context-resolution",
+      "inputs": [
+        {
+          "contract_id": "participant-information-state-record-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "participant-inject-application-v1",
+      "schema_pointer": "#",
+      "description": "Pin an authored delivery, world operation, exact participant episode and snapshot cut, and optional exact control event; shape grants no delivery authority.",
+      "id": "participant-inject-application-local-consistency",
+      "inputs": [
+        {
+          "contract_id": "participant-inject-application-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "participant-inject-delivery-receipt-v1",
+      "schema_pointer": "#",
+      "description": "Bind the durable operation identity to its governed local delivery result; this is neither participant observation nor external transport acknowledgement.",
+      "id": "participant-inject-delivery-receipt-local-consistency",
+      "inputs": [
+        {
+          "contract_id": "participant-inject-delivery-receipt-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "participant-inject-delivery-v1",
+      "schema_pointer": "#",
+      "description": "Retain the application recipient, snapshot cut, successful world correlation and bounded owner-projected content; emitted content proves no participant observation.",
+      "id": "participant-inject-delivery-local-consistency",
+      "inputs": [
+        {
+          "contract_id": "participant-inject-delivery-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "participant-opacity-analysis-evidence-v1",
+      "schema_pointer": "#",
+      "description": "Profile, normalized model, checker, claim, outcome payload, diagnostics, normalized-input-only provenance scope, and bounded assurance coordinates must remain digest-bound and mutually consistent.",
+      "id": "participant-opacity-evidence-joins",
+      "inputs": [
+        {
+          "contract_id": "participant-opacity-analysis-evidence-v1",
+          "instance_path": "#"
+        },
+        {
+          "contract_id": "participant-opacity-analysis-input-v1",
+          "instance_path": "#"
+        },
+        {
+          "contract_id": "behavioral-relation-profile-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "participant-opacity-analysis-input-v1",
+      "schema_pointer": "#",
+      "description": "Point ordinals and refs must be unique, and every declared finite count must exactly match the normalized possible-point carrier.",
+      "id": "participant-opacity-finite-carrier-counts",
+      "inputs": [
+        {
+          "contract_id": "participant-opacity-analysis-input-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "participant-opacity-model-check-evidence-v1",
+      "schema_pointer": "#",
+      "description": "Exact catalog, profile, model, assumptions, checker, derived carrier, complete coverage, claim, outcome, diagnostics, and safe counterexample joins must remain digest-bound and mutually consistent.",
+      "id": "participant-opacity-model-check-evidence-joins",
+      "inputs": [
+        {
+          "contract_id": "participant-opacity-model-check-evidence-v1",
+          "instance_path": "#"
+        },
+        {
+          "contract_id": "participant-opacity-model-check-input-v1",
+          "instance_path": "#"
+        },
+        {
+          "contract_id": "behavioral-relation-profile-v1",
+          "instance_path": "#"
+        },
+        {
+          "contract_id": "behavioral-relations-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "participant-opacity-model-check-input-v1",
+      "schema_pointer": "#",
+      "description": "State and transition ordinals, refs, endpoints, fixed domains, exact declared counts, assumptions, and model-check claim coordinates must form one closed canonical transition model.",
+      "id": "participant-opacity-model-check-graph-joins",
+      "inputs": [
+        {
+          "contract_id": "participant-opacity-model-check-input-v1",
+          "instance_path": "#"
+        },
+        {
+          "contract_id": "behavioral-relation-profile-v1",
+          "instance_path": "#"
+        },
+        {
+          "contract_id": "behavioral-relations-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "provisioning-plan-v1",
+      "schema_pointer": "#/$defs/EffectiveExecutionPolicy",
+      "description": "Execution choices are complete, bounded and consistent; scope identities and references are unique, effective evidence resolves exactly, and unsupported continuation claims fail closed. See specs/sdl/execution-recovery.md for the portable semantic obligations.",
+      "id": "execution-policy-effectiveexecutionpolicy",
+      "inputs": [
+        {
+          "contract_id": "provisioning-plan-v1",
+          "instance_path": "#/operations"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "provisioning-plan-v1",
+      "schema_pointer": "#/$defs/ExecutionPolicy",
+      "description": "Execution choices are complete, bounded and consistent; scope identities and references are unique, effective evidence resolves exactly, and unsupported continuation claims fail closed. See specs/sdl/execution-recovery.md for the portable semantic obligations.",
+      "id": "execution-policy-executionpolicy",
+      "inputs": [
+        {
+          "contract_id": "sdl-authoring-input-v1",
+          "instance_path": "#/execution_policy"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "provisioning-plan-v1",
+      "schema_pointer": "#/$defs/PlanOperationModel",
+      "description": "Execution choices are complete, bounded and consistent; scope identities and references are unique, effective evidence resolves exactly, and unsupported continuation claims fail closed. See specs/sdl/execution-recovery.md for the portable semantic obligations.",
+      "id": "execution-policy-planoperationmodel",
+      "inputs": [
+        {
+          "contract_id": "provisioning-plan-v1",
+          "instance_path": "#/operations"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "random-stream-profile-v1",
+      "schema_pointer": "#",
+      "description": "transforms dict keys must match each entry's embedded transform_id.",
+      "id": "random-stream-profile-transform-keys-match",
+      "inputs": [
+        {
+          "contract_id": "random-stream-profile-v1",
+          "instance_path": "#/transforms"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "random-stream-vector-v1",
+      "schema_pointer": "#/$defs/ParticipantStreamAddressModel",
+      "description": "draw_purpose must be governed and policy_address/participant_address must be compiled autonomous participant addresses.",
+      "id": "participant-random-stream-address-governed",
+      "inputs": [
+        {
+          "contract_id": "controlled-vocabularies-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "random-stream-vector-v1",
+      "schema_pointer": "#/$defs/StreamAddressModel",
+      "description": "draw_purpose must be a term from the random_streams.draw_purpose controlled vocabulary.",
+      "id": "random-stream-address-draw-purpose-governed",
+      "inputs": [
+        {
+          "contract_id": "controlled-vocabularies-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "realization-envelope-v1",
+      "schema_pointer": "#",
+      "description": "Configuration bounds, expression references, canonical configuration and envelope digests, and all cross-field realization disclosure semantics must validate together.",
+      "id": "realization-envelope-canonical-semantics-valid",
+      "inputs": [
+        {
+          "contract_id": "realization-envelope-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "runtime-fact-binding-plane-v1",
+      "schema_pointer": "#",
+      "description": "Every fact version resolves to a declaration, every binding event resolves to its compiled sink and optional immutable fact version with matching scope, sensitivity, provenance, redaction, and sink policy, and every projection exactly matches the immutable version it discloses.",
+      "id": "runtime-fact-binding-references-resolve",
+      "inputs": [
+        {
+          "contract_id": "runtime-fact-binding-plane-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "runtime-snapshot-v1",
+      "schema_pointer": "#",
+      "description": "Deadline bindings require event evidence; dwell requires continuous coverage of a nonempty interval, a condition and an observation boundary. Bounds are segment-relative and the selected event is declared.",
+      "id": "participant-shared-time-binding-shape",
+      "inputs": [
+        {
+          "contract_id": "runtime-snapshot-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "runtime-snapshot-v1",
+      "schema_pointer": "#",
+      "description": "Temporal contexts must remain identical across an attempt; terminal assessments must match their evidence and authoritative clock history. Every proof must match an exact bound context and observation boundary, without duplicates or extra proofs.",
+      "id": "participant-shared-time-history-consistency",
+      "inputs": [
+        {
+          "contract_id": "runtime-snapshot-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "runtime-snapshot-v1",
+      "schema_pointer": "#/$defs/ParticipantControlOccurrenceModel",
+      "description": "Every occurrence must resolve one matching compiled ACT-617 declaration and preserve participant, episode, controller, authority, policy revision, order, proposal, target, and semantic identity joins.",
+      "id": "participant-control-occurrence-context-agreement",
+      "inputs": [
+        {
+          "contract_id": "participant-control-occurrence-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "runtime-snapshot-v1",
+      "schema_pointer": "#/$defs/ParticipantControlOccurrenceModel",
+      "description": "Proposal, approval, denial, direction, intervention, handoff, override, and cancellation remain distinct from action admission, execution, delivery, observation, and audit evidence.",
+      "id": "participant-control-occurrence-not-lifecycle-evidence",
+      "inputs": [
+        {
+          "contract_id": "participant-control-occurrence-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "runtime-snapshot-v1",
+      "schema_pointer": "#/$defs/ParticipantControlOccurrenceV2Model",
+      "description": "actor_ref equals the acting controller_ref: the accepted record's, or the rejected attempt's.",
+      "id": "participant-control-occurrence-v2-acting-controller",
+      "inputs": [
+        {
+          "contract_id": "participant-control-occurrence-v2",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "runtime-snapshot-v1",
+      "schema_pointer": "#/$defs/ParticipantControlOccurrenceV2Model",
+      "description": "Every v2 occurrence must fold under its episode's exact pinned rev1 policy at its participant-wide position: exact state, revision and history head, acting source controller and scope, order and windows, script cursor, target identity, revision, liveness and evaluated validity bounds.",
+      "id": "participant-control-occurrence-v2-context-agreement",
+      "inputs": [
+        {
+          "contract_id": "participant-control-occurrence-v2",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "runtime-snapshot-v1",
+      "schema_pointer": "#/$defs/ParticipantControlOccurrenceV2Model",
+      "description": "An accepted occurrence's expected_history_head equals occurrence_revision - 1.",
+      "id": "participant-control-occurrence-v2-history-head",
+      "inputs": [
+        {
+          "contract_id": "participant-control-occurrence-v2",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "runtime-snapshot-v1",
+      "schema_pointer": "#/$defs/ParticipantControlOccurrenceV2Model",
+      "description": "An accepted occurrence's resulting_state_revision equals expected_state_revision + 1 for every kind.",
+      "id": "participant-control-occurrence-v2-revision-advance",
+      "inputs": [
+        {
+          "contract_id": "participant-control-occurrence-v2",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "runtime-snapshot-v1",
+      "schema_pointer": "#/$defs/ParticipantControlOccurrenceV2Model",
+      "description": "An accepted occurrence satisfies valid_from_order <= effective_order <= valid_until_order (inclusive).",
+      "id": "participant-control-occurrence-v2-validity-bounds",
+      "inputs": [
+        {
+          "contract_id": "participant-control-occurrence-v2",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "runtime-snapshot-v1",
+      "schema_pointer": "#/$defs/ParticipantCrossingOccurrenceModel",
+      "description": "Every crossing fact must resolve typed subjects, exact policy revisions, predecessor stages, evidence, markings, and order coordinates without retroactive authorization or identity reuse.",
+      "id": "participant-crossing-context-agreement",
+      "inputs": [
+        {
+          "contract_id": "participant-crossing-occurrence-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "runtime-snapshot-v1",
+      "schema_pointer": "#/$defs/ParticipantCrossingOccurrenceModel",
+      "description": "Requested, decided, transformed, disclosed, attempted, delivered, observed, and audited facts remain independently addressable and do not imply one another.",
+      "id": "participant-crossing-stage-separation",
+      "inputs": [
+        {
+          "contract_id": "participant-crossing-occurrence-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "runtime-snapshot-v1",
+      "schema_pointer": "#/$defs/ParticipantInformationStateRecordModel",
+      "description": "Strong information-state claims resolve one profile, occurrence history, typed source set, proof digest, and exact participant/episode/cut/projection/memory coordinate.",
+      "id": "participant-information-state-context-resolution",
+      "inputs": [
+        {
+          "contract_id": "participant-information-state-record-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "runtime-snapshot-v1",
+      "schema_pointer": "#/$defs/ParticipantStreamAddressModel",
+      "description": "draw_purpose must be governed and policy_address/participant_address must be compiled autonomous participant addresses.",
+      "id": "participant-random-stream-address-governed",
+      "inputs": [
+        {
+          "contract_id": "controlled-vocabularies-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "scenario-satisfiability-evidence-v1",
+      "schema_pointer": "#",
+      "description": "Service-target content must resolve to one named service, retain exact tenant/reset ownership and content ordering, and bind observed-state postconditions to participant observation boundaries.",
+      "id": "initial-service-state-semantics",
+      "inputs": [
+        {
+          "contract_id": "scenario-satisfiability-evidence-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "scenario-satisfiability-evidence-v1",
+      "schema_pointer": "#/$defs/ExecutionPolicy",
+      "description": "Execution choices are complete, bounded and consistent; scope identities and references are unique, effective evidence resolves exactly, and unsupported continuation claims fail closed. See specs/sdl/execution-recovery.md for the portable semantic obligations.",
+      "id": "execution-policy-executionpolicy",
+      "inputs": [
+        {
+          "contract_id": "sdl-authoring-input-v1",
+          "instance_path": "#/execution_policy"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "scenario-satisfiability-evidence-v1",
+      "schema_pointer": "#/$defs/ExecutionPolicyDocument",
+      "description": "Execution choices are complete, bounded and consistent; scope identities and references are unique, effective evidence resolves exactly, and unsupported continuation claims fail closed. See specs/sdl/execution-recovery.md for the portable semantic obligations.",
+      "id": "execution-policy-executionpolicydocument",
+      "inputs": [
+        {
+          "contract_id": "sdl-authoring-input-v1",
+          "instance_path": "#/execution_policy"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "scenario-satisfiability-evidence-v1",
+      "schema_pointer": "#/$defs/ParticipantControlContextAssetModel",
+      "description": "Full conformance requires trusted exact version, lifecycle, authority, recipient, cut and content agreement.",
+      "id": "control-context-trusted-agreement",
+      "inputs": [
+        {
+          "contract_id": "participant-control-context-asset-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "scheduler-isolation-proof-v1",
+      "schema_pointer": "#",
+      "description": "Scheduling defaults to serial; bounded parallelism requires independent evidence for range, capacity, ports, storage, control-plane locks, secret scope, and cleanup.",
+      "id": "scheduler-isolation-serial-default-and-complete-parallel-proof",
+      "inputs": [
+        {
+          "contract_id": "scheduler-isolation-proof-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "scientific-completeness-assessment-v1",
+      "schema_pointer": "#",
+      "description": "Concern ids must be unique and each delivery status must carry its required executable evidence, external binding, issue refs, or exclusion rationale.",
+      "id": "scientific-completeness-assessment-status-evidence",
+      "inputs": [
+        {
+          "contract_id": "scientific-completeness-assessment-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "scientific-completeness-assessment-v1",
+      "schema_pointer": "#",
+      "description": "Assessment family, taxonomy revision, and concern ids must exactly match the joined taxonomy before completeness is computed.",
+      "id": "scientific-completeness-taxonomy-assessment-join",
+      "inputs": [
+        {
+          "contract_id": "scientific-completeness-taxonomy-v1",
+          "instance_path": "#"
+        },
+        {
+          "contract_id": "scientific-completeness-assessment-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "scientific-completeness-taxonomy-v1",
+      "schema_pointer": "#",
+      "description": "Each profile must carry resolved behavioral claim bindings and disjoint, catalog-resolved nonclaimed relation ids.",
+      "id": "scientific-completeness-behavioral-claim-resolution",
+      "inputs": [
+        {
+          "contract_id": "scientific-completeness-taxonomy-v1",
+          "instance_path": "#/profiles"
+        },
+        {
+          "contract_id": "behavioral-relations-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "scientific-completeness-taxonomy-v1",
+      "schema_pointer": "#",
+      "description": "Concern and profile ids must be unique, and every profile disposition map must exactly cover the taxonomy concern set.",
+      "id": "scientific-completeness-taxonomy-rectangular",
+      "inputs": [
+        {
+          "contract_id": "scientific-completeness-taxonomy-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "sdl-authoring-input-v1",
+      "schema_pointer": "#",
+      "description": "Service-target content must resolve to one named service, retain exact tenant/reset ownership and content ordering, and bind observed-state postconditions to participant observation boundaries.",
+      "id": "initial-service-state-semantics",
+      "inputs": [
+        {
+          "contract_id": "sdl-authoring-input-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "sdl-authoring-input-v1",
+      "schema_pointer": "#",
+      "description": "Explicit temporal bindings must resolve the action's shared clock, constraint and selected event. Dwell conditions require authorized observation boundaries and observable support and evidence. Numeric parameters are revalidated after binding.",
+      "id": "participant-shared-time-source-bindings",
+      "inputs": [
+        {
+          "contract_id": "sdl-authoring-input-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "sdl-authoring-input-v1",
+      "schema_pointer": "#",
+      "description": "Every declared required evidence media type must have a registered content-proof path; an explicit output_contract must support every declared type.",
+      "id": "required-evidence-media-type-provable",
+      "inputs": [
+        {
+          "contract_id": "sdl-authoring-input-v1",
+          "instance_path": "#/evidence_requirements"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "sdl-authoring-input-v1",
+      "schema_pointer": "#",
+      "description": "Stateful resource consumers and dependencies must resolve unambiguously, use the POSIX v1 path dialect, and must not collide on a consumer node mount destination.",
+      "id": "stateful-cross-resource-semantics",
+      "inputs": [
+        {
+          "contract_id": "sdl-authoring-input-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "sdl-authoring-input-v1",
+      "schema_pointer": "#",
+      "description": "Generated artifact output names and paths, consumers, and dependency entries must be unique, and generated artifact consumers must be read-only. Explicit selections must name declared consumer-selectable outputs; SSH artifact consumers must select outputs and every consumer-selectable SSH output must be selected.",
+      "id": "stateful-generated-artifact-semantics",
+      "inputs": [
+        {
+          "contract_id": "sdl-authoring-input-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "sdl-authoring-input-v1",
+      "schema_pointer": "#",
+      "description": "Persistent volume consumers and dependency entries must be unique and access cardinality must match the declared portable access mode.",
+      "id": "stateful-persistent-volume-semantics",
+      "inputs": [
+        {
+          "contract_id": "sdl-authoring-input-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "sdl-authoring-input-v1",
+      "schema_pointer": "#/$defs/ExecutionPolicy",
+      "description": "Execution choices are complete, bounded and consistent; scope identities and references are unique, effective evidence resolves exactly, and unsupported continuation claims fail closed. See specs/sdl/execution-recovery.md for the portable semantic obligations.",
+      "id": "execution-policy-executionpolicy",
+      "inputs": [
+        {
+          "contract_id": "sdl-authoring-input-v1",
+          "instance_path": "#/execution_policy"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "sdl-authoring-input-v1",
+      "schema_pointer": "#/$defs/ExecutionPolicyDocument",
+      "description": "Execution choices are complete, bounded and consistent; scope identities and references are unique, effective evidence resolves exactly, and unsupported continuation claims fail closed. See specs/sdl/execution-recovery.md for the portable semantic obligations.",
+      "id": "execution-policy-executionpolicydocument",
+      "inputs": [
+        {
+          "contract_id": "sdl-authoring-input-v1",
+          "instance_path": "#/execution_policy"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "sdl-authoring-input-v1",
+      "schema_pointer": "#/$defs/ParticipantControlContextAssetModel",
+      "description": "Full conformance requires trusted exact version, lifecycle, authority, recipient, cut and content agreement.",
+      "id": "control-context-trusted-agreement",
+      "inputs": [
+        {
+          "contract_id": "participant-control-context-asset-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "sdl-candidate-synthesis-input-v1",
+      "schema_pointer": "#",
+      "description": "Every assertion and reference resolves inside one digest-pinned source envelope and assertion set.",
+      "id": "candidate-synthesis-pinned-source-join",
+      "inputs": [
+        {
+          "contract_id": "sdl-candidate-synthesis-input-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "sdl-candidate-synthesis-input-v1",
+      "schema_pointer": "#",
+      "description": "Assertions, assumptions, decisions, references, values, and target identities use stable unique ordering.",
+      "id": "candidate-synthesis-stable-input-order",
+      "inputs": [
+        {
+          "contract_id": "sdl-candidate-synthesis-input-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "sdl-candidate-synthesis-profile-v1",
+      "schema_pointer": "#",
+      "description": "The profile digest covers every output-affecting rule, default, limit, and refusal posture.",
+      "id": "candidate-synthesis-complete-profile-digest",
+      "inputs": [
+        {
+          "contract_id": "sdl-candidate-synthesis-profile-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "sdl-candidate-synthesis-record-v1",
+      "schema_pointer": "#",
+      "description": "Success carries one complete digest-bound candidate and traces; refusal carries no candidate and typed choices.",
+      "id": "candidate-synthesis-all-or-none",
+      "inputs": [
+        {
+          "contract_id": "sdl-candidate-synthesis-record-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "sdl-candidate-synthesis-record-v1",
+      "schema_pointer": "#",
+      "description": "Source assertions, assumptions, decisions, construct contributions, unresolved choices, and transformation evidence remain distinct.",
+      "id": "candidate-synthesis-provenance-separation",
+      "inputs": [
+        {
+          "contract_id": "sdl-candidate-synthesis-record-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "sdl-candidate-synthesis-record-v1",
+      "schema_pointer": "#/$defs/ArtifactTransformationReportModel",
+      "description": "Success carries a complete target digest; refusal carries no target and at least one bounded diagnostic.",
+      "id": "artifact-transformation-all-or-none",
+      "inputs": [
+        {
+          "contract_id": "artifact-transformation-report-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "sdl-candidate-synthesis-record-v1",
+      "schema_pointer": "#/$defs/ArtifactTransformationReportModel",
+      "description": "Checks, identities, mappings, losses, diagnostics, and evidence use stable closed ordering.",
+      "id": "artifact-transformation-deterministic-order",
+      "inputs": [
+        {
+          "contract_id": "artifact-transformation-report-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "sdl-candidate-synthesis-record-v1",
+      "schema_pointer": "#/$defs/CandidateSynthesisInputModel",
+      "description": "Every assertion and reference resolves inside one digest-pinned source envelope and assertion set.",
+      "id": "candidate-synthesis-pinned-source-join",
+      "inputs": [
+        {
+          "contract_id": "sdl-candidate-synthesis-input-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "sdl-candidate-synthesis-record-v1",
+      "schema_pointer": "#/$defs/CandidateSynthesisInputModel",
+      "description": "Assertions, assumptions, decisions, references, values, and target identities use stable unique ordering.",
+      "id": "candidate-synthesis-stable-input-order",
+      "inputs": [
+        {
+          "contract_id": "sdl-candidate-synthesis-input-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "sdl-candidate-synthesis-record-v1",
+      "schema_pointer": "#/$defs/CandidateSynthesisProfileDefinitionModel",
+      "description": "The profile digest covers every output-affecting rule, default, limit, and refusal posture.",
+      "id": "candidate-synthesis-complete-profile-digest",
+      "inputs": [
+        {
+          "contract_id": "sdl-candidate-synthesis-profile-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "sdl-semantic-migration-context-v1",
+      "schema_pointer": "#",
+      "description": "Each source sentinel pointer has at most one author decision.",
+      "id": "unique-sentinel-decision-pointers",
+      "inputs": [
+        {
+          "contract_id": "sdl-semantic-migration-context-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "semantic-comparison-request-v1",
+      "schema_pointer": "#",
+      "description": "Operands use one owner-specific family and are members of a digest-bound two-sided impact scope.",
+      "id": "semantic-comparison-governed-scope",
+      "inputs": [
+        {
+          "contract_id": "semantic-comparison-request-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "semantic-comparison-result-v1",
+      "schema_pointer": "#",
+      "description": "Identity, exact representation, structure, and semantic relations remain independent.",
+      "id": "semantic-comparison-independent-change-axes",
+      "inputs": [
+        {
+          "contract_id": "semantic-comparison-result-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "semantic-projection-report-v1",
+      "schema_pointer": "#",
+      "description": "Only witness rows carry digest-stable native results whose subject, producer, and profile join the embedded frame; contextual evidence admission is validated with referenced authority artifacts.",
+      "id": "semantic-projection-evidence-bounded-witnesses",
+      "inputs": [
+        {
+          "contract_id": "semantic-projection-report-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "semantic-projection-report-v1",
+      "schema_pointer": "#",
+      "description": "The complete digest-bound frame selects one native predicate and every explicitly included concept appears in exactly one structural report partition.",
+      "id": "semantic-projection-exact-frame-partition",
+      "inputs": [
+        {
+          "contract_id": "semantic-projection-report-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "trial-cleanup-plan-v1",
+      "schema_pointer": "#",
+      "description": "Cleanup boundary and dependency references resolve, ordering is acyclic, required cleanup is verifiable, and retries after non-idempotent effects declare required retry-triggered reset obligations covering the affected boundaries or compensation.",
+      "id": "trial-cleanup-plan-references-and-retry-safe",
+      "inputs": [
+        {
+          "contract_id": "trial-cleanup-plan-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "trial-cleanup-receipt-v1",
+      "schema_pointer": "#",
+      "description": "A cleanup receipt keeps attempt identity distinct, reports cleanup independently from trial outcome, reports an attempted result for every required obligation owed by the terminal trigger, keeps results consistent with obligation triggers, requires successful required results when cleanup succeeded, and permits clean-state claims only after verified success.",
+      "id": "trial-cleanup-receipt-binds-plan-and-required-outcomes",
+      "inputs": [
+        {
+          "contract_id": "trial-cleanup-plan-v1",
+          "instance_path": "#"
+        },
+        {
+          "contract_id": "trial-cleanup-receipt-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "validation-basis-disclosure-v1",
+      "schema_pointer": "#/$defs/ValidationBasisDisclosureModel",
+      "description": "A required gate not passed, a not_applicable gate outcome, a below-minimum achieved_strength, and a public/audience-restricted audience each require an explicit, profile-declared limitation (the audience-restricted case specifically requires the audience_restricted category).",
+      "id": "validation-basis-claim-capped-and-disclosed",
+      "inputs": [
+        {
+          "contract_id": "validation-basis-disclosure-v1",
+          "instance_path": "#"
+        },
+        {
+          "contract_id": "experiment-task-v1",
+          "instance_path": "#/validation_basis_disclosures"
+        },
+        {
+          "contract_id": "experiment-run-v1",
+          "instance_path": "#/validation_basis_disclosures"
+        },
+        {
+          "contract_id": "experiment-study-v1",
+          "instance_path": "#/validation_basis_disclosures"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "validation-basis-disclosure-v1",
+      "schema_pointer": "#/$defs/ValidationBasisDisclosureModel",
+      "description": "gate_results gate_kind values must be unique, drawn from the resolved profile's required/optional union, and every required gate_kind must be present.",
+      "id": "validation-basis-gate-rows-declared",
+      "inputs": [
+        {
+          "contract_id": "validation-basis-disclosure-v1",
+          "instance_path": "#"
+        },
+        {
+          "contract_id": "experiment-task-v1",
+          "instance_path": "#/validation_basis_disclosures"
+        },
+        {
+          "contract_id": "experiment-run-v1",
+          "instance_path": "#/validation_basis_disclosures"
+        },
+        {
+          "contract_id": "experiment-study-v1",
+          "instance_path": "#/validation_basis_disclosures"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "validation-basis-disclosure-v1",
+      "schema_pointer": "#/$defs/ValidationBasisDisclosureModel",
+      "description": "profile_id/profile_version/subject_kind must resolve one validation profile that declares the subject kind, and subject_ref.ref_kind must match the profile's ONE subject_kind mapping.",
+      "id": "validation-basis-profile-join-resolves",
+      "inputs": [
+        {
+          "contract_id": "validation-basis-disclosure-v1",
+          "instance_path": "#"
+        },
+        {
+          "contract_id": "experiment-task-v1",
+          "instance_path": "#/validation_basis_disclosures"
+        },
+        {
+          "contract_id": "experiment-run-v1",
+          "instance_path": "#/validation_basis_disclosures"
+        },
+        {
+          "contract_id": "experiment-study-v1",
+          "instance_path": "#/validation_basis_disclosures"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "validation-basis-disclosure-v1",
+      "schema_pointer": "#/$defs/ValidationBasisDisclosureModel",
+      "description": "achieved_strength must be supported by ADR-072-ordered passed gate rows for its own rank (structural never implies semantic; semantic never implies behavioral); evidence_backed/falsification_backed additionally require at least one evidence_ref.",
+      "id": "validation-basis-strength-ordering-valid",
+      "inputs": [
+        {
+          "contract_id": "validation-basis-disclosure-v1",
+          "instance_path": "#"
+        },
+        {
+          "contract_id": "experiment-task-v1",
+          "instance_path": "#/validation_basis_disclosures"
+        },
+        {
+          "contract_id": "experiment-run-v1",
+          "instance_path": "#/validation_basis_disclosures"
+        },
+        {
+          "contract_id": "experiment-study-v1",
+          "instance_path": "#/validation_basis_disclosures"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "validation-profile-catalog-v1",
+      "schema_pointer": "#",
+      "description": "Strength ranks and term ids must be unique, profile identities must be unique, required and optional gates must be disjoint, and every profile reference must resolve within the catalog.",
+      "id": "validation-profile-catalog-reference-integrity",
+      "inputs": [
+        {
+          "contract_id": "validation-profile-catalog-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    }
+  ]
+}

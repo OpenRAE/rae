@@ -1,0 +1,2211 @@
+{
+  "simultaneous": {
+    "Profile": {
+      "contract_id": "mixed-participant-composition-profile-v1",
+      "schema_version": "mixed-participant-composition-profile/v1",
+      "semantic_revision": "sem-234/rev1",
+      "profile_revision": "mixed-cross-backend-participant-control-v1@rev1",
+      "profile_id": "profile:mixed",
+      "scenario_snapshot_ref": {
+        "ref_kind": "scenario-snapshot",
+        "ref_id": "scenario:authored",
+        "ref_version": "1",
+        "ref_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "ref_path": null
+      },
+      "composition_mode": "simultaneous-mixed",
+      "control_loop_posture": "closed-loop",
+      "world_assumption": "bounded-open-world",
+      "federation_membership": "pre-admitted-staged",
+      "components": {
+        "sim": {
+          "component_id": "sim",
+          "apparatus_identity_ref": "apparatus:sim",
+          "realization_form": "simulation",
+          "manifest_ref": {
+            "ref_kind": "manifest",
+            "ref_id": "sim",
+            "ref_version": "backend-manifest/v2",
+            "ref_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "ref_path": null,
+            "subject_ref": {
+              "ref_kind": "backend",
+              "ref_id": "sim",
+              "ref_version": "1",
+              "ref_digest": null,
+              "ref_path": null
+            }
+          },
+          "realization_envelope": {
+            "contract_id": "realization-envelope-v1",
+            "envelope_id": "envelope:sim",
+            "schema_version": "realization-envelope/v1",
+            "digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "configuration_digest": "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+          },
+          "native_ownership_ref": "native-ownership:sim"
+        },
+        "emu": {
+          "component_id": "emu",
+          "apparatus_identity_ref": "apparatus:emu",
+          "realization_form": "emulation-or-operation",
+          "manifest_ref": {
+            "ref_kind": "manifest",
+            "ref_id": "emu",
+            "ref_version": "backend-manifest/v2",
+            "ref_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "ref_path": null,
+            "subject_ref": {
+              "ref_kind": "backend",
+              "ref_id": "emu",
+              "ref_version": "1",
+              "ref_digest": null,
+              "ref_path": null
+            }
+          },
+          "realization_envelope": {
+            "contract_id": "realization-envelope-v1",
+            "envelope_id": "envelope:emu",
+            "schema_version": "realization-envelope/v1",
+            "digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "configuration_digest": "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+          },
+          "native_ownership_ref": "native-ownership:emu"
+        }
+      },
+      "allocations": {
+        "allocation.participant": {
+          "allocation_id": "allocation.participant",
+          "target_kind": "participant",
+          "target_address": "participants.alice",
+          "provider_component_id": "sim",
+          "phase_ids": [
+            "phase.main"
+          ],
+          "participant_identity_ref": "participant:alice",
+          "controller_ref": "controller:operator",
+          "action_authority_ref": "authority:action",
+          "routing_ref": "route:portable",
+          "feature_requirements": [
+            {
+              "feature": "participant_ingress_admission",
+              "required_level": "exact",
+              "allowed_downgrade_level": null,
+              "downgrade_policy_ref": null,
+              "downgrade_provenance_ref": null
+            }
+          ]
+        },
+        "allocation.scope": {
+          "allocation_id": "allocation.scope",
+          "target_kind": "controlled-scope",
+          "target_address": "nodes.target",
+          "provider_component_id": "emu",
+          "phase_ids": [
+            "phase.main"
+          ],
+          "participant_identity_ref": "participant:alice",
+          "controller_ref": "controller:operator",
+          "action_authority_ref": "authority:action",
+          "routing_ref": "route:portable",
+          "feature_requirements": [
+            {
+              "feature": "participant_ingress_admission",
+              "required_level": "exact",
+              "allowed_downgrade_level": null,
+              "downgrade_policy_ref": null,
+              "downgrade_provenance_ref": null
+            }
+          ]
+        },
+        "allocation.action": {
+          "allocation_id": "allocation.action",
+          "target_kind": "action-family",
+          "target_address": "actions.alice.inspect",
+          "provider_component_id": "sim",
+          "phase_ids": [
+            "phase.main"
+          ],
+          "participant_identity_ref": "participant:alice",
+          "controller_ref": "controller:operator",
+          "action_authority_ref": "authority:action",
+          "routing_ref": "route:portable",
+          "feature_requirements": [
+            {
+              "feature": "participant_ingress_admission",
+              "required_level": "exact",
+              "allowed_downgrade_level": null,
+              "downgrade_policy_ref": null,
+              "downgrade_provenance_ref": null
+            }
+          ]
+        },
+        "allocation.observation": {
+          "allocation_id": "allocation.observation",
+          "target_kind": "observation-source",
+          "target_address": "observations.target.status",
+          "provider_component_id": "emu",
+          "phase_ids": [
+            "phase.main"
+          ],
+          "participant_identity_ref": "participant:alice",
+          "controller_ref": "controller:operator",
+          "action_authority_ref": "authority:action",
+          "routing_ref": "route:portable",
+          "feature_requirements": [
+            {
+              "feature": "participant_ingress_admission",
+              "required_level": "exact",
+              "allowed_downgrade_level": null,
+              "downgrade_policy_ref": null,
+              "downgrade_provenance_ref": null
+            }
+          ]
+        },
+        "allocation.crossing": {
+          "allocation_id": "allocation.crossing",
+          "target_kind": "crossing",
+          "target_address": "crossings.alice.status",
+          "provider_component_id": "emu",
+          "phase_ids": [
+            "phase.main"
+          ],
+          "participant_identity_ref": "participant:alice",
+          "controller_ref": "controller:operator",
+          "action_authority_ref": "authority:action",
+          "routing_ref": "route:portable",
+          "feature_requirements": [
+            {
+              "feature": "participant_ingress_admission",
+              "required_level": "exact",
+              "allowed_downgrade_level": null,
+              "downgrade_policy_ref": null,
+              "downgrade_provenance_ref": null
+            }
+          ]
+        }
+      },
+      "edges": {
+        "edge.sim-to-emu": {
+          "edge_id": "edge.sim-to-emu",
+          "source_component_id": "sim",
+          "target_component_id": "emu",
+          "phase_ids": [
+            "phase.main"
+          ],
+          "crossing_scope_address": "crossings.alice.status",
+          "crossing_subject": {
+            "subject_kind": "participant-observation",
+            "contract_id": "participant-observation-envelope-v1",
+            "subject_ref": "observation:status",
+            "subject_revision": "7",
+            "subject_digest": null,
+            "participant_address": "participants.alice",
+            "episode_id": "episode:1"
+          },
+          "audience_scope_ref": "audience:alice",
+          "policy": {
+            "policy_id": "policy:crossing",
+            "policy_revision": "3",
+            "policy_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "policy_decision_ref": "decision:7",
+            "decision_cut_ref": "cut:7",
+            "effective_order": 7,
+            "valid_from_order": 1,
+            "valid_until_order": 9
+          },
+          "controller_ref": "controller:operator",
+          "authority_ref": "authority:edge",
+          "routing_ref": "route:portable",
+          "disclosure_authority_ref": "authority:disclosure",
+          "native_ownership_ref": "native-ownership:sim",
+          "time_binding": {
+            "time_model_ref": "time-model:composition",
+            "time_model_digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "source_clock_address": "time.clocks.sim",
+            "target_clock_address": "time.clocks.emu",
+            "mapping_address": "time.mappings.sim-to-emu",
+            "ordering_basis": "partial_order",
+            "temporal_coupling": "bounded-asynchronous"
+          },
+          "mapping_loss": {
+            "kind": "semantics_approximated",
+            "basis_ref": "mapping:basis",
+            "affected_ref": "observation:status",
+            "limitation_ref": "limitation:mapping"
+          },
+          "failure_behavior": {
+            "failure_ref": "failure:edge",
+            "disposition": "fail-profile"
+          },
+          "evidence_bindings": [
+            {
+              "obligation_ref": "obligation:edge-realization",
+              "evidence_ref": "evidence:edge-realization"
+            }
+          ]
+        }
+      },
+      "phases": {
+        "phase.main": {
+          "phase_id": "phase.main",
+          "active_component_ids": [
+            "sim",
+            "emu"
+          ],
+          "active_allocation_ids": [
+            "allocation.participant",
+            "allocation.scope",
+            "allocation.action",
+            "allocation.observation",
+            "allocation.crossing"
+          ],
+          "active_edge_ids": [
+            "edge.sim-to-emu"
+          ],
+          "evidence_bindings": [
+            {
+              "obligation_ref": "obligation:phase-realization",
+              "evidence_ref": "evidence:phase-realization"
+            }
+          ]
+        }
+      },
+      "initial_phase_id": "phase.main",
+      "phase_order": [
+        "phase.main"
+      ],
+      "transitions": {},
+      "nested_profile_refs": {},
+      "profile_digest": "sha256:3ca478e78eb266e86472b75a529a368528e6de14969ca4b2f2f9438e92e36f8e"
+    },
+    "Scenario": {
+      "ref_kind": "scenario-snapshot",
+      "ref_id": "scenario:authored",
+      "ref_version": "1",
+      "ref_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "ref_path": null
+    },
+    "TimeModel": {
+      "schema_version": "time-model/v1",
+      "domains": {
+        "time.domains.sim": {
+          "address": "time.domains.sim",
+          "kind": "simulated",
+          "tick_period_seconds": {
+            "numerator": 1,
+            "denominator": 1
+          },
+          "epoch": "scenario_start",
+          "visibility": "runtime_only",
+          "description": "simulation domain"
+        },
+        "time.domains.emu": {
+          "address": "time.domains.emu",
+          "kind": "simulated",
+          "tick_period_seconds": {
+            "numerator": 1,
+            "denominator": 1
+          },
+          "epoch": "scenario_start",
+          "visibility": "runtime_only",
+          "description": "emulation domain"
+        }
+      },
+      "clocks": {
+        "time.clocks.sim": {
+          "address": "time.clocks.sim",
+          "time_domain_address": "time.domains.sim",
+          "authority_kind": "backend",
+          "authority_ref": "sim",
+          "monotonicity": "non_decreasing",
+          "supports_pause": false,
+          "supports_reset": false,
+          "supports_jump": false,
+          "description": "simulation clock"
+        },
+        "time.clocks.emu": {
+          "address": "time.clocks.emu",
+          "time_domain_address": "time.domains.emu",
+          "authority_kind": "backend",
+          "authority_ref": "emu",
+          "monotonicity": "non_decreasing",
+          "supports_pause": false,
+          "supports_reset": false,
+          "supports_jump": false,
+          "description": "emulation clock"
+        }
+      },
+      "mappings": {
+        "time.mappings.sim-to-emu": {
+          "address": "time.mappings.sim-to-emu",
+          "source_domain_address": "time.domains.sim",
+          "target_domain_address": "time.domains.emu",
+          "mapping_kind": "identity",
+          "scale": {
+            "numerator": 1,
+            "denominator": 1
+          },
+          "offset_ticks": 0,
+          "description": "shared admitted tick scale"
+        }
+      },
+      "progression_policies": {},
+      "temporal_constraints": {}
+    },
+    "TimeDigest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+    "CompiledTargets": {
+      "participants.alice": "participant",
+      "nodes.target": "controlled-scope",
+      "actions.alice.inspect": "action-family",
+      "observations.target.status": "observation-source",
+      "crossings.alice.status": "crossing"
+    },
+    "Evidence": {
+      "obligation:edge-realization": [
+        "evidence:edge-realization"
+      ],
+      "obligation:phase-realization": [
+        "evidence:phase-realization"
+      ]
+    },
+    "Components": {
+      "sim": {
+        "component_id": "sim",
+        "apparatus_identity_ref": "apparatus:sim",
+        "realization_form": "simulation",
+        "manifest_ref": {
+          "ref_kind": "manifest",
+          "ref_id": "sim",
+          "ref_version": "backend-manifest/v2",
+          "ref_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "ref_path": null,
+          "subject_ref": {
+            "ref_kind": "backend",
+            "ref_id": "sim",
+            "ref_version": "1",
+            "ref_digest": null,
+            "ref_path": null
+          }
+        },
+        "realization_envelope": {
+          "contract_id": "realization-envelope-v1",
+          "envelope_id": "envelope:sim",
+          "schema_version": "realization-envelope/v1",
+          "digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "configuration_digest": "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+        },
+        "native_ownership_ref": "native-ownership:sim"
+      },
+      "emu": {
+        "component_id": "emu",
+        "apparatus_identity_ref": "apparatus:emu",
+        "realization_form": "emulation-or-operation",
+        "manifest_ref": {
+          "ref_kind": "manifest",
+          "ref_id": "emu",
+          "ref_version": "backend-manifest/v2",
+          "ref_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "ref_path": null,
+          "subject_ref": {
+            "ref_kind": "backend",
+            "ref_id": "emu",
+            "ref_version": "1",
+            "ref_digest": null,
+            "ref_path": null
+          }
+        },
+        "realization_envelope": {
+          "contract_id": "realization-envelope-v1",
+          "envelope_id": "envelope:emu",
+          "schema_version": "realization-envelope/v1",
+          "digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "configuration_digest": "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+        },
+        "native_ownership_ref": "native-ownership:emu"
+      }
+    },
+    "Allocations": {
+      "allocation.participant": {
+        "allocation_id": "allocation.participant",
+        "target_kind": "participant",
+        "target_address": "participants.alice",
+        "provider_component_id": "sim",
+        "phase_ids": [
+          "phase.main"
+        ],
+        "participant_identity_ref": "participant:alice",
+        "controller_ref": "controller:operator",
+        "action_authority_ref": "authority:action",
+        "routing_ref": "route:portable",
+        "feature_requirements": [
+          {
+            "feature": "participant_ingress_admission",
+            "required_level": "exact",
+            "allowed_downgrade_level": null,
+            "downgrade_policy_ref": null,
+            "downgrade_provenance_ref": null
+          }
+        ]
+      },
+      "allocation.scope": {
+        "allocation_id": "allocation.scope",
+        "target_kind": "controlled-scope",
+        "target_address": "nodes.target",
+        "provider_component_id": "emu",
+        "phase_ids": [
+          "phase.main"
+        ],
+        "participant_identity_ref": "participant:alice",
+        "controller_ref": "controller:operator",
+        "action_authority_ref": "authority:action",
+        "routing_ref": "route:portable",
+        "feature_requirements": [
+          {
+            "feature": "participant_ingress_admission",
+            "required_level": "exact",
+            "allowed_downgrade_level": null,
+            "downgrade_policy_ref": null,
+            "downgrade_provenance_ref": null
+          }
+        ]
+      },
+      "allocation.action": {
+        "allocation_id": "allocation.action",
+        "target_kind": "action-family",
+        "target_address": "actions.alice.inspect",
+        "provider_component_id": "sim",
+        "phase_ids": [
+          "phase.main"
+        ],
+        "participant_identity_ref": "participant:alice",
+        "controller_ref": "controller:operator",
+        "action_authority_ref": "authority:action",
+        "routing_ref": "route:portable",
+        "feature_requirements": [
+          {
+            "feature": "participant_ingress_admission",
+            "required_level": "exact",
+            "allowed_downgrade_level": null,
+            "downgrade_policy_ref": null,
+            "downgrade_provenance_ref": null
+          }
+        ]
+      },
+      "allocation.observation": {
+        "allocation_id": "allocation.observation",
+        "target_kind": "observation-source",
+        "target_address": "observations.target.status",
+        "provider_component_id": "emu",
+        "phase_ids": [
+          "phase.main"
+        ],
+        "participant_identity_ref": "participant:alice",
+        "controller_ref": "controller:operator",
+        "action_authority_ref": "authority:action",
+        "routing_ref": "route:portable",
+        "feature_requirements": [
+          {
+            "feature": "participant_ingress_admission",
+            "required_level": "exact",
+            "allowed_downgrade_level": null,
+            "downgrade_policy_ref": null,
+            "downgrade_provenance_ref": null
+          }
+        ]
+      },
+      "allocation.crossing": {
+        "allocation_id": "allocation.crossing",
+        "target_kind": "crossing",
+        "target_address": "crossings.alice.status",
+        "provider_component_id": "emu",
+        "phase_ids": [
+          "phase.main"
+        ],
+        "participant_identity_ref": "participant:alice",
+        "controller_ref": "controller:operator",
+        "action_authority_ref": "authority:action",
+        "routing_ref": "route:portable",
+        "feature_requirements": [
+          {
+            "feature": "participant_ingress_admission",
+            "required_level": "exact",
+            "allowed_downgrade_level": null,
+            "downgrade_policy_ref": null,
+            "downgrade_provenance_ref": null
+          }
+        ]
+      }
+    },
+    "Edges": {
+      "edge.sim-to-emu": {
+        "edge_id": "edge.sim-to-emu",
+        "source_component_id": "sim",
+        "target_component_id": "emu",
+        "phase_ids": [
+          "phase.main"
+        ],
+        "crossing_scope_address": "crossings.alice.status",
+        "crossing_subject": {
+          "subject_kind": "participant-observation",
+          "contract_id": "participant-observation-envelope-v1",
+          "subject_ref": "observation:status",
+          "subject_revision": "7",
+          "subject_digest": null,
+          "participant_address": "participants.alice",
+          "episode_id": "episode:1"
+        },
+        "audience_scope_ref": "audience:alice",
+        "policy": {
+          "policy_id": "policy:crossing",
+          "policy_revision": "3",
+          "policy_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "policy_decision_ref": "decision:7",
+          "decision_cut_ref": "cut:7",
+          "effective_order": 7,
+          "valid_from_order": 1,
+          "valid_until_order": 9
+        },
+        "controller_ref": "controller:operator",
+        "authority_ref": "authority:edge",
+        "routing_ref": "route:portable",
+        "disclosure_authority_ref": "authority:disclosure",
+        "native_ownership_ref": "native-ownership:sim",
+        "time_binding": {
+          "time_model_ref": "time-model:composition",
+          "time_model_digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "source_clock_address": "time.clocks.sim",
+          "target_clock_address": "time.clocks.emu",
+          "mapping_address": "time.mappings.sim-to-emu",
+          "ordering_basis": "partial_order",
+          "temporal_coupling": "bounded-asynchronous"
+        },
+        "mapping_loss": {
+          "kind": "semantics_approximated",
+          "basis_ref": "mapping:basis",
+          "affected_ref": "observation:status",
+          "limitation_ref": "limitation:mapping"
+        },
+        "failure_behavior": {
+          "failure_ref": "failure:edge",
+          "disposition": "fail-profile"
+        },
+        "evidence_bindings": [
+          {
+            "obligation_ref": "obligation:edge-realization",
+            "evidence_ref": "evidence:edge-realization"
+          }
+        ]
+      }
+    },
+    "Transitions": {},
+    "Features": {
+      "sim/participant_ingress_admission": {
+        "feature": "participant_ingress_admission",
+        "required_level": "exact",
+        "allowed_downgrade_level": null,
+        "downgrade_policy_ref": null,
+        "downgrade_provenance_ref": null
+      },
+      "emu/participant_ingress_admission": {
+        "feature": "participant_ingress_admission",
+        "required_level": "exact",
+        "allowed_downgrade_level": null,
+        "downgrade_policy_ref": null,
+        "downgrade_provenance_ref": null
+      }
+    }
+  },
+  "alternative": {
+    "Profile": {
+      "contract_id": "mixed-participant-composition-profile-v1",
+      "schema_version": "mixed-participant-composition-profile/v1",
+      "semantic_revision": "sem-234/rev1",
+      "profile_revision": "mixed-cross-backend-participant-control-v1@rev1",
+      "profile_id": "profile:mixed",
+      "scenario_snapshot_ref": {
+        "ref_kind": "scenario-snapshot",
+        "ref_id": "scenario:authored",
+        "ref_version": "1",
+        "ref_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "ref_path": null
+      },
+      "composition_mode": "alternative",
+      "control_loop_posture": "closed-loop",
+      "world_assumption": "bounded-open-world",
+      "federation_membership": "fixed",
+      "components": {
+        "sim": {
+          "component_id": "sim",
+          "apparatus_identity_ref": "apparatus:sim",
+          "realization_form": "simulation",
+          "manifest_ref": {
+            "ref_kind": "manifest",
+            "ref_id": "sim",
+            "ref_version": "backend-manifest/v2",
+            "ref_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "ref_path": null,
+            "subject_ref": {
+              "ref_kind": "backend",
+              "ref_id": "sim",
+              "ref_version": "1",
+              "ref_digest": null,
+              "ref_path": null
+            }
+          },
+          "realization_envelope": {
+            "contract_id": "realization-envelope-v1",
+            "envelope_id": "envelope:sim",
+            "schema_version": "realization-envelope/v1",
+            "digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "configuration_digest": "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+          },
+          "native_ownership_ref": "native-ownership:sim"
+        }
+      },
+      "allocations": {
+        "allocation.participant": {
+          "allocation_id": "allocation.participant",
+          "target_kind": "participant",
+          "target_address": "participants.alice",
+          "provider_component_id": "sim",
+          "phase_ids": [
+            "phase.main"
+          ],
+          "participant_identity_ref": "participant:alice",
+          "controller_ref": "controller:operator",
+          "action_authority_ref": "authority:action",
+          "routing_ref": "route:portable",
+          "feature_requirements": [
+            {
+              "feature": "participant_ingress_admission",
+              "required_level": "exact",
+              "allowed_downgrade_level": null,
+              "downgrade_policy_ref": null,
+              "downgrade_provenance_ref": null
+            }
+          ]
+        },
+        "allocation.scope": {
+          "allocation_id": "allocation.scope",
+          "target_kind": "controlled-scope",
+          "target_address": "nodes.target",
+          "provider_component_id": "sim",
+          "phase_ids": [
+            "phase.main"
+          ],
+          "participant_identity_ref": "participant:alice",
+          "controller_ref": "controller:operator",
+          "action_authority_ref": "authority:action",
+          "routing_ref": "route:portable",
+          "feature_requirements": [
+            {
+              "feature": "participant_ingress_admission",
+              "required_level": "exact",
+              "allowed_downgrade_level": null,
+              "downgrade_policy_ref": null,
+              "downgrade_provenance_ref": null
+            }
+          ]
+        },
+        "allocation.action": {
+          "allocation_id": "allocation.action",
+          "target_kind": "action-family",
+          "target_address": "actions.alice.inspect",
+          "provider_component_id": "sim",
+          "phase_ids": [
+            "phase.main"
+          ],
+          "participant_identity_ref": "participant:alice",
+          "controller_ref": "controller:operator",
+          "action_authority_ref": "authority:action",
+          "routing_ref": "route:portable",
+          "feature_requirements": [
+            {
+              "feature": "participant_ingress_admission",
+              "required_level": "exact",
+              "allowed_downgrade_level": null,
+              "downgrade_policy_ref": null,
+              "downgrade_provenance_ref": null
+            }
+          ]
+        },
+        "allocation.observation": {
+          "allocation_id": "allocation.observation",
+          "target_kind": "observation-source",
+          "target_address": "observations.target.status",
+          "provider_component_id": "sim",
+          "phase_ids": [
+            "phase.main"
+          ],
+          "participant_identity_ref": "participant:alice",
+          "controller_ref": "controller:operator",
+          "action_authority_ref": "authority:action",
+          "routing_ref": "route:portable",
+          "feature_requirements": [
+            {
+              "feature": "participant_ingress_admission",
+              "required_level": "exact",
+              "allowed_downgrade_level": null,
+              "downgrade_policy_ref": null,
+              "downgrade_provenance_ref": null
+            }
+          ]
+        },
+        "allocation.crossing": {
+          "allocation_id": "allocation.crossing",
+          "target_kind": "crossing",
+          "target_address": "crossings.alice.status",
+          "provider_component_id": "sim",
+          "phase_ids": [
+            "phase.main"
+          ],
+          "participant_identity_ref": "participant:alice",
+          "controller_ref": "controller:operator",
+          "action_authority_ref": "authority:action",
+          "routing_ref": "route:portable",
+          "feature_requirements": [
+            {
+              "feature": "participant_ingress_admission",
+              "required_level": "exact",
+              "allowed_downgrade_level": null,
+              "downgrade_policy_ref": null,
+              "downgrade_provenance_ref": null
+            }
+          ]
+        }
+      },
+      "edges": {},
+      "phases": {
+        "phase.main": {
+          "phase_id": "phase.main",
+          "active_component_ids": [
+            "sim"
+          ],
+          "active_allocation_ids": [
+            "allocation.participant",
+            "allocation.scope",
+            "allocation.action",
+            "allocation.observation",
+            "allocation.crossing"
+          ],
+          "active_edge_ids": [],
+          "evidence_bindings": [
+            {
+              "obligation_ref": "obligation:phase-realization",
+              "evidence_ref": "evidence:phase-realization"
+            }
+          ]
+        }
+      },
+      "initial_phase_id": "phase.main",
+      "phase_order": [
+        "phase.main"
+      ],
+      "transitions": {},
+      "nested_profile_refs": {},
+      "profile_digest": "sha256:dda8b7fafb4a2f1acd06265bf4c83d89ba9a1f349a76624a9188638a802f1df2"
+    },
+    "Scenario": {
+      "ref_kind": "scenario-snapshot",
+      "ref_id": "scenario:authored",
+      "ref_version": "1",
+      "ref_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "ref_path": null
+    },
+    "TimeModel": {
+      "schema_version": "time-model/v1",
+      "domains": {
+        "time.domains.sim": {
+          "address": "time.domains.sim",
+          "kind": "simulated",
+          "tick_period_seconds": {
+            "numerator": 1,
+            "denominator": 1
+          },
+          "epoch": "scenario_start",
+          "visibility": "runtime_only",
+          "description": "simulation domain"
+        },
+        "time.domains.emu": {
+          "address": "time.domains.emu",
+          "kind": "simulated",
+          "tick_period_seconds": {
+            "numerator": 1,
+            "denominator": 1
+          },
+          "epoch": "scenario_start",
+          "visibility": "runtime_only",
+          "description": "emulation domain"
+        }
+      },
+      "clocks": {
+        "time.clocks.sim": {
+          "address": "time.clocks.sim",
+          "time_domain_address": "time.domains.sim",
+          "authority_kind": "backend",
+          "authority_ref": "sim",
+          "monotonicity": "non_decreasing",
+          "supports_pause": false,
+          "supports_reset": false,
+          "supports_jump": false,
+          "description": "simulation clock"
+        },
+        "time.clocks.emu": {
+          "address": "time.clocks.emu",
+          "time_domain_address": "time.domains.emu",
+          "authority_kind": "backend",
+          "authority_ref": "emu",
+          "monotonicity": "non_decreasing",
+          "supports_pause": false,
+          "supports_reset": false,
+          "supports_jump": false,
+          "description": "emulation clock"
+        }
+      },
+      "mappings": {
+        "time.mappings.sim-to-emu": {
+          "address": "time.mappings.sim-to-emu",
+          "source_domain_address": "time.domains.sim",
+          "target_domain_address": "time.domains.emu",
+          "mapping_kind": "identity",
+          "scale": {
+            "numerator": 1,
+            "denominator": 1
+          },
+          "offset_ticks": 0,
+          "description": "shared admitted tick scale"
+        }
+      },
+      "progression_policies": {},
+      "temporal_constraints": {}
+    },
+    "TimeDigest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+    "CompiledTargets": {
+      "participants.alice": "participant",
+      "nodes.target": "controlled-scope",
+      "actions.alice.inspect": "action-family",
+      "observations.target.status": "observation-source",
+      "crossings.alice.status": "crossing"
+    },
+    "Evidence": {
+      "obligation:phase-realization": [
+        "evidence:phase-realization"
+      ]
+    },
+    "Components": {
+      "sim": {
+        "component_id": "sim",
+        "apparatus_identity_ref": "apparatus:sim",
+        "realization_form": "simulation",
+        "manifest_ref": {
+          "ref_kind": "manifest",
+          "ref_id": "sim",
+          "ref_version": "backend-manifest/v2",
+          "ref_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "ref_path": null,
+          "subject_ref": {
+            "ref_kind": "backend",
+            "ref_id": "sim",
+            "ref_version": "1",
+            "ref_digest": null,
+            "ref_path": null
+          }
+        },
+        "realization_envelope": {
+          "contract_id": "realization-envelope-v1",
+          "envelope_id": "envelope:sim",
+          "schema_version": "realization-envelope/v1",
+          "digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "configuration_digest": "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+        },
+        "native_ownership_ref": "native-ownership:sim"
+      }
+    },
+    "Allocations": {
+      "allocation.participant": {
+        "allocation_id": "allocation.participant",
+        "target_kind": "participant",
+        "target_address": "participants.alice",
+        "provider_component_id": "sim",
+        "phase_ids": [
+          "phase.main"
+        ],
+        "participant_identity_ref": "participant:alice",
+        "controller_ref": "controller:operator",
+        "action_authority_ref": "authority:action",
+        "routing_ref": "route:portable",
+        "feature_requirements": [
+          {
+            "feature": "participant_ingress_admission",
+            "required_level": "exact",
+            "allowed_downgrade_level": null,
+            "downgrade_policy_ref": null,
+            "downgrade_provenance_ref": null
+          }
+        ]
+      },
+      "allocation.scope": {
+        "allocation_id": "allocation.scope",
+        "target_kind": "controlled-scope",
+        "target_address": "nodes.target",
+        "provider_component_id": "sim",
+        "phase_ids": [
+          "phase.main"
+        ],
+        "participant_identity_ref": "participant:alice",
+        "controller_ref": "controller:operator",
+        "action_authority_ref": "authority:action",
+        "routing_ref": "route:portable",
+        "feature_requirements": [
+          {
+            "feature": "participant_ingress_admission",
+            "required_level": "exact",
+            "allowed_downgrade_level": null,
+            "downgrade_policy_ref": null,
+            "downgrade_provenance_ref": null
+          }
+        ]
+      },
+      "allocation.action": {
+        "allocation_id": "allocation.action",
+        "target_kind": "action-family",
+        "target_address": "actions.alice.inspect",
+        "provider_component_id": "sim",
+        "phase_ids": [
+          "phase.main"
+        ],
+        "participant_identity_ref": "participant:alice",
+        "controller_ref": "controller:operator",
+        "action_authority_ref": "authority:action",
+        "routing_ref": "route:portable",
+        "feature_requirements": [
+          {
+            "feature": "participant_ingress_admission",
+            "required_level": "exact",
+            "allowed_downgrade_level": null,
+            "downgrade_policy_ref": null,
+            "downgrade_provenance_ref": null
+          }
+        ]
+      },
+      "allocation.observation": {
+        "allocation_id": "allocation.observation",
+        "target_kind": "observation-source",
+        "target_address": "observations.target.status",
+        "provider_component_id": "sim",
+        "phase_ids": [
+          "phase.main"
+        ],
+        "participant_identity_ref": "participant:alice",
+        "controller_ref": "controller:operator",
+        "action_authority_ref": "authority:action",
+        "routing_ref": "route:portable",
+        "feature_requirements": [
+          {
+            "feature": "participant_ingress_admission",
+            "required_level": "exact",
+            "allowed_downgrade_level": null,
+            "downgrade_policy_ref": null,
+            "downgrade_provenance_ref": null
+          }
+        ]
+      },
+      "allocation.crossing": {
+        "allocation_id": "allocation.crossing",
+        "target_kind": "crossing",
+        "target_address": "crossings.alice.status",
+        "provider_component_id": "sim",
+        "phase_ids": [
+          "phase.main"
+        ],
+        "participant_identity_ref": "participant:alice",
+        "controller_ref": "controller:operator",
+        "action_authority_ref": "authority:action",
+        "routing_ref": "route:portable",
+        "feature_requirements": [
+          {
+            "feature": "participant_ingress_admission",
+            "required_level": "exact",
+            "allowed_downgrade_level": null,
+            "downgrade_policy_ref": null,
+            "downgrade_provenance_ref": null
+          }
+        ]
+      }
+    },
+    "Edges": {},
+    "Transitions": {},
+    "Features": {
+      "sim/participant_ingress_admission": {
+        "feature": "participant_ingress_admission",
+        "required_level": "exact",
+        "allowed_downgrade_level": null,
+        "downgrade_policy_ref": null,
+        "downgrade_provenance_ref": null
+      }
+    }
+  },
+  "staged": {
+    "Profile": {
+      "contract_id": "mixed-participant-composition-profile-v1",
+      "schema_version": "mixed-participant-composition-profile/v1",
+      "semantic_revision": "sem-234/rev1",
+      "profile_revision": "mixed-cross-backend-participant-control-v1@rev1",
+      "profile_id": "profile:mixed",
+      "scenario_snapshot_ref": {
+        "ref_kind": "scenario-snapshot",
+        "ref_id": "scenario:authored",
+        "ref_version": "1",
+        "ref_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "ref_path": null
+      },
+      "composition_mode": "staged",
+      "control_loop_posture": "closed-loop",
+      "world_assumption": "bounded-open-world",
+      "federation_membership": "pre-admitted-staged",
+      "components": {
+        "sim": {
+          "component_id": "sim",
+          "apparatus_identity_ref": "apparatus:sim",
+          "realization_form": "simulation",
+          "manifest_ref": {
+            "ref_kind": "manifest",
+            "ref_id": "sim",
+            "ref_version": "backend-manifest/v2",
+            "ref_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "ref_path": null,
+            "subject_ref": {
+              "ref_kind": "backend",
+              "ref_id": "sim",
+              "ref_version": "1",
+              "ref_digest": null,
+              "ref_path": null
+            }
+          },
+          "realization_envelope": {
+            "contract_id": "realization-envelope-v1",
+            "envelope_id": "envelope:sim",
+            "schema_version": "realization-envelope/v1",
+            "digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "configuration_digest": "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+          },
+          "native_ownership_ref": "native-ownership:sim"
+        },
+        "emu": {
+          "component_id": "emu",
+          "apparatus_identity_ref": "apparatus:emu",
+          "realization_form": "emulation-or-operation",
+          "manifest_ref": {
+            "ref_kind": "manifest",
+            "ref_id": "emu",
+            "ref_version": "backend-manifest/v2",
+            "ref_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "ref_path": null,
+            "subject_ref": {
+              "ref_kind": "backend",
+              "ref_id": "emu",
+              "ref_version": "1",
+              "ref_digest": null,
+              "ref_path": null
+            }
+          },
+          "realization_envelope": {
+            "contract_id": "realization-envelope-v1",
+            "envelope_id": "envelope:emu",
+            "schema_version": "realization-envelope/v1",
+            "digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "configuration_digest": "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+          },
+          "native_ownership_ref": "native-ownership:emu"
+        }
+      },
+      "allocations": {
+        "allocation.participant": {
+          "allocation_id": "allocation.participant",
+          "target_kind": "participant",
+          "target_address": "participants.alice",
+          "provider_component_id": "sim",
+          "phase_ids": [
+            "phase.sim"
+          ],
+          "participant_identity_ref": "participant:alice",
+          "controller_ref": "controller:operator",
+          "action_authority_ref": "authority:action",
+          "routing_ref": "route:portable",
+          "feature_requirements": [
+            {
+              "feature": "participant_ingress_admission",
+              "required_level": "exact",
+              "allowed_downgrade_level": null,
+              "downgrade_policy_ref": null,
+              "downgrade_provenance_ref": null
+            }
+          ]
+        },
+        "allocation.scope": {
+          "allocation_id": "allocation.scope",
+          "target_kind": "controlled-scope",
+          "target_address": "nodes.target",
+          "provider_component_id": "emu",
+          "phase_ids": [
+            "phase.emu"
+          ],
+          "participant_identity_ref": "participant:alice",
+          "controller_ref": "controller:operator",
+          "action_authority_ref": "authority:action",
+          "routing_ref": "route:portable",
+          "feature_requirements": [
+            {
+              "feature": "participant_ingress_admission",
+              "required_level": "exact",
+              "allowed_downgrade_level": null,
+              "downgrade_policy_ref": null,
+              "downgrade_provenance_ref": null
+            }
+          ]
+        },
+        "allocation.action": {
+          "allocation_id": "allocation.action",
+          "target_kind": "action-family",
+          "target_address": "actions.alice.inspect",
+          "provider_component_id": "sim",
+          "phase_ids": [
+            "phase.sim"
+          ],
+          "participant_identity_ref": "participant:alice",
+          "controller_ref": "controller:operator",
+          "action_authority_ref": "authority:action",
+          "routing_ref": "route:portable",
+          "feature_requirements": [
+            {
+              "feature": "participant_ingress_admission",
+              "required_level": "exact",
+              "allowed_downgrade_level": null,
+              "downgrade_policy_ref": null,
+              "downgrade_provenance_ref": null
+            }
+          ]
+        },
+        "allocation.observation": {
+          "allocation_id": "allocation.observation",
+          "target_kind": "observation-source",
+          "target_address": "observations.target.status",
+          "provider_component_id": "emu",
+          "phase_ids": [
+            "phase.emu"
+          ],
+          "participant_identity_ref": "participant:alice",
+          "controller_ref": "controller:operator",
+          "action_authority_ref": "authority:action",
+          "routing_ref": "route:portable",
+          "feature_requirements": [
+            {
+              "feature": "participant_ingress_admission",
+              "required_level": "exact",
+              "allowed_downgrade_level": null,
+              "downgrade_policy_ref": null,
+              "downgrade_provenance_ref": null
+            }
+          ]
+        },
+        "allocation.crossing": {
+          "allocation_id": "allocation.crossing",
+          "target_kind": "crossing",
+          "target_address": "crossings.alice.status",
+          "provider_component_id": "emu",
+          "phase_ids": [
+            "phase.emu"
+          ],
+          "participant_identity_ref": "participant:alice",
+          "controller_ref": "controller:operator",
+          "action_authority_ref": "authority:action",
+          "routing_ref": "route:portable",
+          "feature_requirements": [
+            {
+              "feature": "participant_ingress_admission",
+              "required_level": "exact",
+              "allowed_downgrade_level": null,
+              "downgrade_policy_ref": null,
+              "downgrade_provenance_ref": null
+            }
+          ]
+        }
+      },
+      "edges": {},
+      "phases": {
+        "phase.sim": {
+          "phase_id": "phase.sim",
+          "active_component_ids": [
+            "sim"
+          ],
+          "active_allocation_ids": [
+            "allocation.participant",
+            "allocation.action"
+          ],
+          "active_edge_ids": [],
+          "evidence_bindings": [
+            {
+              "obligation_ref": "obligation:sim",
+              "evidence_ref": "evidence:phase-realization"
+            }
+          ]
+        },
+        "phase.emu": {
+          "phase_id": "phase.emu",
+          "active_component_ids": [
+            "emu"
+          ],
+          "active_allocation_ids": [
+            "allocation.scope",
+            "allocation.observation",
+            "allocation.crossing"
+          ],
+          "active_edge_ids": [],
+          "evidence_bindings": [
+            {
+              "obligation_ref": "obligation:emu",
+              "evidence_ref": "evidence:phase-realization"
+            }
+          ]
+        }
+      },
+      "initial_phase_id": "phase.sim",
+      "phase_order": [
+        "phase.sim",
+        "phase.emu"
+      ],
+      "transitions": {
+        "transition.sim-to-emu": {
+          "transition_id": "transition.sim-to-emu",
+          "source_phase_id": "phase.sim",
+          "target_phase_id": "phase.emu",
+          "trigger_ref": "trigger:advance",
+          "evaluator_ref": "evaluator:admitted",
+          "progress_bound": 1,
+          "failure_disposition": "fail-profile",
+          "evidence_bindings": [
+            {
+              "obligation_ref": "obligation:transition",
+              "evidence_ref": "evidence:phase-realization"
+            }
+          ]
+        }
+      },
+      "nested_profile_refs": {},
+      "profile_digest": "sha256:83d1c9715656e4f1cbaf93083934fc941cccdae51718c36c75f6a77813f3371b"
+    },
+    "Scenario": {
+      "ref_kind": "scenario-snapshot",
+      "ref_id": "scenario:authored",
+      "ref_version": "1",
+      "ref_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "ref_path": null
+    },
+    "TimeModel": {
+      "schema_version": "time-model/v1",
+      "domains": {
+        "time.domains.sim": {
+          "address": "time.domains.sim",
+          "kind": "simulated",
+          "tick_period_seconds": {
+            "numerator": 1,
+            "denominator": 1
+          },
+          "epoch": "scenario_start",
+          "visibility": "runtime_only",
+          "description": "simulation domain"
+        },
+        "time.domains.emu": {
+          "address": "time.domains.emu",
+          "kind": "simulated",
+          "tick_period_seconds": {
+            "numerator": 1,
+            "denominator": 1
+          },
+          "epoch": "scenario_start",
+          "visibility": "runtime_only",
+          "description": "emulation domain"
+        }
+      },
+      "clocks": {
+        "time.clocks.sim": {
+          "address": "time.clocks.sim",
+          "time_domain_address": "time.domains.sim",
+          "authority_kind": "backend",
+          "authority_ref": "sim",
+          "monotonicity": "non_decreasing",
+          "supports_pause": false,
+          "supports_reset": false,
+          "supports_jump": false,
+          "description": "simulation clock"
+        },
+        "time.clocks.emu": {
+          "address": "time.clocks.emu",
+          "time_domain_address": "time.domains.emu",
+          "authority_kind": "backend",
+          "authority_ref": "emu",
+          "monotonicity": "non_decreasing",
+          "supports_pause": false,
+          "supports_reset": false,
+          "supports_jump": false,
+          "description": "emulation clock"
+        }
+      },
+      "mappings": {
+        "time.mappings.sim-to-emu": {
+          "address": "time.mappings.sim-to-emu",
+          "source_domain_address": "time.domains.sim",
+          "target_domain_address": "time.domains.emu",
+          "mapping_kind": "identity",
+          "scale": {
+            "numerator": 1,
+            "denominator": 1
+          },
+          "offset_ticks": 0,
+          "description": "shared admitted tick scale"
+        }
+      },
+      "progression_policies": {},
+      "temporal_constraints": {}
+    },
+    "TimeDigest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+    "CompiledTargets": {
+      "participants.alice": "participant",
+      "nodes.target": "controlled-scope",
+      "actions.alice.inspect": "action-family",
+      "observations.target.status": "observation-source",
+      "crossings.alice.status": "crossing"
+    },
+    "Evidence": {
+      "obligation:sim": [
+        "evidence:phase-realization"
+      ],
+      "obligation:emu": [
+        "evidence:phase-realization"
+      ],
+      "obligation:transition": [
+        "evidence:phase-realization"
+      ]
+    },
+    "Components": {
+      "sim": {
+        "component_id": "sim",
+        "apparatus_identity_ref": "apparatus:sim",
+        "realization_form": "simulation",
+        "manifest_ref": {
+          "ref_kind": "manifest",
+          "ref_id": "sim",
+          "ref_version": "backend-manifest/v2",
+          "ref_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "ref_path": null,
+          "subject_ref": {
+            "ref_kind": "backend",
+            "ref_id": "sim",
+            "ref_version": "1",
+            "ref_digest": null,
+            "ref_path": null
+          }
+        },
+        "realization_envelope": {
+          "contract_id": "realization-envelope-v1",
+          "envelope_id": "envelope:sim",
+          "schema_version": "realization-envelope/v1",
+          "digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "configuration_digest": "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+        },
+        "native_ownership_ref": "native-ownership:sim"
+      },
+      "emu": {
+        "component_id": "emu",
+        "apparatus_identity_ref": "apparatus:emu",
+        "realization_form": "emulation-or-operation",
+        "manifest_ref": {
+          "ref_kind": "manifest",
+          "ref_id": "emu",
+          "ref_version": "backend-manifest/v2",
+          "ref_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "ref_path": null,
+          "subject_ref": {
+            "ref_kind": "backend",
+            "ref_id": "emu",
+            "ref_version": "1",
+            "ref_digest": null,
+            "ref_path": null
+          }
+        },
+        "realization_envelope": {
+          "contract_id": "realization-envelope-v1",
+          "envelope_id": "envelope:emu",
+          "schema_version": "realization-envelope/v1",
+          "digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "configuration_digest": "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+        },
+        "native_ownership_ref": "native-ownership:emu"
+      }
+    },
+    "Allocations": {
+      "allocation.participant": {
+        "allocation_id": "allocation.participant",
+        "target_kind": "participant",
+        "target_address": "participants.alice",
+        "provider_component_id": "sim",
+        "phase_ids": [
+          "phase.sim"
+        ],
+        "participant_identity_ref": "participant:alice",
+        "controller_ref": "controller:operator",
+        "action_authority_ref": "authority:action",
+        "routing_ref": "route:portable",
+        "feature_requirements": [
+          {
+            "feature": "participant_ingress_admission",
+            "required_level": "exact",
+            "allowed_downgrade_level": null,
+            "downgrade_policy_ref": null,
+            "downgrade_provenance_ref": null
+          }
+        ]
+      },
+      "allocation.scope": {
+        "allocation_id": "allocation.scope",
+        "target_kind": "controlled-scope",
+        "target_address": "nodes.target",
+        "provider_component_id": "emu",
+        "phase_ids": [
+          "phase.emu"
+        ],
+        "participant_identity_ref": "participant:alice",
+        "controller_ref": "controller:operator",
+        "action_authority_ref": "authority:action",
+        "routing_ref": "route:portable",
+        "feature_requirements": [
+          {
+            "feature": "participant_ingress_admission",
+            "required_level": "exact",
+            "allowed_downgrade_level": null,
+            "downgrade_policy_ref": null,
+            "downgrade_provenance_ref": null
+          }
+        ]
+      },
+      "allocation.action": {
+        "allocation_id": "allocation.action",
+        "target_kind": "action-family",
+        "target_address": "actions.alice.inspect",
+        "provider_component_id": "sim",
+        "phase_ids": [
+          "phase.sim"
+        ],
+        "participant_identity_ref": "participant:alice",
+        "controller_ref": "controller:operator",
+        "action_authority_ref": "authority:action",
+        "routing_ref": "route:portable",
+        "feature_requirements": [
+          {
+            "feature": "participant_ingress_admission",
+            "required_level": "exact",
+            "allowed_downgrade_level": null,
+            "downgrade_policy_ref": null,
+            "downgrade_provenance_ref": null
+          }
+        ]
+      },
+      "allocation.observation": {
+        "allocation_id": "allocation.observation",
+        "target_kind": "observation-source",
+        "target_address": "observations.target.status",
+        "provider_component_id": "emu",
+        "phase_ids": [
+          "phase.emu"
+        ],
+        "participant_identity_ref": "participant:alice",
+        "controller_ref": "controller:operator",
+        "action_authority_ref": "authority:action",
+        "routing_ref": "route:portable",
+        "feature_requirements": [
+          {
+            "feature": "participant_ingress_admission",
+            "required_level": "exact",
+            "allowed_downgrade_level": null,
+            "downgrade_policy_ref": null,
+            "downgrade_provenance_ref": null
+          }
+        ]
+      },
+      "allocation.crossing": {
+        "allocation_id": "allocation.crossing",
+        "target_kind": "crossing",
+        "target_address": "crossings.alice.status",
+        "provider_component_id": "emu",
+        "phase_ids": [
+          "phase.emu"
+        ],
+        "participant_identity_ref": "participant:alice",
+        "controller_ref": "controller:operator",
+        "action_authority_ref": "authority:action",
+        "routing_ref": "route:portable",
+        "feature_requirements": [
+          {
+            "feature": "participant_ingress_admission",
+            "required_level": "exact",
+            "allowed_downgrade_level": null,
+            "downgrade_policy_ref": null,
+            "downgrade_provenance_ref": null
+          }
+        ]
+      }
+    },
+    "Edges": {},
+    "Transitions": {
+      "transition.sim-to-emu": {
+        "transition_id": "transition.sim-to-emu",
+        "source_phase_id": "phase.sim",
+        "target_phase_id": "phase.emu",
+        "trigger_ref": "trigger:advance",
+        "evaluator_ref": "evaluator:admitted",
+        "progress_bound": 1,
+        "failure_disposition": "fail-profile",
+        "evidence_bindings": [
+          {
+            "obligation_ref": "obligation:transition",
+            "evidence_ref": "evidence:phase-realization"
+          }
+        ]
+      }
+    },
+    "Features": {
+      "sim/participant_ingress_admission": {
+        "feature": "participant_ingress_admission",
+        "required_level": "exact",
+        "allowed_downgrade_level": null,
+        "downgrade_policy_ref": null,
+        "downgrade_provenance_ref": null
+      },
+      "emu/participant_ingress_admission": {
+        "feature": "participant_ingress_admission",
+        "required_level": "exact",
+        "allowed_downgrade_level": null,
+        "downgrade_policy_ref": null,
+        "downgrade_provenance_ref": null
+      }
+    }
+  },
+  "runtime-edge": {
+    "Profile": {
+      "contract_id": "mixed-participant-composition-profile-v1",
+      "schema_version": "mixed-participant-composition-profile/v1",
+      "semantic_revision": "sem-234/rev1",
+      "profile_revision": "mixed-cross-backend-participant-control-v1@rev1",
+      "profile_id": "profile:mixed",
+      "scenario_snapshot_ref": {
+        "ref_kind": "scenario-snapshot",
+        "ref_id": "scenario:authored",
+        "ref_version": "1",
+        "ref_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "ref_path": null
+      },
+      "composition_mode": "simultaneous-mixed",
+      "control_loop_posture": "closed-loop",
+      "world_assumption": "bounded-open-world",
+      "federation_membership": "pre-admitted-staged",
+      "components": {
+        "sim": {
+          "component_id": "sim",
+          "apparatus_identity_ref": "apparatus:sim",
+          "realization_form": "simulation",
+          "manifest_ref": {
+            "ref_kind": "manifest",
+            "ref_id": "sim",
+            "ref_version": "backend-manifest/v2",
+            "ref_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "ref_path": null,
+            "subject_ref": {
+              "ref_kind": "backend",
+              "ref_id": "sim",
+              "ref_version": "1",
+              "ref_digest": null,
+              "ref_path": null
+            }
+          },
+          "realization_envelope": {
+            "contract_id": "realization-envelope-v1",
+            "envelope_id": "envelope:sim",
+            "schema_version": "realization-envelope/v1",
+            "digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "configuration_digest": "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+          },
+          "native_ownership_ref": "native-ownership:sim"
+        },
+        "emu": {
+          "component_id": "emu",
+          "apparatus_identity_ref": "apparatus:emu",
+          "realization_form": "emulation-or-operation",
+          "manifest_ref": {
+            "ref_kind": "manifest",
+            "ref_id": "emu",
+            "ref_version": "backend-manifest/v2",
+            "ref_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "ref_path": null,
+            "subject_ref": {
+              "ref_kind": "backend",
+              "ref_id": "emu",
+              "ref_version": "1",
+              "ref_digest": null,
+              "ref_path": null
+            }
+          },
+          "realization_envelope": {
+            "contract_id": "realization-envelope-v1",
+            "envelope_id": "envelope:emu",
+            "schema_version": "realization-envelope/v1",
+            "digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "configuration_digest": "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+          },
+          "native_ownership_ref": "native-ownership:emu"
+        }
+      },
+      "allocations": {
+        "allocation.participant": {
+          "allocation_id": "allocation.participant",
+          "target_kind": "participant",
+          "target_address": "participant.behavior.red-agent",
+          "provider_component_id": "sim",
+          "phase_ids": [
+            "phase.main"
+          ],
+          "participant_identity_ref": "participant:alice",
+          "controller_ref": "participant.behavior.supervisor",
+          "action_authority_ref": "authority:red-team",
+          "routing_ref": "route:portable",
+          "feature_requirements": [
+            {
+              "feature": "participant_ingress_admission",
+              "required_level": "exact",
+              "allowed_downgrade_level": null,
+              "downgrade_policy_ref": null,
+              "downgrade_provenance_ref": null
+            }
+          ]
+        },
+        "allocation.scope": {
+          "allocation_id": "allocation.scope",
+          "target_kind": "controlled-scope",
+          "target_address": "nodes.target",
+          "provider_component_id": "emu",
+          "phase_ids": [
+            "phase.main"
+          ],
+          "participant_identity_ref": "participant:alice",
+          "controller_ref": "controller:operator",
+          "action_authority_ref": "authority:action",
+          "routing_ref": "route:portable",
+          "feature_requirements": [
+            {
+              "feature": "participant_ingress_admission",
+              "required_level": "exact",
+              "allowed_downgrade_level": null,
+              "downgrade_policy_ref": null,
+              "downgrade_provenance_ref": null
+            }
+          ]
+        },
+        "allocation.action": {
+          "allocation_id": "allocation.action",
+          "target_kind": "action-family",
+          "target_address": "participant.action-contract.contain-host",
+          "provider_component_id": "emu",
+          "phase_ids": [
+            "phase.main"
+          ],
+          "participant_identity_ref": "participant:alice",
+          "controller_ref": "participant.behavior.supervisor",
+          "action_authority_ref": "authority:red-team",
+          "routing_ref": "route:portable",
+          "feature_requirements": [
+            {
+              "feature": "participant_ingress_admission",
+              "required_level": "exact",
+              "allowed_downgrade_level": null,
+              "downgrade_policy_ref": null,
+              "downgrade_provenance_ref": null
+            }
+          ]
+        },
+        "allocation.observation": {
+          "allocation_id": "allocation.observation",
+          "target_kind": "observation-source",
+          "target_address": "observations.target.status",
+          "provider_component_id": "emu",
+          "phase_ids": [
+            "phase.main"
+          ],
+          "participant_identity_ref": "participant:alice",
+          "controller_ref": "controller:operator",
+          "action_authority_ref": "authority:action",
+          "routing_ref": "route:portable",
+          "feature_requirements": [
+            {
+              "feature": "participant_ingress_admission",
+              "required_level": "exact",
+              "allowed_downgrade_level": null,
+              "downgrade_policy_ref": null,
+              "downgrade_provenance_ref": null
+            }
+          ]
+        },
+        "allocation.crossing": {
+          "allocation_id": "allocation.crossing",
+          "target_kind": "crossing",
+          "target_address": "crossings.alice.status",
+          "provider_component_id": "emu",
+          "phase_ids": [
+            "phase.main"
+          ],
+          "participant_identity_ref": "participant:alice",
+          "controller_ref": "controller:operator",
+          "action_authority_ref": "authority:action",
+          "routing_ref": "route:portable",
+          "feature_requirements": [
+            {
+              "feature": "participant_ingress_admission",
+              "required_level": "exact",
+              "allowed_downgrade_level": null,
+              "downgrade_policy_ref": null,
+              "downgrade_provenance_ref": null
+            }
+          ]
+        }
+      },
+      "edges": {
+        "edge.sim-to-emu": {
+          "edge_id": "edge.sim-to-emu",
+          "source_component_id": "sim",
+          "target_component_id": "emu",
+          "phase_ids": [
+            "phase.main"
+          ],
+          "crossing_scope_address": "crossings.alice.status",
+          "crossing_subject": {
+            "subject_kind": "participant-action-admission",
+            "contract_id": "participant-action-admission-v1",
+            "subject_ref": "participant-action-admission:participant.behavior.red-agent:episode-1:action-1",
+            "subject_revision": null,
+            "subject_digest": "sha256:f39d663b805a977712dfaf38f5d2cbb519176445a326126ca3d141f08bbf3766",
+            "participant_address": "participant.behavior.red-agent",
+            "episode_id": "episode-1"
+          },
+          "audience_scope_ref": "audience:red-operator",
+          "policy": {
+            "policy_id": "participant-crossing-policy:red",
+            "policy_revision": "revision-3",
+            "policy_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "policy_decision_ref": "participant-crossing-policy-decision:red:episode-1:8",
+            "decision_cut_ref": "participant-policy-cut:red:episode-1:8",
+            "effective_order": 0,
+            "valid_from_order": 0,
+            "valid_until_order": 1000
+          },
+          "controller_ref": "participant.behavior.supervisor",
+          "authority_ref": "authority:red-team",
+          "routing_ref": "route:portable",
+          "disclosure_authority_ref": "authority:red-team",
+          "native_ownership_ref": "native-ownership:sim",
+          "time_binding": {
+            "time_model_ref": "time-model:composition",
+            "time_model_digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "source_clock_address": "time.clocks.sim",
+            "target_clock_address": "time.clocks.emu",
+            "mapping_address": "time.mappings.sim-to-emu",
+            "ordering_basis": "partial_order",
+            "temporal_coupling": "bounded-asynchronous"
+          },
+          "mapping_loss": {
+            "kind": "semantics_approximated",
+            "basis_ref": "mapping:basis",
+            "affected_ref": "observation:status",
+            "limitation_ref": "limitation:mapping"
+          },
+          "failure_behavior": {
+            "failure_ref": "failure:edge",
+            "disposition": "fail-profile"
+          },
+          "evidence_bindings": [
+            {
+              "obligation_ref": "obligation:edge-realization",
+              "evidence_ref": "evidence:edge-realization"
+            }
+          ]
+        }
+      },
+      "phases": {
+        "phase.main": {
+          "phase_id": "phase.main",
+          "active_component_ids": [
+            "sim",
+            "emu"
+          ],
+          "active_allocation_ids": [
+            "allocation.participant",
+            "allocation.scope",
+            "allocation.action",
+            "allocation.observation",
+            "allocation.crossing"
+          ],
+          "active_edge_ids": [
+            "edge.sim-to-emu"
+          ],
+          "evidence_bindings": [
+            {
+              "obligation_ref": "obligation:phase-realization",
+              "evidence_ref": "evidence:phase-realization"
+            }
+          ]
+        }
+      },
+      "initial_phase_id": "phase.main",
+      "phase_order": [
+        "phase.main"
+      ],
+      "transitions": {},
+      "nested_profile_refs": {},
+      "profile_digest": "sha256:24758820769f964644a9331c1600aa8830ad85c3dc0b271d7760cb430520d821"
+    },
+    "Scenario": {
+      "ref_kind": "scenario-snapshot",
+      "ref_id": "scenario:authored",
+      "ref_version": "1",
+      "ref_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "ref_path": null
+    },
+    "TimeModel": {
+      "schema_version": "time-model/v1",
+      "domains": {
+        "time.domains.sim": {
+          "address": "time.domains.sim",
+          "kind": "simulated",
+          "tick_period_seconds": {
+            "numerator": 1,
+            "denominator": 1
+          },
+          "epoch": "scenario_start",
+          "visibility": "runtime_only",
+          "description": "simulation domain"
+        },
+        "time.domains.emu": {
+          "address": "time.domains.emu",
+          "kind": "simulated",
+          "tick_period_seconds": {
+            "numerator": 1,
+            "denominator": 1
+          },
+          "epoch": "scenario_start",
+          "visibility": "runtime_only",
+          "description": "emulation domain"
+        }
+      },
+      "clocks": {
+        "time.clocks.sim": {
+          "address": "time.clocks.sim",
+          "time_domain_address": "time.domains.sim",
+          "authority_kind": "backend",
+          "authority_ref": "sim",
+          "monotonicity": "non_decreasing",
+          "supports_pause": false,
+          "supports_reset": false,
+          "supports_jump": false,
+          "description": "simulation clock"
+        },
+        "time.clocks.emu": {
+          "address": "time.clocks.emu",
+          "time_domain_address": "time.domains.emu",
+          "authority_kind": "backend",
+          "authority_ref": "emu",
+          "monotonicity": "non_decreasing",
+          "supports_pause": false,
+          "supports_reset": false,
+          "supports_jump": false,
+          "description": "emulation clock"
+        }
+      },
+      "mappings": {
+        "time.mappings.sim-to-emu": {
+          "address": "time.mappings.sim-to-emu",
+          "source_domain_address": "time.domains.sim",
+          "target_domain_address": "time.domains.emu",
+          "mapping_kind": "identity",
+          "scale": {
+            "numerator": 1,
+            "denominator": 1
+          },
+          "offset_ticks": 0,
+          "description": "shared admitted tick scale"
+        }
+      },
+      "progression_policies": {},
+      "temporal_constraints": {}
+    },
+    "TimeDigest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+    "CompiledTargets": {
+      "participant.behavior.red-agent": "participant",
+      "nodes.target": "controlled-scope",
+      "participant.action-contract.contain-host": "action-family",
+      "observations.target.status": "observation-source",
+      "crossings.alice.status": "crossing"
+    },
+    "Evidence": {
+      "obligation:edge-realization": [
+        "evidence:edge-realization"
+      ],
+      "obligation:phase-realization": [
+        "evidence:phase-realization"
+      ]
+    },
+    "Components": {
+      "sim": {
+        "component_id": "sim",
+        "apparatus_identity_ref": "apparatus:sim",
+        "realization_form": "simulation",
+        "manifest_ref": {
+          "ref_kind": "manifest",
+          "ref_id": "sim",
+          "ref_version": "backend-manifest/v2",
+          "ref_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "ref_path": null,
+          "subject_ref": {
+            "ref_kind": "backend",
+            "ref_id": "sim",
+            "ref_version": "1",
+            "ref_digest": null,
+            "ref_path": null
+          }
+        },
+        "realization_envelope": {
+          "contract_id": "realization-envelope-v1",
+          "envelope_id": "envelope:sim",
+          "schema_version": "realization-envelope/v1",
+          "digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "configuration_digest": "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+        },
+        "native_ownership_ref": "native-ownership:sim"
+      },
+      "emu": {
+        "component_id": "emu",
+        "apparatus_identity_ref": "apparatus:emu",
+        "realization_form": "emulation-or-operation",
+        "manifest_ref": {
+          "ref_kind": "manifest",
+          "ref_id": "emu",
+          "ref_version": "backend-manifest/v2",
+          "ref_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "ref_path": null,
+          "subject_ref": {
+            "ref_kind": "backend",
+            "ref_id": "emu",
+            "ref_version": "1",
+            "ref_digest": null,
+            "ref_path": null
+          }
+        },
+        "realization_envelope": {
+          "contract_id": "realization-envelope-v1",
+          "envelope_id": "envelope:emu",
+          "schema_version": "realization-envelope/v1",
+          "digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "configuration_digest": "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+        },
+        "native_ownership_ref": "native-ownership:emu"
+      }
+    },
+    "Allocations": {
+      "allocation.participant": {
+        "allocation_id": "allocation.participant",
+        "target_kind": "participant",
+        "target_address": "participant.behavior.red-agent",
+        "provider_component_id": "sim",
+        "phase_ids": [
+          "phase.main"
+        ],
+        "participant_identity_ref": "participant:alice",
+        "controller_ref": "participant.behavior.supervisor",
+        "action_authority_ref": "authority:red-team",
+        "routing_ref": "route:portable",
+        "feature_requirements": [
+          {
+            "feature": "participant_ingress_admission",
+            "required_level": "exact",
+            "allowed_downgrade_level": null,
+            "downgrade_policy_ref": null,
+            "downgrade_provenance_ref": null
+          }
+        ]
+      },
+      "allocation.scope": {
+        "allocation_id": "allocation.scope",
+        "target_kind": "controlled-scope",
+        "target_address": "nodes.target",
+        "provider_component_id": "emu",
+        "phase_ids": [
+          "phase.main"
+        ],
+        "participant_identity_ref": "participant:alice",
+        "controller_ref": "controller:operator",
+        "action_authority_ref": "authority:action",
+        "routing_ref": "route:portable",
+        "feature_requirements": [
+          {
+            "feature": "participant_ingress_admission",
+            "required_level": "exact",
+            "allowed_downgrade_level": null,
+            "downgrade_policy_ref": null,
+            "downgrade_provenance_ref": null
+          }
+        ]
+      },
+      "allocation.action": {
+        "allocation_id": "allocation.action",
+        "target_kind": "action-family",
+        "target_address": "participant.action-contract.contain-host",
+        "provider_component_id": "emu",
+        "phase_ids": [
+          "phase.main"
+        ],
+        "participant_identity_ref": "participant:alice",
+        "controller_ref": "participant.behavior.supervisor",
+        "action_authority_ref": "authority:red-team",
+        "routing_ref": "route:portable",
+        "feature_requirements": [
+          {
+            "feature": "participant_ingress_admission",
+            "required_level": "exact",
+            "allowed_downgrade_level": null,
+            "downgrade_policy_ref": null,
+            "downgrade_provenance_ref": null
+          }
+        ]
+      },
+      "allocation.observation": {
+        "allocation_id": "allocation.observation",
+        "target_kind": "observation-source",
+        "target_address": "observations.target.status",
+        "provider_component_id": "emu",
+        "phase_ids": [
+          "phase.main"
+        ],
+        "participant_identity_ref": "participant:alice",
+        "controller_ref": "controller:operator",
+        "action_authority_ref": "authority:action",
+        "routing_ref": "route:portable",
+        "feature_requirements": [
+          {
+            "feature": "participant_ingress_admission",
+            "required_level": "exact",
+            "allowed_downgrade_level": null,
+            "downgrade_policy_ref": null,
+            "downgrade_provenance_ref": null
+          }
+        ]
+      },
+      "allocation.crossing": {
+        "allocation_id": "allocation.crossing",
+        "target_kind": "crossing",
+        "target_address": "crossings.alice.status",
+        "provider_component_id": "emu",
+        "phase_ids": [
+          "phase.main"
+        ],
+        "participant_identity_ref": "participant:alice",
+        "controller_ref": "controller:operator",
+        "action_authority_ref": "authority:action",
+        "routing_ref": "route:portable",
+        "feature_requirements": [
+          {
+            "feature": "participant_ingress_admission",
+            "required_level": "exact",
+            "allowed_downgrade_level": null,
+            "downgrade_policy_ref": null,
+            "downgrade_provenance_ref": null
+          }
+        ]
+      }
+    },
+    "Edges": {
+      "edge.sim-to-emu": {
+        "edge_id": "edge.sim-to-emu",
+        "source_component_id": "sim",
+        "target_component_id": "emu",
+        "phase_ids": [
+          "phase.main"
+        ],
+        "crossing_scope_address": "crossings.alice.status",
+        "crossing_subject": {
+          "subject_kind": "participant-action-admission",
+          "contract_id": "participant-action-admission-v1",
+          "subject_ref": "participant-action-admission:participant.behavior.red-agent:episode-1:action-1",
+          "subject_revision": null,
+          "subject_digest": "sha256:f39d663b805a977712dfaf38f5d2cbb519176445a326126ca3d141f08bbf3766",
+          "participant_address": "participant.behavior.red-agent",
+          "episode_id": "episode-1"
+        },
+        "audience_scope_ref": "audience:red-operator",
+        "policy": {
+          "policy_id": "participant-crossing-policy:red",
+          "policy_revision": "revision-3",
+          "policy_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "policy_decision_ref": "participant-crossing-policy-decision:red:episode-1:8",
+          "decision_cut_ref": "participant-policy-cut:red:episode-1:8",
+          "effective_order": 0,
+          "valid_from_order": 0,
+          "valid_until_order": 1000
+        },
+        "controller_ref": "participant.behavior.supervisor",
+        "authority_ref": "authority:red-team",
+        "routing_ref": "route:portable",
+        "disclosure_authority_ref": "authority:red-team",
+        "native_ownership_ref": "native-ownership:sim",
+        "time_binding": {
+          "time_model_ref": "time-model:composition",
+          "time_model_digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "source_clock_address": "time.clocks.sim",
+          "target_clock_address": "time.clocks.emu",
+          "mapping_address": "time.mappings.sim-to-emu",
+          "ordering_basis": "partial_order",
+          "temporal_coupling": "bounded-asynchronous"
+        },
+        "mapping_loss": {
+          "kind": "semantics_approximated",
+          "basis_ref": "mapping:basis",
+          "affected_ref": "observation:status",
+          "limitation_ref": "limitation:mapping"
+        },
+        "failure_behavior": {
+          "failure_ref": "failure:edge",
+          "disposition": "fail-profile"
+        },
+        "evidence_bindings": [
+          {
+            "obligation_ref": "obligation:edge-realization",
+            "evidence_ref": "evidence:edge-realization"
+          }
+        ]
+      }
+    },
+    "Transitions": {},
+    "Features": {
+      "sim/participant_ingress_admission": {
+        "feature": "participant_ingress_admission",
+        "required_level": "exact",
+        "allowed_downgrade_level": null,
+        "downgrade_policy_ref": null,
+        "downgrade_provenance_ref": null
+      },
+      "emu/participant_ingress_admission": {
+        "feature": "participant_ingress_admission",
+        "required_level": "exact",
+        "allowed_downgrade_level": null,
+        "downgrade_policy_ref": null,
+        "downgrade_provenance_ref": null
+      }
+    }
+  }
+}

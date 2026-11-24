@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import subprocess
 from pathlib import Path
 from typing import Any
@@ -13,6 +14,26 @@ from tools.parity_support import MANIFEST_FILE, SHA256_PREFIX, Case, digest, enc
 
 FORMAT = "raes-parity-regressions/v1"
 FROZEN = Path("implementations/go/internal/parity/testdata/regressions")
+
+
+def _snapshot_identity(document: dict[str, Any]) -> dict[str, str]:
+    """Validate historical capture provenance without requiring the live tree."""
+    widths = {
+        "test_tree": 40,
+        "python_tree": 40,
+        "contracts_tree": 40,
+        "examples_tree": 40,
+        "collector_sha256": 64,
+        "environment_sha256": 64,
+    }
+    identity = document.get("source_identity")
+    if not isinstance(identity, dict) or set(identity) != set(widths):
+        raise ValueError("invalid frozen regression source identity")
+    for name, width in widths.items():
+        value = identity[name]
+        if not isinstance(value, str) or re.fullmatch(f"[0-9a-f]{{{width}}}", value) is None:
+            raise ValueError("invalid frozen regression source identity")
+    return identity
 
 
 def source_identity(repo: Path) -> dict[str, str]:
@@ -40,11 +61,13 @@ def source_identity(repo: Path) -> dict[str, str]:
 
 
 def frozen_document(root: Path, identity: dict[str, str] | None) -> dict[str, Any]:
+    """Read a historical input snapshot; live identity applies to new workers only."""
     document = read_document(root.parent, Path(root.name, MANIFEST_FILE))
-    if document.get("schema") != FORMAT:
+    if not isinstance(document, dict) or document.get("schema") != FORMAT:
         raise ValueError("unknown frozen regression input schema")
-    if identity is not None and document.get("source_identity") != identity:
-        raise ValueError("Python test inputs need a fresh CI capture")
+    _snapshot_identity(document)
+    if type(document.get("complete")) is not bool:
+        raise ValueError("invalid frozen regression completeness")
     return document
 
 
@@ -153,11 +176,8 @@ def main() -> int:
     root = args.repo_root / FROZEN
     if not (root / MANIFEST_FILE).is_file():
         return 1
-    document = read_document(root.parent, Path(root.name, MANIFEST_FILE))
-    if document.get("source_identity") != source_identity(args.repo_root):
-        return 1
-    _, inventory, _ = read_inputs(root, identity=document["source_identity"])
-    return 0 if inventory["complete"] else 1
+    _, inventory, _ = read_inputs(root)
+    return 0 if inventory["complete"] and inventory["test_count"] and inventory["input_count"] else 1
 
 
 if __name__ == "__main__":

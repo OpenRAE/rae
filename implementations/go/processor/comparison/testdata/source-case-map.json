@@ -1,0 +1,385 @@
+{
+  "format_version": 1,
+  "scope": "Issue1787 pure semantic comparison and bounded impact analysis. Seven exact native artifact owners, no I/O/ambient registry/runtime execution. Per-source mixed-owner exclusions remain in entries.",
+  "fixture": {
+    "path": "reference.json",
+    "sha256": "37cf22036d7b6ac8a45220feff649773e9e3662ff923bfdb147c1cdce57e03ac",
+    "artifacts": 48,
+    "coordinates": 8,
+    "analyses": 77,
+    "parts": [
+      {
+        "path": "implementations/go/processor/comparison/testdata/reference.json",
+        "sha256": "37cf22036d7b6ac8a45220feff649773e9e3662ff923bfdb147c1cdce57e03ac"
+      },
+      {
+        "path": "implementations/go/processor/comparison/testdata/reference-2.json",
+        "sha256": "279ba66540af24c28c97cdf8011bad89cd1f4853011bf78ecf28c63ea242ba50"
+      }
+    ],
+    "layout": "Read parts in order; counts describe the combined reference inventory."
+  },
+  "source_sha256": {
+    "implementations/python/tests/test_semantic_comparison.py": "2b3285e5018b498110fa0384a9c8bba6faf5f1bd7fba3cee31d923297dd6bdd4",
+    "implementations/python/tests/test_issue_1210_semantic_comparison.py": "9a77605ab2d94077cdd6a689302df9f065275cd30fb1fb7624e4ec53b043ee99",
+    "implementations/python/tests/test_exp_731_evidence_requirement_refinement.py": "8f208f2d6131495705018fd88b13efe4178d37530d7a4c9bf6722789e0998366",
+    "implementations/python/tests/test_candidate_synthesis.py": "ef30d3b14c56679a98faa91fb4c6819119c887f64e5b639f8edafe9581ae59c1",
+    "implementations/python/tests/test_issue_1298_http_method_identity.py": "eea581531f33a9babaa7acec9c3252b8e71c2313dcd8ed5ca616189fded9a892"
+  },
+  "source_test_map": [
+    {
+      "python_file": "implementations/python/tests/test_semantic_comparison.py",
+      "python_test": "test_profile_and_request_are_governed_bounded_portable_contracts",
+      "python_line": 130,
+      "status": "covered-scoped",
+      "go_test": "processor/comparison/TestComparisonImpactScopesMatchIndependentPython; TestComparisonRequestIngressLimitsAndRecovery; contract/profile/TestComparisonProfileReadmissionReusesClosedVersionsAndBounds",
+      "behavior": "Digest-bound sorted scopes match original typed requests; duplicate members, 1MiB ingress byte refusal and subsequent valid recovery are explicit. Native API consumes admitted Value, with bounded construction controlled by caller."
+    },
+    {
+      "python_file": "implementations/python/tests/test_semantic_comparison.py",
+      "python_test": "test_owner_specific_adapters_cover_every_admitted_family",
+      "python_line": 146,
+      "status": "covered-scoped",
+      "go_test": "processor/comparison/TestComparisonCoordinatesMatchIndependentPython; TestComparisonRejectsForeignOwnershipBeforeMethods; TestComparisonRechecksRequestPinsAndProfileBeforeAnalysis",
+      "behavior": "Seven exact native artifact family coordinates plus legacy SDL v1 coordinate match Python; foreign handles and owner-specific identity mismatch refused before supplied methods."
+    },
+    {
+      "python_file": "implementations/python/tests/test_semantic_comparison.py",
+      "python_test": "test_typed_artifacts_are_compared_without_caller_supplied_projections",
+      "python_line": 173,
+      "status": "covered-scoped",
+      "go_test": "processor/comparison/TestComparisonAnalyzerMatchesIndependentPython/test_semantic_comparison.py::test_typed_artifacts_are_compared_without_caller_supplied_projections-0",
+      "behavior": "Direct original pure source-test invocation outputs/errors replayed exactly from comparison/testdata/reference*.json. Full typed result JSON includes coordinates, canonical/request/scope digests, subjects, ordered dependencies/paths/reasons/context. Adjacent runtime/store/apply behavior excluded."
+    },
+    {
+      "python_file": "implementations/python/tests/test_semantic_comparison.py",
+      "python_test": "test_owner_semantics_exclude_module_integrity_and_study_rationale_fields",
+      "python_line": 191,
+      "status": "covered-scoped",
+      "go_test": "processor/comparison/TestComparisonAnalyzerMatchesIndependentPython/test_semantic_comparison.py::test_owner_semantics_exclude_module_integrity_and_study_rationale_fields-0; /test_semantic_comparison.py::test_owner_semantics_exclude_module_integrity_and_study_rationale_fields-1",
+      "behavior": "Direct original pure source-test invocation outputs/errors replayed exactly from comparison/testdata/reference*.json. Full typed result JSON includes coordinates, canonical/request/scope digests, subjects, ordered dependencies/paths/reasons/context. Adjacent runtime/store/apply behavior excluded."
+    },
+    {
+      "python_file": "implementations/python/tests/test_semantic_comparison.py",
+      "python_test": "test_scope_closure_controls_impact_completeness",
+      "python_line": 222,
+      "status": "covered-scoped",
+      "go_test": "processor/comparison/TestComparisonAnalyzerMatchesIndependentPython/test_semantic_comparison.py::test_scope_closure_controls_impact_completeness-0",
+      "behavior": "Direct original pure source-test invocation outputs/errors replayed exactly from comparison/testdata/reference*.json. Full typed result JSON includes coordinates, canonical/request/scope digests, subjects, ordered dependencies/paths/reasons/context. Adjacent runtime/store/apply behavior excluded."
+    },
+    {
+      "python_file": "implementations/python/tests/test_semantic_comparison.py",
+      "python_test": "test_dependency_comparison_preserves_before_and_after_resolution",
+      "python_line": 235,
+      "status": "covered-scoped",
+      "go_test": "processor/comparison/TestComparisonAnalyzerMatchesIndependentPython/test_semantic_comparison.py::test_dependency_comparison_preserves_before_and_after_resolution-0",
+      "behavior": "Direct original pure source-test invocation outputs/errors replayed exactly from comparison/testdata/reference*.json. Full typed result JSON includes coordinates, canonical/request/scope digests, subjects, ordered dependencies/paths/reasons/context. Adjacent runtime/store/apply behavior excluded."
+    },
+    {
+      "python_file": "implementations/python/tests/test_semantic_comparison.py",
+      "python_test": "test_changed_scenario_emits_rule_named_downstream_impact_path",
+      "python_line": 260,
+      "status": "covered-scoped",
+      "go_test": "processor/comparison/TestComparisonAnalyzerMatchesIndependentPython/test_semantic_comparison.py::test_changed_scenario_emits_rule_named_downstream_impact_path-0",
+      "behavior": "Direct original pure source-test invocation outputs/errors replayed exactly from comparison/testdata/reference*.json. Full typed result JSON includes coordinates, canonical/request/scope digests, subjects, ordered dependencies/paths/reasons/context. Adjacent runtime/store/apply behavior excluded."
+    },
+    {
+      "python_file": "implementations/python/tests/test_semantic_comparison.py",
+      "python_test": "test_rename_requires_successful_digest_profile_and_phase_bound_evidence",
+      "python_line": 290,
+      "status": "covered-scoped",
+      "go_test": "processor/comparison/TestComparisonAnalyzerMatchesIndependentPython/test_semantic_comparison.py::test_rename_requires_successful_digest_profile_and_phase_bound_evidence-0; /test_semantic_comparison.py::test_rename_requires_successful_digest_profile_and_phase_bound_evidence-1",
+      "behavior": "Direct original pure source-test invocation outputs/errors replayed exactly from comparison/testdata/reference*.json. Full typed result JSON includes coordinates, canonical/request/scope digests, subjects, ordered dependencies/paths/reasons/context. Adjacent runtime/store/apply behavior excluded."
+    },
+    {
+      "python_file": "implementations/python/tests/test_semantic_comparison.py",
+      "python_test": "test_profile_digest_mismatch_is_rejected_before_analysis",
+      "python_line": 353,
+      "status": "covered-scoped",
+      "go_test": "processor/comparison/TestComparisonAnalyzerMatchesIndependentPython/test_semantic_comparison.py::test_profile_digest_mismatch_is_rejected_before_analysis-0",
+      "behavior": "Direct original pure source-test invocation outputs/errors replayed exactly from comparison/testdata/reference*.json. Full typed result JSON includes coordinates, canonical/request/scope digests, subjects, ordered dependencies/paths/reasons/context. Adjacent runtime/store/apply behavior excluded."
+    },
+    {
+      "python_file": "implementations/python/tests/test_semantic_comparison.py",
+      "python_test": "test_published_schemas_and_fixtures_validate",
+      "python_line": 365,
+      "status": "covered-scoped",
+      "go_test": "contract/admission/TestFullValidationGoldenCorpus/contracts/fixtures/semantic-comparison",
+      "behavior": "All10exact published request/result fixture paths have independently recorded published-schema and full native owner verdicts in full-admission-cases-01/02.json with pinned input SHA256. Python exception class/location labels are representation-specific; Go returns classified value-free faults."
+    },
+    {
+      "python_file": "implementations/python/tests/test_semantic_comparison.py",
+      "python_test": "test_result_contract_rejects_scope_digest_tampering",
+      "python_line": 411,
+      "status": "covered-scoped",
+      "go_test": "processor/comparison/TestComparisonAnalyzerMatchesIndependentPython/test_semantic_comparison.py::test_result_contract_rejects_scope_digest_tampering-0; processor/comparison/TestComparisonResultsRetainScopePinsOnReadmission",
+      "behavior": "Direct original pure source-test invocation outputs/errors replayed exactly from comparison/testdata/reference*.json. Full typed result JSON includes coordinates, canonical/request/scope digests, subjects, ordered dependencies/paths/reasons/context. Adjacent runtime/store/apply behavior excluded. Actual generated result is independently re-admitted after tampering its scope digest and refused; original immutable result remains intact."
+    },
+    {
+      "python_file": "implementations/python/tests/test_issue_1210_semantic_comparison.py",
+      "python_test": "test_presence_preserving_projection_distinguishes_omitted_and_empty",
+      "python_line": 48,
+      "status": "covered-scoped",
+      "go_test": "processor/comparison/TestComparisonAnalyzerMatchesIndependentPython/test_issue_1210_semantic_comparison.py::test_presence_preserving_projection_distinguishes_omitted_and_empty-0; /test_issue_1210_semantic_comparison.py::test_presence_preserving_projection_distinguishes_omitted_and_empty-1",
+      "behavior": "Direct original pure source-test invocation outputs/errors replayed exactly from comparison/testdata/reference*.json. Full typed result JSON includes coordinates, canonical/request/scope digests, subjects, ordered dependencies/paths/reasons/context. Adjacent runtime/store/apply behavior excluded."
+    },
+    {
+      "python_file": "implementations/python/tests/test_issue_1210_semantic_comparison.py",
+      "python_test": "test_private_description_key_is_not_editorial_text",
+      "python_line": 62,
+      "status": "covered-scoped",
+      "go_test": "processor/comparison/TestComparisonAnalyzerMatchesIndependentPython/test_issue_1210_semantic_comparison.py::test_private_description_key_is_not_editorial_text-0",
+      "behavior": "Direct original pure source-test invocation outputs/errors replayed exactly from comparison/testdata/reference*.json. Full typed result JSON includes coordinates, canonical/request/scope digests, subjects, ordered dependencies/paths/reasons/context. Adjacent runtime/store/apply behavior excluded."
+    },
+    {
+      "python_file": "implementations/python/tests/test_issue_1210_semantic_comparison.py",
+      "python_test": "test_native_editorial_description_still_has_no_semantic_effect",
+      "python_line": 86,
+      "status": "covered-scoped",
+      "go_test": "processor/comparison/TestComparisonAnalyzerMatchesIndependentPython/test_issue_1210_semantic_comparison.py::test_native_editorial_description_still_has_no_semantic_effect-0",
+      "behavior": "Direct original pure source-test invocation outputs/errors replayed exactly from comparison/testdata/reference*.json. Full typed result JSON includes coordinates, canonical/request/scope digests, subjects, ordered dependencies/paths/reasons/context. Adjacent runtime/store/apply behavior excluded."
+    },
+    {
+      "python_file": "implementations/python/tests/test_issue_1210_semantic_comparison.py",
+      "python_test": "test_unsupported_owner_projection_cannot_claim_compatibility",
+      "python_line": 92,
+      "status": "covered-scoped",
+      "go_test": "processor/comparison/TestComparisonRechecksRequestPinsAndProfileBeforeAnalysis",
+      "behavior": "Governed module owner projection2 is rejected by native closed profile re-admission before analysis."
+    },
+    {
+      "python_file": "implementations/python/tests/test_issue_1210_semantic_comparison.py",
+      "python_test": "test_progressive_source_requires_current_owner_projection",
+      "python_line": 100,
+      "status": "covered-scoped",
+      "go_test": "processor/comparison/TestComparisonAnalyzerMatchesIndependentPython/test_issue_1210_semantic_comparison.py::test_progressive_source_requires_current_owner_projection-0; /test_issue_1210_semantic_comparison.py::test_progressive_source_requires_current_owner_projection-1; /test_issue_1210_semantic_comparison.py::test_progressive_source_requires_current_owner_projection-2; /test_issue_1210_semantic_comparison.py::test_progressive_source_requires_current_owner_projection-3",
+      "behavior": "Direct original pure source-test invocation outputs/errors replayed exactly from comparison/testdata/reference*.json. Full typed result JSON includes coordinates, canonical/request/scope digests, subjects, ordered dependencies/paths/reasons/context. Adjacent runtime/store/apply behavior excluded."
+    },
+    {
+      "python_file": "implementations/python/tests/test_issue_1210_semantic_comparison.py",
+      "python_test": "test_task_comparison_preserves_independent_observation_demand",
+      "python_line": 107,
+      "status": "covered-scoped",
+      "go_test": "processor/comparison/TestComparisonAnalyzerMatchesIndependentPython/test_issue_1210_semantic_comparison.py::test_task_comparison_preserves_independent_observation_demand-0; /test_issue_1210_semantic_comparison.py::test_task_comparison_preserves_independent_observation_demand-1",
+      "behavior": "Direct original pure source-test invocation outputs/errors replayed exactly from comparison/testdata/reference*.json. Full typed result JSON includes coordinates, canonical/request/scope digests, subjects, ordered dependencies/paths/reasons/context. Adjacent runtime/store/apply behavior excluded."
+    },
+    {
+      "python_file": "implementations/python/tests/test_issue_1210_semantic_comparison.py",
+      "python_test": "test_task_default_presence_cannot_change_semantics_under_the_same_coordinate",
+      "python_line": 126,
+      "status": "covered-scoped",
+      "go_test": "processor/comparison/TestComparisonAnalyzerMatchesIndependentPython/test_issue_1210_semantic_comparison.py::test_task_default_presence_cannot_change_semantics_under_the_same_coordinate-0; /test_issue_1210_semantic_comparison.py::test_task_default_presence_cannot_change_semantics_under_the_same_coordinate-1; /test_issue_1210_semantic_comparison.py::test_task_default_presence_cannot_change_semantics_under_the_same_coordinate-2; /test_issue_1210_semantic_comparison.py::test_task_default_presence_cannot_change_semantics_under_the_same_coordinate-3; /test_issue_1210_semantic_comparison.py::test_task_default_presence_cannot_change_semantics_under_the_same_coordinate-4; /test_issue_1210_semantic_comparison.py::test_task_default_presence_cannot_change_semantics_under_the_same_coordinate-5",
+      "behavior": "Direct original pure source-test invocation outputs/errors replayed exactly from comparison/testdata/reference*.json. Full typed result JSON includes coordinates, canonical/request/scope digests, subjects, ordered dependencies/paths/reasons/context. Adjacent runtime/store/apply behavior excluded."
+    },
+    {
+      "python_file": "implementations/python/tests/test_exp_731_evidence_requirement_refinement.py",
+      "python_test": "test_semantic_comparison_detects_relation_changes",
+      "python_line": null,
+      "status": "covered-scoped",
+      "go_test": "processor/comparison/TestComparisonAnalyzerMatchesIndependentPython/test_exp_731_evidence_requirement_refinement.py::test_semantic_comparison_detects_relation_changes-0; /test_exp_731_evidence_requirement_refinement.py::test_semantic_comparison_detects_relation_changes-1; /test_exp_731_evidence_requirement_refinement.py::test_semantic_comparison_detects_relation_changes-2",
+      "behavior": "Exact pure comparison call from named mixed-owner test replayed independently. Candidate synthesis, composition execution, runtime/snapshot operations and archival conformance are outside this comparison claim."
+    },
+    {
+      "python_file": "implementations/python/tests/test_candidate_synthesis.py",
+      "python_test": "test_changed_derivation_and_sdl_semantics_are_separate_axes",
+      "python_line": null,
+      "status": "covered-scoped",
+      "go_test": "processor/comparison/TestComparisonAnalyzerMatchesIndependentPython/test_candidate_synthesis.py::test_changed_derivation_and_sdl_semantics_are_separate_axes-0",
+      "behavior": "Exact pure comparison call from named mixed-owner test replayed independently. Candidate synthesis, composition execution, runtime/snapshot operations and archival conformance are outside this comparison claim."
+    },
+    {
+      "python_file": "implementations/python/tests/test_issue_1298_http_method_identity.py",
+      "python_test": "test_composition_compile_comparison_and_snapshot_preserve_exact_identity",
+      "python_line": null,
+      "status": "covered-scoped",
+      "go_test": "processor/comparison/TestComparisonAnalyzerMatchesIndependentPython/test_issue_1298_http_method_identity.py::test_composition_compile_comparison_and_snapshot_preserve_exact_identity:comparison-only-0",
+      "behavior": "Exact pure comparison call from named mixed-owner test replayed independently. Candidate synthesis, composition execution, runtime/snapshot operations and archival conformance are outside this comparison claim."
+    }
+  ],
+  "supplemental_cases": [
+    {
+      "name": "self-comparison-Scenario-0",
+      "valid": true
+    },
+    {
+      "name": "self-comparison-ResolvedImportProvenance-0",
+      "valid": true
+    },
+    {
+      "name": "self-comparison-ExperimentTaskModel-0",
+      "valid": true
+    },
+    {
+      "name": "self-comparison-ExperimentRunModel-0",
+      "valid": true
+    },
+    {
+      "name": "self-comparison-ExperimentCaptureSpecModel-0",
+      "valid": true
+    },
+    {
+      "name": "self-comparison-ExperimentStudyModel-0",
+      "valid": true
+    },
+    {
+      "name": "self-comparison-ExternalConceptBindingDocumentModel-0",
+      "valid": true
+    },
+    {
+      "name": "bounded-max_subjects-1-0",
+      "valid": true
+    },
+    {
+      "name": "bounded-max_subjects-2-0",
+      "valid": true
+    },
+    {
+      "name": "bounded-max_dependency_edges-0-0",
+      "valid": true
+    },
+    {
+      "name": "bounded-max_dependency_edges-1-0",
+      "valid": true
+    },
+    {
+      "name": "bounded-max_dependency_edges-2-0",
+      "valid": true
+    },
+    {
+      "name": "bounded-max_path_depth-0-0",
+      "valid": true
+    },
+    {
+      "name": "bounded-max_path_depth-1-0",
+      "valid": true
+    },
+    {
+      "name": "bounded-max_path_depth-2-0",
+      "valid": true
+    },
+    {
+      "name": "bounded-max_paths-0-0",
+      "valid": true
+    },
+    {
+      "name": "bounded-max_paths-1-0",
+      "valid": true
+    },
+    {
+      "name": "bounded-max_paths-2-0",
+      "valid": true
+    },
+    {
+      "name": "closure-complete-0",
+      "valid": true
+    },
+    {
+      "name": "closure-partial-0",
+      "valid": true
+    },
+    {
+      "name": "closure-redacted-0",
+      "valid": true
+    },
+    {
+      "name": "closure-unverified-0",
+      "valid": true
+    },
+    {
+      "name": "exact-representation-aa-0",
+      "valid": true
+    },
+    {
+      "name": "exact-representation-ab-0",
+      "valid": true
+    },
+    {
+      "name": "rename-evidence-source_digest-0",
+      "valid": true
+    },
+    {
+      "name": "rename-evidence-target_digest-0",
+      "valid": true
+    },
+    {
+      "name": "rename-evidence-target_profile-0",
+      "valid": true
+    },
+    {
+      "name": "rename-evidence-canonicalization_profile-0",
+      "valid": true
+    },
+    {
+      "name": "rename-lossy-evidence-0",
+      "valid": true
+    },
+    {
+      "name": "rename-refused-evidence-0",
+      "valid": true
+    },
+    {
+      "name": "invalid-before-scope-0",
+      "valid": false
+    },
+    {
+      "name": "invalid-after-scope-0",
+      "valid": false
+    },
+    {
+      "name": "invalid-operand-digest-0",
+      "valid": false
+    },
+    {
+      "name": "invalid-governed-subject-limit-0",
+      "valid": false
+    },
+    {
+      "name": "scenario-import-unresolved-0",
+      "valid": true
+    },
+    {
+      "name": "module-namespace-reference-remains-unresolved-0",
+      "valid": true
+    },
+    {
+      "name": "module-export-surface-0",
+      "valid": true
+    },
+    {
+      "name": "study-member-add-remove-0",
+      "valid": true
+    },
+    {
+      "name": "external-binding-native-model-0",
+      "valid": true
+    },
+    {
+      "name": "subject-bound-1-0",
+      "valid": true
+    },
+    {
+      "name": "subject-bound-2-0",
+      "valid": true
+    },
+    {
+      "name": "task-protocol-authored-field-presence-0",
+      "valid": true
+    },
+    {
+      "name": "capture-dependency-add-remove-0",
+      "valid": true
+    },
+    {
+      "name": "capture-dependency-add-remove-1",
+      "valid": true
+    },
+    {
+      "name": "dependency-resolution-changes-per-side-0",
+      "valid": true
+    },
+    {
+      "name": "workflow-native-alias-0",
+      "valid": true
+    }
+  ]
+}

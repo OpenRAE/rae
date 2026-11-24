@@ -1,0 +1,14 @@
+{
+  "args": [
+    "reference-models-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:230e5808f7d7ca16831b79957920b072879cdbf1d6825ee33b61ea7acf2c4328"
+  },
+  "name": "regression/5a38ac592a9a5bf9d9b0329813a68ea70d685924042263b0e9649794c080871a",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

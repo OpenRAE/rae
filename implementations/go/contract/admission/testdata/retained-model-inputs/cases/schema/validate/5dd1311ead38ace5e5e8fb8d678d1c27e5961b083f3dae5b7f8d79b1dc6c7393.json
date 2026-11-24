@@ -1,0 +1,14 @@
+{
+  "args": [
+    "realization-envelope-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:6b6b2d637e2ffad70e480ae2e825c23d7f6ae930c9e0eaaeb29219a8e26ab90b"
+  },
+  "name": "realization-envelope-v1/routed/contracts/realization-envelopes/reference-emulation/in-process-v1.json",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

@@ -172,7 +172,8 @@ def test_main_records_and_checks_the_corpus(repo: Path, monkeypatch: pytest.Monk
     monkeypatch.setattr(pc, "all_cases", lambda root: list(pc.schema_cases(root)))
     from tools import parity_regressions
 
-    monkeypatch.setattr(parity_regressions, "source_identity", lambda root: None)
+    # This fixture records schema cases; capture integrity has separate tests.
+    monkeypatch.setattr(parity_regressions, "read_inputs", lambda *args, **kwargs: ([], {"complete": False}, {}))
 
     assert pc.main(["check", "--repo-root", str(repo), "--output-dir", str(repo / "fresh")]) == 1
     assert "files differ" in capsys.readouterr().err
@@ -232,6 +233,28 @@ def test_canonical_cases_cover_each_json_fixture_and_each_edge_input(repo: Path)
 
     assert "contracts/fixtures/family/demo-v1/valid/one" in names
     assert sum(name.startswith("edge/") for name in names) == len(pc.CANONICAL_EDGE_TEXTS)
+
+
+def test_native_semantic_vectors_do_not_require_python_canonical_recording(repo: Path) -> None:
+    from tools.parity_surfaces import data_inputs, reference_cli_cases
+
+    family = "contracts/fixtures/sdl/semantic-vectors-v1/"
+    _write(repo, {family + "semantics.json": "{}", family + "semantics-000.json": "[]"})
+    names = {case.name for case in pc.canonical_cases(repo)}
+    assert not any(name.startswith(family) for name in names)
+    assert "contracts/fixtures/family/demo-v1/valid/one" in names
+    inputs = {path.relative_to(repo).as_posix() for path in data_inputs(repo)}
+    assert not any(name.startswith(family) for name in inputs)
+    assert "contracts/fixtures/family/demo-v1/valid/one.json" in inputs
+    case = next(case for case in reference_cli_cases(repo) if case.command == "conformance backend")
+    assert not any("semantic-vectors-v1" in name for name in case.files)
+    assert "repo/contracts/fixtures/family/demo-v1/valid/one.json" in case.files
+
+    (repo / family / "linked.json").symlink_to(repo / "contracts/fixtures/family/demo-v1/valid/one.json")
+    with pytest.raises(ValueError, match="symbolic links"):
+        data_inputs(repo)
+    with pytest.raises(ValueError, match="symbolic links"):
+        list(reference_cli_cases(repo))
 
 
 def test_canonical_results_record_each_form_or_its_refusal() -> None:

@@ -1,0 +1,14 @@
+{
+  "args": [
+    "random-stream-vector-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:018b93fb59a5dfdaff11c00c4e36bd0002cac186b10133e217d32a6756233a6f"
+  },
+  "name": "random-stream-vector-v1/routed/contracts/fixtures/random-stream-vectors/blake3-xof-v1/wide-exhaustion.json",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

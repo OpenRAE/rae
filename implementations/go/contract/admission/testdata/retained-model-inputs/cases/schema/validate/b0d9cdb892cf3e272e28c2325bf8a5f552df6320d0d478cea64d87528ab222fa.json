@@ -1,0 +1,14 @@
+{
+  "args": [
+    "realization-envelope-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:ad4aacd91ad0ebb5093726938be07274a6e9fa28b61bf850d4b3e9d866bbed98"
+  },
+  "name": "realization-envelope-v1/routed/contracts/realization-envelopes/libvirt-qemu/guest-certified-appliance-v1.json",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

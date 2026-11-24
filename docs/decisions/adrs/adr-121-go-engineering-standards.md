@@ -121,11 +121,17 @@ The Go code uses these idiomatic forms of contract-based development:
   allowed.
 - CI runs the tests with the race detector.
 - The statement coverage of each module is at least 90%, the ADR-103 floor.
-- CI runs gremlins on the lines changed since the merge base with the base
-  revision. Each mutant must be killed or time out, so test efficacy and mutant
-  coverage are each 100%. `implementations/.gremlins.yaml` holds the
-  thresholds, because gremlins ignores a threshold flag of its command line. A
-  change without mutants passes. Mutation testing runs in CI only.
+- Exhaustive mutation testing runs separately from normal PR admission. The
+  scheduled workflow and automatic failure issues are delivered by issue #1898.
+  The canonical graph keeps an explicit, default-off mutation diagnostic input;
+  normal PR and protected-push CI do not enable it. Normal Go jobs have a
+  25-minute limit and retain tests, race detection, coverage, lint, analyzers,
+  contract checks and regression checks. A timeout is a failure.
+- Each tested mutant must be killed or time out, so test efficacy and mutant
+  coverage remain 100%. `implementations/.gremlins.yaml` holds the thresholds,
+  because gremlins ignores a threshold flag of its command line. Incomplete
+  mutation runs do not establish a passing result. Mutation testing runs in CI
+  only, except for targeted replay of specific captured findings.
 - A condition goes in an `if` statement, not in the expression of a `case`
   clause. The coverage profile records no block for a `case` expression, so
   gremlins cannot test its mutants.
@@ -310,3 +316,4 @@ judgment about meaning or context.
 | Date | Commit/PR | Summary |
 | --- | --- | --- |
 | 2026-10-31 | #1775 | Section 8 and the rule map: the ADR-122 architecture model lists the permitted external import paths. depguard keeps only its denials. |
+| 2026-11-04 | #1882 | Separate exhaustive mutation testing from normal PR admission; keep the other Go gates and bound normal Go jobs to 25 minutes. |

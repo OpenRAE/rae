@@ -424,12 +424,16 @@ class SemanticProjectionReportModel(ContractModel):
 
 
 def canonical_semantic_projection_frame_digest(frame: SemanticProjectionFrameModel) -> str:
+    """Return the canonical JSON digest of the complete semantic projection frame."""
+
     return canonical_json_digest(frame.model_dump(mode="json"))
 
 
 def canonical_semantic_projection_predicate_profile_digest(
     profile: SemanticProjectionPredicateProfileModel,
 ) -> str:
+    """Return the canonical profile digest with its own ``profile_digest`` field excluded."""
+
     return canonical_json_digest(profile.model_dump(mode="json", exclude={"profile_digest"}))
 
 

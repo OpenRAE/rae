@@ -12,6 +12,7 @@ from raes_contracts.runtime_state import OperationKind, OperationState
 
 from .control_plane_operation_context import operation_actor_scope, operation_idempotency_fingerprint
 from .interaction import _RuntimeApplyState
+from .participant_release import waiting_participant_addresses
 from .runtime_decisions import DecisionIdentity, RunPhaseDecision, RunProgramDecision, RuntimeDecision
 from .runtime_module_step import phase_states
 from .runtime_run_preparation import prepare_run, restore_run_modules
@@ -91,7 +92,7 @@ def advance_plan(
         and record.run_scope == run._run_scope
         and record.state != "started"
     }
-    restore_run_modules(run, plan, phases)
+    restore_run_modules(run, plan, phases, start_phase=APPLICATION_PHASES.index("_apply_participant_start_phase"))
     return _advance_phases(run, plan, admission, identity, preparation.previews, phases)
 
 
@@ -141,9 +142,32 @@ def _finalize_run(run: RuntimeRunContext, execution_id: str, phases: dict[int, R
             )
             run._store.claim_runtime_decision(failed)
             return _progress(failed)
-    return RunProgress(
+    return _release_progress(run, execution_id) or RunProgress(
         execution_id=execution_id, run_scope=run._run_scope, phase=len(APPLICATION_PHASES), state="succeeded"
     )
+
+
+def _participants_waiting(run: RuntimeRunContext) -> bool:
+    return run._participant_scheduler is not None and any(
+        waiting_participant_addresses(policy, run.snapshot) for policy in run._participant_execution_policies
+    )
+
+
+def _release_progress(run: RuntimeRunContext, execution_id: str) -> RunProgress | None:
+    """Keep the run pending while autonomous participants wait for their starting assertions.
+
+    Each call runs one release pass when a waiting participant can be released.
+    """
+    if not _participants_waiting(run):
+        return None
+    phase = len(APPLICATION_PHASES)
+    released = run.run_due_participant_actions() if run._participant_release_pending(run.snapshot) else None
+    if released is not None and not released.success:
+        failed = RunPhaseDecision(run_scope=run._run_scope, execution_id=execution_id, phase=phase, state="failed")
+        run._store.claim_runtime_decision(failed)
+        return _progress(failed)
+    pending = RunProgress(execution_id=execution_id, run_scope=run._run_scope, phase=phase, state="pending")
+    return pending if _participants_waiting(run) else None
 
 
 def _advance_phase(

@@ -1,0 +1,14 @@
+{
+  "args": [
+    "inject-trigger-request-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:52e7e02f57802f6ba0348c8ec66e16b07f14897c3173ee5b919a2094a5e50bcf"
+  },
+  "name": "regression/42eb831c56f047b09a99b67e7d601c4027b5e83055b9f95dce98490bafeca2d8",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

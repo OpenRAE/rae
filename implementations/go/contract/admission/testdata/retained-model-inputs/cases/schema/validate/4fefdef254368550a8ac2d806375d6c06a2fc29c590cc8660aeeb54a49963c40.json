@@ -1,0 +1,14 @@
+{
+  "args": [
+    "participant-control-occurrence-v2"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:e1ead4dcbd1844839ffe99cf8685646f2344e1216f17086fa42ce3cc360f292d"
+  },
+  "name": "regression/211d1e0235f78018c9da4ae4fc30976c85536bcc9434ce8d30eaf65cd8a7ac91",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

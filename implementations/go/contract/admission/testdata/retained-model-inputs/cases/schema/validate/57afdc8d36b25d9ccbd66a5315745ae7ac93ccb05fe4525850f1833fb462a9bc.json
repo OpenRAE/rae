@@ -1,0 +1,14 @@
+{
+  "args": [
+    "admitted-trial-plan-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:30790117e031037bc1f1b34512b30be6a66e1f23ac707ae541d75b0218692de2"
+  },
+  "name": "admitted-trial-plan-v1/routed/contracts/fixtures/plans/admitted-trial-plan-v1/context-invalid/altered-allocation.json",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

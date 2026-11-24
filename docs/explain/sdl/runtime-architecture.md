@@ -1,5 +1,19 @@
 # Runtime architecture: SDL processor runtime backend
 
+The [repository split](../../decisions/issue-1891-runtime-repository-boundary.md) moves the shared engine and live adapters to a new runtime owner at the common #1804 Go launch.
+`OpenRAE/rae` keeps SDL, the processor and trial compiler.
+It keeps the contracts, portable backend interfaces, stubs and authoring services.
+Runtime uses those released public APIs.
+`rae` product modules and `raes-mcp` do not import runtime.
+Only runtime publishes the combined `raes` executable.
+It imports authoring commands through the #1825 public API.
+The Python path below stays the reference until cutover.
+The split keeps existing HTTP, CLI, MCP, store and security behavior.
+It adds no required service or backend.
+Each run keeps its fixed scope.
+The split grants no new rights to a caller.
+Store claims and leases keep their current scope.
+
 ## Shared engine and workload composition
 
 RAE supplies the common execution engine for CTFs, experiments, product tests, and simulated enterprises.
@@ -91,6 +105,22 @@ here come from mature workflow and distributed-runtime systems:
   language-neutral contract boundaries
 
 ## Package boundary
+
+The [Go consumer API](../../decisions/issue-1825-public-go-api.md) fixes the planned public packages for the repository split.
+RAE retains SDL, compilation and planning.
+It also owns contract bindings and admission, portable backend interfaces and pure checks.
+The future runtime module owns `runtime/control` and `runtime/provider`.
+It also owns `runtime/execution`, `runtime/temporal`, `runtime/result` and the existing profile declarations in `runtime/profile`.
+It imports released public RAE packages; RAE product code and `raes-mcp` never import runtime.
+Coldlight and LilRAE embed the shared control plane through those interfaces.
+Environment packs uses RAE's authoring and contract operations without requiring live execution.
+
+Published snapshot, receipt and materialization DTOs retain their RAE type identity.
+Runtime result enforcement adds its live context checks through `runtime/result.AdmitResult`.
+Runtime alone publishes the combined `raes` command, using RAE's `command/authoring.Commands` composition surface.
+RAE alone publishes `raes-mcp`.
+These packages remain planned until their port and extraction issues deliver them.
+The split preserves ADR-104 and ADR-113 behavior; P3 coordinated service remains a nonclaim.
 
 RAE is the shared product runtime driving the backends; backend ownership of
 concrete realization does not imply a separate scenario runtime per backend.
@@ -420,6 +450,11 @@ Select optional target components before construction.
 The stub factory also accepts `scenario=` for this selection.
 Required capability checks and manifest/component agreement remain in force.
 Participant scheduling starts only when the scenario requires autonomous execution.
+An autonomous participant starts only when each of its `starting_assertions` has a `true` assertion outcome.
+The backend reports that outcome through its evaluator, collected by `runtime.evaluate()` after native preparation.
+Each scheduler pass releases ready participants before it runs due actions.
+A committed evaluation runs one scheduler pass, and a durable run stays `pending` until release.
+A waiting participant receives no native call; the pass reports `runtime.participant-release-waiting`.
 
 Targets must provide an explicit manifest. The registry separates capability
 inspection from instantiation, and `create()` uses the manifest returned by

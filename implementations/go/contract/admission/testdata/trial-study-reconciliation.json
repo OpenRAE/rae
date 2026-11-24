@@ -1,0 +1,1865 @@
+{
+  "plan": {
+    "schema_version": "admitted-trial-plan/v1",
+    "plan_id": "trial-plan-0e7cbab062fefc275a9ba885b9f2266c01354034a5c9072b7fcf8dbaecb61f7e",
+    "profiles": {
+      "coordinate_profile": "trial-coordinate-v1",
+      "entry_identity_profile": "trial-entry-identity-v1",
+      "run_identity_profile": "archival-run-identity-v1",
+      "canonicalization_profile": "jcs-sha256-v1",
+      "integrity_profile": "acyclic-digest-chain-v1",
+      "compiler_profile": "trial-compiler-v1",
+      "selection_policy_profile": "experiment-selection-v1",
+      "random_stream_profile": "blake3-xof-v1",
+      "execution_control_profile": "attempt-control-v1",
+      "cleanup_profile": "trial-cleanup-v1",
+      "isolation_profile": "scheduler-isolation-v1"
+    },
+    "input_refs": {
+      "authoring_input_ref": {
+        "ref_kind": "authoring-input",
+        "ref_id": "spec-techvault-red-tactic-sweep-v1",
+        "ref_version": "1.0.0",
+        "ref_digest": "sha256:096d9e7e3fd7007391290fb132da7ba1ab40b6a00e3c0fd244855a45e36b3022",
+        "ref_path": null
+      },
+      "task_ref": {
+        "ref_kind": "task",
+        "ref_id": "task-techvault-red-team-v1",
+        "ref_version": "1.0.0"
+      },
+      "task_digest": "sha256:81b6eb789e575ce0e09bedd5ad3430a92f8404328edb715c25b3d0fab24adffc",
+      "scenario_family_ref": {
+        "ref_kind": "scenario-family",
+        "ref_id": "compiler-family",
+        "ref_version": "expanded-scenario-family/v1",
+        "ref_digest": "sha256:7c4fb8b018851aadf8cfdd66be8f8ec30bdfd85a0c8da60c800fa8c142886ff5"
+      },
+      "capture_spec_refs": [
+        {
+          "ref_kind": "capture-spec",
+          "ref_id": "capture-techvault-evidence-v1",
+          "ref_version": "1.0.0",
+          "ref_digest": "sha256:23209f366685c7f6a0885dc2b0a01fb94cdf004294c245fabbf4cd436534f2be",
+          "ref_path": null
+        }
+      ],
+      "binding_descriptor_set_ref": null,
+      "study_ref": null,
+      "associated_artifact_set_ref": null
+    },
+    "stochastic_controls": {
+      "sample-control": {
+        "control_id": "sample-control",
+        "role": "sampling",
+        "value": null,
+        "description": null,
+        "executable_binding": {
+          "profile_ref": {
+            "ref_kind": "profile",
+            "ref_id": "blake3-xof-v1",
+            "ref_version": "random-stream-profile/v1",
+            "ref_digest": null,
+            "ref_path": null
+          },
+          "namespace": "compiler-sampling",
+          "root_entropy": {
+            "kind": "public-seed",
+            "encoding": "hex-fixed-width",
+            "value": "0101010101010101010101010101010101010101010101010101010101010101"
+          }
+        }
+      }
+    },
+    "cleanup_plans": {
+      "trial-cleanup-f48fed6078cb1bc1a5de107987cd59423f43cdd6f9549c89f5fa9346f2873227": {
+        "schema_version": "trial-cleanup-plan/v1",
+        "plan_id": "trial-cleanup-f48fed6078cb1bc1a5de107987cd59423f43cdd6f9549c89f5fa9346f2873227",
+        "plan_entry_id": "trial-entry-929ac487b94e4306eba77717996db260284c7fd44e48527094f77b0b39187721",
+        "run_id": "archival-run-693587326e3adbf0aa3952e57a6841354e2a3ff6cb6a8d72f0b9edd8a2c247a7",
+        "clean_state": {
+          "mode": "fresh",
+          "boundary_refs": [
+            "range"
+          ],
+          "verification_probe_refs": [
+            "probe:fresh"
+          ],
+          "reusable_state_claim_ref": null
+        },
+        "resource_boundaries": {
+          "range": {
+            "boundary_id": "range",
+            "resource_kind": "range-instance",
+            "owner_ref": "apparatus:range",
+            "resource_refs": [
+              "range:compiler-fixture"
+            ]
+          }
+        },
+        "cleanup_obligations": {
+          "destroy": {
+            "obligation_id": "destroy",
+            "boundary_refs": [
+              "range"
+            ],
+            "action_kind": "destroy",
+            "action_profile_ref": null,
+            "triggers": [
+              "success",
+              "failure",
+              "cancellation",
+              "timeout",
+              "abort"
+            ],
+            "requirement": "required",
+            "depends_on": [],
+            "idempotency": "idempotent",
+            "compensation_refs": [],
+            "verification_probe_refs": [
+              "probe:absent"
+            ],
+            "timeout_seconds": 120
+          }
+        },
+        "retry_policy": {
+          "max_attempts": 1,
+          "after_effect_policy": "disallow",
+          "reset_obligation_refs": [],
+          "compensation_refs": []
+        }
+      },
+      "trial-cleanup-df8203d7658ace60311e0670db52efc59ceb1e947d663be7bbc7a922b012073c": {
+        "schema_version": "trial-cleanup-plan/v1",
+        "plan_id": "trial-cleanup-df8203d7658ace60311e0670db52efc59ceb1e947d663be7bbc7a922b012073c",
+        "plan_entry_id": "trial-entry-ba1e7d343dc12cc051c9a4608d95e2aa209e916687a1a0f8a824f01d78ea332d",
+        "run_id": "archival-run-cb7d74060229d9330b0150cd8649e62f45d8a215b772bf4c5d20da211590e4be",
+        "clean_state": {
+          "mode": "fresh",
+          "boundary_refs": [
+            "range"
+          ],
+          "verification_probe_refs": [
+            "probe:fresh"
+          ],
+          "reusable_state_claim_ref": null
+        },
+        "resource_boundaries": {
+          "range": {
+            "boundary_id": "range",
+            "resource_kind": "range-instance",
+            "owner_ref": "apparatus:range",
+            "resource_refs": [
+              "range:compiler-fixture"
+            ]
+          }
+        },
+        "cleanup_obligations": {
+          "destroy": {
+            "obligation_id": "destroy",
+            "boundary_refs": [
+              "range"
+            ],
+            "action_kind": "destroy",
+            "action_profile_ref": null,
+            "triggers": [
+              "success",
+              "failure",
+              "cancellation",
+              "timeout",
+              "abort"
+            ],
+            "requirement": "required",
+            "depends_on": [],
+            "idempotency": "idempotent",
+            "compensation_refs": [],
+            "verification_probe_refs": [
+              "probe:absent"
+            ],
+            "timeout_seconds": 120
+          }
+        },
+        "retry_policy": {
+          "max_attempts": 1,
+          "after_effect_policy": "disallow",
+          "reset_obligation_refs": [],
+          "compensation_refs": []
+        }
+      }
+    },
+    "isolation_proof": null,
+    "entries": {
+      "trial-entry-929ac487b94e4306eba77717996db260284c7fd44e48527094f77b0b39187721": {
+        "plan_entry_id": "trial-entry-929ac487b94e4306eba77717996db260284c7fd44e48527094f77b0b39187721",
+        "coordinate": {
+          "condition_id": null,
+          "block_id": null,
+          "replicate_id": "replicate-000001"
+        },
+        "run_id": "archival-run-693587326e3adbf0aa3952e57a6841354e2a3ff6cb6a8d72f0b9edd8a2c247a7",
+        "selections": [
+          {
+            "variation_point_id": "payload-path",
+            "origin_policy_id": "sample-path",
+            "origin_policy_kind": "sample",
+            "outcome": {
+              "kind": "literal",
+              "value": "/opt/a"
+            }
+          }
+        ],
+        "bindings": [],
+        "stochastic_draws": [
+          {
+            "control_id": "sample-control",
+            "address": {
+              "namespace": "compiler-sampling",
+              "trial_coordinate": {
+                "condition_id": null,
+                "block_id": null,
+                "replicate_id": "replicate-000001"
+              },
+              "selection_policy_id": "sample-path",
+              "variation_point_id": "payload-path",
+              "draw_purpose": "sampling-selection",
+              "local_coordinate": 0
+            },
+            "transform_id": "bounded-integer",
+            "transform_version": "1",
+            "local_coordinate": 0,
+            "outcome": {
+              "kind": "public-value",
+              "value": "0"
+            },
+            "rejection_attempts": 0,
+            "rejection_exhausted": false
+          }
+        ],
+        "apparatus": {
+          "manifest_refs": [
+            {
+              "ref_kind": "manifest",
+              "ref_id": "backend-a",
+              "ref_version": "backend-manifest/v2",
+              "ref_digest": "sha256:008eb08b684941aa5ca6769f522a7c3cf01d9b290a3a9813f3af3063ea4de2e7",
+              "ref_path": null,
+              "subject_ref": {
+                "ref_kind": "backend",
+                "ref_id": "backend-a",
+                "ref_version": "1",
+                "ref_digest": null,
+                "ref_path": null
+              }
+            },
+            {
+              "ref_kind": "manifest",
+              "ref_id": "raes-reference-processor",
+              "ref_version": "processor-manifest/v2",
+              "ref_digest": "sha256:2bb05867d61bc5bd37852a0a37ef9b9084f4e78c5075b809bac2b7ec59784d8e",
+              "ref_path": null,
+              "subject_ref": {
+                "ref_kind": "processor",
+                "ref_id": "raes-reference-processor",
+                "ref_version": "0.2.0",
+                "ref_digest": null,
+                "ref_path": null
+              }
+            }
+          ],
+          "realization_envelope": {
+            "contract_id": "realization-envelope-v1",
+            "envelope_id": "libvirt-qemu.generic.v1",
+            "schema_version": "realization-envelope/v1",
+            "digest": "sha256:1c768fa96dda900757ca48a66ddd741c62dbd5bd86e1356e75e3cc559ece92e0",
+            "configuration_digest": "sha256:cf7e5b0d28c25293d254c463a23958f66f92776579872fce8abbeb1227347b4b"
+          },
+          "capability_refs": [
+            "evaluation-results",
+            "workflow-results"
+          ]
+        },
+        "execution_controls": {
+          "attempt_timeout_seconds": 600,
+          "on_timeout": "cleanup-and-fail",
+          "on_cancellation": "cleanup-and-fail",
+          "cleanup_plan_ref": "trial-cleanup-f48fed6078cb1bc1a5de107987cd59423f43cdd6f9549c89f5fa9346f2873227"
+        },
+        "instantiation_provenance": {
+          "plan_id": "trial-plan-0e7cbab062fefc275a9ba885b9f2266c01354034a5c9072b7fcf8dbaecb61f7e",
+          "plan_entry_id": "trial-entry-929ac487b94e4306eba77717996db260284c7fd44e48527094f77b0b39187721",
+          "run_id": "archival-run-693587326e3adbf0aa3952e57a6841354e2a3ff6cb6a8d72f0b9edd8a2c247a7",
+          "scenario_family_id": "compiler-family"
+        },
+        "entry_digest": "sha256:de82d3b777ffd0d4d7595e42c6cf23737eaaf0259dc256cd2bbd86aff9aa03c1"
+      },
+      "trial-entry-ba1e7d343dc12cc051c9a4608d95e2aa209e916687a1a0f8a824f01d78ea332d": {
+        "plan_entry_id": "trial-entry-ba1e7d343dc12cc051c9a4608d95e2aa209e916687a1a0f8a824f01d78ea332d",
+        "coordinate": {
+          "condition_id": null,
+          "block_id": null,
+          "replicate_id": "replicate-000002"
+        },
+        "run_id": "archival-run-cb7d74060229d9330b0150cd8649e62f45d8a215b772bf4c5d20da211590e4be",
+        "selections": [
+          {
+            "variation_point_id": "payload-path",
+            "origin_policy_id": "sample-path",
+            "origin_policy_kind": "sample",
+            "outcome": {
+              "kind": "literal",
+              "value": "/opt/a"
+            }
+          }
+        ],
+        "bindings": [],
+        "stochastic_draws": [
+          {
+            "control_id": "sample-control",
+            "address": {
+              "namespace": "compiler-sampling",
+              "trial_coordinate": {
+                "condition_id": null,
+                "block_id": null,
+                "replicate_id": "replicate-000002"
+              },
+              "selection_policy_id": "sample-path",
+              "variation_point_id": "payload-path",
+              "draw_purpose": "sampling-selection",
+              "local_coordinate": 0
+            },
+            "transform_id": "bounded-integer",
+            "transform_version": "1",
+            "local_coordinate": 0,
+            "outcome": {
+              "kind": "public-value",
+              "value": "0"
+            },
+            "rejection_attempts": 0,
+            "rejection_exhausted": false
+          }
+        ],
+        "apparatus": {
+          "manifest_refs": [
+            {
+              "ref_kind": "manifest",
+              "ref_id": "backend-a",
+              "ref_version": "backend-manifest/v2",
+              "ref_digest": "sha256:008eb08b684941aa5ca6769f522a7c3cf01d9b290a3a9813f3af3063ea4de2e7",
+              "ref_path": null,
+              "subject_ref": {
+                "ref_kind": "backend",
+                "ref_id": "backend-a",
+                "ref_version": "1",
+                "ref_digest": null,
+                "ref_path": null
+              }
+            },
+            {
+              "ref_kind": "manifest",
+              "ref_id": "raes-reference-processor",
+              "ref_version": "processor-manifest/v2",
+              "ref_digest": "sha256:2bb05867d61bc5bd37852a0a37ef9b9084f4e78c5075b809bac2b7ec59784d8e",
+              "ref_path": null,
+              "subject_ref": {
+                "ref_kind": "processor",
+                "ref_id": "raes-reference-processor",
+                "ref_version": "0.2.0",
+                "ref_digest": null,
+                "ref_path": null
+              }
+            }
+          ],
+          "realization_envelope": {
+            "contract_id": "realization-envelope-v1",
+            "envelope_id": "libvirt-qemu.generic.v1",
+            "schema_version": "realization-envelope/v1",
+            "digest": "sha256:1c768fa96dda900757ca48a66ddd741c62dbd5bd86e1356e75e3cc559ece92e0",
+            "configuration_digest": "sha256:cf7e5b0d28c25293d254c463a23958f66f92776579872fce8abbeb1227347b4b"
+          },
+          "capability_refs": [
+            "evaluation-results",
+            "workflow-results"
+          ]
+        },
+        "execution_controls": {
+          "attempt_timeout_seconds": 600,
+          "on_timeout": "cleanup-and-fail",
+          "on_cancellation": "cleanup-and-fail",
+          "cleanup_plan_ref": "trial-cleanup-df8203d7658ace60311e0670db52efc59ceb1e947d663be7bbc7a922b012073c"
+        },
+        "instantiation_provenance": {
+          "plan_id": "trial-plan-0e7cbab062fefc275a9ba885b9f2266c01354034a5c9072b7fcf8dbaecb61f7e",
+          "plan_entry_id": "trial-entry-ba1e7d343dc12cc051c9a4608d95e2aa209e916687a1a0f8a824f01d78ea332d",
+          "run_id": "archival-run-cb7d74060229d9330b0150cd8649e62f45d8a215b772bf4c5d20da211590e4be",
+          "scenario_family_id": "compiler-family"
+        },
+        "entry_digest": "sha256:35ed62457634bcf8a9d2f59affd77194ee371f38c090295a7b0c60f7e54428c9"
+      }
+    },
+    "admission": {
+      "admitted_at_stage": "admitted-sealed",
+      "entry_count": 2,
+      "limitations": [],
+      "diagnostics": []
+    },
+    "plan_digest": "sha256:c681860c67250fc95612238e189ff0d1c082fa866989007b6b65e29dd52c8cbe"
+  },
+  "task": {
+    "schema_version": "experiment-task/v1",
+    "task_id": "task-techvault-red-team-v1",
+    "task_version": "1.0.0",
+    "title": "TechVault red-team evaluation",
+    "description": "Evaluate initial access and exfiltration outcomes for a fixed TechVault scenario snapshot.",
+    "scenario_ref": {
+      "ref_kind": "scenario",
+      "ref_id": "compiler-family",
+      "ref_version": null,
+      "ref_digest": null,
+      "ref_path": null
+    },
+    "evaluation_protocol": {
+      "protocol_id": "protocol-red-team-success",
+      "protocol_version": "1.0.0",
+      "intent": "Measure whether the participant obtains foothold and exfiltrates the target evidence within the task window.",
+      "unit_of_analysis": "run",
+      "metric_definitions": {
+        "foothold-achieved": {
+          "metric_id": "foothold-achieved",
+          "metric_version": "1.0.0",
+          "name": "Foothold achieved",
+          "measured_construct": "Initial access success",
+          "unit_of_analysis": "run",
+          "value_kind": "boolean",
+          "direction": "higher-is-better",
+          "aggregation": null,
+          "missingness_policy": null,
+          "uncertainty_policy": null,
+          "evidence_requirements": [
+            {
+              "ref_kind": "evidence",
+              "ref_id": "auth-log-evidence",
+              "ref_version": null,
+              "ref_digest": null,
+              "ref_path": null
+            }
+          ]
+        }
+      },
+      "observation_requirements": [
+        {
+          "ref_kind": "evidence",
+          "ref_id": "auth-log-evidence",
+          "ref_version": null,
+          "ref_digest": null,
+          "ref_path": null
+        }
+      ],
+      "aggregation_policy": "Report per-run outcome and aggregate with binomial uncertainty across repeated runs.",
+      "acceptance_policy": null
+    },
+    "intended_use": "Benchmark red-team participant performance under a fixed scenario snapshot.",
+    "non_use": [
+      "Do not use as evidence of production-system risk without external validation."
+    ],
+    "population_or_construct": "Automated red-team agent behavior in a controlled enterprise scenario.",
+    "split_and_leakage_controls": {
+      "partitioning_strategy": "Hold out final scenario snapshot until evaluation.",
+      "grouping_constraints": [],
+      "temporal_availability": null,
+      "hidden_material_policy": "Answer keys and scoring artifacts are not participant-visible.",
+      "leakage_checks": [
+        "Verify participant input excludes scoring artifacts and solution traces."
+      ],
+      "unresolved_risks": []
+    },
+    "apparatus_constraints": {
+      "allowed_processor_refs": [
+        {
+          "ref_kind": "processor",
+          "ref_id": "raes-reference-processor",
+          "ref_version": "0.1.0"
+        }
+      ],
+      "allowed_backend_refs": [
+        {
+          "ref_kind": "backend",
+          "ref_id": "stub-backend",
+          "ref_version": "0.1.0"
+        }
+      ],
+      "required_manifest_refs": [
+        {
+          "ref_kind": "manifest",
+          "ref_id": "raes-reference-processor",
+          "ref_version": "processor-manifest/v2",
+          "ref_digest": null,
+          "ref_path": null,
+          "subject_ref": {
+            "ref_kind": "processor",
+            "ref_id": "raes-reference-processor",
+            "ref_version": "0.1.0",
+            "ref_digest": null,
+            "ref_path": null
+          }
+        },
+        {
+          "ref_kind": "manifest",
+          "ref_id": "stub-backend",
+          "ref_version": "backend-manifest/v2",
+          "ref_digest": null,
+          "ref_path": null,
+          "subject_ref": {
+            "ref_kind": "backend",
+            "ref_id": "stub-backend",
+            "ref_version": "0.1.0",
+            "ref_digest": null,
+            "ref_path": null
+          }
+        }
+      ],
+      "required_capabilities": [
+        "workflow-results",
+        "evaluation-results"
+      ],
+      "notes": []
+    },
+    "validity_notes": [
+      {
+        "category": "external",
+        "note": "The scenario is a controlled range and does not claim direct production generalization.",
+        "mitigation": null
+      }
+    ],
+    "artifact_refs": [
+      {
+        "artifact_id": "protocol-red-team-success-doc",
+        "role": "protocol",
+        "media_type": "text/markdown",
+        "uri": "docs/protocols/red-team-success.md",
+        "checksum": {
+          "algorithm": "sha256",
+          "value": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+        },
+        "size_bytes": 8192,
+        "created_at": "2026-05-26T00:00:00Z",
+        "source": "experiment protocol repository document",
+        "satisfies_refs": [],
+        "sensitivity": "internal",
+        "description": null
+      }
+    ],
+    "validation_basis_disclosures": [],
+    "observation_demands": null,
+    "evidence_requirement_relations": []
+  },
+  "run": {
+    "schema_version": "experiment-run/v1",
+    "run_id": "archival-run-693587326e3adbf0aa3952e57a6841354e2a3ff6cb6a8d72f0b9edd8a2c247a7",
+    "run_version": "1.0.0",
+    "task_ref": {
+      "ref_kind": "task",
+      "ref_id": "task-techvault-red-team-v1",
+      "ref_version": "1.0.0"
+    },
+    "scenario_snapshot_ref": {
+      "ref_kind": "scenario-snapshot",
+      "ref_id": "compiler-family",
+      "ref_version": "raes-sdl-instantiated-snapshot/v2",
+      "ref_digest": "sha256:916546ea9bf098d9cc51a96d9da070202c24e9005c8ca6d51570c0f09bb8658a",
+      "ref_path": null
+    },
+    "trial_provenance": {
+      "plan_id": "trial-plan-0e7cbab062fefc275a9ba885b9f2266c01354034a5c9072b7fcf8dbaecb61f7e",
+      "plan_digest": "sha256:c681860c67250fc95612238e189ff0d1c082fa866989007b6b65e29dd52c8cbe",
+      "plan_entry_id": "trial-entry-929ac487b94e4306eba77717996db260284c7fd44e48527094f77b0b39187721",
+      "entry_digest": "sha256:de82d3b777ffd0d4d7595e42c6cf23737eaaf0259dc256cd2bbd86aff9aa03c1",
+      "admitted_run_id": "archival-run-693587326e3adbf0aa3952e57a6841354e2a3ff6cb6a8d72f0b9edd8a2c247a7",
+      "coordinate": {
+        "condition_id": null,
+        "block_id": null,
+        "replicate_id": "replicate-000001"
+      },
+      "instantiated_scenario_digest": "sha256:916546ea9bf098d9cc51a96d9da070202c24e9005c8ca6d51570c0f09bb8658a",
+      "processor_plan_refs": [
+        {
+          "plan_kind": "provisioning",
+          "artifact_ref": {
+            "ref_kind": "other",
+            "ref_id": "archival-run-693587326e3adbf0aa3952e57a6841354e2a3ff6cb6a8d72f0b9edd8a2c247a7:provisioning",
+            "ref_version": "provisioning-plan-v1",
+            "ref_digest": "sha256:08fdb459f6ff311c532d8213e35a8fc13ab5f1bdd66d4ee986609eae4974dfea",
+            "ref_path": null
+          }
+        },
+        {
+          "plan_kind": "orchestration",
+          "artifact_ref": {
+            "ref_kind": "other",
+            "ref_id": "archival-run-693587326e3adbf0aa3952e57a6841354e2a3ff6cb6a8d72f0b9edd8a2c247a7:orchestration",
+            "ref_version": "orchestration-plan-v1",
+            "ref_digest": "sha256:d126d54f7b380d788b1fce28ebb28344a68f92b376ab673f36eed837fe3afa12",
+            "ref_path": null
+          }
+        },
+        {
+          "plan_kind": "evaluation",
+          "artifact_ref": {
+            "ref_kind": "other",
+            "ref_id": "archival-run-693587326e3adbf0aa3952e57a6841354e2a3ff6cb6a8d72f0b9edd8a2c247a7:evaluation",
+            "ref_version": "evaluation-plan-v1",
+            "ref_digest": "sha256:067238d54a8085e17025f4cc6e8935c753c77e56c3d2b52896e7dd2ebdac7543",
+            "ref_path": null
+          }
+        }
+      ],
+      "execution_attempts": [
+        {
+          "execution_attempt_id": "attempt-1",
+          "cleanup_receipt_ref": "receipt-attempt-1",
+          "operation_refs": []
+        }
+      ],
+      "terminal_attempt_id": "attempt-1"
+    },
+    "difficulty_provenance": null,
+    "apparatus_context": {
+      "schema_version": "experiment-apparatus-context/v1",
+      "apparatus_context_id": "apparatus-techvault-reference",
+      "context_version": "1.0.0",
+      "declared_at": "2026-05-26T00:00:00Z",
+      "components": {
+        "processor": {
+          "component_kind": "processor",
+          "identity": {
+            "name": "raes-reference-processor",
+            "version": "0.1.0"
+          },
+          "manifest_ref": {
+            "ref_kind": "manifest",
+            "ref_id": "raes-reference-processor",
+            "ref_version": "processor-manifest/v2",
+            "ref_digest": null,
+            "ref_path": null,
+            "subject_ref": {
+              "ref_kind": "processor",
+              "ref_id": "raes-reference-processor",
+              "ref_version": "0.1.0",
+              "ref_digest": null,
+              "ref_path": null
+            }
+          },
+          "compatibility_refs": [],
+          "observed": true,
+          "limitations": []
+        },
+        "backend": {
+          "component_kind": "backend",
+          "identity": {
+            "name": "stub-backend",
+            "version": "0.1.0"
+          },
+          "manifest_ref": {
+            "ref_kind": "manifest",
+            "ref_id": "stub-backend",
+            "ref_version": "backend-manifest/v2",
+            "ref_digest": null,
+            "ref_path": null,
+            "subject_ref": {
+              "ref_kind": "backend",
+              "ref_id": "stub-backend",
+              "ref_version": "0.1.0",
+              "ref_digest": null,
+              "ref_path": null
+            }
+          },
+          "compatibility_refs": [],
+          "observed": true,
+          "limitations": []
+        },
+        "participant-policy": {
+          "component_kind": "participant-implementation",
+          "identity": {
+            "name": "reference-red-agent",
+            "version": "1.0.0"
+          },
+          "manifest_ref": {
+            "ref_kind": "manifest",
+            "ref_id": "reference-red-agent",
+            "ref_version": "participant-implementation-manifest/v1",
+            "ref_digest": null,
+            "ref_path": null,
+            "subject_ref": {
+              "ref_kind": "participant-implementation",
+              "ref_id": "reference-red-agent",
+              "ref_version": "1.0.0",
+              "ref_digest": null,
+              "ref_path": null
+            }
+          },
+          "compatibility_refs": [],
+          "observed": true,
+          "limitations": []
+        }
+      },
+      "selected_manifests": [
+        {
+          "ref_kind": "manifest",
+          "ref_id": "raes-reference-processor",
+          "ref_version": "processor-manifest/v2",
+          "ref_digest": null,
+          "ref_path": null,
+          "subject_ref": {
+            "ref_kind": "processor",
+            "ref_id": "raes-reference-processor",
+            "ref_version": "0.1.0",
+            "ref_digest": null,
+            "ref_path": null
+          }
+        },
+        {
+          "ref_kind": "manifest",
+          "ref_id": "stub-backend",
+          "ref_version": "backend-manifest/v2",
+          "ref_digest": null,
+          "ref_path": null,
+          "subject_ref": {
+            "ref_kind": "backend",
+            "ref_id": "stub-backend",
+            "ref_version": "0.1.0",
+            "ref_digest": null,
+            "ref_path": null
+          }
+        },
+        {
+          "ref_kind": "manifest",
+          "ref_id": "reference-red-agent",
+          "ref_version": "participant-implementation-manifest/v1",
+          "ref_digest": null,
+          "ref_path": null,
+          "subject_ref": {
+            "ref_kind": "participant-implementation",
+            "ref_id": "reference-red-agent",
+            "ref_version": "1.0.0",
+            "ref_digest": null,
+            "ref_path": null
+          }
+        }
+      ],
+      "compatibility_declarations": [
+        {
+          "ref_kind": "profile",
+          "ref_id": "reference-stack-v1",
+          "ref_version": "semantic-profile/v1"
+        },
+        {
+          "ref_kind": "capability",
+          "ref_id": "workflow-results",
+          "ref_version": null
+        },
+        {
+          "ref_kind": "capability",
+          "ref_id": "evaluation-results",
+          "ref_version": null
+        }
+      ],
+      "configuration_parameters": [
+        {
+          "name": "worker-count",
+          "value": 1,
+          "value_kind": "apparatus",
+          "redaction": "none"
+        }
+      ],
+      "stochastic_controls": [
+        {
+          "control_id": "task-seed",
+          "role": "seed",
+          "value": 12345,
+          "description": "Seed supplied to task randomization.",
+          "executable_binding": null
+        }
+      ],
+      "clocks": [
+        {
+          "clock_id": "range-wall-clock",
+          "authority": "backend wall clock",
+          "time_domain": "wall-clock",
+          "synchronization": "NTP synchronized before run seal."
+        }
+      ],
+      "measurement_channels": [
+        {
+          "ref_kind": "measurement-channel",
+          "ref_id": "evaluation-history-channel",
+          "ref_version": "1.0.0"
+        }
+      ],
+      "observed_setup_evidence": [
+        {
+          "artifact_id": "setup-attestation",
+          "role": "apparatus-evidence",
+          "media_type": "application/json",
+          "uri": "runs/run-techvault-001/setup.json",
+          "checksum": {
+            "algorithm": "sha256",
+            "value": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          },
+          "size_bytes": 2048,
+          "created_at": "2026-05-26T00:09:30Z",
+          "source": "stub-backend setup attestation",
+          "satisfies_refs": [],
+          "sensitivity": "internal",
+          "description": null
+        }
+      ],
+      "known_limitations": [
+        {
+          "category": "apparatus",
+          "note": "The stub backend is a conformance apparatus, not a fidelity claim.",
+          "mitigation": null
+        }
+      ]
+    },
+    "participant_implementation_provenance": {
+      "schema_version": "participant-implementation-provenance/v1",
+      "run_id": "archival-run-693587326e3adbf0aa3952e57a6841354e2a3ff6cb6a8d72f0b9edd8a2c247a7",
+      "participant_implementations": [
+        {
+          "participant_address": "participants.red",
+          "implementation_identity": {
+            "name": "reference-red-agent",
+            "version": "1.0.0"
+          },
+          "manifest_ref": "contracts/fixtures/participant-implementation-manifest/reference.json",
+          "manifest_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+          "configuration_ref": null,
+          "configuration_digest": null,
+          "selected_decision_surface_mode": "policy-directed",
+          "participant_contract_versions": [
+            "participant-episode-state-envelope-v1",
+            "participant-behavior-history-event-stream-v1"
+          ],
+          "exposure_policy": {
+            "policy_id": "red-agent-policy",
+            "policy_version": "1.0.0",
+            "policy_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+            "exposure_policy_kinds": [
+              "task-statement",
+              "tool-affordance"
+            ],
+            "disclosed_refs": [
+              "scenario.tasks.red"
+            ],
+            "withheld_refs": [
+              "scenario.hidden.answer-key"
+            ],
+            "tool_affordance_refs": [
+              "tool.shell"
+            ],
+            "visibility_scope_refs": [
+              "participants.red.visible"
+            ],
+            "constraints": {}
+          }
+        }
+      ],
+      "processor_manifest_ref": "processor-manifest-v2:raes-reference-processor",
+      "backend_manifest_ref": "backend-manifest-v2:stub-backend",
+      "metadata": {}
+    },
+    "parameter_set": [
+      {
+        "name": "difficulty",
+        "value": "standard",
+        "value_kind": "protocol",
+        "redaction": "none"
+      }
+    ],
+    "realized_bindings": [],
+    "stochastic_controls": [
+      {
+        "control_id": "sample-control",
+        "role": "sampling",
+        "value": null,
+        "description": null,
+        "executable_binding": {
+          "profile_ref": {
+            "ref_kind": "profile",
+            "ref_id": "blake3-xof-v1",
+            "ref_version": "random-stream-profile/v1",
+            "ref_digest": null,
+            "ref_path": null
+          },
+          "namespace": "compiler-sampling",
+          "root_entropy": {
+            "kind": "public-seed",
+            "encoding": "hex-fixed-width",
+            "value": "0101010101010101010101010101010101010101010101010101010101010101"
+          }
+        }
+      }
+    ],
+    "stochastic_draws": [
+      {
+        "control_id": "sample-control",
+        "address": {
+          "namespace": "compiler-sampling",
+          "trial_coordinate": {
+            "condition_id": null,
+            "block_id": null,
+            "replicate_id": "replicate-000001"
+          },
+          "selection_policy_id": "sample-path",
+          "variation_point_id": "payload-path",
+          "draw_purpose": "sampling-selection",
+          "local_coordinate": 0
+        },
+        "transform_id": "bounded-integer",
+        "transform_version": "1",
+        "local_coordinate": 0,
+        "outcome": {
+          "kind": "public-value",
+          "value": "0"
+        },
+        "rejection_attempts": 0,
+        "rejection_exhausted": false
+      }
+    ],
+    "started_at": "2026-05-26T00:10:00Z",
+    "ended_at": "2026-05-26T00:40:00Z",
+    "clock_context": {
+      "clock_id": "range-wall-clock",
+      "authority": "backend wall clock",
+      "time_domain": "wall-clock",
+      "synchronization": null
+    },
+    "realized_time_model": null,
+    "run_status": "completed",
+    "outcome_status": "succeeded",
+    "traceability": {
+      "capture_spec_refs": [
+        {
+          "ref_kind": "capture-spec",
+          "ref_id": "capture-techvault-evidence-v1",
+          "ref_version": "1.0.0"
+        }
+      ],
+      "evidence_record_refs": [
+        {
+          "ref_kind": "evidence-record",
+          "ref_id": "evidence-techvault-network-trace-001",
+          "ref_version": "1.0.0"
+        }
+      ],
+      "derived_measure_refs": [
+        {
+          "ref_kind": "derived-measure",
+          "ref_id": "measure-techvault-foothold-001",
+          "ref_version": "1.0.0"
+        }
+      ],
+      "claim_refs": [
+        {
+          "ref_kind": "result",
+          "ref_id": "foothold-achieved-result",
+          "ref_version": null,
+          "ref_digest": null,
+          "ref_path": null
+        }
+      ],
+      "notes": [
+        "The run provenance chain binds the declared capture spec, raw evidence record, derived foothold measure, and result claim."
+      ]
+    },
+    "realized_form_disclosures": [
+      {
+        "concern_id": "composed-scenario-snapshot",
+        "concern_kind": "scenario-module",
+        "basis": "processor-realized",
+        "realized_by_ref": {
+          "ref_kind": "processor",
+          "ref_id": "raes-reference-processor",
+          "ref_version": "0.1.0",
+          "ref_digest": null,
+          "ref_path": null
+        },
+        "authored_ref": {
+          "ref_kind": "scenario",
+          "ref_id": "scenario-techvault",
+          "ref_version": null,
+          "ref_digest": null,
+          "ref_path": null
+        },
+        "realized_ref": {
+          "ref_kind": "scenario-snapshot",
+          "ref_id": "scenario-techvault",
+          "ref_version": "2026-05-26",
+          "ref_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+          "ref_path": null
+        },
+        "realized_value_summary": null,
+        "disclosure": "The processor resolved the authored TechVault scenario into the canonical composed scenario snapshot used by this run.",
+        "evidence_refs": [
+          {
+            "ref_kind": "evidence-record",
+            "ref_id": "evidence-techvault-network-trace-001",
+            "ref_version": "1.0.0"
+          }
+        ],
+        "typed_description": null
+      }
+    ],
+    "augmentation_disclosures": [],
+    "materialization_attestations": [],
+    "evidence_artifacts": [
+      {
+        "artifact_id": "auth-log-evidence",
+        "role": "observation",
+        "media_type": "application/json",
+        "uri": "runs/run-techvault-001/evaluation-history.json",
+        "checksum": {
+          "algorithm": "sha256",
+          "value": "d1a2e6de54aa13b77dc5ccb6473b9130f9f18302fb12e69c06123bd753f07dd3"
+        },
+        "size_bytes": 1540,
+        "created_at": "2026-05-26T00:40:00Z",
+        "source": "stub-backend evaluator history export",
+        "satisfies_refs": [],
+        "sensitivity": "internal",
+        "description": null
+      }
+    ],
+    "result_summaries": {
+      "foothold-achieved-result": {
+        "metric_id": "foothold-achieved",
+        "value": true,
+        "value_status": "reported",
+        "evidence_refs": [
+          {
+            "ref_kind": "evidence",
+            "ref_id": "auth-log-evidence"
+          }
+        ],
+        "uncertainty": null,
+        "notes": null
+      }
+    },
+    "deviations": [],
+    "invalidation": null,
+    "used_refs": [
+      {
+        "ref_kind": "task",
+        "ref_id": "task-techvault-red-team-v1",
+        "ref_version": "1.0.0",
+        "ref_digest": null,
+        "ref_path": null
+      }
+    ],
+    "generated_refs": [
+      {
+        "ref_kind": "result",
+        "ref_id": "foothold-achieved-result",
+        "ref_version": null,
+        "ref_digest": null,
+        "ref_path": null
+      }
+    ],
+    "derived_from_refs": [],
+    "validation_basis_disclosures": [],
+    "evidence_requirement_relations": []
+  },
+  "receipt": {
+    "schema_version": "trial-cleanup-receipt/v1",
+    "receipt_id": "receipt-attempt-1",
+    "cleanup_plan_ref": "trial-cleanup-f48fed6078cb1bc1a5de107987cd59423f43cdd6f9549c89f5fa9346f2873227",
+    "plan_entry_id": "trial-entry-929ac487b94e4306eba77717996db260284c7fd44e48527094f77b0b39187721",
+    "run_id": "archival-run-693587326e3adbf0aa3952e57a6841354e2a3ff6cb6a8d72f0b9edd8a2c247a7",
+    "execution_attempt_id": "attempt-1",
+    "trial_outcome": "succeeded",
+    "cleanup_status": "succeeded",
+    "obligation_results": {
+      "destroy": {
+        "obligation_id": "destroy",
+        "status": "succeeded",
+        "evidence_refs": [
+          "evidence:destroy"
+        ],
+        "residual_state_refs": []
+      }
+    },
+    "clean_state_claim": {
+      "disposition": "verified-clean",
+      "boundary_refs": [
+        "range"
+      ],
+      "evidence_refs": [
+        "evidence:clean"
+      ]
+    }
+  },
+  "capture": {
+    "schema_version": "experiment-capture-spec/v1",
+    "capture_spec_id": "capture-techvault-evidence-v1",
+    "spec_version": "1.0.0",
+    "title": "TechVault evidence capture specification",
+    "description": "Declarative capture requirements for the TechVault red-team evaluation task.",
+    "scope_refs": [
+      {
+        "ref_kind": "task",
+        "ref_id": "task-techvault-red-team-v1",
+        "ref_version": "1.0.0",
+        "ref_digest": null,
+        "ref_path": null
+      },
+      {
+        "ref_kind": "run",
+        "ref_id": "run-techvault-001",
+        "ref_version": "1.0.0",
+        "ref_digest": null,
+        "ref_path": null
+      }
+    ],
+    "capture_windows": [
+      {
+        "window_id": "run-window",
+        "window_kind": "run",
+        "starts_at": "2026-05-26T00:10:00Z",
+        "ends_at": "2026-05-26T00:40:00Z",
+        "trigger_ref": null,
+        "description": "Capture evidence for the active run interval."
+      }
+    ],
+    "capture_requirements": {
+      "auth-log-evidence": {
+        "requirement_id": "auth-log-evidence",
+        "title": "Network trace evidence",
+        "capture_kind": "trace",
+        "capture_scope": "network",
+        "channel_ref": {
+          "ref_kind": "measurement-channel",
+          "ref_id": "evaluation-history-channel",
+          "ref_version": "1.0.0"
+        },
+        "window_refs": [
+          "run-window"
+        ],
+        "expected_media_types": [
+          "application/json"
+        ],
+        "required_artifact_roles": [
+          "observation"
+        ],
+        "output_contract": "participant-behavior-history-event-stream-v1",
+        "field_selectors": [
+          "/0/action_contract_address"
+        ],
+        "sensitivity": "internal",
+        "redaction_policy": null,
+        "integrity_requirements": [
+          "sha256-digest"
+        ],
+        "retention_policy": "Retain raw evidence for the experiment review window.",
+        "loss_disclosure_required": true,
+        "notes": [],
+        "observation_demand": null
+      }
+    },
+    "validity_notes": [
+      {
+        "category": "apparatus",
+        "note": "The capture specification defines evidence intent only; it does not imply runtime collection.",
+        "mitigation": null
+      }
+    ],
+    "artifact_refs": [
+      {
+        "artifact_id": "capture-spec-review",
+        "role": "protocol",
+        "media_type": "text/markdown",
+        "uri": "docs/protocols/techvault-capture-spec.md",
+        "checksum": {
+          "algorithm": "sha256",
+          "value": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+        },
+        "size_bytes": 2048,
+        "created_at": "2026-05-26T00:00:00Z",
+        "source": "experiment evidence design review",
+        "satisfies_refs": [],
+        "sensitivity": "internal",
+        "description": null
+      }
+    ]
+  },
+  "record": {
+    "schema_version": "experiment-evidence-record/v1",
+    "evidence_record_id": "evidence-techvault-network-trace-001",
+    "record_version": "1.0.0",
+    "capture_spec_ref": {
+      "ref_kind": "capture-spec",
+      "ref_id": "capture-techvault-evidence-v1",
+      "ref_version": "1.0.0"
+    },
+    "capture_requirement_ref": "auth-log-evidence",
+    "output_contract": "participant-behavior-history-event-stream-v1",
+    "run_ref": {
+      "ref_kind": "run",
+      "ref_id": "archival-run-693587326e3adbf0aa3952e57a6841354e2a3ff6cb6a8d72f0b9edd8a2c247a7",
+      "ref_version": "1.0.0",
+      "ref_digest": null,
+      "ref_path": null
+    },
+    "task_ref": {
+      "ref_kind": "task",
+      "ref_id": "task-techvault-red-team-v1",
+      "ref_version": "1.0.0"
+    },
+    "apparatus_context_ref": null,
+    "source_refs": [
+      {
+        "ref_kind": "measurement-channel",
+        "ref_id": "evaluation-history-channel",
+        "ref_version": "1.0.0",
+        "ref_digest": null,
+        "ref_path": null
+      }
+    ],
+    "evidence_kind": "trace",
+    "captured_at": "2026-05-26T00:40:00Z",
+    "capture_window_ref": "run-window",
+    "raw_content": {
+      "artifact_ref": null,
+      "content_uri": "runs/run-techvault-001/evaluation-history.json",
+      "content_checksum": {
+        "algorithm": "sha256",
+        "value": "d1a2e6de54aa13b77dc5ccb6473b9130f9f18302fb12e69c06123bd753f07dd3"
+      },
+      "payload_summary": null,
+      "loss_disclosure": null
+    },
+    "sensitivity": "internal",
+    "redaction_state": "none",
+    "redaction_policy": null,
+    "provenance_refs": [
+      {
+        "ref_kind": "backend",
+        "ref_id": "stub-backend",
+        "ref_version": "0.1.0",
+        "ref_digest": null,
+        "ref_path": null
+      }
+    ],
+    "typed_description": null
+  },
+  "payload_hex": "5b0a20207b0a20202020226576656e745f74797065223a2022616374696f6e5f617474656d70746564222c0a202020202274696d657374616d70223a2022323032362d30342d31315431303a30303a30305a222c0a20202020227061727469636970616e745f61646472657373223a20227061727469636970616e742e616c696365222c0a2020202022657069736f64655f6964223a202265702d30303031222c0a2020202022616374696f6e5f696e7374616e63655f6964223a20226163742d30303031222c0a2020202022616374696f6e5f636f6e74726163745f61646472657373223a20227061727469636970616e742e616374696f6e2d636f6e74726163742e7375626d69742d66696e64696e67222c0a20202020226f62736572766174696f6e5f626f756e646172795f61646472657373223a206e756c6c2c0a20202020226f62736572766174696f6e5f737461747573223a206e756c6c2c0a20202020226163746f725f70726f76656e616e6365223a20227061727469636970616e742e616c696365222c0a202020202273746174655f7472616e736974696f6e5f6b696e64223a206e756c6c2c0a2020202022706f73745f73746174655f646967657374223a206e756c6c2c0a202020202264657461696c73223a207b7d0a20207d2c0a20207b0a20202020226576656e745f74797065223a202273746174655f7472616e736974696f6e5f7265636f72646564222c0a202020202274696d657374616d70223a2022323032362d30342d31315431303a30303a30315a222c0a20202020227061727469636970616e745f61646472657373223a20227061727469636970616e742e616c696365222c0a2020202022657069736f64655f6964223a202265702d30303031222c0a2020202022616374696f6e5f696e7374616e63655f6964223a20226163742d30303031222c0a2020202022616374696f6e5f636f6e74726163745f61646472657373223a20227061727469636970616e742e616374696f6e2d636f6e74726163742e7375626d69742d66696e64696e67222c0a20202020226f62736572766174696f6e5f626f756e646172795f61646472657373223a206e756c6c2c0a20202020226f62736572766174696f6e5f737461747573223a206e756c6c2c0a20202020226163746f725f70726f76656e616e6365223a206e756c6c2c0a202020202273746174655f7472616e736974696f6e5f6b696e64223a202266696e64696e672d7265636f72646564222c0a2020202022706f73745f73746174655f646967657374223a20227368613235363a30313233343536373839616263646566222c0a202020202264657461696c73223a207b7d0a20207d2c0a20207b0a20202020226576656e745f74797065223a20226f62736572766174696f6e5f656d6974746564222c0a202020202274696d657374616d70223a2022323032362d30342d31315431303a30303a30325a222c0a20202020227061727469636970616e745f61646472657373223a20227061727469636970616e742e616c696365222c0a2020202022657069736f64655f6964223a202265702d30303031222c0a2020202022616374696f6e5f696e7374616e63655f6964223a20226163742d30303031222c0a2020202022616374696f6e5f636f6e74726163745f61646472657373223a20227061727469636970616e742e616374696f6e2d636f6e74726163742e7375626d69742d66696e64696e67222c0a20202020226f62736572766174696f6e5f626f756e646172795f61646472657373223a20227061727469636970616e742e6f62736572766174696f6e2d626f756e646172792e6368616c6c656e67652d6c6f67222c0a20202020226f62736572766174696f6e5f737461747573223a20227465726d696e616c222c0a20202020226163746f725f70726f76656e616e6365223a206e756c6c2c0a202020202273746174655f7472616e736974696f6e5f6b696e64223a206e756c6c2c0a2020202022706f73745f73746174655f646967657374223a20227368613235363a30313233343536373839616263646566222c0a202020202264657461696c73223a207b7d0a20207d0a5d0a",
+  "cases": [
+    {
+      "name": "baseline",
+      "study": {
+        "schema_version": "experiment-study/v1",
+        "study_id": "study-techvault-baseline",
+        "study_version": "1.0.0",
+        "study_kind": "study",
+        "title": "TechVault baseline study",
+        "owner": "raes-experiment-core",
+        "description": "Archival baseline study for TechVault red-team runs.",
+        "purpose": "Estimate baseline participant policy outcomes for the fixed task protocol.",
+        "research_questions": [
+          "How often does the baseline participant policy achieve initial foothold under the fixed task protocol?"
+        ],
+        "behavioral_claims": [
+          {
+            "taxonomy_id": "raes-behavioral-relations",
+            "taxonomy_revision": "rev8",
+            "relation_id": "empirical-adequacy",
+            "subject": "TechVault baseline study",
+            "left_carrier_ref": "study-techvault-baseline@1.0.0",
+            "right_carrier_ref": null,
+            "observation_projection_ref": "analysis-plan:baseline-proportion",
+            "observation_projection_revision": "experiment-study/v1",
+            "relation_parameter_profile_ref": null,
+            "relation_parameter_profile_revision": null,
+            "quantifier_scope": "sampled-population",
+            "evidence_scope": "statistical",
+            "assurance_axis": null,
+            "evidence_boundary": "The one predeclared baseline condition and included evaluation runs.",
+            "assurance_status": "deliberately-unproved",
+            "evidence_refs": [
+              "analysis-plan:baseline-proportion"
+            ],
+            "limitations": [
+              "The fixture has one run and cannot establish population adequacy."
+            ],
+            "explicit_non_claims": [
+              "No behavioral equivalence or generalizability claim."
+            ]
+          }
+        ],
+        "membership": {
+          "task": {
+            "target_ref": {
+              "ref_kind": "task",
+              "ref_id": "task-techvault-red-team-v1",
+              "ref_version": "1.0.0",
+              "ref_digest": null,
+              "ref_path": null
+            },
+            "role": "primary-task",
+            "grouping": null,
+            "inclusion_rationale": "Reference task for the study."
+          },
+          "run-001": {
+            "target_ref": {
+              "ref_kind": "run",
+              "ref_id": "archival-run-693587326e3adbf0aa3952e57a6841354e2a3ff6cb6a8d72f0b9edd8a2c247a7",
+              "ref_version": null,
+              "ref_digest": null,
+              "ref_path": null
+            },
+            "role": "evaluation-run",
+            "grouping": "baseline",
+            "inclusion_rationale": null
+          }
+        },
+        "inclusion_criteria": [
+          "Runs must use the declared task version and reference apparatus context.",
+          "Runs with unresolved setup deviations are excluded from study estimates."
+        ],
+        "factors": {
+          "participant-policy": {
+            "name": "Participant policy",
+            "factor_kind": "treatment",
+            "levels": [
+              "baseline"
+            ]
+          },
+          "task-version": {
+            "name": "Task version",
+            "factor_kind": "blocking",
+            "levels": [
+              "1.0.0"
+            ]
+          },
+          "scenario-snapshot": {
+            "name": "Scenario snapshot",
+            "factor_kind": "blocking",
+            "levels": [
+              "2026-05-26"
+            ]
+          },
+          "apparatus-profile": {
+            "name": "Apparatus profile",
+            "factor_kind": "blocking",
+            "levels": [
+              "reference-stack-v1"
+            ]
+          }
+        },
+        "run_allocation": {
+          "allocation_unit": "run",
+          "allocation_method": "single-condition baseline allocation",
+          "compared_conditions": [
+            "baseline"
+          ],
+          "condition_assignments": {
+            "baseline": {
+              "condition_id": "baseline",
+              "factor_levels": {
+                "participant-policy": "baseline"
+              },
+              "difficulty_condition": "fixed",
+              "difficulty_policy_id": null,
+              "required_refs": [
+                {
+                  "ref_kind": "participant-implementation",
+                  "ref_id": "reference-red-agent",
+                  "ref_version": "1.0.0",
+                  "ref_digest": null,
+                  "ref_path": null
+                }
+              ],
+              "required_parameters": [],
+              "description": "Baseline participant policy condition for the TechVault task."
+            }
+          },
+          "target_runs_per_condition": 1,
+          "randomization_unit": "participant-policy run order",
+          "blocking_factors": [
+            "task-version",
+            "scenario-snapshot",
+            "apparatus-profile"
+          ],
+          "replication_policy": "Include each baseline run under the declared task and apparatus context before estimating outcomes.",
+          "stopping_rule": "Stop after the predeclared target run count unless an apparatus invalidation requires replacement runs."
+        },
+        "analysis_plan": {
+          "analysis_id": "baseline-proportion",
+          "description": "Estimate baseline success proportion with uncertainty.",
+          "metrics": [
+            "foothold-achieved"
+          ],
+          "primary_metric": "foothold-achieved",
+          "statistical_method": {
+            "method": "binomial proportion estimate",
+            "estimand": "Baseline policy probability of foothold achievement under the fixed task protocol.",
+            "unit_of_analysis": "run",
+            "comparison_family": "single baseline condition for the foothold-achieved primary metric",
+            "assumptions": [
+              "Runs are treated as independent conditional on the declared task, apparatus context, and participant policy."
+            ]
+          },
+          "uncertainty_method": {
+            "method": "Wilson score interval",
+            "interval_level": 0.95,
+            "procedure": "Report a Wilson interval for the baseline foothold-achieved proportion."
+          },
+          "multiple_comparison_policy": {
+            "family": "single primary metric",
+            "correction": "not applicable",
+            "rationale": "No multiplicity adjustment is applied because this fixture declares one primary metric."
+          },
+          "missing_data_policy": {
+            "missingness_assumption": "Run value_status records distinguish missing, withheld, and not-applicable outcomes.",
+            "handling": "Runs without reported foothold-achieved values are retained with their declared value_status.",
+            "sensitivity_analysis": "Report the count of non-reported runs before drawing study claims."
+          }
+        },
+        "validity_notes": [
+          {
+            "category": "conclusion",
+            "note": "Additional repeated runs are required before drawing participant-policy comparison claims.",
+            "mitigation": null
+          }
+        ],
+        "report_artifacts": [
+          {
+            "artifact_id": "study-report",
+            "role": "report",
+            "media_type": "text/markdown",
+            "uri": "studies/techvault-baseline/report.md",
+            "checksum": {
+              "algorithm": "sha256",
+              "value": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+            },
+            "size_bytes": 12288,
+            "created_at": "2026-05-26T01:00:00Z",
+            "source": "study analysis report",
+            "satisfies_refs": [],
+            "sensitivity": "internal",
+            "description": null
+          }
+        ],
+        "export_artifacts": [],
+        "validation_basis_disclosures": [],
+        "evidence_requirement_relations": []
+      },
+      "valid": true,
+      "evidence": true
+    },
+    {
+      "name": "missing-member",
+      "study": {
+        "schema_version": "experiment-study/v1",
+        "study_id": "study-techvault-baseline",
+        "study_version": "1.0.0",
+        "study_kind": "study",
+        "title": "TechVault baseline study",
+        "owner": "raes-experiment-core",
+        "description": "Archival baseline study for TechVault red-team runs.",
+        "purpose": "Estimate baseline participant policy outcomes for the fixed task protocol.",
+        "research_questions": [
+          "How often does the baseline participant policy achieve initial foothold under the fixed task protocol?"
+        ],
+        "behavioral_claims": [
+          {
+            "taxonomy_id": "raes-behavioral-relations",
+            "taxonomy_revision": "rev8",
+            "relation_id": "empirical-adequacy",
+            "subject": "TechVault baseline study",
+            "left_carrier_ref": "study-techvault-baseline@1.0.0",
+            "right_carrier_ref": null,
+            "observation_projection_ref": "analysis-plan:baseline-proportion",
+            "observation_projection_revision": "experiment-study/v1",
+            "relation_parameter_profile_ref": null,
+            "relation_parameter_profile_revision": null,
+            "quantifier_scope": "sampled-population",
+            "evidence_scope": "statistical",
+            "assurance_axis": null,
+            "evidence_boundary": "The one predeclared baseline condition and included evaluation runs.",
+            "assurance_status": "deliberately-unproved",
+            "evidence_refs": [
+              "analysis-plan:baseline-proportion"
+            ],
+            "limitations": [
+              "The fixture has one run and cannot establish population adequacy."
+            ],
+            "explicit_non_claims": [
+              "No behavioral equivalence or generalizability claim."
+            ]
+          }
+        ],
+        "membership": {
+          "task": {
+            "target_ref": {
+              "ref_kind": "task",
+              "ref_id": "task-techvault-red-team-v1",
+              "ref_version": "1.0.0",
+              "ref_digest": null,
+              "ref_path": null
+            },
+            "role": "primary-task",
+            "grouping": null,
+            "inclusion_rationale": "Reference task for the study."
+          },
+          "run-001": {
+            "target_ref": {
+              "ref_kind": "run",
+              "ref_id": "foreign-run",
+              "ref_version": null,
+              "ref_digest": null,
+              "ref_path": null
+            },
+            "role": "evaluation-run",
+            "grouping": "baseline",
+            "inclusion_rationale": null
+          }
+        },
+        "inclusion_criteria": [
+          "Runs must use the declared task version and reference apparatus context.",
+          "Runs with unresolved setup deviations are excluded from study estimates."
+        ],
+        "factors": {
+          "participant-policy": {
+            "name": "Participant policy",
+            "factor_kind": "treatment",
+            "levels": [
+              "baseline"
+            ]
+          },
+          "task-version": {
+            "name": "Task version",
+            "factor_kind": "blocking",
+            "levels": [
+              "1.0.0"
+            ]
+          },
+          "scenario-snapshot": {
+            "name": "Scenario snapshot",
+            "factor_kind": "blocking",
+            "levels": [
+              "2026-05-26"
+            ]
+          },
+          "apparatus-profile": {
+            "name": "Apparatus profile",
+            "factor_kind": "blocking",
+            "levels": [
+              "reference-stack-v1"
+            ]
+          }
+        },
+        "run_allocation": {
+          "allocation_unit": "run",
+          "allocation_method": "single-condition baseline allocation",
+          "compared_conditions": [
+            "baseline"
+          ],
+          "condition_assignments": {
+            "baseline": {
+              "condition_id": "baseline",
+              "factor_levels": {
+                "participant-policy": "baseline"
+              },
+              "difficulty_condition": "fixed",
+              "difficulty_policy_id": null,
+              "required_refs": [
+                {
+                  "ref_kind": "participant-implementation",
+                  "ref_id": "reference-red-agent",
+                  "ref_version": "1.0.0",
+                  "ref_digest": null,
+                  "ref_path": null
+                }
+              ],
+              "required_parameters": [],
+              "description": "Baseline participant policy condition for the TechVault task."
+            }
+          },
+          "target_runs_per_condition": 1,
+          "randomization_unit": "participant-policy run order",
+          "blocking_factors": [
+            "task-version",
+            "scenario-snapshot",
+            "apparatus-profile"
+          ],
+          "replication_policy": "Include each baseline run under the declared task and apparatus context before estimating outcomes.",
+          "stopping_rule": "Stop after the predeclared target run count unless an apparatus invalidation requires replacement runs."
+        },
+        "analysis_plan": {
+          "analysis_id": "baseline-proportion",
+          "description": "Estimate baseline success proportion with uncertainty.",
+          "metrics": [
+            "foothold-achieved"
+          ],
+          "primary_metric": "foothold-achieved",
+          "statistical_method": {
+            "method": "binomial proportion estimate",
+            "estimand": "Baseline policy probability of foothold achievement under the fixed task protocol.",
+            "unit_of_analysis": "run",
+            "comparison_family": "single baseline condition for the foothold-achieved primary metric",
+            "assumptions": [
+              "Runs are treated as independent conditional on the declared task, apparatus context, and participant policy."
+            ]
+          },
+          "uncertainty_method": {
+            "method": "Wilson score interval",
+            "interval_level": 0.95,
+            "procedure": "Report a Wilson interval for the baseline foothold-achieved proportion."
+          },
+          "multiple_comparison_policy": {
+            "family": "single primary metric",
+            "correction": "not applicable",
+            "rationale": "No multiplicity adjustment is applied because this fixture declares one primary metric."
+          },
+          "missing_data_policy": {
+            "missingness_assumption": "Run value_status records distinguish missing, withheld, and not-applicable outcomes.",
+            "handling": "Runs without reported foothold-achieved values are retained with their declared value_status.",
+            "sensitivity_analysis": "Report the count of non-reported runs before drawing study claims."
+          }
+        },
+        "validity_notes": [
+          {
+            "category": "conclusion",
+            "note": "Additional repeated runs are required before drawing participant-policy comparison claims.",
+            "mitigation": null
+          }
+        ],
+        "report_artifacts": [
+          {
+            "artifact_id": "study-report",
+            "role": "report",
+            "media_type": "text/markdown",
+            "uri": "studies/techvault-baseline/report.md",
+            "checksum": {
+              "algorithm": "sha256",
+              "value": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+            },
+            "size_bytes": 12288,
+            "created_at": "2026-05-26T01:00:00Z",
+            "source": "study analysis report",
+            "satisfies_refs": [],
+            "sensitivity": "internal",
+            "description": null
+          }
+        ],
+        "export_artifacts": [],
+        "validation_basis_disclosures": [],
+        "evidence_requirement_relations": []
+      },
+      "valid": false,
+      "evidence": true
+    },
+    {
+      "name": "missing-evidence",
+      "study": {
+        "schema_version": "experiment-study/v1",
+        "study_id": "study-techvault-baseline",
+        "study_version": "1.0.0",
+        "study_kind": "study",
+        "title": "TechVault baseline study",
+        "owner": "raes-experiment-core",
+        "description": "Archival baseline study for TechVault red-team runs.",
+        "purpose": "Estimate baseline participant policy outcomes for the fixed task protocol.",
+        "research_questions": [
+          "How often does the baseline participant policy achieve initial foothold under the fixed task protocol?"
+        ],
+        "behavioral_claims": [
+          {
+            "taxonomy_id": "raes-behavioral-relations",
+            "taxonomy_revision": "rev8",
+            "relation_id": "empirical-adequacy",
+            "subject": "TechVault baseline study",
+            "left_carrier_ref": "study-techvault-baseline@1.0.0",
+            "right_carrier_ref": null,
+            "observation_projection_ref": "analysis-plan:baseline-proportion",
+            "observation_projection_revision": "experiment-study/v1",
+            "relation_parameter_profile_ref": null,
+            "relation_parameter_profile_revision": null,
+            "quantifier_scope": "sampled-population",
+            "evidence_scope": "statistical",
+            "assurance_axis": null,
+            "evidence_boundary": "The one predeclared baseline condition and included evaluation runs.",
+            "assurance_status": "deliberately-unproved",
+            "evidence_refs": [
+              "analysis-plan:baseline-proportion"
+            ],
+            "limitations": [
+              "The fixture has one run and cannot establish population adequacy."
+            ],
+            "explicit_non_claims": [
+              "No behavioral equivalence or generalizability claim."
+            ]
+          }
+        ],
+        "membership": {
+          "task": {
+            "target_ref": {
+              "ref_kind": "task",
+              "ref_id": "task-techvault-red-team-v1",
+              "ref_version": "1.0.0",
+              "ref_digest": null,
+              "ref_path": null
+            },
+            "role": "primary-task",
+            "grouping": null,
+            "inclusion_rationale": "Reference task for the study."
+          },
+          "run-001": {
+            "target_ref": {
+              "ref_kind": "run",
+              "ref_id": "archival-run-693587326e3adbf0aa3952e57a6841354e2a3ff6cb6a8d72f0b9edd8a2c247a7",
+              "ref_version": null,
+              "ref_digest": null,
+              "ref_path": null
+            },
+            "role": "evaluation-run",
+            "grouping": "baseline",
+            "inclusion_rationale": null
+          }
+        },
+        "inclusion_criteria": [
+          "Runs must use the declared task version and reference apparatus context.",
+          "Runs with unresolved setup deviations are excluded from study estimates."
+        ],
+        "factors": {
+          "participant-policy": {
+            "name": "Participant policy",
+            "factor_kind": "treatment",
+            "levels": [
+              "baseline"
+            ]
+          },
+          "task-version": {
+            "name": "Task version",
+            "factor_kind": "blocking",
+            "levels": [
+              "1.0.0"
+            ]
+          },
+          "scenario-snapshot": {
+            "name": "Scenario snapshot",
+            "factor_kind": "blocking",
+            "levels": [
+              "2026-05-26"
+            ]
+          },
+          "apparatus-profile": {
+            "name": "Apparatus profile",
+            "factor_kind": "blocking",
+            "levels": [
+              "reference-stack-v1"
+            ]
+          }
+        },
+        "run_allocation": {
+          "allocation_unit": "run",
+          "allocation_method": "single-condition baseline allocation",
+          "compared_conditions": [
+            "baseline"
+          ],
+          "condition_assignments": {
+            "baseline": {
+              "condition_id": "baseline",
+              "factor_levels": {
+                "participant-policy": "baseline"
+              },
+              "difficulty_condition": "fixed",
+              "difficulty_policy_id": null,
+              "required_refs": [
+                {
+                  "ref_kind": "participant-implementation",
+                  "ref_id": "reference-red-agent",
+                  "ref_version": "1.0.0",
+                  "ref_digest": null,
+                  "ref_path": null
+                }
+              ],
+              "required_parameters": [],
+              "description": "Baseline participant policy condition for the TechVault task."
+            }
+          },
+          "target_runs_per_condition": 1,
+          "randomization_unit": "participant-policy run order",
+          "blocking_factors": [
+            "task-version",
+            "scenario-snapshot",
+            "apparatus-profile"
+          ],
+          "replication_policy": "Include each baseline run under the declared task and apparatus context before estimating outcomes.",
+          "stopping_rule": "Stop after the predeclared target run count unless an apparatus invalidation requires replacement runs."
+        },
+        "analysis_plan": {
+          "analysis_id": "baseline-proportion",
+          "description": "Estimate baseline success proportion with uncertainty.",
+          "metrics": [
+            "foothold-achieved"
+          ],
+          "primary_metric": "foothold-achieved",
+          "statistical_method": {
+            "method": "binomial proportion estimate",
+            "estimand": "Baseline policy probability of foothold achievement under the fixed task protocol.",
+            "unit_of_analysis": "run",
+            "comparison_family": "single baseline condition for the foothold-achieved primary metric",
+            "assumptions": [
+              "Runs are treated as independent conditional on the declared task, apparatus context, and participant policy."
+            ]
+          },
+          "uncertainty_method": {
+            "method": "Wilson score interval",
+            "interval_level": 0.95,
+            "procedure": "Report a Wilson interval for the baseline foothold-achieved proportion."
+          },
+          "multiple_comparison_policy": {
+            "family": "single primary metric",
+            "correction": "not applicable",
+            "rationale": "No multiplicity adjustment is applied because this fixture declares one primary metric."
+          },
+          "missing_data_policy": {
+            "missingness_assumption": "Run value_status records distinguish missing, withheld, and not-applicable outcomes.",
+            "handling": "Runs without reported foothold-achieved values are retained with their declared value_status.",
+            "sensitivity_analysis": "Report the count of non-reported runs before drawing study claims."
+          }
+        },
+        "validity_notes": [
+          {
+            "category": "conclusion",
+            "note": "Additional repeated runs are required before drawing participant-policy comparison claims.",
+            "mitigation": null
+          }
+        ],
+        "report_artifacts": [
+          {
+            "artifact_id": "study-report",
+            "role": "report",
+            "media_type": "text/markdown",
+            "uri": "studies/techvault-baseline/report.md",
+            "checksum": {
+              "algorithm": "sha256",
+              "value": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+            },
+            "size_bytes": 12288,
+            "created_at": "2026-05-26T01:00:00Z",
+            "source": "study analysis report",
+            "satisfies_refs": [],
+            "sensitivity": "internal",
+            "description": null
+          }
+        ],
+        "export_artifacts": [],
+        "validation_basis_disclosures": [],
+        "evidence_requirement_relations": []
+      },
+      "valid": false,
+      "evidence": false
+    }
+  ]
+}

@@ -1,0 +1,141 @@
+package backend
+
+import (
+	"github.com/OpenRAE/rae/implementations/go/contract/admission"
+	"github.com/OpenRAE/rae/implementations/go/contract/binding"
+	"context"
+
+	"github.com/OpenRAE/rae/implementations/go/contract/diagnostic"
+	runtimecontract "github.com/OpenRAE/rae/implementations/go/contract/runtime"
+
+	"github.com/OpenRAE/rae/implementations/go/contract/validation"
+)
+
+func RequireOperationProvider(provider any, declaredContracts []string) (OperationProvider, error)
+
+func RequireInjectOccurrenceProvider(provider any, declaredContracts []string) (OperationProvider, error)
+
+func RequireMixedService(service any, role string, declaredContracts []string) error
+
+type InventoryReporter interface {
+	RefreshInventory(ctx context.Context, plan binding.ProvisioningPlanV1, snapshot binding.RuntimeSnapshotV1) (runtimecontract.ApplyResult, error)
+}
+type RecoveryObserver interface {
+	ObserveEffect(ctx context.Context, request runtimecontract.RecoveryObservationRequest) (runtimecontract.RecoveryObservationResult, error)
+}
+type AugmentationPreparer interface {
+	PrepareAugmentation(ctx context.Context, plan validation.Value, snapshot binding.RuntimeSnapshotV1) (binding.BackendAugmentationScopeV1, error)
+}
+type MixedBridge interface {
+	OperationProvider
+	ExecutionBinding(ctx context.Context) (binding.MixedBackendExecutionBindingV1, error)
+	StageReports(ctx context.Context, control binding.BackendOperationControlV1) ([]binding.MixedBackendStageReportV1, error)
+}
+type MixedTimeCoordinator interface {
+	Grant(ctx context.Context, request binding.BackendOperationRequestV1, state binding.TimeRuntimeStateV1) (binding.MixedBackendStageReportV1, error)
+}
+type MixedStageReader interface {
+	ReadStage(ctx context.Context, control binding.BackendOperationControlV1) (binding.MixedBackendStageReportV1, error)
+}
+type InvocationToolActionPort interface {
+	Identity() runtimecontract.InvocationToolIdentity
+	Closed() bool
+	Admit(ctx context.Context, request runtimecontract.ToolActionRequest) (runtimecontract.ToolActionDecision, error)
+	Dispatch(ctx context.Context, target string) (runtimecontract.ToolActionReceipt, error)
+	Complete(ctx context.Context, target string, input admission.Fragment) (runtimecontract.ToolActionReceipt, error)
+	Cancel(ctx context.Context, target string) (runtimecontract.ToolActionReceipt, error)
+	ReportUnknown(ctx context.Context, target string, target2 string) (runtimecontract.ToolActionReceipt, error)
+}
+type InvocationToolParticipantRuntime interface {
+	AutonomousParticipantRuntime
+	AttachInvocationToolActions(ctx context.Context, port InvocationToolActionPort) error
+}
+
+func LoadProfile(id string) (binding.BackendProfileV1, error)
+
+type Manifest = binding.BackendManifestV2
+type Provisioner interface {
+	Validate(ctx context.Context, plan binding.ProvisioningPlanV1) ([]diagnostic.Diagnostic, error)
+	Apply(ctx context.Context, plan binding.ProvisioningPlanV1, snapshot binding.RuntimeSnapshotV1) (runtimecontract.ApplyResult, error)
+}
+type PreparingProvisioner interface {
+	Provisioner
+	Prepare(ctx context.Context, plan binding.ProvisioningPlanV1, snapshot binding.RuntimeSnapshotV1) (runtimecontract.RealizationPreparation, error)
+}
+type ProfilePreparingProvisioner interface {
+	PreparingProvisioner
+	DomainProfileContext() binding.DomainProfileResolutionContextV1
+	ValidateProfiles(ctx context.Context, plan binding.ProvisioningPlanV1) ([]diagnostic.Diagnostic, error)
+}
+type Orchestrator interface {
+	Start(ctx context.Context, plan binding.OrchestrationPlanV1, snapshot binding.RuntimeSnapshotV1) (runtimecontract.ApplyResult, error)
+	Status(ctx context.Context) (map[string]any, error)
+	Results(ctx context.Context) (map[string]map[string]any, error)
+	History(ctx context.Context) (map[string][]map[string]any, error)
+	Stop(ctx context.Context, snapshot binding.RuntimeSnapshotV1) (runtimecontract.ApplyResult, error)
+}
+type Evaluator interface {
+	Start(ctx context.Context, plan binding.EvaluationPlanV1, snapshot binding.RuntimeSnapshotV1) (runtimecontract.ApplyResult, error)
+	Status(ctx context.Context) (map[string]any, error)
+	Results(ctx context.Context) (map[string]map[string]any, error)
+	History(ctx context.Context) (map[string][]map[string]any, error)
+	Stop(ctx context.Context, snapshot binding.RuntimeSnapshotV1) (runtimecontract.ApplyResult, error)
+}
+type ParticipantRuntime interface {
+	Initialize(ctx context.Context, request runtimecontract.EpisodeInitializeRequest, snapshot binding.RuntimeSnapshotV1) (runtimecontract.ApplyResult, error)
+	Reset(ctx context.Context, request runtimecontract.EpisodeResetRequest, snapshot binding.RuntimeSnapshotV1) (runtimecontract.ApplyResult, error)
+	Restart(ctx context.Context, request runtimecontract.EpisodeRestartRequest, snapshot binding.RuntimeSnapshotV1) (runtimecontract.ApplyResult, error)
+	Terminate(ctx context.Context, request runtimecontract.EpisodeTerminateRequest, snapshot binding.RuntimeSnapshotV1) (runtimecontract.ApplyResult, error)
+	AdmitAction(ctx context.Context, request runtimecontract.ParticipantActionRequest, snapshot binding.RuntimeSnapshotV1) (runtimecontract.ApplyResult, error)
+	Status(ctx context.Context) (map[string]any, error)
+	Results(ctx context.Context) (map[string]map[string]any, error)
+	History(ctx context.Context) (map[string][]map[string]any, error)
+}
+type TimeRuntime interface {
+	Initialize(ctx context.Context, model binding.TimeModelV1, snapshot binding.RuntimeSnapshotV1) (runtimecontract.ApplyResult, error)
+	Advance(ctx context.Context, target string, coordinate int64, coordinate2 int64, snapshot binding.RuntimeSnapshotV1) (runtimecontract.ApplyResult, error)
+	Pause(ctx context.Context, target string, snapshot binding.RuntimeSnapshotV1) (runtimecontract.ApplyResult, error)
+	Resume(ctx context.Context, target string, snapshot binding.RuntimeSnapshotV1) (runtimecontract.ApplyResult, error)
+	Jump(ctx context.Context, target string, coordinate int64, coordinate2 int64, snapshot binding.RuntimeSnapshotV1) (runtimecontract.ApplyResult, error)
+	Reset(ctx context.Context, target string, reinitialize bool, snapshot binding.RuntimeSnapshotV1) (runtimecontract.ApplyResult, error)
+	State(ctx context.Context, snapshot binding.RuntimeSnapshotV1) (binding.TimeRuntimeStateV1, error)
+}
+type AutonomousActionBinding struct {
+	ParticipantAddress, ActionContractAddress, ObservationBoundaryAddress, ParticipantImplementationRef, ActionInstanceID string
+	TemporalContexts                                                                                                      []admission.Fragment
+}
+type AutonomousParticipantRuntime interface {
+	ParticipantRuntime
+	AdmitAutonomousAction(ctx context.Context, request runtimecontract.ParticipantActionRequest, snapshot binding.RuntimeSnapshotV1) (runtimecontract.ParticipantActionApplyResult, error)
+	BindAutonomousAction(ctx context.Context, binding AutonomousActionBinding, snapshot binding.RuntimeSnapshotV1) (runtimecontract.ParticipantActionRequest, error)
+}
+type ControlledAutonomousParticipantRuntime interface {
+	AutonomousParticipantRuntime
+	ControlExecution(ctx context.Context, control binding.ParticipantExecutionControlV1, snapshot binding.RuntimeSnapshotV1) (runtimecontract.ApplyResult, error)
+	ExecutionState(ctx context.Context, target string, snapshot binding.RuntimeSnapshotV1) (binding.ParticipantExecutionServiceStateV1, error)
+	AdmitActionsConcurrently(ctx context.Context, requests []runtimecontract.ParticipantActionRequest, snapshot binding.RuntimeSnapshotV1, concurrency int) ([]runtimecontract.ParticipantActionApplyResult, error)
+}
+type CoordinatedParticipantResetRuntime interface {
+	ParticipantRuntime
+	ResetMany(ctx context.Context, requests []runtimecontract.EpisodeResetRequest, snapshot binding.RuntimeSnapshotV1) (runtimecontract.ApplyResult, error)
+}
+type CoordinatedParticipantTimeRuntime interface {
+	TimeRuntime
+	ResetWithParticipants(ctx context.Context, target string, reinitialize bool, participants CoordinatedParticipantResetRuntime, requests []runtimecontract.EpisodeResetRequest, snapshot binding.RuntimeSnapshotV1) (runtimecontract.ApplyResult, error)
+}
+type OperationProvider interface {
+	OperationCapabilities(ctx context.Context) (binding.BackendOperationCapabilitiesV1, error)
+	CheckOperation(ctx context.Context, request binding.BackendOperationRequestV1) (binding.BackendOperationResponseV1, error)
+	StartOperation(ctx context.Context, request binding.BackendOperationRequestV1) (binding.BackendOperationResponseV1, error)
+	ObserveOperation(ctx context.Context, control binding.BackendOperationControlV1) (binding.BackendOperationResponseV1, error)
+	CancelOperation(ctx context.Context, control binding.BackendOperationControlV1) (binding.BackendOperationResponseV1, error)
+	ReconcileOperation(ctx context.Context, control binding.BackendOperationControlV1) (binding.BackendOperationResponseV1, error)
+}
+type ParticipantControlProvider interface {
+	Resolve(ctx context.Context, input admission.Fragment) ([]admission.Fragment, error)
+}
+type ParticipantStageResolver interface {
+	ResolveStage(ctx context.Context, input admission.Fragment) ([]admission.Fragment, error)
+}
+
+type ParticipantControlProviderV2 = ParticipantStageResolver

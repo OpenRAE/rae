@@ -1,0 +1,180 @@
+# Go integration branch admission
+
+## Design
+
+GitHub owns branch admission. An active `merge-policy-go-cutover` ruleset matches
+only `refs/heads/go-cutover`. It requires pull requests and successful checks.
+The existing legacy protection remains in place. Its administrator enforcement,
+force-push prohibition, deletion prohibition, and non-strict check policy remain.
+
+No bypass actors are configured. Administrators must meet the checks.
+An administrator can change repository settings; that authority remains a residual risk.
+The maintainer selects each merge manually. Zero required review approvals preserve
+the single-maintainer model. Automatic merging remains disabled.
+
+Use the existing workflow graph without copying its commands or module inventory.
+`verify` covers mutation, architecture, and parity through the canonical aggregate.
+`sonar` remains a separate quality check. Require the observed security, compatibility,
+fuzz, and PR-policy contexts separately. Bind each context to its observed GitHub App.
+Keep the existing non-strict base-update policy. A new head still needs its own checks.
+
+## Security and data flows
+
+```mermaid
+flowchart LR
+    M[Maintainer] -->|Authenticated settings request| G[GitHub administration API]
+    G -->|Exact branch policy| R[(GitHub rule store)]
+    P[Contributor] -->|Proposed commits| PR[Pull request]
+    PR -->|Head and test merge revisions| A[GitHub Actions]
+    A -->|App-bound check conclusions| C[(GitHub check store)]
+    R -->|Required PR and contexts| E[GitHub admission]
+    C -->|Current revision conclusions| E
+    M -->|Manual merge request| E
+    E -->|Admitted commits| B[(go-cutover)]
+```
+
+The API credential crosses the local host boundary through existing CLI authentication.
+Do not record credentials. The rules and check stores cross the contributor trust boundary
+at admission. Required PRs prevent direct updates. App bindings reduce check impersonation.
+Existing workflow review and base-loaded PR validators protect the check producers.
+The aggregate rejects failed, cancelled, or unexpectedly skipped dependencies.
+GitHub can accept neutral or skipped individual checks; document this platform limitation.
+
+Read back the effective rules and legacy protection through the API.
+Observe a mergeable, non-draft PR with a failed or pending required check and blocked merge state.
+Conflicts alone do not prove check enforcement. Never attempt a merge as a test.
+
+## Existing owners and limits
+
+The preflight identifies the canonical workflow, security, architecture, and parity owners.
+No product module, public interface, schema, or runtime architecture changes.
+The native ruleset is the policy model; no reconciliation service is needed.
+ADR-014 and the existing Go ADRs remain authoritative and need no new decision.
+Go push Sonar guards exclude this branch; same-repository PR analysis supplies admission evidence.
+Fork and Dependabot secret restrictions remain in force.
+
+## References
+
+- [GitHub REST rules API](https://docs.github.com/en/rest/repos/rules), current REST documentation:
+  Create a repository ruleset; Get rules for a branch. Defines native fields and effective rules.
+- [GitHub branch protection](https://docs.github.com/en/rest/branches/branch-protection), current REST documentation:
+  Get branch protection. Defines the incumbent protection evidence.
+- [Protected branches](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/about-protected-branches),
+  Require status checks. Defines merge admission and administrative authority.
+
+The official STE website returned HTTP 403 during research. The prose uses short,
+direct sentences; this is not a claim of certified STE compliance.
+
+## Live enforcement evidence
+
+On 2026-11-03, the API returned active ruleset `26422222` for exactly
+`refs/heads/go-cutover`. Its bypass list was empty. The authenticated administrator
+received `current_user_can_bypass: never`. Legacy administrator enforcement remained active.
+The repository returned `allow_auto_merge: false`.
+
+[PR #1879](https://github.com/OpenRAE/rae/pull/1879) targets `go-cutover`.
+At head `9856498860d5e38fac785e924c691f91f0a039f9`, GraphQL returned
+`isDraft: false`, `mergeable: MERGEABLE`, and `mergeStateStatus: BLOCKED`.
+Its check rollup was `PENDING`. Required contexts included in-progress
+`title-guard`, `body-guard`, `supply-chain`, `fuzz`, and language analysis jobs.
+These check runs identified GitHub Actions App `15368`. GitGuardian App `46505`
+had passed. The PR had no automatic merge request. The rule required zero approvals.
+Thus neither conflicts, draft state, nor missing approvals explained the blocked state.
+No merge or direct push was attempted as a test.
+
+The user authorized publication before review to obtain this live evidence.
+The remaining review and hosted checks still apply before readiness.
+
+## Delivery finalization
+
+The existing Ground Control Phase E workflow must include `go-cutover` in its
+closed-PR branch filter. Its current filter includes only `main` and `dev`.
+Without that event, a merged Go delivery cannot automatically close its issue.
+Extend only the branch filter. Retain the merged-PR guard, pinned executable,
+merged-revision checkout, permissions, trusted handoff, and manual dispatch path.
+The existing finalizer owns this behavior; no new interface or service is needed.
+
+The data flow adds a GitHub closed-PR event to the existing finalizer process.
+That process reads the trusted handoff and writes the final report and issue state.
+Its existing merge and provenance checks remain the security boundary.
+A targeted workflow test must reject omission of the Go branch and preserve the merge guard.
+
+The reference is [GitHub workflow events](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows),
+current documentation, `pull_request` closed events and branch filters.
+
+## Reproducible regression capture
+
+The user authorized the parity repair in this PR. The existing input collector
+owns captured path names. Its `source_names`, `relocated_token`, and
+`portable_files` functions form the interface used by `InputCollector.cli`.
+The corpus recorder and bounded storage remain the only publication path.
+
+Pytest changes its user, session, and worker directory names across runs.
+When a CLI invocation combines temporary files with repository fixtures, the
+common input base can expose those generated directories in case identities.
+Map only that generated prefix, under the system temporary directory, to a
+stable path components at the same depth. Apply the same mapping to file keys, directory
+setup, and path arguments. Keep paths below that prefix and all input bytes.
+Reject duplicate mapped file names instead of replacing an input silently.
+Do not normalize UUIDs, timestamps, payload values, or authored file names.
+Existing input-root restrictions and symlink rejection remain in force.
+
+```mermaid
+flowchart LR
+    Tests[Existing Python tests] -->|Observed calls and public inputs| Collector[InputCollector]
+    Collector -->|Stable names and exact input bytes| Capture[(CI capture artifacts)]
+    Capture -->|Validated origins and digests| Recorder[Existing parity recorder]
+    Recorder -->|Fresh corpus and provenance| Candidate[(CI candidate corpus)]
+    Candidate -->|Reviewed promotion| Golden[(Committed golden corpus)]
+    Golden -->|Exact comparison| Check[Existing CI parity gate]
+```
+
+The capture boundary accepts only repository and temporary input files.
+Path normalization must not admit another file or change a file's content.
+Tests cover relocation invariance, dependency replay, and rejected paths.
+The former path mapping is a mutation that must fail the invariance test.
+Regenerate the corpus in CI and retain its source and environment identity.
+Promote the generated artifact only after its credential scan passes.
+Keep exact reproduction and digest checks enabled after promotion.
+No product interface, published schema, or Go dependency rule changes.
+
+Reference: [pytest temporary directories](https://docs.pytest.org/en/stable/how-to/tmp_path.html),
+current pytest 9 documentation, temporary directory location and retention.
+It describes changing run directories and concurrent test isolation.
+
+### First corpus promotion evidence
+
+CI run `41584912067` recorded the replacement corpus from source head
+`6b80a6125e7815c595e16dcf462fa43aec2a3f6e`. Its decoded-input credential scan passed.
+[Artifact 13209080095](https://github.com/OpenRAE/rae/actions/runs/41584912067/artifacts/13209080095)
+contains 45,304 generated files. Its archive SHA-256 is
+`86127b46234a6fcd758f5df1d4b0d93d36e82b90939a2299fdb1ab0edc3a544a`.
+The downloaded archive matches that digest. Source, test, environment, and recorder
+identities matched the producer tree at promotion. All blob digests passed validation.
+All 7,044 static reference cases remain unchanged. The complete inventory remains true.
+The existing corpus writer promoted the artifact bytes without editing expected results.
+CI must reproduce the promoted corpus before readiness.
+
+### Collector quality repair
+
+Use early returns to keep the path classifier within the complexity limit.
+Use `\d` with `re.ASCII` for generated numeric counters. This preserves the
+previous ASCII-only match and leaves authored Unicode directory names intact.
+The mapping, path depth, input bytes, and collision checks remain unchanged.
+The source-bound capture must be regenerated after this collector refactor.
+Reference: [Python 3.14 regular expressions](https://docs.python.org/3.14/library/re.html),
+`re.ASCII` and digit character classes.
+
+### Quality-repair corpus promotion
+
+CI run `41592002988` recorded the corpus from source head
+`02d37bbc6a2b776d0f6d78a8601ab3aece772ac0` after the classifier refactor.
+The decoded-input credential scan passed.
+[Artifact 13210304784](https://github.com/OpenRAE/rae/actions/runs/41592002988/artifacts/13210304784)
+contains 45,304 generated files. Its archive SHA-256 is
+`4e8e37a1a81adcdecbf55fbb14a07e04149255e83a107ebe2ac7a1ca8388f553`.
+The downloaded digest, source identities, complete inventory, and blob digests passed validation.
+All 7,044 static reference cases remain unchanged.
+All 13 backend CLI invocation argument sets remain identical between the two captures.
+The existing writer promoted these artifact bytes without editing expected results.
+This receipt supersedes the first promotion for the final classifier source.

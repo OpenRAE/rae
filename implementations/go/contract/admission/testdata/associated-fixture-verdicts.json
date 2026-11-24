@@ -1,0 +1,67 @@
+{
+  "reference": "validate_associated_artifact_manifest; existing published inputs; reference parent models; PAYLOAD from test_associated_artifact_manifests",
+  "scenario_snapshot_digest": "sha256:796080894156eb2912134644e4e9072f2752f431e2a12cd438d9cb0f3726d908",
+  "cases": [
+    {
+      "name": "scenario",
+      "path": "fixtures/associated-artifacts/associated-artifact-manifest-v1/valid/scenario.json",
+      "parent_contract": "sdl-authoring-input-v1",
+      "valid": true,
+      "codes": []
+    },
+    {
+      "name": "scenario-snapshot",
+      "path": "fixtures/associated-artifacts/associated-artifact-manifest-v1/valid/scenario-snapshot.json",
+      "parent_contract": "sdl-authoring-input-v1",
+      "valid": false,
+      "codes": [
+        "associated-artifact.parent-mismatch"
+      ]
+    },
+    {
+      "name": "task",
+      "path": "fixtures/associated-artifacts/associated-artifact-manifest-v1/valid/task.json",
+      "parent_contract": "experiment-task-v1",
+      "valid": false,
+      "codes": [
+        "associated-artifact.parent-mismatch"
+      ]
+    },
+    {
+      "name": "authoring-input",
+      "path": "fixtures/associated-artifacts/associated-artifact-manifest-v1/valid/authoring-input.json",
+      "parent_contract": "experiment-authoring-input-v1",
+      "valid": false,
+      "codes": [
+        "associated-artifact.parent-mismatch"
+      ]
+    },
+    {
+      "name": "apparatus-context",
+      "path": "fixtures/associated-artifacts/associated-artifact-manifest-v1/valid/apparatus-context.json",
+      "parent_contract": "experiment-apparatus-context-v1",
+      "valid": false,
+      "codes": [
+        "associated-artifact.parent-mismatch"
+      ]
+    },
+    {
+      "name": "run",
+      "path": "fixtures/associated-artifacts/associated-artifact-manifest-v1/valid/run.json",
+      "parent_contract": "experiment-run-v1",
+      "valid": false,
+      "codes": [
+        "associated-artifact.parent-mismatch"
+      ]
+    },
+    {
+      "name": "study",
+      "path": "fixtures/associated-artifacts/associated-artifact-manifest-v1/valid/study.json",
+      "parent_contract": "experiment-study-v1",
+      "valid": false,
+      "codes": [
+        "associated-artifact.parent-mismatch"
+      ]
+    }
+  ]
+}

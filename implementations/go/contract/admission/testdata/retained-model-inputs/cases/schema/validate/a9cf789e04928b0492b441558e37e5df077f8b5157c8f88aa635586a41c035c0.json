@@ -1,0 +1,14 @@
+{
+  "args": [
+    "semantic-comparison-request-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:f61a40d698891057ba927bd8d7e5a932248599c2182086e9a0255c3848709b3c"
+  },
+  "name": "regression/d7823973c309a5df18fcad6587ae29caa278db2c2fbf2448524c73f8c7ff297f",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

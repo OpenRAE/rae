@@ -1,0 +1,14 @@
+{
+  "args": [
+    "mixed-backend-execution-binding-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:f6d9cfa6f0987d60041a4eaa35effee1afa6984160964be51a9d9d710aae7470"
+  },
+  "name": "regression/411a0403a85c6c1d22f6df1b9b39d307cb91c688a25cf868d2944660a33ee137",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

@@ -1,0 +1,1728 @@
+[
+  {
+    "name": "local-import",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: \">=1,<2\"\n",
+      "module.yaml": "name: module\nmodule: {id: example/demo, version: \"1.2\", exports: {nodes: [web]}}\nnodes: {web: {type: compute}}\n"
+    },
+    "supplied": false,
+    "accepted": true,
+    "content": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: '>=1,<2'\n"
+  },
+  {
+    "name": "supplied-valid",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: \">=1,<2\"\n  digest: sha256:e65b325f1fe88e1b5040fc7fc468f470a4f42eb36da06fff7b69d7db96244e55\n",
+      "module.yaml": "name: module\nmodule: {id: example/demo, version: \"1.2\", exports: {nodes: [web]}}\nnodes: {web: {type: compute}}\n",
+      "raes.lock.json": "{\"schema_version\": \"raes-lock/v1\", \"imports\": [{\"source\": \"local:module.yaml\", \"namespace\": \"demo\", \"requested_version\": \">=1,<2\", \"resolved_source\": \"module.yaml\", \"module_id\": \"example/demo\", \"module_version\": \"1.2\", \"manifest_digest\": \"\", \"content_digest\": \"sha256:e65b325f1fe88e1b5040fc7fc468f470a4f42eb36da06fff7b69d7db96244e55\", \"export_hash\": \"15b62a5767f3de3c7beed9dd791f4af113564d7c43a59eae4f6ebf57b51954e5\", \"signer_id\": \"\"}]}"
+    },
+    "supplied": true,
+    "accepted": true,
+    "content": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: '>=1,<2'\n  digest: sha256:e65b325f1fe88e1b5040fc7fc468f470a4f42eb36da06fff7b69d7db96244e55\n"
+  },
+  {
+    "name": "missing-pin",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: \">=1,<2\"\n",
+      "module.yaml": "name: module\nmodule: {id: example/demo, version: \"1.2\", exports: {nodes: [web]}}\nnodes: {web: {type: compute}}\n",
+      "raes.lock.json": "{\"schema_version\": \"raes-lock/v1\", \"imports\": [{\"source\": \"local:module.yaml\", \"namespace\": \"demo\", \"requested_version\": \">=1,<2\", \"resolved_source\": \"module.yaml\", \"module_id\": \"example/demo\", \"module_version\": \"1.2\", \"manifest_digest\": \"\", \"content_digest\": \"sha256:e65b325f1fe88e1b5040fc7fc468f470a4f42eb36da06fff7b69d7db96244e55\", \"export_hash\": \"15b62a5767f3de3c7beed9dd791f4af113564d7c43a59eae4f6ebf57b51954e5\", \"signer_id\": \"\"}]}"
+    },
+    "supplied": true,
+    "accepted": false,
+    "error": "SDLImportError",
+    "code": "sdl.import.digest-missing"
+  },
+  {
+    "name": "bad-pin",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: \">=1,<2\"\n  digest: SHA256:E65B325F1FE88E1B5040FC7FC468F470A4F42EB36DA06FFF7B69D7DB96244E55\n",
+      "module.yaml": "name: module\nmodule: {id: example/demo, version: \"1.2\", exports: {nodes: [web]}}\nnodes: {web: {type: compute}}\n",
+      "raes.lock.json": "{\"schema_version\": \"raes-lock/v1\", \"imports\": [{\"source\": \"local:module.yaml\", \"namespace\": \"demo\", \"requested_version\": \">=1,<2\", \"resolved_source\": \"module.yaml\", \"module_id\": \"example/demo\", \"module_version\": \"1.2\", \"manifest_digest\": \"\", \"content_digest\": \"sha256:e65b325f1fe88e1b5040fc7fc468f470a4f42eb36da06fff7b69d7db96244e55\", \"export_hash\": \"15b62a5767f3de3c7beed9dd791f4af113564d7c43a59eae4f6ebf57b51954e5\", \"signer_id\": \"\"}]}"
+    },
+    "supplied": true,
+    "accepted": false,
+    "error": "SDLImportError",
+    "code": "sdl.import.digest-invalid"
+  },
+  {
+    "name": "bad-digest",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: \">=1,<2\"\n  digest: sha256:0000000000000000000000000000000000000000000000000000000000000000\n",
+      "module.yaml": "name: module\nmodule: {id: example/demo, version: \"1.2\", exports: {nodes: [web]}}\nnodes: {web: {type: compute}}\n",
+      "raes.lock.json": "{\"schema_version\": \"raes-lock/v1\", \"imports\": [{\"source\": \"local:module.yaml\", \"namespace\": \"demo\", \"requested_version\": \">=1,<2\", \"resolved_source\": \"module.yaml\", \"module_id\": \"example/demo\", \"module_version\": \"1.2\", \"manifest_digest\": \"\", \"content_digest\": \"sha256:e65b325f1fe88e1b5040fc7fc468f470a4f42eb36da06fff7b69d7db96244e55\", \"export_hash\": \"15b62a5767f3de3c7beed9dd791f4af113564d7c43a59eae4f6ebf57b51954e5\", \"signer_id\": \"\"}]}"
+    },
+    "supplied": true,
+    "accepted": false,
+    "error": "SDLImportError",
+    "code": "sdl.import.digest-mismatch"
+  },
+  {
+    "name": "missing-lock",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: \">=1,<2\"\n  digest: sha256:e65b325f1fe88e1b5040fc7fc468f470a4f42eb36da06fff7b69d7db96244e55\n",
+      "module.yaml": "name: module\nmodule: {id: example/demo, version: \"1.2\", exports: {nodes: [web]}}\nnodes: {web: {type: compute}}\n"
+    },
+    "supplied": true,
+    "accepted": false,
+    "error": "SDLImportError",
+    "code": "sdl.import.lock-missing"
+  },
+  {
+    "name": "mismatched-lock",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: \">=1,<2\"\n  digest: sha256:e65b325f1fe88e1b5040fc7fc468f470a4f42eb36da06fff7b69d7db96244e55\n",
+      "module.yaml": "name: module\nmodule: {id: example/demo, version: \"1.2\", exports: {nodes: [web]}}\nnodes: {web: {type: compute}}\n",
+      "raes.lock.json": "{\"schema_version\": \"raes-lock/v1\", \"imports\": [{\"source\": \"local:module.yaml\", \"namespace\": \"demo\", \"requested_version\": \">=1,<2\", \"resolved_source\": \"module.yaml\", \"module_id\": \"example/demo\", \"module_version\": \"9\", \"manifest_digest\": \"\", \"content_digest\": \"sha256:e65b325f1fe88e1b5040fc7fc468f470a4f42eb36da06fff7b69d7db96244e55\", \"export_hash\": \"15b62a5767f3de3c7beed9dd791f4af113564d7c43a59eae4f6ebf57b51954e5\", \"signer_id\": \"\"}]}"
+    },
+    "supplied": true,
+    "accepted": false,
+    "error": "SDLImportError",
+    "code": "sdl.import.lock-mismatch"
+  },
+  {
+    "name": "duplicate-lock",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: \">=1,<2\"\n  digest: sha256:e65b325f1fe88e1b5040fc7fc468f470a4f42eb36da06fff7b69d7db96244e55\n",
+      "module.yaml": "name: module\nmodule: {id: example/demo, version: \"1.2\", exports: {nodes: [web]}}\nnodes: {web: {type: compute}}\n",
+      "raes.lock.json": "{\"imports\": [{\"source\": \"local:module.yaml\", \"namespace\": \"demo\", \"requested_version\": \">=1,<2\", \"resolved_source\": \"module.yaml\", \"module_id\": \"example/demo\", \"module_version\": \"1.2\", \"manifest_digest\": \"\", \"content_digest\": \"sha256:e65b325f1fe88e1b5040fc7fc468f470a4f42eb36da06fff7b69d7db96244e55\", \"export_hash\": \"15b62a5767f3de3c7beed9dd791f4af113564d7c43a59eae4f6ebf57b51954e5\", \"signer_id\": \"\"}, {\"source\": \"local:module.yaml\", \"namespace\": \"demo\", \"requested_version\": \">=1,<2\", \"resolved_source\": \"module.yaml\", \"module_id\": \"example/demo\", \"module_version\": \"1.2\", \"manifest_digest\": \"\", \"content_digest\": \"sha256:e65b325f1fe88e1b5040fc7fc468f470a4f42eb36da06fff7b69d7db96244e55\", \"export_hash\": \"15b62a5767f3de3c7beed9dd791f4af113564d7c43a59eae4f6ebf57b51954e5\", \"signer_id\": \"\"}]}"
+    },
+    "supplied": true,
+    "accepted": false,
+    "error": "SDLImportError",
+    "code": "sdl.import.lock-ambiguous"
+  },
+  {
+    "name": "duplicate-json",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: \">=1,<2\"\n  digest: sha256:e65b325f1fe88e1b5040fc7fc468f470a4f42eb36da06fff7b69d7db96244e55\n",
+      "module.yaml": "name: module\nmodule: {id: example/demo, version: \"1.2\", exports: {nodes: [web]}}\nnodes: {web: {type: compute}}\n",
+      "raes.lock.json": "{\"imports\":[],\"imports\":[]}"
+    },
+    "supplied": true,
+    "accepted": false,
+    "error": "SDLImportError",
+    "code": "sdl.import.lock-invalid"
+  },
+  {
+    "name": "registry-refused",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: oci:example.invalid/demo\n  namespace: demo\n  version: \">=1,<2\"\n  digest: sha256:e65b325f1fe88e1b5040fc7fc468f470a4f42eb36da06fff7b69d7db96244e55\n",
+      "module.yaml": "name: module\nmodule: {id: example/demo, version: \"1.2\", exports: {nodes: [web]}}\nnodes: {web: {type: compute}}\n",
+      "raes.lock.json": "{\"schema_version\": \"raes-lock/v1\", \"imports\": [{\"source\": \"local:module.yaml\", \"namespace\": \"demo\", \"requested_version\": \">=1,<2\", \"resolved_source\": \"module.yaml\", \"module_id\": \"example/demo\", \"module_version\": \"1.2\", \"manifest_digest\": \"\", \"content_digest\": \"sha256:e65b325f1fe88e1b5040fc7fc468f470a4f42eb36da06fff7b69d7db96244e55\", \"export_hash\": \"15b62a5767f3de3c7beed9dd791f4af113564d7c43a59eae4f6ebf57b51954e5\", \"signer_id\": \"\"}]}"
+    },
+    "supplied": true,
+    "accepted": false,
+    "error": "SDLImportError",
+    "code": "sdl.import.source-refused"
+  },
+  {
+    "name": "missing-source",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: \">=1,<2\"\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLImportError",
+    "code": "sdl.import.source-missing"
+  },
+  {
+    "name": "missing-descriptor",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: \">=1,<2\"\n",
+      "module.yaml": "name: module\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLImportError",
+    "code": "sdl.import.descriptor-missing"
+  },
+  {
+    "name": "bad-model",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: \">=1,<2\"\n",
+      "module.yaml": "name: module\nmodule: {id: example/demo, version: \"1.2\", exports: {nodes: [web]}}\nnodes: {web: {type: compute}}\nunknown: true\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLParseError"
+  },
+  {
+    "name": "bad-export",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: \">=1,<2\"\n",
+      "module.yaml": "name: module\nmodule: {id: example/demo, version: \"1.2\", exports: {nodes: [missing]}}\nnodes: {web: {type: compute}}\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLImportError",
+    "code": "sdl.import.export-invalid"
+  },
+  {
+    "name": "revision-mismatch",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: \">=1,<2\"\n",
+      "module.yaml": "name: module\nmodule: {id: example/demo, version: \"1.2\", exports: {nodes: [web]}}\nnodes: {web: {type: compute}}\nsemantic_revision: raes-progressive-semantics/v1\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLImportError",
+    "code": "sdl.import.revision-mismatch"
+  },
+  {
+    "name": "version-mismatch",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: \">=2\"\n",
+      "module.yaml": "name: module\nmodule: {id: example/demo, version: \"1.2\", exports: {nodes: [web]}}\nnodes: {web: {type: compute}}\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLImportError",
+    "code": "sdl.import.version-mismatch"
+  },
+  {
+    "name": "duplicate-import",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: \">=1,<2\"\n- source: local:module.yaml\n  namespace: demo\n  version: \">=1,<2\"\n",
+      "module.yaml": "name: module\nmodule: {id: example/demo, version: \"1.2\", exports: {nodes: [web]}}\nnodes: {web: {type: compute}}\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLImportError",
+    "code": "sdl.import.collision"
+  },
+  {
+    "name": "cycle",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: \">=1,<2\"\n",
+      "module.yaml": "name: module\nmodule: {id: example/demo, version: \"1.2\", exports: {nodes: [web]}}\nnodes: {web: {type: compute}}\nimports: [{source: \"local:module.yaml\", namespace: loop}]\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLImportError",
+    "code": "sdl.import.cycle"
+  },
+  {
+    "name": "trust-disabled",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: \">=1,<2\"\n",
+      "module.yaml": "name: module\nmodule: {id: example/demo, version: \"1.2\", exports: {nodes: [web]}}\nnodes: {web: {type: compute}}\n",
+      "raes-trust.yaml": "allow_unsigned_local_sources: false\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLImportError",
+    "code": "sdl.import.local-disabled"
+  },
+  {
+    "name": "parameter-valid",
+    "files": {
+      "main.yaml": "name: root\nimports: [{source: \"local:module.yaml\", namespace: demo, parameters: {cpus: 2}}]\n",
+      "module.yaml": "name: module\nmodule: {id: example/demo, version: \"1.2\", parameters: [cpus], exports: {nodes: [web]}}\nvariables: {cpus: {type: integer, default: 1}}\nnodes: {web: {type: compute, resources: {ram: 1, cpu: \"${cpus}\"}}}\n"
+    },
+    "supplied": false,
+    "accepted": true,
+    "content": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  parameters:\n    cpus: 2\n"
+  },
+  {
+    "name": "parameter-bound",
+    "files": {
+      "main.yaml": "name: root\nimports: [{source: \"local:module.yaml\", namespace: demo, parameters: {cpus: 0}}]\n",
+      "module.yaml": "name: module\nmodule: {id: example/demo, version: \"1.2\", parameters: [cpus], exports: {nodes: [web]}}\nvariables: {cpus: {type: integer, default: 1}}\nnodes: {web: {type: compute, resources: {ram: 1, cpu: \"${cpus}\"}}}\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLParseError"
+  },
+  {
+    "name": "parameter-type",
+    "files": {
+      "main.yaml": "name: root\nimports: [{source: \"local:module.yaml\", namespace: demo, parameters: {cpus: false}}]\n",
+      "module.yaml": "name: module\nmodule: {id: example/demo, version: \"1.2\", parameters: [cpus], exports: {nodes: [web]}}\nvariables: {cpus: {type: integer, default: 1}}\nnodes: {web: {type: compute, resources: {ram: 1, cpu: \"${cpus}\"}}}\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLParseError"
+  },
+  {
+    "name": "trust-schema-type",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: \">=1,<2\"\n",
+      "module.yaml": "name: module\nmodule: {id: example/demo, version: \"1.2\", exports: {nodes: [web]}}\nnodes: {web: {type: compute}}\n",
+      "raes-trust.yaml": "schema_version: 1\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLParseError"
+  },
+  {
+    "name": "trust-registry-type",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: \">=1,<2\"\n",
+      "module.yaml": "name: module\nmodule: {id: example/demo, version: \"1.2\", exports: {nodes: [web]}}\nnodes: {web: {type: compute}}\n",
+      "raes-trust.yaml": "registries: []\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLParseError"
+  },
+  {
+    "name": "trust-registry-options",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: \">=1,<2\"\n",
+      "module.yaml": "name: module\nmodule: {id: example/demo, version: \"1.2\", exports: {nodes: [web]}}\nnodes: {web: {type: compute}}\n",
+      "raes-trust.yaml": "registries: {example: {require_signatures: invalid}}\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLParseError"
+  },
+  {
+    "name": "trust-signer-type",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: \">=1,<2\"\n",
+      "module.yaml": "name: module\nmodule: {id: example/demo, version: \"1.2\", exports: {nodes: [web]}}\nnodes: {web: {type: compute}}\n",
+      "raes-trust.yaml": "registries: {example: {trusted_signers: {a: 2}}}\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLParseError"
+  },
+  {
+    "name": "trust-unknown-option",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: \">=1,<2\"\n",
+      "module.yaml": "name: module\nmodule: {id: example/demo, version: \"1.2\", exports: {nodes: [web]}}\nnodes: {web: {type: compute}}\n",
+      "raes-trust.yaml": "registries: {example: {unknown: true}}\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLParseError"
+  },
+  {
+    "name": "trust-custom-schema",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: \">=1,<2\"\n",
+      "module.yaml": "name: module\nmodule: {id: example/demo, version: \"1.2\", exports: {nodes: [web]}}\nnodes: {web: {type: compute}}\n",
+      "raes-trust.yaml": "schema_version: custom\n"
+    },
+    "supplied": false,
+    "accepted": true,
+    "content": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: '>=1,<2'\n"
+  },
+  {
+    "name": "trust-blank",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: \">=1,<2\"\n",
+      "module.yaml": "name: module\nmodule: {id: example/demo, version: \"1.2\", exports: {nodes: [web]}}\nnodes: {web: {type: compute}}\n",
+      "raes-trust.yaml": "# empty policy\n"
+    },
+    "supplied": false,
+    "accepted": true,
+    "content": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: '>=1,<2'\n"
+  },
+  {
+    "name": "trust-valid-registry",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: \">=1,<2\"\n",
+      "module.yaml": "name: module\nmodule: {id: example/demo, version: \"1.2\", exports: {nodes: [web]}}\nnodes: {web: {type: compute}}\n",
+      "raes-trust.yaml": "registries: {example: {trusted_signers: {a: pubkey}, allow_insecure_http: no}}\n"
+    },
+    "supplied": false,
+    "accepted": true,
+    "content": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: '>=1,<2'\n"
+  },
+  {
+    "name": "locked-local",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: locked:module.yaml\n  namespace: demo\n  version: \">=1,<2\"\n",
+      "module.yaml": "name: module\nmodule: {id: example/demo, version: \"1.2\", exports: {nodes: [web]}}\nnodes: {web: {type: compute}}\n",
+      "raes.lock.json": "{\"schema_version\": \"raes-lock/v1\", \"imports\": [{\"source\": \"local:module.yaml\", \"namespace\": \"demo\", \"requested_version\": \">=1,<2\", \"resolved_source\": \"module.yaml\", \"module_id\": \"example/demo\", \"module_version\": \"1.2\", \"manifest_digest\": \"\", \"content_digest\": \"sha256:e65b325f1fe88e1b5040fc7fc468f470a4f42eb36da06fff7b69d7db96244e55\", \"export_hash\": \"15b62a5767f3de3c7beed9dd791f4af113564d7c43a59eae4f6ebf57b51954e5\", \"signer_id\": \"\"}]}"
+    },
+    "supplied": false,
+    "accepted": true,
+    "content": "name: root\nimports:\n- source: locked:module.yaml\n  namespace: demo\n  version: '>=1,<2'\n"
+  },
+  {
+    "name": "locked-cycle",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: locked:module.yaml\n  namespace: demo\n  version: \">=1,<2\"\n",
+      "module.yaml": "name: module\nmodule: {id: example/demo, version: \"1.2\", exports: {nodes: [web]}}\nnodes: {web: {type: compute}}\n",
+      "raes.lock.json": "{\"imports\": [{\"source\": \"locked:module.yaml\", \"namespace\": \"demo\", \"requested_version\": \">=1,<2\", \"resolved_source\": \"module.yaml\", \"module_id\": \"example/demo\", \"module_version\": \"1.2\", \"manifest_digest\": \"\", \"content_digest\": \"sha256:e65b325f1fe88e1b5040fc7fc468f470a4f42eb36da06fff7b69d7db96244e55\", \"export_hash\": \"15b62a5767f3de3c7beed9dd791f4af113564d7c43a59eae4f6ebf57b51954e5\", \"signer_id\": \"\"}]}"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLImportError",
+    "code": "sdl.import.cycle"
+  },
+  {
+    "name": "locked-missing-record",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: locked:missing\n  namespace: demo\n  version: \">=1,<2\"\n",
+      "module.yaml": "name: module\nmodule: {id: example/demo, version: \"1.2\", exports: {nodes: [web]}}\nnodes: {web: {type: compute}}\n",
+      "raes.lock.json": "{\"schema_version\": \"raes-lock/v1\", \"imports\": [{\"source\": \"local:module.yaml\", \"namespace\": \"demo\", \"requested_version\": \">=1,<2\", \"resolved_source\": \"module.yaml\", \"module_id\": \"example/demo\", \"module_version\": \"1.2\", \"manifest_digest\": \"\", \"content_digest\": \"sha256:e65b325f1fe88e1b5040fc7fc468f470a4f42eb36da06fff7b69d7db96244e55\", \"export_hash\": \"15b62a5767f3de3c7beed9dd791f4af113564d7c43a59eae4f6ebf57b51954e5\", \"signer_id\": \"\"}]}"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLImportError",
+    "code": "sdl.import.lock-record-missing"
+  },
+  {
+    "name": "file-lock-budget",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: \">=1,<2\"\n  digest: sha256:e65b325f1fe88e1b5040fc7fc468f470a4f42eb36da06fff7b69d7db96244e55\n",
+      "module.yaml": "name: module\nmodule: {id: example/demo, version: \"1.2\", exports: {nodes: [web]}}\nnodes: {web: {type: compute}}\n",
+      "raes.lock.json": "{\"schema_version\": \"raes-lock/v1\", \"imports\": [{\"source\": \"local:module.yaml\", \"namespace\": \"demo\", \"requested_version\": \">=1,<2\", \"resolved_source\": \"module.yaml\", \"module_id\": \"example/demo\", \"module_version\": \"1.2\", \"manifest_digest\": \"\", \"content_digest\": \"sha256:e65b325f1fe88e1b5040fc7fc468f470a4f42eb36da06fff7b69d7db96244e55\", \"export_hash\": \"15b62a5767f3de3c7beed9dd791f4af113564d7c43a59eae4f6ebf57b51954e5\", \"signer_id\": \"\"}]}"
+    },
+    "supplied": false,
+    "limits": {
+      "max_composed_bytes": 512
+    },
+    "accepted": true,
+    "content": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: '>=1,<2'\n  digest: sha256:e65b325f1fe88e1b5040fc7fc468f470a4f42eb36da06fff7b69d7db96244e55\n"
+  },
+  {
+    "name": "supplied-lock-budget",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: \">=1,<2\"\n  digest: sha256:e65b325f1fe88e1b5040fc7fc468f470a4f42eb36da06fff7b69d7db96244e55\n",
+      "module.yaml": "name: module\nmodule: {id: example/demo, version: \"1.2\", exports: {nodes: [web]}}\nnodes: {web: {type: compute}}\n",
+      "raes.lock.json": "{\"schema_version\": \"raes-lock/v1\", \"imports\": [{\"source\": \"local:module.yaml\", \"namespace\": \"demo\", \"requested_version\": \">=1,<2\", \"resolved_source\": \"module.yaml\", \"module_id\": \"example/demo\", \"module_version\": \"1.2\", \"manifest_digest\": \"\", \"content_digest\": \"sha256:e65b325f1fe88e1b5040fc7fc468f470a4f42eb36da06fff7b69d7db96244e55\", \"export_hash\": \"15b62a5767f3de3c7beed9dd791f4af113564d7c43a59eae4f6ebf57b51954e5\", \"signer_id\": \"\"}]}"
+    },
+    "supplied": true,
+    "limits": {
+      "max_composed_bytes": 512
+    },
+    "accepted": false,
+    "error": "SDLImportError",
+    "code": "sdl.import.budget-exceeded"
+  },
+  {
+    "name": "leaf-trust-invalid",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: local:module/module.yaml\n  namespace: demo\n  version: \">=1,<2\"\n",
+      "module/module.yaml": "name: module\nmodule: {id: example/demo, version: \"1.2\", exports: {nodes: [web]}}\nnodes: {web: {type: compute}}\n",
+      "module/raes-trust.yaml": "schema_version: 1\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLParseError"
+  },
+  {
+    "name": "leaf-trust-disabled",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: local:module/module.yaml\n  namespace: demo\n  version: \">=1,<2\"\n",
+      "module/module.yaml": "name: module\nmodule: {id: example/demo, version: \"1.2\", exports: {nodes: [web]}}\nnodes: {web: {type: compute}}\n",
+      "module/raes-trust.yaml": "allow_unsigned_local_sources: false\n"
+    },
+    "supplied": false,
+    "accepted": true,
+    "content": "name: root\nimports:\n- source: local:module/module.yaml\n  namespace: demo\n  version: '>=1,<2'\n"
+  },
+  {
+    "name": "supplied-materialized-root",
+    "files": {
+      "main.yaml": "{\n  \"name\": \"materialized-example\",\n  \"materialization_provenance\": {\n    \"profile\": \"raes-materialization-attestation/v1\",\n    \"attestation_id\": \"materialization-1\",\n    \"authored_digest\": {\n      \"profile\": \"raes-sdl-semantic/v2\",\n      \"algorithm\": \"sha256\",\n      \"value\": \"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"\n    },\n    \"instantiated_digest\": {\n      \"profile\": \"raes-sdl-instantiated-snapshot/v2\",\n      \"algorithm\": \"sha256\",\n      \"value\": \"sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\"\n    },\n    \"plan_digest\": \"sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\n    \"predecessor_digest\": \"sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd\",\n    \"operation_id\": \"operation-1\",\n    \"run_id\": \"run-1\",\n    \"recorded_at\": \"2026-09-14T12:00:00Z\",\n    \"boundary\": \"post-materialization\",\n    \"producer\": {\n      \"name\": \"test-backend\",\n      \"version\": \"1.0.0\",\n      \"configuration_digest\": \"sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee\",\n      \"manifest_digest\": \"sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff\"\n    },\n    \"coverage_profile\": \"raes-materialization-effects/v1\",\n    \"origins\": [],\n    \"resource_bindings\": []\n  }\n}\n"
+    },
+    "supplied": true,
+    "accepted": false,
+    "error": "SDLImportError",
+    "code": "sdl.import.phase-refused"
+  },
+  {
+    "name": "file-backslash",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: local:nested\\module.yaml\n  namespace: demo\n  version: \">=1,<2\"\n",
+      "nested\\module.yaml": "name: module\nmodule: {id: example/demo, version: \"1.2\", exports: {nodes: [web]}}\nnodes: {web: {type: compute}}\n"
+    },
+    "supplied": false,
+    "accepted": true,
+    "content": "name: root\nimports:\n- source: local:nested\\module.yaml\n  namespace: demo\n  version: '>=1,<2'\n"
+  },
+  {
+    "name": "supplied-colon-missing",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: local:C:module.yaml\n  namespace: demo\n  version: \">=1,<2\"\n  digest: sha256:e65b325f1fe88e1b5040fc7fc468f470a4f42eb36da06fff7b69d7db96244e55\n",
+      "module.yaml": "name: module\nmodule: {id: example/demo, version: \"1.2\", exports: {nodes: [web]}}\nnodes: {web: {type: compute}}\n",
+      "raes.lock.json": "{\"schema_version\": \"raes-lock/v1\", \"imports\": [{\"source\": \"local:module.yaml\", \"namespace\": \"demo\", \"requested_version\": \">=1,<2\", \"resolved_source\": \"module.yaml\", \"module_id\": \"example/demo\", \"module_version\": \"1.2\", \"manifest_digest\": \"\", \"content_digest\": \"sha256:e65b325f1fe88e1b5040fc7fc468f470a4f42eb36da06fff7b69d7db96244e55\", \"export_hash\": \"15b62a5767f3de3c7beed9dd791f4af113564d7c43a59eae4f6ebf57b51954e5\", \"signer_id\": \"\"}]}"
+    },
+    "supplied": true,
+    "accepted": false,
+    "error": "SDLImportError",
+    "code": "sdl.import.source-missing"
+  },
+  {
+    "name": "file-absolute",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: local:$ROOT/module.yaml\n  namespace: demo\n  version: \">=1,<2\"\n",
+      "module.yaml": "name: module\nmodule: {id: example/demo, version: \"1.2\", exports: {nodes: [web]}}\nnodes: {web: {type: compute}}\n"
+    },
+    "supplied": false,
+    "rooted": true,
+    "accepted": false,
+    "error": "ValidationError"
+  },
+  {
+    "name": "file-symlink",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: local:alias.yaml\n  namespace: demo\n  version: \">=1,<2\"\n",
+      "module.yaml": "name: module\nmodule: {id: example/demo, version: \"1.2\", exports: {nodes: [web]}}\nnodes: {web: {type: compute}}\n"
+    },
+    "supplied": false,
+    "links": {
+      "alias.yaml": "module.yaml"
+    },
+    "accepted": true,
+    "content": "name: root\nimports:\n- source: local:alias.yaml\n  namespace: demo\n  version: '>=1,<2'\n"
+  },
+  {
+    "name": "file-symlink-escape",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: local:units/module.yaml\n  namespace: demo\n  version: \">=1,<2\"\n",
+      "module.yaml": "name: module\nmodule: {id: example/demo, version: \"1.2\", exports: {nodes: [web]}}\nnodes: {web: {type: compute}}\n",
+      "units/module.yaml": "name: module\nmodule: {id: example/demo, version: \"1.2\", exports: {nodes: [web]}}\nnodes: {web: {type: compute}}\nimports: [{source: \"local:escape.yaml\", namespace: nested}]\n"
+    },
+    "supplied": false,
+    "links": {
+      "units/escape.yaml": "../module.yaml"
+    },
+    "accepted": false,
+    "error": "SDLImportError",
+    "code": "sdl.import.path-invalid"
+  },
+  {
+    "name": "file-symlink-parent",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: local:units/alias/../module.yaml\n  namespace: demo\n  version: \">=1,<2\"\n",
+      "units/nested/module.yaml": "name: module\nmodule: {id: example/demo, version: \"1.2\", exports: {nodes: [web]}}\nnodes: {web: {type: compute}}\n"
+    },
+    "supplied": false,
+    "links": {
+      "units/alias": "nested/inner"
+    },
+    "accepted": true,
+    "content": "name: root\nimports:\n- source: local:units/alias/../module.yaml\n  namespace: demo\n  version: '>=1,<2'\n"
+  },
+  {
+    "name": "file-locked-absolute",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: locked:module.yaml\n  namespace: demo\n  version: \">=1,<2\"\n",
+      "module.yaml": "name: module\nmodule: {id: example/demo, version: \"1.2\", exports: {nodes: [web]}}\nnodes: {web: {type: compute}}\n",
+      "raes.lock.json": "{\"schema_version\": \"raes-lock/v1\", \"imports\": [{\"source\": \"local:$ROOT/module.yaml\", \"namespace\": \"demo\", \"requested_version\": \">=1,<2\", \"resolved_source\": \"module.yaml\", \"module_id\": \"example/demo\", \"module_version\": \"1.2\", \"manifest_digest\": \"\", \"content_digest\": \"sha256:e65b325f1fe88e1b5040fc7fc468f470a4f42eb36da06fff7b69d7db96244e55\", \"export_hash\": \"15b62a5767f3de3c7beed9dd791f4af113564d7c43a59eae4f6ebf57b51954e5\", \"signer_id\": \"\"}]}"
+    },
+    "supplied": false,
+    "rooted": true,
+    "accepted": true,
+    "content": "name: root\nimports:\n- source: locked:module.yaml\n  namespace: demo\n  version: '>=1,<2'\n"
+  },
+  {
+    "name": "module-version-empty",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: \"*\"\n",
+      "module.yaml": "name: module\nmodule: {id: example/demo, version: \"\", exports: {nodes: [web]}}\nnodes: {web: {type: compute}}\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "ValidationError"
+  },
+  {
+    "name": "module-version-long",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: \"*\"\n",
+      "module.yaml": "name: module\nmodule: {id: example/demo, version: \"vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv\", exports: {nodes: [web]}}\nnodes: {web: {type: compute}}\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "ValidationError"
+  },
+  {
+    "name": "duplicate-empty-namespace",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: \">=1,<2\"\n- source: local:module.yaml\n  namespace: demo\n  version: \">=1,<2\"\n",
+      "module.yaml": "name: module\nmodule: {id: example/demo, version: \"1.2\"}\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "ValidationError"
+  },
+  {
+    "name": "header-namespace-31",
+    "files": {
+      "main.yaml": "name: root\nimports: [{source: \"local:module0.yaml\", namespace: n}]\n",
+      "module0.yaml": "name: module\nmodule: {id: example/demo, version: \"1\"}\nimports: [{source: \"local:module1.yaml\", namespace: n}]\n",
+      "module1.yaml": "name: module\nmodule: {id: example/demo, version: \"1\"}\nimports: [{source: \"local:module2.yaml\", namespace: n}]\n",
+      "module2.yaml": "name: module\nmodule: {id: example/demo, version: \"1\"}\nimports: [{source: \"local:module3.yaml\", namespace: n}]\n",
+      "module3.yaml": "name: module\nmodule: {id: example/demo, version: \"1\"}\nimports: [{source: \"local:module4.yaml\", namespace: n}]\n",
+      "module4.yaml": "name: module\nmodule: {id: example/demo, version: \"1\"}\nimports: [{source: \"local:module5.yaml\", namespace: n}]\n",
+      "module5.yaml": "name: module\nmodule: {id: example/demo, version: \"1\"}\nimports: [{source: \"local:module6.yaml\", namespace: n}]\n",
+      "module6.yaml": "name: module\nmodule: {id: example/demo, version: \"1\"}\nimports: [{source: \"local:module7.yaml\", namespace: n}]\n",
+      "module7.yaml": "name: module\nmodule: {id: example/demo, version: \"1\"}\nimports: [{source: \"local:module8.yaml\", namespace: n}]\n",
+      "module8.yaml": "name: module\nmodule: {id: example/demo, version: \"1\"}\nimports: [{source: \"local:module9.yaml\", namespace: n}]\n",
+      "module9.yaml": "name: module\nmodule: {id: example/demo, version: \"1\"}\nimports: [{source: \"local:module10.yaml\", namespace: n}]\n",
+      "module10.yaml": "name: module\nmodule: {id: example/demo, version: \"1\"}\nimports: [{source: \"local:module11.yaml\", namespace: n}]\n",
+      "module11.yaml": "name: module\nmodule: {id: example/demo, version: \"1\"}\nimports: [{source: \"local:module12.yaml\", namespace: n}]\n",
+      "module12.yaml": "name: module\nmodule: {id: example/demo, version: \"1\"}\nimports: [{source: \"local:module13.yaml\", namespace: n}]\n",
+      "module13.yaml": "name: module\nmodule: {id: example/demo, version: \"1\"}\nimports: [{source: \"local:module14.yaml\", namespace: n}]\n",
+      "module14.yaml": "name: module\nmodule: {id: example/demo, version: \"1\"}\nimports: [{source: \"local:module15.yaml\", namespace: n}]\n",
+      "module15.yaml": "name: module\nmodule: {id: example/demo, version: \"1\"}\nimports: [{source: \"local:module16.yaml\", namespace: n}]\n",
+      "module16.yaml": "name: module\nmodule: {id: example/demo, version: \"1\"}\nimports: [{source: \"local:module17.yaml\", namespace: n}]\n",
+      "module17.yaml": "name: module\nmodule: {id: example/demo, version: \"1\"}\nimports: [{source: \"local:module18.yaml\", namespace: n}]\n",
+      "module18.yaml": "name: module\nmodule: {id: example/demo, version: \"1\"}\nimports: [{source: \"local:module19.yaml\", namespace: n}]\n",
+      "module19.yaml": "name: module\nmodule: {id: example/demo, version: \"1\"}\nimports: [{source: \"local:module20.yaml\", namespace: n}]\n",
+      "module20.yaml": "name: module\nmodule: {id: example/demo, version: \"1\"}\nimports: [{source: \"local:module21.yaml\", namespace: n}]\n",
+      "module21.yaml": "name: module\nmodule: {id: example/demo, version: \"1\"}\nimports: [{source: \"local:module22.yaml\", namespace: n}]\n",
+      "module22.yaml": "name: module\nmodule: {id: example/demo, version: \"1\"}\nimports: [{source: \"local:module23.yaml\", namespace: n}]\n",
+      "module23.yaml": "name: module\nmodule: {id: example/demo, version: \"1\"}\nimports: [{source: \"local:module24.yaml\", namespace: n}]\n",
+      "module24.yaml": "name: module\nmodule: {id: example/demo, version: \"1\"}\nimports: [{source: \"local:module25.yaml\", namespace: n}]\n",
+      "module25.yaml": "name: module\nmodule: {id: example/demo, version: \"1\"}\nimports: [{source: \"local:module26.yaml\", namespace: n}]\n",
+      "module26.yaml": "name: module\nmodule: {id: example/demo, version: \"1\"}\nimports: [{source: \"local:module27.yaml\", namespace: n}]\n",
+      "module27.yaml": "name: module\nmodule: {id: example/demo, version: \"1\"}\nimports: [{source: \"local:module28.yaml\", namespace: n}]\n",
+      "module28.yaml": "name: module\nmodule: {id: example/demo, version: \"1\"}\nimports: [{source: \"local:module29.yaml\", namespace: n}]\n",
+      "module29.yaml": "name: module\nmodule: {id: example/demo, version: \"1\"}\nimports: [{source: \"local:module30.yaml\", namespace: n}]\n",
+      "module30.yaml": "name: module\nmodule: {id: example/demo, version: \"1\"}\n"
+    },
+    "supplied": false,
+    "accepted": true,
+    "content": "name: root\nimports:\n- source: local:module0.yaml\n  namespace: n\n"
+  },
+  {
+    "name": "header-namespace-32",
+    "files": {
+      "main.yaml": "name: root\nimports: [{source: \"local:module0.yaml\", namespace: n}]\n",
+      "module0.yaml": "name: module\nmodule: {id: example/demo, version: \"1\"}\nimports: [{source: \"local:module1.yaml\", namespace: n}]\n",
+      "module1.yaml": "name: module\nmodule: {id: example/demo, version: \"1\"}\nimports: [{source: \"local:module2.yaml\", namespace: n}]\n",
+      "module2.yaml": "name: module\nmodule: {id: example/demo, version: \"1\"}\nimports: [{source: \"local:module3.yaml\", namespace: n}]\n",
+      "module3.yaml": "name: module\nmodule: {id: example/demo, version: \"1\"}\nimports: [{source: \"local:module4.yaml\", namespace: n}]\n",
+      "module4.yaml": "name: module\nmodule: {id: example/demo, version: \"1\"}\nimports: [{source: \"local:module5.yaml\", namespace: n}]\n",
+      "module5.yaml": "name: module\nmodule: {id: example/demo, version: \"1\"}\nimports: [{source: \"local:module6.yaml\", namespace: n}]\n",
+      "module6.yaml": "name: module\nmodule: {id: example/demo, version: \"1\"}\nimports: [{source: \"local:module7.yaml\", namespace: n}]\n",
+      "module7.yaml": "name: module\nmodule: {id: example/demo, version: \"1\"}\nimports: [{source: \"local:module8.yaml\", namespace: n}]\n",
+      "module8.yaml": "name: module\nmodule: {id: example/demo, version: \"1\"}\nimports: [{source: \"local:module9.yaml\", namespace: n}]\n",
+      "module9.yaml": "name: module\nmodule: {id: example/demo, version: \"1\"}\nimports: [{source: \"local:module10.yaml\", namespace: n}]\n",
+      "module10.yaml": "name: module\nmodule: {id: example/demo, version: \"1\"}\nimports: [{source: \"local:module11.yaml\", namespace: n}]\n",
+      "module11.yaml": "name: module\nmodule: {id: example/demo, version: \"1\"}\nimports: [{source: \"local:module12.yaml\", namespace: n}]\n",
+      "module12.yaml": "name: module\nmodule: {id: example/demo, version: \"1\"}\nimports: [{source: \"local:module13.yaml\", namespace: n}]\n",
+      "module13.yaml": "name: module\nmodule: {id: example/demo, version: \"1\"}\nimports: [{source: \"local:module14.yaml\", namespace: n}]\n",
+      "module14.yaml": "name: module\nmodule: {id: example/demo, version: \"1\"}\nimports: [{source: \"local:module15.yaml\", namespace: n}]\n",
+      "module15.yaml": "name: module\nmodule: {id: example/demo, version: \"1\"}\nimports: [{source: \"local:module16.yaml\", namespace: n}]\n",
+      "module16.yaml": "name: module\nmodule: {id: example/demo, version: \"1\"}\nimports: [{source: \"local:module17.yaml\", namespace: n}]\n",
+      "module17.yaml": "name: module\nmodule: {id: example/demo, version: \"1\"}\nimports: [{source: \"local:module18.yaml\", namespace: n}]\n",
+      "module18.yaml": "name: module\nmodule: {id: example/demo, version: \"1\"}\nimports: [{source: \"local:module19.yaml\", namespace: n}]\n",
+      "module19.yaml": "name: module\nmodule: {id: example/demo, version: \"1\"}\nimports: [{source: \"local:module20.yaml\", namespace: n}]\n",
+      "module20.yaml": "name: module\nmodule: {id: example/demo, version: \"1\"}\nimports: [{source: \"local:module21.yaml\", namespace: n}]\n",
+      "module21.yaml": "name: module\nmodule: {id: example/demo, version: \"1\"}\nimports: [{source: \"local:module22.yaml\", namespace: n}]\n",
+      "module22.yaml": "name: module\nmodule: {id: example/demo, version: \"1\"}\nimports: [{source: \"local:module23.yaml\", namespace: n}]\n",
+      "module23.yaml": "name: module\nmodule: {id: example/demo, version: \"1\"}\nimports: [{source: \"local:module24.yaml\", namespace: n}]\n",
+      "module24.yaml": "name: module\nmodule: {id: example/demo, version: \"1\"}\nimports: [{source: \"local:module25.yaml\", namespace: n}]\n",
+      "module25.yaml": "name: module\nmodule: {id: example/demo, version: \"1\"}\nimports: [{source: \"local:module26.yaml\", namespace: n}]\n",
+      "module26.yaml": "name: module\nmodule: {id: example/demo, version: \"1\"}\nimports: [{source: \"local:module27.yaml\", namespace: n}]\n",
+      "module27.yaml": "name: module\nmodule: {id: example/demo, version: \"1\"}\nimports: [{source: \"local:module28.yaml\", namespace: n}]\n",
+      "module28.yaml": "name: module\nmodule: {id: example/demo, version: \"1\"}\nimports: [{source: \"local:module29.yaml\", namespace: n}]\n",
+      "module29.yaml": "name: module\nmodule: {id: example/demo, version: \"1\"}\nimports: [{source: \"local:module30.yaml\", namespace: n}]\n",
+      "module30.yaml": "name: module\nmodule: {id: example/demo, version: \"1\"}\nimports: [{source: \"local:module31.yaml\", namespace: n}]\n",
+      "module31.yaml": "name: module\nmodule: {id: example/demo, version: \"1\"}\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "ValidationError"
+  },
+  {
+    "name": "file-absolute-symlink",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: local:alias.yaml\n  namespace: demo\n  version: \">=1,<2\"\n",
+      "module.yaml": "name: module\nmodule: {id: example/demo, version: \"1.2\", exports: {nodes: [web]}}\nnodes: {web: {type: compute}}\n"
+    },
+    "supplied": false,
+    "rooted": true,
+    "links": {
+      "alias.yaml": "$ROOT/module.yaml"
+    },
+    "accepted": true,
+    "content": "name: root\nimports:\n- source: local:alias.yaml\n  namespace: demo\n  version: '>=1,<2'\n"
+  },
+  {
+    "name": "file-long-symlink-chain",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: local:alias0.yaml\n  namespace: demo\n  version: \">=1,<2\"\n",
+      "module.yaml": "name: module\nmodule: {id: example/demo, version: \"1.2\", exports: {nodes: [web]}}\nnodes: {web: {type: compute}}\n"
+    },
+    "supplied": false,
+    "links": {
+      "alias0.yaml": "alias1.yaml",
+      "alias1.yaml": "alias2.yaml",
+      "alias2.yaml": "alias3.yaml",
+      "alias3.yaml": "alias4.yaml",
+      "alias4.yaml": "alias5.yaml",
+      "alias5.yaml": "alias6.yaml",
+      "alias6.yaml": "alias7.yaml",
+      "alias7.yaml": "alias8.yaml",
+      "alias8.yaml": "alias9.yaml",
+      "alias9.yaml": "alias10.yaml",
+      "alias10.yaml": "alias11.yaml",
+      "alias11.yaml": "alias12.yaml",
+      "alias12.yaml": "alias13.yaml",
+      "alias13.yaml": "alias14.yaml",
+      "alias14.yaml": "alias15.yaml",
+      "alias15.yaml": "alias16.yaml",
+      "alias16.yaml": "alias17.yaml",
+      "alias17.yaml": "alias18.yaml",
+      "alias18.yaml": "alias19.yaml",
+      "alias19.yaml": "alias20.yaml",
+      "alias20.yaml": "alias21.yaml",
+      "alias21.yaml": "alias22.yaml",
+      "alias22.yaml": "alias23.yaml",
+      "alias23.yaml": "alias24.yaml",
+      "alias24.yaml": "alias25.yaml",
+      "alias25.yaml": "alias26.yaml",
+      "alias26.yaml": "alias27.yaml",
+      "alias27.yaml": "alias28.yaml",
+      "alias28.yaml": "alias29.yaml",
+      "alias29.yaml": "alias30.yaml",
+      "alias30.yaml": "alias31.yaml",
+      "alias31.yaml": "alias32.yaml",
+      "alias32.yaml": "alias33.yaml",
+      "alias33.yaml": "alias34.yaml",
+      "alias34.yaml": "alias35.yaml",
+      "alias35.yaml": "alias36.yaml",
+      "alias36.yaml": "alias37.yaml",
+      "alias37.yaml": "alias38.yaml",
+      "alias38.yaml": "alias39.yaml",
+      "alias39.yaml": "alias40.yaml",
+      "alias40.yaml": "alias41.yaml",
+      "alias41.yaml": "alias42.yaml",
+      "alias42.yaml": "alias43.yaml",
+      "alias43.yaml": "alias44.yaml",
+      "alias44.yaml": "alias45.yaml",
+      "alias45.yaml": "alias46.yaml",
+      "alias46.yaml": "alias47.yaml",
+      "alias47.yaml": "alias48.yaml",
+      "alias48.yaml": "alias49.yaml",
+      "alias49.yaml": "alias50.yaml",
+      "alias50.yaml": "alias51.yaml",
+      "alias51.yaml": "alias52.yaml",
+      "alias52.yaml": "alias53.yaml",
+      "alias53.yaml": "alias54.yaml",
+      "alias54.yaml": "alias55.yaml",
+      "alias55.yaml": "alias56.yaml",
+      "alias56.yaml": "alias57.yaml",
+      "alias57.yaml": "alias58.yaml",
+      "alias58.yaml": "alias59.yaml",
+      "alias59.yaml": "alias60.yaml",
+      "alias60.yaml": "alias61.yaml",
+      "alias61.yaml": "alias62.yaml",
+      "alias62.yaml": "alias63.yaml",
+      "alias63.yaml": "alias64.yaml",
+      "alias64.yaml": "module.yaml"
+    },
+    "accepted": true,
+    "content": "name: root\nimports:\n- source: local:alias0.yaml\n  namespace: demo\n  version: '>=1,<2'\n"
+  },
+  {
+    "name": "file-symlink-cycle",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: local:alias0.yaml\n  namespace: demo\n  version: \">=1,<2\"\n",
+      "module.yaml": "name: module\nmodule: {id: example/demo, version: \"1.2\", exports: {nodes: [web]}}\nnodes: {web: {type: compute}}\n"
+    },
+    "supplied": false,
+    "links": {
+      "alias0.yaml": "alias1.yaml",
+      "alias1.yaml": "alias0.yaml"
+    },
+    "accepted": false,
+    "error": "SDLImportError",
+    "code": "sdl.import.source-missing"
+  },
+  {
+    "name": "nested-variation-variable",
+    "files": {
+      "main.yaml": "name: a\nimports:\n- source: local:outer.yaml\n  namespace: m\n",
+      "outer.yaml": "name: outer\nmodule:\n  id: p/outer\n  version: '1'\nimports:\n- source: local:leaf.yaml\n  namespace: child\n",
+      "leaf.yaml": "name: leaf\nmodule:\n  id: p/leaf\n  version: '1'\n  exports:\n    variables:\n    - v\nvariables:\n  v:\n    type: string\n    required: true\nvariation_points:\n  p:\n    kind: parameter\n    target:\n      variable: v\n    domain:\n      kind: enum\n      values:\n      - x\n      - y\nnodes:\n  n:\n    type: compute\n    description: ${v}\n"
+    },
+    "supplied": false,
+    "accepted": true,
+    "content": "name: a\nimports:\n- source: local:outer.yaml\n  namespace: m\n"
+  },
+  {
+    "name": "workspace-exponent-string",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: \">=1,<2\"\n",
+      "module.yaml": "name: module\nmodule: {id: example/demo, version: \"1.2\", exports: {nodes: [web]}}\nnodes: {web: {type: compute}}\n",
+      "raes-trust.yaml": "schema_version: 1e3\n"
+    },
+    "supplied": false,
+    "accepted": true,
+    "content": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: '>=1,<2'\n"
+  },
+  {
+    "name": "workspace-octal-prefix-string",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: \">=1,<2\"\n",
+      "module.yaml": "name: module\nmodule: {id: example/demo, version: \"1.2\", exports: {nodes: [web]}}\nnodes: {web: {type: compute}}\n",
+      "raes-trust.yaml": "schema_version: 0o77\n"
+    },
+    "supplied": false,
+    "accepted": true,
+    "content": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: '>=1,<2'\n"
+  },
+  {
+    "name": "workspace-boolean-key",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: \">=1,<2\"\n",
+      "module.yaml": "name: module\nmodule: {id: example/demo, version: \"1.2\", exports: {nodes: [web]}}\nnodes: {web: {type: compute}}\n",
+      "raes-trust.yaml": "registries: {yes: {}}\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLParseError"
+  },
+  {
+    "name": "workspace-mixed-boolean-key",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: \">=1,<2\"\n",
+      "module.yaml": "name: module\nmodule: {id: example/demo, version: \"1.2\", exports: {nodes: [web]}}\nnodes: {web: {type: compute}}\n",
+      "raes-trust.yaml": "registries: {yeS: {}}\n"
+    },
+    "supplied": false,
+    "accepted": true,
+    "content": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: '>=1,<2'\n"
+  },
+  {
+    "name": "workspace-quoted-boolean-key",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: \">=1,<2\"\n",
+      "module.yaml": "name: module\nmodule: {id: example/demo, version: \"1.2\", exports: {nodes: [web]}}\nnodes: {web: {type: compute}}\n",
+      "raes-trust.yaml": "registries: {'yes': {}}\n"
+    },
+    "supplied": false,
+    "accepted": true,
+    "content": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: '>=1,<2'\n"
+  },
+  {
+    "name": "workspace-timestamp",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: \">=1,<2\"\n",
+      "module.yaml": "name: module\nmodule: {id: example/demo, version: \"1.2\", exports: {nodes: [web]}}\nnodes: {web: {type: compute}}\n",
+      "raes-trust.yaml": "schema_version: 2026-11-07\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLParseError"
+  },
+  {
+    "name": "workspace-quoted-timestamp",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: \">=1,<2\"\n",
+      "module.yaml": "name: module\nmodule: {id: example/demo, version: \"1.2\", exports: {nodes: [web]}}\nnodes: {web: {type: compute}}\n",
+      "raes-trust.yaml": "schema_version: '2026-11-07'\n"
+    },
+    "supplied": false,
+    "accepted": true,
+    "content": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: '>=1,<2'\n"
+  },
+  {
+    "name": "workspace-float-flag",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: \">=1,<2\"\n",
+      "module.yaml": "name: module\nmodule: {id: example/demo, version: \"1.2\", exports: {nodes: [web]}}\nnodes: {web: {type: compute}}\n",
+      "raes-trust.yaml": "allow_unsigned_local_sources: 1.0\n"
+    },
+    "supplied": false,
+    "accepted": true,
+    "content": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: '>=1,<2'\n"
+  },
+  {
+    "name": "workspace-spaced-flag",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: \">=1,<2\"\n",
+      "module.yaml": "name: module\nmodule: {id: example/demo, version: \"1.2\", exports: {nodes: [web]}}\nnodes: {web: {type: compute}}\n",
+      "raes-trust.yaml": "allow_unsigned_local_sources: ' true '\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLParseError"
+  },
+  {
+    "name": "workspace-duplicates",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: \">=1,<2\"\n",
+      "module.yaml": "name: module\nmodule: {id: example/demo, version: \"1.2\", exports: {nodes: [web]}}\nnodes: {web: {type: compute}}\n",
+      "raes-trust.yaml": "allow_unsigned_local_sources: false\nallow_unsigned_local_sources: true\n"
+    },
+    "supplied": false,
+    "accepted": true,
+    "content": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: '>=1,<2'\n"
+  },
+  {
+    "name": "workspace-date-overwritten",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: \">=1,<2\"\n",
+      "module.yaml": "name: module\nmodule: {id: example/demo, version: \"1.2\", exports: {nodes: [web]}}\nnodes: {web: {type: compute}}\n",
+      "raes-trust.yaml": "schema_version: 2026-11-07\nschema_version: custom\n"
+    },
+    "supplied": false,
+    "accepted": true,
+    "content": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: '>=1,<2'\n"
+  },
+  {
+    "name": "workspace-invalid-date-overwritten",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: \">=1,<2\"\n",
+      "module.yaml": "name: module\nmodule: {id: example/demo, version: \"1.2\", exports: {nodes: [web]}}\nnodes: {web: {type: compute}}\n",
+      "raes-trust.yaml": "schema_version: 2026-99-99\nschema_version: custom\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLParseError"
+  },
+  {
+    "name": "workspace-zero-year-overwritten",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: \">=1,<2\"\n",
+      "module.yaml": "name: module\nmodule: {id: example/demo, version: \"1.2\", exports: {nodes: [web]}}\nnodes: {web: {type: compute}}\n",
+      "raes-trust.yaml": "schema_version: 0000-11-07\nschema_version: custom\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLParseError"
+  },
+  {
+    "name": "workspace-merge",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: \">=1,<2\"\n",
+      "module.yaml": "name: module\nmodule: {id: example/demo, version: \"1.2\", exports: {nodes: [web]}}\nnodes: {web: {type: compute}}\n",
+      "raes-trust.yaml": "registries: {base: &p {require_signatures: false}, other: {<<: *p, require_signatures: true}}\n"
+    },
+    "supplied": false,
+    "accepted": true,
+    "content": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: '>=1,<2'\n"
+  },
+  {
+    "name": "workspace-merge-cycle",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: \">=1,<2\"\n",
+      "module.yaml": "name: module\nmodule: {id: example/demo, version: \"1.2\", exports: {nodes: [web]}}\nnodes: {web: {type: compute}}\n",
+      "raes-trust.yaml": "registries: {base: &p {<<: *p}}\n"
+    },
+    "supplied": false,
+    "accepted": true,
+    "content": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: '>=1,<2'\n"
+  },
+  {
+    "name": "workspace-cycle-overwritten",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: \">=1,<2\"\n",
+      "module.yaml": "name: module\nmodule: {id: example/demo, version: \"1.2\", exports: {nodes: [web]}}\nnodes: {web: {type: compute}}\n",
+      "raes-trust.yaml": "registries: &x {base: {trusted_signers: *x}}\nregistries: {}\n"
+    },
+    "supplied": false,
+    "accepted": true,
+    "content": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: '>=1,<2'\n"
+  },
+  {
+    "name": "workspace-value-tag",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: \">=1,<2\"\n",
+      "module.yaml": "name: module\nmodule: {id: example/demo, version: \"1.2\", exports: {nodes: [web]}}\nnodes: {web: {type: compute}}\n",
+      "raes-trust.yaml": "schema_version: =\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLParseError"
+  },
+  {
+    "name": "workspace-nan-overwritten",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: \">=1,<2\"\n",
+      "module.yaml": "name: module\nmodule: {id: example/demo, version: \"1.2\", exports: {nodes: [web]}}\nnodes: {web: {type: compute}}\n",
+      "raes-trust.yaml": "schema_version: .nan\nschema_version: custom\n"
+    },
+    "supplied": false,
+    "accepted": true,
+    "content": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: '>=1,<2'\n"
+  },
+  {
+    "name": "workspace-sexagesimal",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: \">=1,<2\"\n",
+      "module.yaml": "name: module\nmodule: {id: example/demo, version: \"1.2\", exports: {nodes: [web]}}\nnodes: {web: {type: compute}}\n",
+      "raes-trust.yaml": "schema_version: 1:01\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLParseError"
+  },
+  {
+    "name": "workspace-sexagesimal-flag",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: \">=1,<2\"\n",
+      "module.yaml": "name: module\nmodule: {id: example/demo, version: \"1.2\", exports: {nodes: [web]}}\nnodes: {web: {type: compute}}\n",
+      "raes-trust.yaml": "allow_unsigned_local_sources: 0:01.0\n"
+    },
+    "supplied": false,
+    "accepted": true,
+    "content": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: '>=1,<2'\n"
+  },
+  {
+    "name": "workspace-self-merge-fields",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: \">=1,<2\"\n",
+      "module.yaml": "name: module\nmodule: {id: example/demo, version: \"1.2\", exports: {nodes: [web]}}\nnodes: {web: {type: compute}}\n",
+      "raes-trust.yaml": "registries: {a: &a {<<: *a, require_signatures: false}}\n"
+    },
+    "supplied": false,
+    "accepted": true,
+    "content": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: '>=1,<2'\n"
+  },
+  {
+    "name": "workspace-mutual-merge",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: \">=1,<2\"\n",
+      "module.yaml": "name: module\nmodule: {id: example/demo, version: \"1.2\", exports: {nodes: [web]}}\nnodes: {web: {type: compute}}\n",
+      "raes-trust.yaml": "registries: {a: &a {<<: &b {<<: *a, require_signatures: false}, allow_insecure_http: false}}\n"
+    },
+    "supplied": false,
+    "accepted": true,
+    "content": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: '>=1,<2'\n"
+  },
+  {
+    "name": "workspace-absolute-policy-link",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: \">=1,<2\"\n",
+      "module.yaml": "name: module\nmodule: {id: example/demo, version: \"1.2\", exports: {nodes: [web]}}\nnodes: {web: {type: compute}}\n",
+      "config/trust.yaml": "schema_version: custom\n"
+    },
+    "supplied": false,
+    "rooted": true,
+    "links": {
+      "raes-trust.yaml": "$ROOT/config/trust.yaml"
+    },
+    "accepted": true,
+    "content": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: '>=1,<2'\n"
+  },
+  {
+    "name": "workspace-policy-link-cycle",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: \">=1,<2\"\n",
+      "module.yaml": "name: module\nmodule: {id: example/demo, version: \"1.2\", exports: {nodes: [web]}}\nnodes: {web: {type: compute}}\n",
+      "config/trust.yaml": "schema_version: custom\n"
+    },
+    "supplied": false,
+    "rooted": true,
+    "links": {
+      "raes-trust.yaml": "raes-trust.yaml"
+    },
+    "accepted": false,
+    "error": "SDLParseError"
+  },
+  {
+    "name": "tool-ambiguity-bare",
+    "files": {
+      "main.yaml": "{\"name\": \"root\", \"imports\": [{\"source\": \"local:module.yaml\", \"namespace\": \"demo\"}]}\n",
+      "module.yaml": "{\"name\": \"a\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\"}, \"nodes\": {\"same\": {\"type\": \"compute\"}}, \"features\": {\"same\": {\"type\": \"service\", \"source\": \"pkg\"}}, \"behavior_specifications\": {\"b\": {\"semantic_version\": \"1\", \"participant_refs\": [\"p\"], \"tool_affordances\": {\"t\": {\"action_contract_refs\": [\"a\"], \"observation_boundary_refs\": [\"b\"], \"tool_ref\": \"same\"}}}}}\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLValidationError"
+  },
+  {
+    "name": "authority-ambiguity-bare",
+    "files": {
+      "main.yaml": "{\"name\": \"root\", \"imports\": [{\"source\": \"local:module.yaml\", \"namespace\": \"demo\"}]}\n",
+      "module.yaml": "{\"name\": \"a\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\"}, \"nodes\": {\"same\": {\"type\": \"compute\"}}, \"features\": {\"same\": {\"type\": \"service\", \"source\": \"pkg\"}}, \"behavior_specifications\": {\"b\": {\"semantic_version\": \"1\", \"participant_refs\": [\"p\"], \"authority_scope_refs\": [\"same\"]}}}\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLValidationError"
+  },
+  {
+    "name": "tool-ambiguity-qualified",
+    "files": {
+      "main.yaml": "{\"name\": \"root\", \"imports\": [{\"source\": \"local:module.yaml\", \"namespace\": \"demo\"}]}\n",
+      "module.yaml": "{\"name\": \"a\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\"}, \"nodes\": {\"same\": {\"type\": \"compute\"}}, \"features\": {\"same\": {\"type\": \"service\", \"source\": \"pkg\"}}, \"behavior_specifications\": {\"b\": {\"semantic_version\": \"1\", \"participant_refs\": [\"p\"], \"tool_affordances\": {\"t\": {\"action_contract_refs\": [\"a\"], \"observation_boundary_refs\": [\"b\"], \"tool_ref\": \"nodes.same\"}}}}}\n"
+    },
+    "supplied": false,
+    "accepted": true,
+    "content": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n"
+  },
+  {
+    "name": "authority-ambiguity-qualified",
+    "files": {
+      "main.yaml": "{\"name\": \"root\", \"imports\": [{\"source\": \"local:module.yaml\", \"namespace\": \"demo\"}]}\n",
+      "module.yaml": "{\"name\": \"a\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\"}, \"nodes\": {\"same\": {\"type\": \"compute\"}}, \"features\": {\"same\": {\"type\": \"service\", \"source\": \"pkg\"}}, \"behavior_specifications\": {\"b\": {\"semantic_version\": \"1\", \"participant_refs\": [\"p\"], \"authority_scope_refs\": [\"nodes.same\"]}}}\n"
+    },
+    "supplied": false,
+    "accepted": true,
+    "content": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n"
+  },
+  {
+    "name": "authority-support-name",
+    "files": {
+      "main.yaml": "{\"name\": \"root\", \"imports\": [{\"source\": \"local:module.yaml\", \"namespace\": \"demo\"}]}\n",
+      "module.yaml": "{\"name\": \"a\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\"}, \"nodes\": {\"same\": {\"type\": \"compute\"}}, \"variables\": {\"same\": {\"type\": \"string\"}}, \"behavior_specifications\": {\"b\": {\"semantic_version\": \"1\", \"participant_refs\": [\"p\"], \"authority_scope_refs\": [\"same\"]}}}\n"
+    },
+    "supplied": false,
+    "accepted": true,
+    "content": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n"
+  },
+  {
+    "name": "control-context-ambiguity-bare",
+    "files": {
+      "main.yaml": "{\"name\": \"root\", \"imports\": [{\"source\": \"local:module.yaml\", \"namespace\": \"demo\"}]}\n",
+      "module.yaml": "{\"name\": \"a\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\"}, \"nodes\": {\"same\": {\"type\": \"compute\"}}, \"features\": {\"same\": {\"type\": \"service\", \"source\": \"pkg\"}}, \"behavior_specifications\": {\"b\": {\"semantic_version\": \"1\", \"participant_refs\": [\"p\"], \"control_context\": {\"c\": {\"declaration_ref\": \"same\", \"asset_ref\": {\"asset_id\": \"a\", \"asset_version\": \"1\", \"asset_digest\": \"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"}}}}}}\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLValidationError"
+  },
+  {
+    "name": "control-context-ambiguity-qualified",
+    "files": {
+      "main.yaml": "{\"name\": \"root\", \"imports\": [{\"source\": \"local:module.yaml\", \"namespace\": \"demo\"}]}\n",
+      "module.yaml": "{\"name\": \"a\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\"}, \"nodes\": {\"same\": {\"type\": \"compute\"}}, \"features\": {\"same\": {\"type\": \"service\", \"source\": \"pkg\"}}, \"behavior_specifications\": {\"b\": {\"semantic_version\": \"1\", \"participant_refs\": [\"p\"], \"control_context\": {\"c\": {\"declaration_ref\": \"nodes.same\", \"asset_ref\": {\"asset_id\": \"a\", \"asset_version\": \"1\", \"asset_digest\": \"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"}}}}}}\n"
+    },
+    "supplied": false,
+    "accepted": true,
+    "content": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n"
+  },
+  {
+    "name": "augmentation-missing-agent",
+    "files": {
+      "main.yaml": "{\"name\": \"root\", \"imports\": [{\"source\": \"local:module.yaml\", \"namespace\": \"demo\"}]}\n",
+      "module.yaml": "{\"name\": \"a\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\"}, \"augmentation_scope\": {\"scopes\": [{\"scope\": \"/forwarding_agents/0\", \"permission\": \"open\"}]}}\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLParseError"
+  },
+  {
+    "name": "augmentation-present-agent",
+    "files": {
+      "main.yaml": "{\"name\": \"root\", \"imports\": [{\"source\": \"local:module.yaml\", \"namespace\": \"demo\"}]}\n",
+      "module.yaml": "{\"name\": \"a\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\"}, \"forwarding_agents\": [{\"forwarding_agent_id\": \"a\", \"description\": \"x\"}], \"augmentation_scope\": {\"scopes\": [{\"scope\": \"/forwarding_agents/0/description\", \"permission\": \"closed\"}]}}\n"
+    },
+    "supplied": false,
+    "accepted": true,
+    "content": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n"
+  },
+  {
+    "name": "augmentation-default-merge",
+    "files": {
+      "main.yaml": "{\"name\": \"root\", \"imports\": [{\"source\": \"local:module.yaml\", \"namespace\": \"demo\"}]}\n",
+      "module.yaml": "{\"name\": \"a\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\"}, \"nodes\": {\"n\": {\"type\": \"compute\"}}, \"augmentation_scope\": {\"default\": \"closed\", \"scopes\": [{\"scope\": \"/nodes/n\", \"permission\": \"open\"}]}}\n"
+    },
+    "supplied": false,
+    "accepted": true,
+    "content": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n"
+  },
+  {
+    "name": "augmentation-duplicate-scopes",
+    "files": {
+      "main.yaml": "{\"name\": \"root\", \"imports\": [{\"source\": \"local:module.yaml\", \"namespace\": \"demo\"}]}\n",
+      "module.yaml": "{\"name\": \"a\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\"}, \"augmentation_scope\": {\"scopes\": [{\"scope\": \"\", \"permission\": \"open\"}, {\"scope\": \"\", \"permission\": \"closed\"}]}}\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLParseError"
+  },
+  {
+    "name": "execution-default-merge",
+    "files": {
+      "main.yaml": "{\"name\": \"root\", \"imports\": [{\"source\": \"local:module.yaml\", \"namespace\": \"demo\"}]}\n",
+      "module.yaml": "{\"name\": \"a\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\"}, \"nodes\": {\"n\": {\"type\": \"compute\"}}, \"execution_policy\": {\"default\": {\"policy_id\": \"p\", \"response\": \"terminate\"}, \"scopes\": [{\"scope\": \"/nodes/n\", \"policy\": {\"policy_id\": \"p\", \"response\": \"terminate\"}}]}}\n"
+    },
+    "supplied": false,
+    "accepted": true,
+    "content": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n"
+  },
+  {
+    "name": "execution-duplicate-after-merge",
+    "files": {
+      "main.yaml": "{\"name\": \"root\", \"imports\": [{\"source\": \"local:module.yaml\", \"namespace\": \"demo\"}], \"execution_policy\": {\"scopes\": [{\"namespace\": [\"demo\"], \"scope\": \"\", \"policy\": {\"policy_id\": \"p\", \"response\": \"terminate\"}}]}}\n",
+      "module.yaml": "{\"name\": \"a\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\"}, \"execution_policy\": {\"default\": {\"policy_id\": \"p\", \"response\": \"terminate\"}}}\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "ValidationError"
+  },
+  {
+    "name": "augmentation-duplicate-after-merge",
+    "files": {
+      "main.yaml": "{\"name\": \"root\", \"imports\": [{\"source\": \"local:module.yaml\", \"namespace\": \"demo\"}], \"augmentation_scope\": {\"scopes\": [{\"namespace\": [\"demo\"], \"scope\": \"\", \"permission\": \"open\"}]}}\n",
+      "module.yaml": "{\"name\": \"a\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\"}, \"augmentation_scope\": {\"default\": \"closed\"}}\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "ValidationError"
+  },
+  {
+    "name": "import-constructor-condition-empty",
+    "files": {
+      "main.yaml": "name: root\nimports: [{source: \"local:module.yaml\", namespace: demo}]\n",
+      "module.yaml": "{\"name\": \"a\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\"}, \"conditions\": {\"c\": {}}}\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLParseError"
+  },
+  {
+    "name": "import-constructor-content-missing-anchors",
+    "files": {
+      "main.yaml": "name: root\nimports: [{source: \"local:module.yaml\", namespace: demo}]\n",
+      "module.yaml": "{\"name\": \"a\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\"}, \"content\": {\"c\": {\"type\": \"file\"}}}\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLParseError"
+  },
+  {
+    "name": "import-constructor-account-node",
+    "files": {
+      "main.yaml": "name: root\nimports: [{source: \"local:module.yaml\", namespace: demo}]\n",
+      "module.yaml": "{\"name\": \"a\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\"}, \"accounts\": {\"u\": {\"username\": \"alice\"}}}\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLParseError"
+  },
+  {
+    "name": "import-constructor-success-empty",
+    "files": {
+      "main.yaml": "name: root\nimports: [{source: \"local:module.yaml\", namespace: demo}]\n",
+      "module.yaml": "{\"name\": \"a\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\"}, \"objectives\": {\"o\": {\"owner\": \"team\", \"success\": {}}}}\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLParseError"
+  },
+  {
+    "name": "import-constructor-subset-bounds",
+    "files": {
+      "main.yaml": "name: root\nimports: [{source: \"local:module.yaml\", namespace: demo}]\n",
+      "module.yaml": "{\"name\": \"a\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\"}, \"variation_points\": {\"s\": {\"kind\": \"subset\", \"target\": {\"owner\": \"n\", \"slot\": \"nodes.features\"}, \"members\": {\"x\": {\"reference\": \"f\"}}, \"minimum\": 2}}}\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLParseError"
+  },
+  {
+    "name": "import-constructor-step-objective",
+    "files": {
+      "main.yaml": "name: root\nimports: [{source: \"local:module.yaml\", namespace: demo}]\n",
+      "module.yaml": "{\"name\": \"a\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\"}, \"workflows\": {\"w\": {\"start\": \"s\", \"steps\": {\"s\": {\"type\": \"objective\"}}}}}\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLParseError"
+  },
+  {
+    "name": "import-constructor-clock-jump",
+    "files": {
+      "main.yaml": "name: root\nimports: [{source: \"local:module.yaml\", namespace: demo}]\n",
+      "module.yaml": "{\"name\": \"a\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\"}, \"clocks\": {\"c\": {\"time_domain_ref\": \"t\", \"authority_kind\": \"runtime\", \"authority_ref\": \"r\", \"monotonicity\": \"may_jump\", \"description\": \"clock\"}}}\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLParseError"
+  },
+  {
+    "name": "import-constructor-attestation-absent-verified",
+    "files": {
+      "main.yaml": "name: root\nimports: [{source: \"local:module.yaml\", namespace: demo}]\n",
+      "module.yaml": "{\"name\": \"a\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\"}, \"nodes\": {\"n\": {\"type\": \"compute\", \"source\": {\"name\": \"image\", \"build\": {\"attestation\": {\"status\": \"absent\", \"verification\": \"verified\"}}}}}}\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLParseError"
+  },
+  {
+    "name": "import-constructor-relative-filesystem",
+    "files": {
+      "main.yaml": "name: root\nimports: [{source: \"local:module.yaml\", namespace: demo}]\n",
+      "module.yaml": "{\"name\": \"a\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\"}, \"nodes\": {\"n\": {\"type\": \"compute\", \"runtime\": {\"filesystem_inventory\": [{\"path\": \"relative\"}]}}}}\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLParseError"
+  },
+  {
+    "name": "import-constructor-image-duplicate-build-args",
+    "files": {
+      "main.yaml": "name: root\nimports: [{source: \"local:module.yaml\", namespace: demo}]\n",
+      "module.yaml": "{\"name\": \"a\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\"}, \"nodes\": {\"n\": {\"type\": \"compute\", \"source\": {\"name\": \"image\", \"build\": {\"build_args\": [{\"name\": \"ARG\", \"value\": \"a\"}, {\"name\": \"ARG\", \"value\": \"b\"}]}}}}}\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLParseError"
+  },
+  {
+    "name": "import-constructor-image-duplicate-environment",
+    "files": {
+      "main.yaml": "name: root\nimports: [{source: \"local:module.yaml\", namespace: demo}]\n",
+      "module.yaml": "{\"name\": \"a\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\"}, \"nodes\": {\"n\": {\"type\": \"compute\", \"source\": {\"name\": \"image\", \"build\": {\"config\": {\"default_environment\": [{\"name\": \"ENV\", \"value\": \"a\"}, {\"name\": \"ENV\", \"value\": \"b\"}]}}}}}}\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLParseError"
+  },
+  {
+    "name": "import-constructor-image-input-checksum",
+    "files": {
+      "main.yaml": "name: root\nimports: [{source: \"local:module.yaml\", namespace: demo}]\n",
+      "module.yaml": "{\"name\": \"a\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\"}, \"nodes\": {\"n\": {\"type\": \"compute\", \"source\": {\"name\": \"image\", \"build\": {\"source_inputs\": [{\"identifier\": \"i\", \"checksum\": \"abc\"}]}}}}}\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLParseError"
+  },
+  {
+    "name": "import-constructor-image-relative-copy",
+    "files": {
+      "main.yaml": "name: root\nimports: [{source: \"local:module.yaml\", namespace: demo}]\n",
+      "module.yaml": "{\"name\": \"a\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\"}, \"nodes\": {\"n\": {\"type\": \"compute\", \"source\": {\"name\": \"image\", \"build\": {\"copied_sources\": [{\"source_path\": \"src\", \"destination_path\": \"relative\"}]}}}}}\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLParseError"
+  },
+  {
+    "name": "import-constructor-image-blank-build-name",
+    "files": {
+      "main.yaml": "name: root\nimports: [{source: \"local:module.yaml\", namespace: demo}]\n",
+      "module.yaml": "{\"name\": \"a\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\"}, \"nodes\": {\"n\": {\"type\": \"compute\", \"source\": {\"name\": \"image\", \"build\": {\"build_args\": [{\"name\": \" \"}]}}}}}\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLParseError"
+  },
+  {
+    "name": "import-constructor-image-invalid-env-name",
+    "files": {
+      "main.yaml": "name: root\nimports: [{source: \"local:module.yaml\", namespace: demo}]\n",
+      "module.yaml": "{\"name\": \"a\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\"}, \"nodes\": {\"n\": {\"type\": \"compute\", \"source\": {\"name\": \"image\", \"build\": {\"config\": {\"default_environment\": [{\"name\": \"A=B\"}]}}}}}}\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLParseError"
+  },
+  {
+    "name": "import-constructor-control-asset-token-asset_id",
+    "files": {
+      "main.yaml": "name: root\nimports: [{source: \"local:module.yaml\", namespace: demo}]\n",
+      "module.yaml": "{\"name\": \"a\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\"}, \"behavior_specifications\": {\"b\": {\"semantic_version\": \"1\", \"participant_refs\": [\"p\"], \"control_context\": {\"c\": {\"declaration_ref\": \"a\", \"asset_ref\": {\"asset_id\": \"prefix${v}\", \"asset_version\": \"1\", \"asset_digest\": \"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"}}}}}}\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLParseError"
+  },
+  {
+    "name": "import-constructor-control-asset-token-asset_version",
+    "files": {
+      "main.yaml": "name: root\nimports: [{source: \"local:module.yaml\", namespace: demo}]\n",
+      "module.yaml": "{\"name\": \"a\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\"}, \"behavior_specifications\": {\"b\": {\"semantic_version\": \"1\", \"participant_refs\": [\"p\"], \"control_context\": {\"c\": {\"declaration_ref\": \"a\", \"asset_ref\": {\"asset_id\": \"a\", \"asset_version\": \"prefix${v}\", \"asset_digest\": \"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"}}}}}}\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLParseError"
+  },
+  {
+    "name": "ci-entity-export",
+    "files": {
+      "main.yaml": "{\"name\": \"root\", \"imports\": [{\"source\": \"local:module.yaml\", \"namespace\": \"demo\"}]}\n",
+      "module.yaml": "{\"name\": \"module\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\", \"exports\": {\"entities\": [\"parent.child\"]}}, \"nodes\": {\"web\": {\"type\": \"compute\"}}, \"entities\": {\"parent\": {\"entities\": {\"child\": {}}}}}\n"
+    },
+    "supplied": false,
+    "accepted": true,
+    "content": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n"
+  },
+  {
+    "name": "ci-entity-missing",
+    "files": {
+      "main.yaml": "{\"name\": \"root\", \"imports\": [{\"source\": \"local:module.yaml\", \"namespace\": \"demo\"}]}\n",
+      "module.yaml": "{\"name\": \"module\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\", \"exports\": {\"entities\": [\"parent.missing\"]}}, \"nodes\": {\"web\": {\"type\": \"compute\"}}, \"entities\": {\"parent\": {\"entities\": {\"child\": {}}}}}\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLImportError",
+    "code": "sdl.import.export-invalid"
+  },
+  {
+    "name": "ci-binding-string-x-0",
+    "files": {
+      "main.yaml": "{\"name\": \"root\", \"imports\": [{\"source\": \"local:module.yaml\", \"namespace\": \"demo\", \"parameters\": {\"v\": \"x\"}}]}\n",
+      "module.yaml": "{\"name\": \"module\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\", \"exports\": {\"nodes\": [\"web\"]}, \"parameters\": [\"v\"]}, \"nodes\": {\"web\": {\"type\": \"compute\", \"description\": \"value ${v}\"}}, \"variables\": {\"v\": {\"type\": \"string\", \"default\": \"x\", \"allowed_values\": [\"x\", \"y\"]}}}\n"
+    },
+    "supplied": false,
+    "accepted": true,
+    "content": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  parameters:\n    v: x\n"
+  },
+  {
+    "name": "ci-binding-string-x-1",
+    "files": {
+      "main.yaml": "{\"name\": \"root\", \"imports\": [{\"source\": \"local:module.yaml\", \"namespace\": \"demo\", \"parameters\": {\"v\": \"z\"}}]}\n",
+      "module.yaml": "{\"name\": \"module\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\", \"exports\": {\"nodes\": [\"web\"]}, \"parameters\": [\"v\"]}, \"nodes\": {\"web\": {\"type\": \"compute\", \"description\": \"value ${v}\"}}, \"variables\": {\"v\": {\"type\": \"string\", \"default\": \"x\", \"allowed_values\": [\"x\", \"y\"]}}}\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLParseError"
+  },
+  {
+    "name": "ci-binding-string-x-2",
+    "files": {
+      "main.yaml": "{\"name\": \"root\", \"imports\": [{\"source\": \"local:module.yaml\", \"namespace\": \"demo\", \"parameters\": {\"v\": true}}]}\n",
+      "module.yaml": "{\"name\": \"module\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\", \"exports\": {\"nodes\": [\"web\"]}, \"parameters\": [\"v\"]}, \"nodes\": {\"web\": {\"type\": \"compute\", \"description\": \"value ${v}\"}}, \"variables\": {\"v\": {\"type\": \"string\", \"default\": \"x\", \"allowed_values\": [\"x\", \"y\"]}}}\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLParseError"
+  },
+  {
+    "name": "ci-binding-integer-1-0",
+    "files": {
+      "main.yaml": "{\"name\": \"root\", \"imports\": [{\"source\": \"local:module.yaml\", \"namespace\": \"demo\", \"parameters\": {\"v\": 1}}]}\n",
+      "module.yaml": "{\"name\": \"module\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\", \"exports\": {\"nodes\": [\"web\"]}, \"parameters\": [\"v\"]}, \"nodes\": {\"web\": {\"type\": \"compute\", \"description\": \"value ${v}\"}}, \"variables\": {\"v\": {\"type\": \"integer\", \"default\": 1, \"allowed_values\": [1, 2]}}}\n"
+    },
+    "supplied": false,
+    "accepted": true,
+    "content": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  parameters:\n    v: 1\n"
+  },
+  {
+    "name": "ci-binding-integer-1-1",
+    "files": {
+      "main.yaml": "{\"name\": \"root\", \"imports\": [{\"source\": \"local:module.yaml\", \"namespace\": \"demo\", \"parameters\": {\"v\": 3}}]}\n",
+      "module.yaml": "{\"name\": \"module\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\", \"exports\": {\"nodes\": [\"web\"]}, \"parameters\": [\"v\"]}, \"nodes\": {\"web\": {\"type\": \"compute\", \"description\": \"value ${v}\"}}, \"variables\": {\"v\": {\"type\": \"integer\", \"default\": 1, \"allowed_values\": [1, 2]}}}\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLParseError"
+  },
+  {
+    "name": "ci-binding-integer-1-2",
+    "files": {
+      "main.yaml": "{\"name\": \"root\", \"imports\": [{\"source\": \"local:module.yaml\", \"namespace\": \"demo\", \"parameters\": {\"v\": true}}]}\n",
+      "module.yaml": "{\"name\": \"module\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\", \"exports\": {\"nodes\": [\"web\"]}, \"parameters\": [\"v\"]}, \"nodes\": {\"web\": {\"type\": \"compute\", \"description\": \"value ${v}\"}}, \"variables\": {\"v\": {\"type\": \"integer\", \"default\": 1, \"allowed_values\": [1, 2]}}}\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLParseError"
+  },
+  {
+    "name": "ci-binding-number-0.25-0",
+    "files": {
+      "main.yaml": "{\"name\": \"root\", \"imports\": [{\"source\": \"local:module.yaml\", \"namespace\": \"demo\", \"parameters\": {\"v\": 0.25}}]}\n",
+      "module.yaml": "{\"name\": \"module\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\", \"exports\": {\"nodes\": [\"web\"]}, \"parameters\": [\"v\"]}, \"nodes\": {\"web\": {\"type\": \"compute\", \"description\": \"value ${v}\"}}, \"variables\": {\"v\": {\"type\": \"number\", \"default\": 0.25, \"allowed_values\": [0.25]}}}\n"
+    },
+    "supplied": false,
+    "accepted": true,
+    "content": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  parameters:\n    v: 0.25\n"
+  },
+  {
+    "name": "ci-binding-number-0.25-1",
+    "files": {
+      "main.yaml": "{\"name\": \"root\", \"imports\": [{\"source\": \"local:module.yaml\", \"namespace\": \"demo\", \"parameters\": {\"v\": 0.5}}]}\n",
+      "module.yaml": "{\"name\": \"module\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\", \"exports\": {\"nodes\": [\"web\"]}, \"parameters\": [\"v\"]}, \"nodes\": {\"web\": {\"type\": \"compute\", \"description\": \"value ${v}\"}}, \"variables\": {\"v\": {\"type\": \"number\", \"default\": 0.25, \"allowed_values\": [0.25]}}}\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLParseError"
+  },
+  {
+    "name": "ci-binding-number-0.25-2",
+    "files": {
+      "main.yaml": "{\"name\": \"root\", \"imports\": [{\"source\": \"local:module.yaml\", \"namespace\": \"demo\", \"parameters\": {\"v\": true}}]}\n",
+      "module.yaml": "{\"name\": \"module\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\", \"exports\": {\"nodes\": [\"web\"]}, \"parameters\": [\"v\"]}, \"nodes\": {\"web\": {\"type\": \"compute\", \"description\": \"value ${v}\"}}, \"variables\": {\"v\": {\"type\": \"number\", \"default\": 0.25, \"allowed_values\": [0.25]}}}\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLParseError"
+  },
+  {
+    "name": "ci-binding-number-1.0-0",
+    "files": {
+      "main.yaml": "{\"name\": \"root\", \"imports\": [{\"source\": \"local:module.yaml\", \"namespace\": \"demo\", \"parameters\": {\"v\": 1.0}}]}\n",
+      "module.yaml": "{\"name\": \"module\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\", \"exports\": {\"nodes\": [\"web\"]}, \"parameters\": [\"v\"]}, \"nodes\": {\"web\": {\"type\": \"compute\", \"description\": \"value ${v}\"}}, \"variables\": {\"v\": {\"type\": \"number\", \"default\": 1.0, \"allowed_values\": [1]}}}\n"
+    },
+    "supplied": false,
+    "accepted": true,
+    "content": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  parameters:\n    v: 1.0\n"
+  },
+  {
+    "name": "ci-binding-number-1.0-1",
+    "files": {
+      "main.yaml": "{\"name\": \"root\", \"imports\": [{\"source\": \"local:module.yaml\", \"namespace\": \"demo\", \"parameters\": {\"v\": 2.0}}]}\n",
+      "module.yaml": "{\"name\": \"module\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\", \"exports\": {\"nodes\": [\"web\"]}, \"parameters\": [\"v\"]}, \"nodes\": {\"web\": {\"type\": \"compute\", \"description\": \"value ${v}\"}}, \"variables\": {\"v\": {\"type\": \"number\", \"default\": 1.0, \"allowed_values\": [1]}}}\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLParseError"
+  },
+  {
+    "name": "ci-binding-boolean-True-0",
+    "files": {
+      "main.yaml": "{\"name\": \"root\", \"imports\": [{\"source\": \"local:module.yaml\", \"namespace\": \"demo\", \"parameters\": {\"v\": true}}]}\n",
+      "module.yaml": "{\"name\": \"module\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\", \"exports\": {\"nodes\": [\"web\"]}, \"parameters\": [\"v\"]}, \"nodes\": {\"web\": {\"type\": \"compute\", \"description\": \"value ${v}\"}}, \"variables\": {\"v\": {\"type\": \"boolean\", \"default\": true, \"allowed_values\": [true]}}}\n"
+    },
+    "supplied": false,
+    "accepted": true,
+    "content": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  parameters:\n    v: true\n"
+  },
+  {
+    "name": "ci-binding-boolean-True-1",
+    "files": {
+      "main.yaml": "{\"name\": \"root\", \"imports\": [{\"source\": \"local:module.yaml\", \"namespace\": \"demo\", \"parameters\": {\"v\": false}}]}\n",
+      "module.yaml": "{\"name\": \"module\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\", \"exports\": {\"nodes\": [\"web\"]}, \"parameters\": [\"v\"]}, \"nodes\": {\"web\": {\"type\": \"compute\", \"description\": \"value ${v}\"}}, \"variables\": {\"v\": {\"type\": \"boolean\", \"default\": true, \"allowed_values\": [true]}}}\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLParseError"
+  },
+  {
+    "name": "ci-binding-boolean-True-2",
+    "files": {
+      "main.yaml": "{\"name\": \"root\", \"imports\": [{\"source\": \"local:module.yaml\", \"namespace\": \"demo\", \"parameters\": {\"v\": \"true\"}}]}\n",
+      "module.yaml": "{\"name\": \"module\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\", \"exports\": {\"nodes\": [\"web\"]}, \"parameters\": [\"v\"]}, \"nodes\": {\"web\": {\"type\": \"compute\", \"description\": \"value ${v}\"}}, \"variables\": {\"v\": {\"type\": \"boolean\", \"default\": true, \"allowed_values\": [true]}}}\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLParseError"
+  },
+  {
+    "name": "ci-binding-missing-True",
+    "files": {
+      "main.yaml": "{\"name\": \"root\", \"imports\": [{\"source\": \"local:module.yaml\", \"namespace\": \"demo\"}]}\n",
+      "module.yaml": "{\"name\": \"module\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\", \"exports\": {\"nodes\": [\"web\"]}, \"parameters\": [\"v\"]}, \"nodes\": {\"web\": {\"type\": \"compute\"}}, \"variables\": {\"v\": {\"type\": \"string\", \"required\": true}}}\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLParseError"
+  },
+  {
+    "name": "ci-binding-missing-False",
+    "files": {
+      "main.yaml": "{\"name\": \"root\", \"imports\": [{\"source\": \"local:module.yaml\", \"namespace\": \"demo\"}]}\n",
+      "module.yaml": "{\"name\": \"module\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\", \"exports\": {\"nodes\": [\"web\"]}, \"parameters\": [\"v\"]}, \"nodes\": {\"web\": {\"type\": \"compute\"}}, \"variables\": {\"v\": {\"type\": \"string\", \"required\": false}}}\n"
+    },
+    "supplied": false,
+    "accepted": true,
+    "content": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n"
+  },
+  {
+    "name": "ci-workspace-merge-map",
+    "files": {
+      "main.yaml": "{\"name\": \"root\", \"imports\": [{\"source\": \"local:module.yaml\", \"namespace\": \"demo\"}]}\n",
+      "module.yaml": "{\"name\": \"module\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\", \"exports\": {\"nodes\": [\"web\"]}}, \"nodes\": {\"web\": {\"type\": \"compute\"}}}\n",
+      "raes-trust.yaml": "base: &b {enabled: true, count: 1}\ncombined: {<<: *b, count: 2}\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLParseError"
+  },
+  {
+    "name": "ci-workspace-merge-sequence",
+    "files": {
+      "main.yaml": "{\"name\": \"root\", \"imports\": [{\"source\": \"local:module.yaml\", \"namespace\": \"demo\"}]}\n",
+      "module.yaml": "{\"name\": \"module\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\", \"exports\": {\"nodes\": [\"web\"]}}, \"nodes\": {\"web\": {\"type\": \"compute\"}}}\n",
+      "raes-trust.yaml": "a: &a {one: 1, both: a}\nb: &b {two: 2, both: b}\ncombined: {<<: [*a, *b], both: c}\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLParseError"
+  },
+  {
+    "name": "ci-workspace-merge-nonmap",
+    "files": {
+      "main.yaml": "{\"name\": \"root\", \"imports\": [{\"source\": \"local:module.yaml\", \"namespace\": \"demo\"}]}\n",
+      "module.yaml": "{\"name\": \"module\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\", \"exports\": {\"nodes\": [\"web\"]}}, \"nodes\": {\"web\": {\"type\": \"compute\"}}}\n",
+      "raes-trust.yaml": "combined: {<<: 1}\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLParseError"
+  },
+  {
+    "name": "ci-workspace-timestamp-offset",
+    "files": {
+      "main.yaml": "{\"name\": \"root\", \"imports\": [{\"source\": \"local:module.yaml\", \"namespace\": \"demo\"}]}\n",
+      "module.yaml": "{\"name\": \"module\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\", \"exports\": {\"nodes\": [\"web\"]}}, \"nodes\": {\"web\": {\"type\": \"compute\"}}}\n",
+      "raes-trust.yaml": "value: 2026-01-02T03:04:05.123456+02:30\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLParseError"
+  },
+  {
+    "name": "ci-workspace-timestamp-negative",
+    "files": {
+      "main.yaml": "{\"name\": \"root\", \"imports\": [{\"source\": \"local:module.yaml\", \"namespace\": \"demo\"}]}\n",
+      "module.yaml": "{\"name\": \"module\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\", \"exports\": {\"nodes\": [\"web\"]}}, \"nodes\": {\"web\": {\"type\": \"compute\"}}}\n",
+      "raes-trust.yaml": "value: 2026-01-02T03:04:05.123456-02:30\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLParseError"
+  },
+  {
+    "name": "ci-workspace-timestamp-invalid",
+    "files": {
+      "main.yaml": "{\"name\": \"root\", \"imports\": [{\"source\": \"local:module.yaml\", \"namespace\": \"demo\"}]}\n",
+      "module.yaml": "{\"name\": \"module\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\", \"exports\": {\"nodes\": [\"web\"]}}, \"nodes\": {\"web\": {\"type\": \"compute\"}}}\n",
+      "raes-trust.yaml": "value: 2026-01-02T99:04:05Z\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLParseError"
+  },
+  {
+    "name": "ci-workspace-integer-signs",
+    "files": {
+      "main.yaml": "{\"name\": \"root\", \"imports\": [{\"source\": \"local:module.yaml\", \"namespace\": \"demo\"}]}\n",
+      "module.yaml": "{\"name\": \"module\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\", \"exports\": {\"nodes\": [\"web\"]}}, \"nodes\": {\"web\": {\"type\": \"compute\"}}}\n",
+      "raes-trust.yaml": "a: -0x10\nb: +0o17\nc: 1:02:03\nd: 00_7\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLParseError"
+  },
+  {
+    "name": "ci-workspace-floating-flags",
+    "files": {
+      "main.yaml": "{\"name\": \"root\", \"imports\": [{\"source\": \"local:module.yaml\", \"namespace\": \"demo\"}]}\n",
+      "module.yaml": "{\"name\": \"module\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\", \"exports\": {\"nodes\": [\"web\"]}}, \"nodes\": {\"web\": {\"type\": \"compute\"}}}\n",
+      "raes-trust.yaml": "a: .inf\nb: -.inf\nc: .nan\nd: -0.0\ne: 1:02.5\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLParseError"
+  },
+  {
+    "name": "ci-workspace-root-merge",
+    "files": {
+      "main.yaml": "{\"name\": \"root\", \"imports\": [{\"source\": \"local:module.yaml\", \"namespace\": \"demo\"}]}\n",
+      "module.yaml": "{\"name\": \"module\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\", \"exports\": {\"nodes\": [\"web\"]}}, \"nodes\": {\"web\": {\"type\": \"compute\"}}, \"entities\": {\"parent\": {\"entities\": {\"child\": {}}}}}\n",
+      "raes-trust.yaml": "<<: {allow_unsigned_local_sources: true}\nschema_version: custom\n"
+    },
+    "supplied": false,
+    "accepted": true,
+    "content": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n"
+  },
+  {
+    "name": "ci-workspace-root-merge-sequence",
+    "files": {
+      "main.yaml": "{\"name\": \"root\", \"imports\": [{\"source\": \"local:module.yaml\", \"namespace\": \"demo\"}]}\n",
+      "module.yaml": "{\"name\": \"module\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\", \"exports\": {\"nodes\": [\"web\"]}}, \"nodes\": {\"web\": {\"type\": \"compute\"}}, \"entities\": {\"parent\": {\"entities\": {\"child\": {}}}}}\n",
+      "raes-trust.yaml": "<<: [{allow_unsigned_local_sources: true}, {schema_version: custom}]\n"
+    },
+    "supplied": false,
+    "accepted": true,
+    "content": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n"
+  },
+  {
+    "name": "ci-workspace-registry-merge",
+    "files": {
+      "main.yaml": "{\"name\": \"root\", \"imports\": [{\"source\": \"local:module.yaml\", \"namespace\": \"demo\"}]}\n",
+      "module.yaml": "{\"name\": \"module\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\", \"exports\": {\"nodes\": [\"web\"]}}, \"nodes\": {\"web\": {\"type\": \"compute\"}}, \"entities\": {\"parent\": {\"entities\": {\"child\": {}}}}}\n",
+      "raes-trust.yaml": "registries:\n  first: &a {require_signatures: true}\n  second: &b {allow_insecure_http: false}\n  combined: {<<: [*a, *b], require_signatures: false}\n"
+    },
+    "supplied": false,
+    "accepted": true,
+    "content": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n"
+  },
+  {
+    "name": "ci-workspace-unsigned-float-one",
+    "files": {
+      "main.yaml": "{\"name\": \"root\", \"imports\": [{\"source\": \"local:module.yaml\", \"namespace\": \"demo\"}]}\n",
+      "module.yaml": "{\"name\": \"module\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\", \"exports\": {\"nodes\": [\"web\"]}}, \"nodes\": {\"web\": {\"type\": \"compute\"}}, \"entities\": {\"parent\": {\"entities\": {\"child\": {}}}}}\n",
+      "raes-trust.yaml": "allow_unsigned_local_sources: 1.0\n"
+    },
+    "supplied": false,
+    "accepted": true,
+    "content": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n"
+  },
+  {
+    "name": "ci-workspace-unsigned-float-zero",
+    "files": {
+      "main.yaml": "{\"name\": \"root\", \"imports\": [{\"source\": \"local:module.yaml\", \"namespace\": \"demo\"}]}\n",
+      "module.yaml": "{\"name\": \"module\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\", \"exports\": {\"nodes\": [\"web\"]}}, \"nodes\": {\"web\": {\"type\": \"compute\"}}, \"entities\": {\"parent\": {\"entities\": {\"child\": {}}}}}\n",
+      "raes-trust.yaml": "allow_unsigned_local_sources: 0.0\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLImportError",
+    "code": "sdl.import.local-disabled"
+  },
+  {
+    "name": "ci-workspace-unsigned-float-two",
+    "files": {
+      "main.yaml": "{\"name\": \"root\", \"imports\": [{\"source\": \"local:module.yaml\", \"namespace\": \"demo\"}]}\n",
+      "module.yaml": "{\"name\": \"module\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\", \"exports\": {\"nodes\": [\"web\"]}}, \"nodes\": {\"web\": {\"type\": \"compute\"}}, \"entities\": {\"parent\": {\"entities\": {\"child\": {}}}}}\n",
+      "raes-trust.yaml": "allow_unsigned_local_sources: 2.0\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLParseError"
+  },
+  {
+    "name": "ci-workspace-unsigned-inf",
+    "files": {
+      "main.yaml": "{\"name\": \"root\", \"imports\": [{\"source\": \"local:module.yaml\", \"namespace\": \"demo\"}]}\n",
+      "module.yaml": "{\"name\": \"module\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\", \"exports\": {\"nodes\": [\"web\"]}}, \"nodes\": {\"web\": {\"type\": \"compute\"}}, \"entities\": {\"parent\": {\"entities\": {\"child\": {}}}}}\n",
+      "raes-trust.yaml": "allow_unsigned_local_sources: .inf\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLParseError"
+  },
+  {
+    "name": "ci-workspace-version-timestamp-offset",
+    "files": {
+      "main.yaml": "{\"name\": \"root\", \"imports\": [{\"source\": \"local:module.yaml\", \"namespace\": \"demo\"}]}\n",
+      "module.yaml": "{\"name\": \"module\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\", \"exports\": {\"nodes\": [\"web\"]}}, \"nodes\": {\"web\": {\"type\": \"compute\"}}, \"entities\": {\"parent\": {\"entities\": {\"child\": {}}}}}\n",
+      "raes-trust.yaml": "schema_version: 2026-01-02T03:04:05.123456+02:30\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLParseError"
+  },
+  {
+    "name": "ci-workspace-version-timestamp-negative",
+    "files": {
+      "main.yaml": "{\"name\": \"root\", \"imports\": [{\"source\": \"local:module.yaml\", \"namespace\": \"demo\"}]}\n",
+      "module.yaml": "{\"name\": \"module\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\", \"exports\": {\"nodes\": [\"web\"]}}, \"nodes\": {\"web\": {\"type\": \"compute\"}}, \"entities\": {\"parent\": {\"entities\": {\"child\": {}}}}}\n",
+      "raes-trust.yaml": "schema_version: 2026-01-02T03:04:05.123456-02:30\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLParseError"
+  },
+  {
+    "name": "ci-workspace-version-timestamp-utc",
+    "files": {
+      "main.yaml": "{\"name\": \"root\", \"imports\": [{\"source\": \"local:module.yaml\", \"namespace\": \"demo\"}]}\n",
+      "module.yaml": "{\"name\": \"module\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\", \"exports\": {\"nodes\": [\"web\"]}}, \"nodes\": {\"web\": {\"type\": \"compute\"}}, \"entities\": {\"parent\": {\"entities\": {\"child\": {}}}}}\n",
+      "raes-trust.yaml": "schema_version: 2026-01-02T03:04:05.123456Z\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLParseError"
+  },
+  {
+    "name": "ci-workspace-version-date",
+    "files": {
+      "main.yaml": "{\"name\": \"root\", \"imports\": [{\"source\": \"local:module.yaml\", \"namespace\": \"demo\"}]}\n",
+      "module.yaml": "{\"name\": \"module\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\", \"exports\": {\"nodes\": [\"web\"]}}, \"nodes\": {\"web\": {\"type\": \"compute\"}}, \"entities\": {\"parent\": {\"entities\": {\"child\": {}}}}}\n",
+      "raes-trust.yaml": "schema_version: 2026-01-02\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLParseError"
+  },
+  {
+    "name": "ci-workspace-version-sexagesimal",
+    "files": {
+      "main.yaml": "{\"name\": \"root\", \"imports\": [{\"source\": \"local:module.yaml\", \"namespace\": \"demo\"}]}\n",
+      "module.yaml": "{\"name\": \"module\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\", \"exports\": {\"nodes\": [\"web\"]}}, \"nodes\": {\"web\": {\"type\": \"compute\"}}, \"entities\": {\"parent\": {\"entities\": {\"child\": {}}}}}\n",
+      "raes-trust.yaml": "schema_version: 1:02:03\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLParseError"
+  }
+]

@@ -10,6 +10,7 @@ from raes_processor.models import CompiledTimeModel, ParticipantAutonomousExecut
 
 from .participant_activity import ParticipantActivityRandomControl, activity_control_for
 from .participant_execution_scheduler_state import reset_execution_service
+from .participant_release import released_participant_addresses
 from .participant_resource_accounting import reconcile_participant_resource_budgets
 from .participant_scheduler_reset import clock_reset_context, reset_scheduler_participant
 
@@ -85,7 +86,7 @@ def reset_policy_at_clock(
         reset_participants,
         activity_control_for(policy, activity_controls),
     )
-    for participant_address in policy.participant_addresses:
+    for participant_address in released_participant_addresses(policy, working):
         participant_result = reset_scheduler_participant(context, working, participant_address)
         if not participant_result.success:
             failure = participant_result

@@ -1,0 +1,2791 @@
+[
+  {
+    "name": "forced-dead-member",
+    "variables": [
+      [
+        "p0",
+        "0"
+      ],
+      [
+        "p0",
+        "1"
+      ],
+      [
+        "p0",
+        "2"
+      ]
+    ],
+    "groups": [
+      {
+        "members": [
+          0,
+          1,
+          2
+        ],
+        "minimum": 1,
+        "maximum": 1
+      }
+    ],
+    "clauses": [
+      [
+        [
+          0,
+          false
+        ],
+        [
+          1,
+          true
+        ]
+      ]
+    ],
+    "budget": 100000,
+    "required": [
+      -1,
+      0,
+      1,
+      2
+    ],
+    "calls": [
+      {
+        "witness": true,
+        "exhausted": false,
+        "remaining": 99996
+      },
+      {
+        "witness": false,
+        "exhausted": false,
+        "remaining": 99995
+      },
+      {
+        "witness": true,
+        "exhausted": false,
+        "remaining": 99994
+      },
+      {
+        "witness": true,
+        "exhausted": false,
+        "remaining": 99993
+      }
+    ]
+  },
+  {
+    "name": "shared-budget",
+    "variables": [
+      [
+        "p0",
+        "0"
+      ],
+      [
+        "p0",
+        "1"
+      ],
+      [
+        "p0",
+        "2"
+      ]
+    ],
+    "groups": [
+      {
+        "members": [
+          0,
+          1,
+          2
+        ],
+        "minimum": 1,
+        "maximum": 1
+      }
+    ],
+    "clauses": [
+      [
+        [
+          0,
+          false
+        ],
+        [
+          1,
+          true
+        ]
+      ]
+    ],
+    "budget": 3,
+    "required": [
+      -1,
+      0,
+      1,
+      2
+    ],
+    "calls": [
+      {
+        "witness": false,
+        "exhausted": true,
+        "remaining": -1
+      },
+      {
+        "witness": false,
+        "exhausted": true,
+        "remaining": -2
+      },
+      {
+        "witness": false,
+        "exhausted": true,
+        "remaining": -3
+      },
+      {
+        "witness": false,
+        "exhausted": true,
+        "remaining": -4
+      }
+    ]
+  },
+  {
+    "name": "root-exhaustion",
+    "variables": [
+      [
+        "p0",
+        "0"
+      ],
+      [
+        "p0",
+        "1"
+      ],
+      [
+        "p0",
+        "2"
+      ]
+    ],
+    "groups": [
+      {
+        "members": [
+          0,
+          1,
+          2
+        ],
+        "minimum": 1,
+        "maximum": 1
+      }
+    ],
+    "clauses": [
+      [
+        [
+          0,
+          false
+        ],
+        [
+          1,
+          true
+        ]
+      ]
+    ],
+    "budget": 0,
+    "required": [
+      -1,
+      0,
+      1,
+      2
+    ],
+    "calls": [
+      {
+        "witness": false,
+        "exhausted": true,
+        "remaining": -1
+      },
+      {
+        "witness": false,
+        "exhausted": true,
+        "remaining": -2
+      },
+      {
+        "witness": false,
+        "exhausted": true,
+        "remaining": -3
+      },
+      {
+        "witness": false,
+        "exhausted": true,
+        "remaining": -4
+      }
+    ]
+  },
+  {
+    "name": "self-exclusion",
+    "variables": [
+      [
+        "p0",
+        "0"
+      ],
+      [
+        "p0",
+        "1"
+      ],
+      [
+        "p0",
+        "2"
+      ]
+    ],
+    "groups": [
+      {
+        "members": [
+          0,
+          1,
+          2
+        ],
+        "minimum": 1,
+        "maximum": 1
+      }
+    ],
+    "clauses": [
+      [
+        [
+          0,
+          false
+        ],
+        [
+          0,
+          false
+        ]
+      ]
+    ],
+    "budget": 100000,
+    "required": [
+      -1,
+      0,
+      1,
+      2
+    ],
+    "calls": [
+      {
+        "witness": true,
+        "exhausted": false,
+        "remaining": 99996
+      },
+      {
+        "witness": false,
+        "exhausted": false,
+        "remaining": 99995
+      },
+      {
+        "witness": true,
+        "exhausted": false,
+        "remaining": 99994
+      },
+      {
+        "witness": true,
+        "exhausted": false,
+        "remaining": 99993
+      }
+    ]
+  },
+  {
+    "name": "self-implication",
+    "variables": [
+      [
+        "p0",
+        "0"
+      ],
+      [
+        "p0",
+        "1"
+      ],
+      [
+        "p0",
+        "2"
+      ]
+    ],
+    "groups": [
+      {
+        "members": [
+          0,
+          1,
+          2
+        ],
+        "minimum": 1,
+        "maximum": 1
+      }
+    ],
+    "clauses": [
+      [
+        [
+          0,
+          false
+        ],
+        [
+          0,
+          true
+        ]
+      ]
+    ],
+    "budget": 100000,
+    "required": [
+      -1,
+      0,
+      1,
+      2
+    ],
+    "calls": [
+      {
+        "witness": true,
+        "exhausted": false,
+        "remaining": 99998
+      },
+      {
+        "witness": true,
+        "exhausted": false,
+        "remaining": 99997
+      },
+      {
+        "witness": true,
+        "exhausted": false,
+        "remaining": 99996
+      },
+      {
+        "witness": true,
+        "exhausted": false,
+        "remaining": 99995
+      }
+    ]
+  },
+  {
+    "name": "inconsistent-groups",
+    "variables": [
+      [
+        "p0",
+        "0"
+      ],
+      [
+        "p0",
+        "1"
+      ],
+      [
+        "p1",
+        "0"
+      ],
+      [
+        "p1",
+        "1"
+      ]
+    ],
+    "groups": [
+      {
+        "members": [
+          0,
+          1
+        ],
+        "minimum": 1,
+        "maximum": 1
+      },
+      {
+        "members": [
+          2,
+          3
+        ],
+        "minimum": 1,
+        "maximum": 1
+      }
+    ],
+    "clauses": [
+      [
+        [
+          0,
+          false
+        ],
+        [
+          2,
+          true
+        ]
+      ],
+      [
+        [
+          1,
+          false
+        ],
+        [
+          2,
+          true
+        ]
+      ],
+      [
+        [
+          2,
+          false
+        ],
+        [
+          0,
+          false
+        ]
+      ],
+      [
+        [
+          2,
+          false
+        ],
+        [
+          1,
+          false
+        ]
+      ]
+    ],
+    "budget": 100000,
+    "required": [
+      -1,
+      0,
+      1,
+      2,
+      3
+    ],
+    "calls": [
+      {
+        "witness": false,
+        "exhausted": false,
+        "remaining": 99997
+      },
+      {
+        "witness": false,
+        "exhausted": false,
+        "remaining": 99996
+      },
+      {
+        "witness": false,
+        "exhausted": false,
+        "remaining": 99995
+      },
+      {
+        "witness": false,
+        "exhausted": false,
+        "remaining": 99994
+      },
+      {
+        "witness": false,
+        "exhausted": false,
+        "remaining": 99993
+      }
+    ]
+  },
+  {
+    "name": "propagation-0",
+    "variables": [
+      [
+        "p0",
+        "0"
+      ],
+      [
+        "p0",
+        "1"
+      ],
+      [
+        "p1",
+        "0"
+      ],
+      [
+        "p1",
+        "1"
+      ],
+      [
+        "p2",
+        "0"
+      ],
+      [
+        "p2",
+        "1"
+      ]
+    ],
+    "groups": [
+      {
+        "members": [
+          0,
+          1
+        ],
+        "minimum": 1,
+        "maximum": 2
+      },
+      {
+        "members": [
+          2,
+          3
+        ],
+        "minimum": 0,
+        "maximum": 1
+      },
+      {
+        "members": [
+          4,
+          5
+        ],
+        "minimum": 0,
+        "maximum": 1
+      }
+    ],
+    "clauses": [
+      [
+        [
+          3,
+          false
+        ],
+        [
+          4,
+          true
+        ]
+      ],
+      [
+        [
+          4,
+          true
+        ],
+        [
+          4,
+          false
+        ]
+      ],
+      [
+        [
+          2,
+          true
+        ],
+        [
+          0,
+          false
+        ]
+      ],
+      [
+        [
+          0,
+          true
+        ],
+        [
+          5,
+          false
+        ]
+      ],
+      [
+        [
+          2,
+          false
+        ],
+        [
+          1,
+          false
+        ]
+      ],
+      [
+        [
+          0,
+          true
+        ],
+        [
+          3,
+          true
+        ]
+      ],
+      [
+        [
+          5,
+          false
+        ],
+        [
+          1,
+          false
+        ]
+      ],
+      [
+        [
+          1,
+          false
+        ],
+        [
+          4,
+          true
+        ]
+      ],
+      [
+        [
+          1,
+          true
+        ],
+        [
+          4,
+          true
+        ]
+      ]
+    ],
+    "budget": 100000,
+    "required": [
+      -1,
+      0,
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "calls": [
+      {
+        "witness": true,
+        "exhausted": false,
+        "remaining": 99997
+      },
+      {
+        "witness": true,
+        "exhausted": false,
+        "remaining": 99996
+      },
+      {
+        "witness": true,
+        "exhausted": false,
+        "remaining": 99995
+      },
+      {
+        "witness": true,
+        "exhausted": false,
+        "remaining": 99994
+      },
+      {
+        "witness": true,
+        "exhausted": false,
+        "remaining": 99993
+      },
+      {
+        "witness": true,
+        "exhausted": false,
+        "remaining": 99991
+      },
+      {
+        "witness": false,
+        "exhausted": false,
+        "remaining": 99990
+      }
+    ]
+  },
+  {
+    "name": "propagation-1",
+    "variables": [
+      [
+        "p0",
+        "0"
+      ],
+      [
+        "p0",
+        "1"
+      ],
+      [
+        "p1",
+        "0"
+      ],
+      [
+        "p1",
+        "1"
+      ],
+      [
+        "p2",
+        "0"
+      ],
+      [
+        "p2",
+        "1"
+      ]
+    ],
+    "groups": [
+      {
+        "members": [
+          0,
+          1
+        ],
+        "minimum": 0,
+        "maximum": 1
+      },
+      {
+        "members": [
+          2,
+          3
+        ],
+        "minimum": 0,
+        "maximum": 2
+      },
+      {
+        "members": [
+          4,
+          5
+        ],
+        "minimum": 1,
+        "maximum": 2
+      }
+    ],
+    "clauses": [
+      [
+        [
+          1,
+          false
+        ],
+        [
+          2,
+          false
+        ]
+      ],
+      [
+        [
+          5,
+          true
+        ],
+        [
+          0,
+          false
+        ]
+      ],
+      [
+        [
+          3,
+          false
+        ],
+        [
+          4,
+          false
+        ]
+      ],
+      [
+        [
+          1,
+          false
+        ],
+        [
+          3,
+          true
+        ]
+      ],
+      [
+        [
+          4,
+          false
+        ],
+        [
+          2,
+          true
+        ]
+      ],
+      [
+        [
+          2,
+          false
+        ],
+        [
+          0,
+          false
+        ]
+      ],
+      [
+        [
+          3,
+          false
+        ],
+        [
+          0,
+          false
+        ]
+      ],
+      [
+        [
+          0,
+          false
+        ],
+        [
+          4,
+          false
+        ]
+      ],
+      [
+        [
+          5,
+          false
+        ],
+        [
+          4,
+          true
+        ]
+      ]
+    ],
+    "budget": 100000,
+    "required": [
+      -1,
+      0,
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "calls": [
+      {
+        "witness": true,
+        "exhausted": false,
+        "remaining": 99995
+      },
+      {
+        "witness": false,
+        "exhausted": false,
+        "remaining": 99994
+      },
+      {
+        "witness": false,
+        "exhausted": false,
+        "remaining": 99993
+      },
+      {
+        "witness": true,
+        "exhausted": false,
+        "remaining": 99990
+      },
+      {
+        "witness": false,
+        "exhausted": false,
+        "remaining": 99989
+      },
+      {
+        "witness": true,
+        "exhausted": false,
+        "remaining": 99987
+      },
+      {
+        "witness": true,
+        "exhausted": false,
+        "remaining": 99986
+      }
+    ]
+  },
+  {
+    "name": "propagation-2",
+    "variables": [
+      [
+        "p0",
+        "0"
+      ],
+      [
+        "p0",
+        "1"
+      ],
+      [
+        "p1",
+        "0"
+      ],
+      [
+        "p1",
+        "1"
+      ],
+      [
+        "p2",
+        "0"
+      ],
+      [
+        "p2",
+        "1"
+      ]
+    ],
+    "groups": [
+      {
+        "members": [
+          0,
+          1
+        ],
+        "minimum": 1,
+        "maximum": 1
+      },
+      {
+        "members": [
+          2,
+          3
+        ],
+        "minimum": 0,
+        "maximum": 1
+      },
+      {
+        "members": [
+          4,
+          5
+        ],
+        "minimum": 0,
+        "maximum": 1
+      }
+    ],
+    "clauses": [
+      [
+        [
+          4,
+          false
+        ],
+        [
+          5,
+          false
+        ]
+      ],
+      [
+        [
+          2,
+          true
+        ],
+        [
+          3,
+          true
+        ]
+      ],
+      [
+        [
+          1,
+          true
+        ],
+        [
+          2,
+          false
+        ]
+      ],
+      [
+        [
+          0,
+          false
+        ],
+        [
+          2,
+          true
+        ]
+      ],
+      [
+        [
+          1,
+          false
+        ],
+        [
+          3,
+          true
+        ]
+      ],
+      [
+        [
+          1,
+          false
+        ],
+        [
+          1,
+          true
+        ]
+      ],
+      [
+        [
+          1,
+          false
+        ],
+        [
+          2,
+          false
+        ]
+      ],
+      [
+        [
+          3,
+          false
+        ],
+        [
+          4,
+          false
+        ]
+      ],
+      [
+        [
+          4,
+          false
+        ],
+        [
+          2,
+          true
+        ]
+      ]
+    ],
+    "budget": 100000,
+    "required": [
+      -1,
+      0,
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "calls": [
+      {
+        "witness": true,
+        "exhausted": false,
+        "remaining": 99997
+      },
+      {
+        "witness": false,
+        "exhausted": false,
+        "remaining": 99996
+      },
+      {
+        "witness": true,
+        "exhausted": false,
+        "remaining": 99994
+      },
+      {
+        "witness": false,
+        "exhausted": false,
+        "remaining": 99993
+      },
+      {
+        "witness": true,
+        "exhausted": false,
+        "remaining": 99991
+      },
+      {
+        "witness": false,
+        "exhausted": false,
+        "remaining": 99990
+      },
+      {
+        "witness": true,
+        "exhausted": false,
+        "remaining": 99988
+      }
+    ]
+  },
+  {
+    "name": "propagation-3",
+    "variables": [
+      [
+        "p0",
+        "0"
+      ],
+      [
+        "p0",
+        "1"
+      ],
+      [
+        "p1",
+        "0"
+      ],
+      [
+        "p1",
+        "1"
+      ],
+      [
+        "p2",
+        "0"
+      ],
+      [
+        "p2",
+        "1"
+      ]
+    ],
+    "groups": [
+      {
+        "members": [
+          0,
+          1
+        ],
+        "minimum": 1,
+        "maximum": 1
+      },
+      {
+        "members": [
+          2,
+          3
+        ],
+        "minimum": 0,
+        "maximum": 1
+      },
+      {
+        "members": [
+          4,
+          5
+        ],
+        "minimum": 0,
+        "maximum": 2
+      }
+    ],
+    "clauses": [
+      [
+        [
+          1,
+          true
+        ],
+        [
+          3,
+          true
+        ]
+      ],
+      [
+        [
+          2,
+          false
+        ],
+        [
+          5,
+          false
+        ]
+      ],
+      [
+        [
+          3,
+          true
+        ],
+        [
+          4,
+          true
+        ]
+      ],
+      [
+        [
+          2,
+          false
+        ],
+        [
+          2,
+          true
+        ]
+      ],
+      [
+        [
+          4,
+          false
+        ],
+        [
+          1,
+          true
+        ]
+      ],
+      [
+        [
+          3,
+          false
+        ],
+        [
+          5,
+          false
+        ]
+      ],
+      [
+        [
+          1,
+          true
+        ],
+        [
+          1,
+          false
+        ]
+      ],
+      [
+        [
+          2,
+          false
+        ],
+        [
+          4,
+          false
+        ]
+      ],
+      [
+        [
+          0,
+          true
+        ],
+        [
+          2,
+          false
+        ]
+      ]
+    ],
+    "budget": 100000,
+    "required": [
+      -1,
+      0,
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "calls": [
+      {
+        "witness": true,
+        "exhausted": false,
+        "remaining": 99994
+      },
+      {
+        "witness": true,
+        "exhausted": false,
+        "remaining": 99993
+      },
+      {
+        "witness": true,
+        "exhausted": false,
+        "remaining": 99990
+      },
+      {
+        "witness": false,
+        "exhausted": false,
+        "remaining": 99989
+      },
+      {
+        "witness": true,
+        "exhausted": false,
+        "remaining": 99986
+      },
+      {
+        "witness": true,
+        "exhausted": false,
+        "remaining": 99984
+      },
+      {
+        "witness": true,
+        "exhausted": false,
+        "remaining": 99983
+      }
+    ]
+  },
+  {
+    "name": "propagation-4",
+    "variables": [
+      [
+        "p0",
+        "0"
+      ],
+      [
+        "p0",
+        "1"
+      ],
+      [
+        "p1",
+        "0"
+      ],
+      [
+        "p1",
+        "1"
+      ],
+      [
+        "p2",
+        "0"
+      ],
+      [
+        "p2",
+        "1"
+      ]
+    ],
+    "groups": [
+      {
+        "members": [
+          0,
+          1
+        ],
+        "minimum": 1,
+        "maximum": 2
+      },
+      {
+        "members": [
+          2,
+          3
+        ],
+        "minimum": 0,
+        "maximum": 1
+      },
+      {
+        "members": [
+          4,
+          5
+        ],
+        "minimum": 1,
+        "maximum": 1
+      }
+    ],
+    "clauses": [
+      [
+        [
+          3,
+          true
+        ],
+        [
+          4,
+          true
+        ]
+      ],
+      [
+        [
+          2,
+          false
+        ],
+        [
+          4,
+          false
+        ]
+      ],
+      [
+        [
+          2,
+          false
+        ],
+        [
+          3,
+          true
+        ]
+      ],
+      [
+        [
+          1,
+          false
+        ],
+        [
+          5,
+          true
+        ]
+      ],
+      [
+        [
+          4,
+          true
+        ],
+        [
+          3,
+          true
+        ]
+      ],
+      [
+        [
+          2,
+          true
+        ],
+        [
+          0,
+          false
+        ]
+      ],
+      [
+        [
+          0,
+          false
+        ],
+        [
+          0,
+          false
+        ]
+      ],
+      [
+        [
+          3,
+          true
+        ],
+        [
+          2,
+          false
+        ]
+      ],
+      [
+        [
+          1,
+          true
+        ],
+        [
+          2,
+          true
+        ]
+      ]
+    ],
+    "budget": 100000,
+    "required": [
+      -1,
+      0,
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "calls": [
+      {
+        "witness": true,
+        "exhausted": false,
+        "remaining": 99997
+      },
+      {
+        "witness": false,
+        "exhausted": false,
+        "remaining": 99996
+      },
+      {
+        "witness": true,
+        "exhausted": false,
+        "remaining": 99995
+      },
+      {
+        "witness": false,
+        "exhausted": false,
+        "remaining": 99994
+      },
+      {
+        "witness": true,
+        "exhausted": false,
+        "remaining": 99993
+      },
+      {
+        "witness": false,
+        "exhausted": false,
+        "remaining": 99992
+      },
+      {
+        "witness": true,
+        "exhausted": false,
+        "remaining": 99991
+      }
+    ]
+  },
+  {
+    "name": "propagation-5",
+    "variables": [
+      [
+        "p0",
+        "0"
+      ],
+      [
+        "p0",
+        "1"
+      ],
+      [
+        "p1",
+        "0"
+      ],
+      [
+        "p1",
+        "1"
+      ],
+      [
+        "p2",
+        "0"
+      ],
+      [
+        "p2",
+        "1"
+      ]
+    ],
+    "groups": [
+      {
+        "members": [
+          0,
+          1
+        ],
+        "minimum": 0,
+        "maximum": 1
+      },
+      {
+        "members": [
+          2,
+          3
+        ],
+        "minimum": 0,
+        "maximum": 2
+      },
+      {
+        "members": [
+          4,
+          5
+        ],
+        "minimum": 0,
+        "maximum": 1
+      }
+    ],
+    "clauses": [
+      [
+        [
+          1,
+          true
+        ],
+        [
+          2,
+          false
+        ]
+      ],
+      [
+        [
+          1,
+          true
+        ],
+        [
+          5,
+          false
+        ]
+      ],
+      [
+        [
+          1,
+          false
+        ],
+        [
+          3,
+          false
+        ]
+      ],
+      [
+        [
+          5,
+          false
+        ],
+        [
+          4,
+          false
+        ]
+      ],
+      [
+        [
+          1,
+          false
+        ],
+        [
+          0,
+          true
+        ]
+      ],
+      [
+        [
+          2,
+          true
+        ],
+        [
+          3,
+          false
+        ]
+      ],
+      [
+        [
+          1,
+          true
+        ],
+        [
+          2,
+          false
+        ]
+      ],
+      [
+        [
+          0,
+          true
+        ],
+        [
+          1,
+          false
+        ]
+      ],
+      [
+        [
+          1,
+          false
+        ],
+        [
+          1,
+          false
+        ]
+      ]
+    ],
+    "budget": 100000,
+    "required": [
+      -1,
+      0,
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "calls": [
+      {
+        "witness": true,
+        "exhausted": false,
+        "remaining": 99995
+      },
+      {
+        "witness": true,
+        "exhausted": false,
+        "remaining": 99993
+      },
+      {
+        "witness": false,
+        "exhausted": false,
+        "remaining": 99992
+      },
+      {
+        "witness": false,
+        "exhausted": false,
+        "remaining": 99991
+      },
+      {
+        "witness": false,
+        "exhausted": false,
+        "remaining": 99990
+      },
+      {
+        "witness": true,
+        "exhausted": false,
+        "remaining": 99986
+      },
+      {
+        "witness": false,
+        "exhausted": false,
+        "remaining": 99985
+      }
+    ]
+  },
+  {
+    "name": "propagation-6",
+    "variables": [
+      [
+        "p0",
+        "0"
+      ],
+      [
+        "p0",
+        "1"
+      ],
+      [
+        "p1",
+        "0"
+      ],
+      [
+        "p1",
+        "1"
+      ],
+      [
+        "p2",
+        "0"
+      ],
+      [
+        "p2",
+        "1"
+      ]
+    ],
+    "groups": [
+      {
+        "members": [
+          0,
+          1
+        ],
+        "minimum": 1,
+        "maximum": 2
+      },
+      {
+        "members": [
+          2,
+          3
+        ],
+        "minimum": 0,
+        "maximum": 2
+      },
+      {
+        "members": [
+          4,
+          5
+        ],
+        "minimum": 1,
+        "maximum": 1
+      }
+    ],
+    "clauses": [
+      [
+        [
+          2,
+          false
+        ],
+        [
+          4,
+          true
+        ]
+      ],
+      [
+        [
+          1,
+          true
+        ],
+        [
+          4,
+          false
+        ]
+      ],
+      [
+        [
+          1,
+          false
+        ],
+        [
+          4,
+          true
+        ]
+      ],
+      [
+        [
+          3,
+          false
+        ],
+        [
+          0,
+          false
+        ]
+      ],
+      [
+        [
+          5,
+          true
+        ],
+        [
+          0,
+          false
+        ]
+      ],
+      [
+        [
+          4,
+          false
+        ],
+        [
+          0,
+          false
+        ]
+      ],
+      [
+        [
+          4,
+          true
+        ],
+        [
+          3,
+          false
+        ]
+      ],
+      [
+        [
+          2,
+          true
+        ],
+        [
+          4,
+          true
+        ]
+      ],
+      [
+        [
+          5,
+          false
+        ],
+        [
+          1,
+          true
+        ]
+      ]
+    ],
+    "budget": 100000,
+    "required": [
+      -1,
+      0,
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "calls": [
+      {
+        "witness": true,
+        "exhausted": false,
+        "remaining": 99996
+      },
+      {
+        "witness": false,
+        "exhausted": false,
+        "remaining": 99995
+      },
+      {
+        "witness": true,
+        "exhausted": false,
+        "remaining": 99992
+      },
+      {
+        "witness": true,
+        "exhausted": false,
+        "remaining": 99990
+      },
+      {
+        "witness": true,
+        "exhausted": false,
+        "remaining": 99988
+      },
+      {
+        "witness": true,
+        "exhausted": false,
+        "remaining": 99985
+      },
+      {
+        "witness": false,
+        "exhausted": false,
+        "remaining": 99984
+      }
+    ]
+  },
+  {
+    "name": "propagation-7",
+    "variables": [
+      [
+        "p0",
+        "0"
+      ],
+      [
+        "p0",
+        "1"
+      ],
+      [
+        "p1",
+        "0"
+      ],
+      [
+        "p1",
+        "1"
+      ],
+      [
+        "p2",
+        "0"
+      ],
+      [
+        "p2",
+        "1"
+      ]
+    ],
+    "groups": [
+      {
+        "members": [
+          0,
+          1
+        ],
+        "minimum": 0,
+        "maximum": 2
+      },
+      {
+        "members": [
+          2,
+          3
+        ],
+        "minimum": 0,
+        "maximum": 1
+      },
+      {
+        "members": [
+          4,
+          5
+        ],
+        "minimum": 1,
+        "maximum": 1
+      }
+    ],
+    "clauses": [
+      [
+        [
+          0,
+          false
+        ],
+        [
+          3,
+          false
+        ]
+      ],
+      [
+        [
+          3,
+          true
+        ],
+        [
+          0,
+          true
+        ]
+      ],
+      [
+        [
+          2,
+          false
+        ],
+        [
+          2,
+          true
+        ]
+      ],
+      [
+        [
+          0,
+          false
+        ],
+        [
+          3,
+          false
+        ]
+      ],
+      [
+        [
+          4,
+          false
+        ],
+        [
+          3,
+          false
+        ]
+      ],
+      [
+        [
+          2,
+          false
+        ],
+        [
+          0,
+          true
+        ]
+      ],
+      [
+        [
+          0,
+          false
+        ],
+        [
+          1,
+          true
+        ]
+      ],
+      [
+        [
+          4,
+          false
+        ],
+        [
+          5,
+          true
+        ]
+      ],
+      [
+        [
+          0,
+          false
+        ],
+        [
+          5,
+          true
+        ]
+      ]
+    ],
+    "budget": 100000,
+    "required": [
+      -1,
+      0,
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "calls": [
+      {
+        "witness": true,
+        "exhausted": false,
+        "remaining": 99997
+      },
+      {
+        "witness": true,
+        "exhausted": false,
+        "remaining": 99995
+      },
+      {
+        "witness": true,
+        "exhausted": false,
+        "remaining": 99992
+      },
+      {
+        "witness": true,
+        "exhausted": false,
+        "remaining": 99991
+      },
+      {
+        "witness": true,
+        "exhausted": false,
+        "remaining": 99989
+      },
+      {
+        "witness": false,
+        "exhausted": false,
+        "remaining": 99988
+      },
+      {
+        "witness": true,
+        "exhausted": false,
+        "remaining": 99985
+      }
+    ]
+  },
+  {
+    "name": "propagation-8",
+    "variables": [
+      [
+        "p0",
+        "0"
+      ],
+      [
+        "p0",
+        "1"
+      ],
+      [
+        "p1",
+        "0"
+      ],
+      [
+        "p1",
+        "1"
+      ],
+      [
+        "p2",
+        "0"
+      ],
+      [
+        "p2",
+        "1"
+      ]
+    ],
+    "groups": [
+      {
+        "members": [
+          0,
+          1
+        ],
+        "minimum": 0,
+        "maximum": 1
+      },
+      {
+        "members": [
+          2,
+          3
+        ],
+        "minimum": 1,
+        "maximum": 2
+      },
+      {
+        "members": [
+          4,
+          5
+        ],
+        "minimum": 0,
+        "maximum": 2
+      }
+    ],
+    "clauses": [
+      [
+        [
+          4,
+          false
+        ],
+        [
+          0,
+          true
+        ]
+      ],
+      [
+        [
+          2,
+          false
+        ],
+        [
+          5,
+          false
+        ]
+      ],
+      [
+        [
+          3,
+          false
+        ],
+        [
+          4,
+          true
+        ]
+      ],
+      [
+        [
+          4,
+          true
+        ],
+        [
+          1,
+          true
+        ]
+      ],
+      [
+        [
+          0,
+          true
+        ],
+        [
+          1,
+          false
+        ]
+      ],
+      [
+        [
+          0,
+          true
+        ],
+        [
+          4,
+          true
+        ]
+      ],
+      [
+        [
+          0,
+          false
+        ],
+        [
+          4,
+          true
+        ]
+      ],
+      [
+        [
+          0,
+          false
+        ],
+        [
+          3,
+          true
+        ]
+      ],
+      [
+        [
+          4,
+          true
+        ],
+        [
+          3,
+          false
+        ]
+      ]
+    ],
+    "budget": 100000,
+    "required": [
+      -1,
+      0,
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "calls": [
+      {
+        "witness": true,
+        "exhausted": false,
+        "remaining": 99997
+      },
+      {
+        "witness": true,
+        "exhausted": false,
+        "remaining": 99995
+      },
+      {
+        "witness": false,
+        "exhausted": false,
+        "remaining": 99994
+      },
+      {
+        "witness": true,
+        "exhausted": false,
+        "remaining": 99992
+      },
+      {
+        "witness": true,
+        "exhausted": false,
+        "remaining": 99990
+      },
+      {
+        "witness": true,
+        "exhausted": false,
+        "remaining": 99988
+      },
+      {
+        "witness": true,
+        "exhausted": false,
+        "remaining": 99987
+      }
+    ]
+  },
+  {
+    "name": "propagation-9",
+    "variables": [
+      [
+        "p0",
+        "0"
+      ],
+      [
+        "p0",
+        "1"
+      ],
+      [
+        "p1",
+        "0"
+      ],
+      [
+        "p1",
+        "1"
+      ],
+      [
+        "p2",
+        "0"
+      ],
+      [
+        "p2",
+        "1"
+      ]
+    ],
+    "groups": [
+      {
+        "members": [
+          0,
+          1
+        ],
+        "minimum": 0,
+        "maximum": 2
+      },
+      {
+        "members": [
+          2,
+          3
+        ],
+        "minimum": 0,
+        "maximum": 2
+      },
+      {
+        "members": [
+          4,
+          5
+        ],
+        "minimum": 1,
+        "maximum": 1
+      }
+    ],
+    "clauses": [
+      [
+        [
+          4,
+          true
+        ],
+        [
+          3,
+          true
+        ]
+      ],
+      [
+        [
+          4,
+          true
+        ],
+        [
+          4,
+          false
+        ]
+      ],
+      [
+        [
+          5,
+          false
+        ],
+        [
+          3,
+          true
+        ]
+      ],
+      [
+        [
+          3,
+          true
+        ],
+        [
+          3,
+          false
+        ]
+      ],
+      [
+        [
+          4,
+          true
+        ],
+        [
+          1,
+          true
+        ]
+      ],
+      [
+        [
+          1,
+          true
+        ],
+        [
+          3,
+          true
+        ]
+      ],
+      [
+        [
+          0,
+          false
+        ],
+        [
+          4,
+          true
+        ]
+      ],
+      [
+        [
+          3,
+          true
+        ],
+        [
+          3,
+          true
+        ]
+      ],
+      [
+        [
+          3,
+          true
+        ],
+        [
+          1,
+          false
+        ]
+      ]
+    ],
+    "budget": 100000,
+    "required": [
+      -1,
+      0,
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "calls": [
+      {
+        "witness": true,
+        "exhausted": false,
+        "remaining": 99994
+      },
+      {
+        "witness": true,
+        "exhausted": false,
+        "remaining": 99990
+      },
+      {
+        "witness": true,
+        "exhausted": false,
+        "remaining": 99986
+      },
+      {
+        "witness": true,
+        "exhausted": false,
+        "remaining": 99981
+      },
+      {
+        "witness": true,
+        "exhausted": false,
+        "remaining": 99976
+      },
+      {
+        "witness": true,
+        "exhausted": false,
+        "remaining": 99971
+      },
+      {
+        "witness": true,
+        "exhausted": false,
+        "remaining": 99969
+      }
+    ]
+  },
+  {
+    "name": "propagation-10",
+    "variables": [
+      [
+        "p0",
+        "0"
+      ],
+      [
+        "p0",
+        "1"
+      ],
+      [
+        "p1",
+        "0"
+      ],
+      [
+        "p1",
+        "1"
+      ],
+      [
+        "p2",
+        "0"
+      ],
+      [
+        "p2",
+        "1"
+      ]
+    ],
+    "groups": [
+      {
+        "members": [
+          0,
+          1
+        ],
+        "minimum": 0,
+        "maximum": 1
+      },
+      {
+        "members": [
+          2,
+          3
+        ],
+        "minimum": 1,
+        "maximum": 1
+      },
+      {
+        "members": [
+          4,
+          5
+        ],
+        "minimum": 1,
+        "maximum": 2
+      }
+    ],
+    "clauses": [
+      [
+        [
+          1,
+          false
+        ],
+        [
+          4,
+          true
+        ]
+      ],
+      [
+        [
+          1,
+          true
+        ],
+        [
+          0,
+          false
+        ]
+      ],
+      [
+        [
+          3,
+          false
+        ],
+        [
+          5,
+          true
+        ]
+      ],
+      [
+        [
+          2,
+          false
+        ],
+        [
+          2,
+          false
+        ]
+      ],
+      [
+        [
+          4,
+          true
+        ],
+        [
+          0,
+          true
+        ]
+      ],
+      [
+        [
+          0,
+          false
+        ],
+        [
+          2,
+          false
+        ]
+      ],
+      [
+        [
+          0,
+          true
+        ],
+        [
+          4,
+          true
+        ]
+      ],
+      [
+        [
+          5,
+          false
+        ],
+        [
+          1,
+          true
+        ]
+      ],
+      [
+        [
+          1,
+          false
+        ],
+        [
+          5,
+          true
+        ]
+      ]
+    ],
+    "budget": 100000,
+    "required": [
+      -1,
+      0,
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "calls": [
+      {
+        "witness": true,
+        "exhausted": false,
+        "remaining": 99994
+      },
+      {
+        "witness": false,
+        "exhausted": false,
+        "remaining": 99993
+      },
+      {
+        "witness": true,
+        "exhausted": false,
+        "remaining": 99990
+      },
+      {
+        "witness": false,
+        "exhausted": false,
+        "remaining": 99989
+      },
+      {
+        "witness": true,
+        "exhausted": false,
+        "remaining": 99988
+      },
+      {
+        "witness": true,
+        "exhausted": false,
+        "remaining": 99982
+      },
+      {
+        "witness": true,
+        "exhausted": false,
+        "remaining": 99979
+      }
+    ]
+  },
+  {
+    "name": "propagation-11",
+    "variables": [
+      [
+        "p0",
+        "0"
+      ],
+      [
+        "p0",
+        "1"
+      ],
+      [
+        "p1",
+        "0"
+      ],
+      [
+        "p1",
+        "1"
+      ],
+      [
+        "p2",
+        "0"
+      ],
+      [
+        "p2",
+        "1"
+      ]
+    ],
+    "groups": [
+      {
+        "members": [
+          0,
+          1
+        ],
+        "minimum": 1,
+        "maximum": 1
+      },
+      {
+        "members": [
+          2,
+          3
+        ],
+        "minimum": 1,
+        "maximum": 2
+      },
+      {
+        "members": [
+          4,
+          5
+        ],
+        "minimum": 1,
+        "maximum": 1
+      }
+    ],
+    "clauses": [
+      [
+        [
+          0,
+          true
+        ],
+        [
+          3,
+          false
+        ]
+      ],
+      [
+        [
+          5,
+          false
+        ],
+        [
+          3,
+          false
+        ]
+      ],
+      [
+        [
+          3,
+          true
+        ],
+        [
+          2,
+          true
+        ]
+      ],
+      [
+        [
+          5,
+          true
+        ],
+        [
+          4,
+          false
+        ]
+      ],
+      [
+        [
+          1,
+          true
+        ],
+        [
+          2,
+          true
+        ]
+      ],
+      [
+        [
+          0,
+          false
+        ],
+        [
+          0,
+          false
+        ]
+      ],
+      [
+        [
+          4,
+          true
+        ],
+        [
+          4,
+          true
+        ]
+      ],
+      [
+        [
+          2,
+          true
+        ],
+        [
+          0,
+          true
+        ]
+      ],
+      [
+        [
+          5,
+          true
+        ],
+        [
+          2,
+          true
+        ]
+      ]
+    ],
+    "budget": 100000,
+    "required": [
+      -1,
+      0,
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "calls": [
+      {
+        "witness": false,
+        "exhausted": false,
+        "remaining": 99995
+      },
+      {
+        "witness": false,
+        "exhausted": false,
+        "remaining": 99994
+      },
+      {
+        "witness": false,
+        "exhausted": false,
+        "remaining": 99991
+      },
+      {
+        "witness": false,
+        "exhausted": false,
+        "remaining": 99986
+      },
+      {
+        "witness": false,
+        "exhausted": false,
+        "remaining": 99985
+      },
+      {
+        "witness": false,
+        "exhausted": false,
+        "remaining": 99984
+      },
+      {
+        "witness": false,
+        "exhausted": false,
+        "remaining": 99983
+      }
+    ]
+  }
+]

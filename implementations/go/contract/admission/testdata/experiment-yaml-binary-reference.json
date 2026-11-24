@@ -1,0 +1,340 @@
+{
+  "sources": [
+    "implementations/python/packages/raes_contracts/experiment_spec.py",
+    "implementations/python/packages/raes_contracts/contracts/experiment_spec.py"
+  ],
+  "cases": [
+    {
+      "name": "title",
+      "text": "# TechVault red-tactic sweep \u2014 an authored experiment specification.\n#\n# This is the pre-run authoring/input counterpart to the archival\n# experiment-core outputs (run/study/apparatus-context). It references the\n# separately authored task (experiment-task-v1) and declares the experimental\n# design \u2014 apparatus intent, run plan, factors, and intended capture \u2014 before\n# any run executes. See specs/formal/experiment-core/ and ADR-074.\nschema_version: experiment-authoring-input/v1\nspec_id: spec-techvault-red-tactic-sweep-v1\nspec_version: 1.0.0\ntitle: !!binary VGl0bGU=\ndescription: >-\n  Pre-run design comparing aggressive vs stealthy red tactics over the fixed\n  TechVault task, with seeded replication.\n\n# The task carries scenario + protocol + metric definitions; reference it by id.\ntask_ref:\n  ref_kind: task\n  ref_id: task-techvault-red-team-v1\n  ref_version: 1.0.0\n\n# Optionally pin the intended scenario snapshot the design targets.\nintended_scenario_ref:\n  ref_kind: scenario-snapshot\n  ref_id: scenario-techvault\n  ref_version: \"2026-05-26\"\n  ref_digest: sha256:1111111111111111111111111111111111111111111111111111111111111111\n\n# Declared apparatus intent (planned, not the run-scoped observed context).\napparatus_intent:\n  required_capabilities:\n    - workflow-results\n    - evaluation-results\n  notes:\n    - Any backend that realizes evaluation-results may execute this design.\n\nrun_plan:\n  stochastic_controls:\n    - control_id: episode-seed\n      role: seed\n      value: 123456\n      description: Base RNG seed; per-run seeds derived deterministically for replication.\n  episode_control:\n    turn_order: sequential\n    max_steps: 100\n    termination_rule: Terminate each episode after 100 logical steps (fixed horizon).\n    description: Fixed-horizon episode with sequential turns.\n  # Exactly one of allocation / target_run_count. Here: a two-condition sweep.\n  allocation:\n    allocation_unit: run\n    allocation_method: balanced\n    compared_conditions:\n      - cond-aggressive\n      - cond-stealthy\n    condition_assignments:\n      cond-aggressive:\n        condition_id: cond-aggressive\n        factor_levels:\n          red-tactic: aggressive\n        required_parameters:\n          - name: red_tactic\n            value: aggressive\n            value_kind: protocol\n      cond-stealthy:\n        condition_id: cond-stealthy\n        factor_levels:\n          red-tactic: stealthy\n        required_parameters:\n          - name: red_tactic\n            value: stealthy\n            value_kind: protocol\n    target_runs_per_condition: 100\n    randomization_unit: run\n    replication_policy: 100 independent seeded runs per red-tactic condition.\n  red_variant_selections:\n    aggressive:\n      variant_id: aggressive\n      agent_ref: red-agent\n      description: \"Aggressive red tactic: direct exploitation path.\"\n    stealthy:\n      variant_id: stealthy\n      agent_ref: red-agent\n      description: \"Stealthy red tactic: low-and-slow exploration.\"\n  clock_intent:\n    clock_id: sim-clock\n    authority: reference-backend\n    time_domain: simulated\n\nfactors:\n  red-tactic:\n    name: Red tactic profile\n    factor_kind: treatment\n    levels:\n      - aggressive\n      - stealthy\n\ncapture_spec_refs:\n  - ref_kind: capture-spec\n    ref_id: capture-techvault-evidence-v1\n    ref_version: 1.0.0\n\nvalidity_notes:\n  - category: internal\n    note: Per-run seeds derive deterministically from the base seed.\n    mitigation: Record derived seeds in each run's stochastic controls.\n",
+      "result": {
+        "schema_version": "experiment-authoring-input/v1",
+        "spec_id": "spec-techvault-red-tactic-sweep-v1",
+        "spec_version": "1.0.0",
+        "title": "Title",
+        "description": "Pre-run design comparing aggressive vs stealthy red tactics over the fixed TechVault task, with seeded replication.",
+        "task_ref": {
+          "ref_kind": "task",
+          "ref_id": "task-techvault-red-team-v1",
+          "ref_version": "1.0.0"
+        },
+        "run_plan": {
+          "stochastic_controls": [
+            {
+              "control_id": "episode-seed",
+              "role": "seed",
+              "value": 123456,
+              "description": "Base RNG seed; per-run seeds derived deterministically for replication.",
+              "executable_binding": null
+            }
+          ],
+          "episode_control": {
+            "turn_order": "sequential",
+            "termination_rule": "Terminate each episode after 100 logical steps (fixed horizon).",
+            "max_steps": 100,
+            "termination_condition_refs": [],
+            "description": "Fixed-horizon episode with sequential turns."
+          },
+          "allocation": {
+            "allocation_unit": "run",
+            "allocation_method": "balanced",
+            "compared_conditions": [
+              "cond-aggressive",
+              "cond-stealthy"
+            ],
+            "condition_assignments": {
+              "cond-aggressive": {
+                "condition_id": "cond-aggressive",
+                "factor_levels": {
+                  "red-tactic": "aggressive"
+                },
+                "difficulty_condition": "fixed",
+                "difficulty_policy_id": null,
+                "required_refs": [],
+                "required_parameters": [
+                  {
+                    "name": "red_tactic",
+                    "value": "aggressive",
+                    "value_kind": "protocol",
+                    "redaction": "none"
+                  }
+                ],
+                "description": null
+              },
+              "cond-stealthy": {
+                "condition_id": "cond-stealthy",
+                "factor_levels": {
+                  "red-tactic": "stealthy"
+                },
+                "difficulty_condition": "fixed",
+                "difficulty_policy_id": null,
+                "required_refs": [],
+                "required_parameters": [
+                  {
+                    "name": "red_tactic",
+                    "value": "stealthy",
+                    "value_kind": "protocol",
+                    "redaction": "none"
+                  }
+                ],
+                "description": null
+              }
+            },
+            "target_runs_per_condition": 100,
+            "randomization_unit": "run",
+            "blocking_factors": [],
+            "replication_policy": "100 independent seeded runs per red-tactic condition.",
+            "stopping_rule": null
+          },
+          "target_run_count": null,
+          "selection_policies": {},
+          "difficulty_policy_registry": null,
+          "red_variant_selections": {
+            "aggressive": {
+              "variant_id": "aggressive",
+              "agent_ref": "red-agent",
+              "parameters": [],
+              "description": "Aggressive red tactic: direct exploitation path."
+            },
+            "stealthy": {
+              "variant_id": "stealthy",
+              "agent_ref": "red-agent",
+              "parameters": [],
+              "description": "Stealthy red tactic: low-and-slow exploration."
+            }
+          },
+          "clock_intent": {
+            "clock_id": "sim-clock",
+            "authority": "reference-backend",
+            "time_domain": "simulated",
+            "synchronization": null
+          },
+          "observation_demands": null,
+          "evidence_requirement_relations": []
+        },
+        "intended_scenario_ref": {
+          "ref_kind": "scenario-snapshot",
+          "ref_id": "scenario-techvault",
+          "ref_version": "2026-05-26",
+          "ref_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+          "ref_path": null
+        },
+        "apparatus_intent": {
+          "allowed_processor_refs": [],
+          "allowed_backend_refs": [],
+          "required_manifest_refs": [],
+          "required_capabilities": [
+            "workflow-results",
+            "evaluation-results"
+          ],
+          "notes": [
+            "Any backend that realizes evaluation-results may execute this design."
+          ]
+        },
+        "factors": {
+          "red-tactic": {
+            "name": "Red tactic profile",
+            "factor_kind": "treatment",
+            "levels": [
+              "aggressive",
+              "stealthy"
+            ]
+          }
+        },
+        "binding_semantics": "descriptive",
+        "binding_descriptors": null,
+        "capture_spec_refs": [
+          {
+            "ref_kind": "capture-spec",
+            "ref_id": "capture-techvault-evidence-v1",
+            "ref_version": "1.0.0"
+          }
+        ],
+        "validity_notes": [
+          {
+            "category": "internal",
+            "note": "Per-run seeds derive deterministically from the base seed.",
+            "mitigation": "Record derived seeds in each run's stochastic controls."
+          }
+        ],
+        "artifact_refs": []
+      },
+      "code": null
+    },
+    {
+      "name": "spec_id",
+      "text": "# TechVault red-tactic sweep \u2014 an authored experiment specification.\n#\n# This is the pre-run authoring/input counterpart to the archival\n# experiment-core outputs (run/study/apparatus-context). It references the\n# separately authored task (experiment-task-v1) and declares the experimental\n# design \u2014 apparatus intent, run plan, factors, and intended capture \u2014 before\n# any run executes. See specs/formal/experiment-core/ and ADR-074.\nschema_version: experiment-authoring-input/v1\nspec_id: !!binary ZXhwZXJpbWVudA==\nspec_version: 1.0.0\ntitle: TechVault red-tactic sweep\ndescription: >-\n  Pre-run design comparing aggressive vs stealthy red tactics over the fixed\n  TechVault task, with seeded replication.\n\n# The task carries scenario + protocol + metric definitions; reference it by id.\ntask_ref:\n  ref_kind: task\n  ref_id: task-techvault-red-team-v1\n  ref_version: 1.0.0\n\n# Optionally pin the intended scenario snapshot the design targets.\nintended_scenario_ref:\n  ref_kind: scenario-snapshot\n  ref_id: scenario-techvault\n  ref_version: \"2026-05-26\"\n  ref_digest: sha256:1111111111111111111111111111111111111111111111111111111111111111\n\n# Declared apparatus intent (planned, not the run-scoped observed context).\napparatus_intent:\n  required_capabilities:\n    - workflow-results\n    - evaluation-results\n  notes:\n    - Any backend that realizes evaluation-results may execute this design.\n\nrun_plan:\n  stochastic_controls:\n    - control_id: episode-seed\n      role: seed\n      value: 123456\n      description: Base RNG seed; per-run seeds derived deterministically for replication.\n  episode_control:\n    turn_order: sequential\n    max_steps: 100\n    termination_rule: Terminate each episode after 100 logical steps (fixed horizon).\n    description: Fixed-horizon episode with sequential turns.\n  # Exactly one of allocation / target_run_count. Here: a two-condition sweep.\n  allocation:\n    allocation_unit: run\n    allocation_method: balanced\n    compared_conditions:\n      - cond-aggressive\n      - cond-stealthy\n    condition_assignments:\n      cond-aggressive:\n        condition_id: cond-aggressive\n        factor_levels:\n          red-tactic: aggressive\n        required_parameters:\n          - name: red_tactic\n            value: aggressive\n            value_kind: protocol\n      cond-stealthy:\n        condition_id: cond-stealthy\n        factor_levels:\n          red-tactic: stealthy\n        required_parameters:\n          - name: red_tactic\n            value: stealthy\n            value_kind: protocol\n    target_runs_per_condition: 100\n    randomization_unit: run\n    replication_policy: 100 independent seeded runs per red-tactic condition.\n  red_variant_selections:\n    aggressive:\n      variant_id: aggressive\n      agent_ref: red-agent\n      description: \"Aggressive red tactic: direct exploitation path.\"\n    stealthy:\n      variant_id: stealthy\n      agent_ref: red-agent\n      description: \"Stealthy red tactic: low-and-slow exploration.\"\n  clock_intent:\n    clock_id: sim-clock\n    authority: reference-backend\n    time_domain: simulated\n\nfactors:\n  red-tactic:\n    name: Red tactic profile\n    factor_kind: treatment\n    levels:\n      - aggressive\n      - stealthy\n\ncapture_spec_refs:\n  - ref_kind: capture-spec\n    ref_id: capture-techvault-evidence-v1\n    ref_version: 1.0.0\n\nvalidity_notes:\n  - category: internal\n    note: Per-run seeds derive deterministically from the base seed.\n    mitigation: Record derived seeds in each run's stochastic controls.\n",
+      "result": {
+        "schema_version": "experiment-authoring-input/v1",
+        "spec_id": "experiment",
+        "spec_version": "1.0.0",
+        "title": "TechVault red-tactic sweep",
+        "description": "Pre-run design comparing aggressive vs stealthy red tactics over the fixed TechVault task, with seeded replication.",
+        "task_ref": {
+          "ref_kind": "task",
+          "ref_id": "task-techvault-red-team-v1",
+          "ref_version": "1.0.0"
+        },
+        "run_plan": {
+          "stochastic_controls": [
+            {
+              "control_id": "episode-seed",
+              "role": "seed",
+              "value": 123456,
+              "description": "Base RNG seed; per-run seeds derived deterministically for replication.",
+              "executable_binding": null
+            }
+          ],
+          "episode_control": {
+            "turn_order": "sequential",
+            "termination_rule": "Terminate each episode after 100 logical steps (fixed horizon).",
+            "max_steps": 100,
+            "termination_condition_refs": [],
+            "description": "Fixed-horizon episode with sequential turns."
+          },
+          "allocation": {
+            "allocation_unit": "run",
+            "allocation_method": "balanced",
+            "compared_conditions": [
+              "cond-aggressive",
+              "cond-stealthy"
+            ],
+            "condition_assignments": {
+              "cond-aggressive": {
+                "condition_id": "cond-aggressive",
+                "factor_levels": {
+                  "red-tactic": "aggressive"
+                },
+                "difficulty_condition": "fixed",
+                "difficulty_policy_id": null,
+                "required_refs": [],
+                "required_parameters": [
+                  {
+                    "name": "red_tactic",
+                    "value": "aggressive",
+                    "value_kind": "protocol",
+                    "redaction": "none"
+                  }
+                ],
+                "description": null
+              },
+              "cond-stealthy": {
+                "condition_id": "cond-stealthy",
+                "factor_levels": {
+                  "red-tactic": "stealthy"
+                },
+                "difficulty_condition": "fixed",
+                "difficulty_policy_id": null,
+                "required_refs": [],
+                "required_parameters": [
+                  {
+                    "name": "red_tactic",
+                    "value": "stealthy",
+                    "value_kind": "protocol",
+                    "redaction": "none"
+                  }
+                ],
+                "description": null
+              }
+            },
+            "target_runs_per_condition": 100,
+            "randomization_unit": "run",
+            "blocking_factors": [],
+            "replication_policy": "100 independent seeded runs per red-tactic condition.",
+            "stopping_rule": null
+          },
+          "target_run_count": null,
+          "selection_policies": {},
+          "difficulty_policy_registry": null,
+          "red_variant_selections": {
+            "aggressive": {
+              "variant_id": "aggressive",
+              "agent_ref": "red-agent",
+              "parameters": [],
+              "description": "Aggressive red tactic: direct exploitation path."
+            },
+            "stealthy": {
+              "variant_id": "stealthy",
+              "agent_ref": "red-agent",
+              "parameters": [],
+              "description": "Stealthy red tactic: low-and-slow exploration."
+            }
+          },
+          "clock_intent": {
+            "clock_id": "sim-clock",
+            "authority": "reference-backend",
+            "time_domain": "simulated",
+            "synchronization": null
+          },
+          "observation_demands": null,
+          "evidence_requirement_relations": []
+        },
+        "intended_scenario_ref": {
+          "ref_kind": "scenario-snapshot",
+          "ref_id": "scenario-techvault",
+          "ref_version": "2026-05-26",
+          "ref_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+          "ref_path": null
+        },
+        "apparatus_intent": {
+          "allowed_processor_refs": [],
+          "allowed_backend_refs": [],
+          "required_manifest_refs": [],
+          "required_capabilities": [
+            "workflow-results",
+            "evaluation-results"
+          ],
+          "notes": [
+            "Any backend that realizes evaluation-results may execute this design."
+          ]
+        },
+        "factors": {
+          "red-tactic": {
+            "name": "Red tactic profile",
+            "factor_kind": "treatment",
+            "levels": [
+              "aggressive",
+              "stealthy"
+            ]
+          }
+        },
+        "binding_semantics": "descriptive",
+        "binding_descriptors": null,
+        "capture_spec_refs": [
+          {
+            "ref_kind": "capture-spec",
+            "ref_id": "capture-techvault-evidence-v1",
+            "ref_version": "1.0.0"
+          }
+        ],
+        "validity_notes": [
+          {
+            "category": "internal",
+            "note": "Per-run seeds derive deterministically from the base seed.",
+            "mitigation": "Record derived seeds in each run's stochastic controls."
+          }
+        ],
+        "artifact_refs": []
+      },
+      "code": null
+    },
+    {
+      "name": "description",
+      "text": "# TechVault red-tactic sweep \u2014 an authored experiment specification.\n#\n# This is the pre-run authoring/input counterpart to the archival\n# experiment-core outputs (run/study/apparatus-context). It references the\n# separately authored task (experiment-task-v1) and declares the experimental\n# design \u2014 apparatus intent, run plan, factors, and intended capture \u2014 before\n# any run executes. See specs/formal/experiment-core/ and ADR-074.\nschema_version: experiment-authoring-input/v1\nspec_id: spec-techvault-red-tactic-sweep-v1\nspec_version: 1.0.0\ntitle: TechVault red-tactic sweep\ndescription: !!binary RGVzY3JpcHRpb24=\n  Pre-run design comparing aggressive vs stealthy red tactics over the fixed\n  TechVault task, with seeded replication.\n\n# The task carries scenario + protocol + metric definitions; reference it by id.\ntask_ref:\n  ref_kind: task\n  ref_id: task-techvault-red-team-v1\n  ref_version: 1.0.0\n\n# Optionally pin the intended scenario snapshot the design targets.\nintended_scenario_ref:\n  ref_kind: scenario-snapshot\n  ref_id: scenario-techvault\n  ref_version: \"2026-05-26\"\n  ref_digest: sha256:1111111111111111111111111111111111111111111111111111111111111111\n\n# Declared apparatus intent (planned, not the run-scoped observed context).\napparatus_intent:\n  required_capabilities:\n    - workflow-results\n    - evaluation-results\n  notes:\n    - Any backend that realizes evaluation-results may execute this design.\n\nrun_plan:\n  stochastic_controls:\n    - control_id: episode-seed\n      role: seed\n      value: 123456\n      description: Base RNG seed; per-run seeds derived deterministically for replication.\n  episode_control:\n    turn_order: sequential\n    max_steps: 100\n    termination_rule: Terminate each episode after 100 logical steps (fixed horizon).\n    description: Fixed-horizon episode with sequential turns.\n  # Exactly one of allocation / target_run_count. Here: a two-condition sweep.\n  allocation:\n    allocation_unit: run\n    allocation_method: balanced\n    compared_conditions:\n      - cond-aggressive\n      - cond-stealthy\n    condition_assignments:\n      cond-aggressive:\n        condition_id: cond-aggressive\n        factor_levels:\n          red-tactic: aggressive\n        required_parameters:\n          - name: red_tactic\n            value: aggressive\n            value_kind: protocol\n      cond-stealthy:\n        condition_id: cond-stealthy\n        factor_levels:\n          red-tactic: stealthy\n        required_parameters:\n          - name: red_tactic\n            value: stealthy\n            value_kind: protocol\n    target_runs_per_condition: 100\n    randomization_unit: run\n    replication_policy: 100 independent seeded runs per red-tactic condition.\n  red_variant_selections:\n    aggressive:\n      variant_id: aggressive\n      agent_ref: red-agent\n      description: \"Aggressive red tactic: direct exploitation path.\"\n    stealthy:\n      variant_id: stealthy\n      agent_ref: red-agent\n      description: \"Stealthy red tactic: low-and-slow exploration.\"\n  clock_intent:\n    clock_id: sim-clock\n    authority: reference-backend\n    time_domain: simulated\n\nfactors:\n  red-tactic:\n    name: Red tactic profile\n    factor_kind: treatment\n    levels:\n      - aggressive\n      - stealthy\n\ncapture_spec_refs:\n  - ref_kind: capture-spec\n    ref_id: capture-techvault-evidence-v1\n    ref_version: 1.0.0\n\nvalidity_notes:\n  - category: internal\n    note: Per-run seeds derive deterministically from the base seed.\n    mitigation: Record derived seeds in each run's stochastic controls.\n",
+      "result": null,
+      "code": "contract-invalid"
+    },
+    {
+      "name": "schema_version",
+      "text": "# TechVault red-tactic sweep \u2014 an authored experiment specification.\n#\n# This is the pre-run authoring/input counterpart to the archival\n# experiment-core outputs (run/study/apparatus-context). It references the\n# separately authored task (experiment-task-v1) and declares the experimental\n# design \u2014 apparatus intent, run plan, factors, and intended capture \u2014 before\n# any run executes. See specs/formal/experiment-core/ and ADR-074.\nschema_version: !!binary ZXhwZXJpbWVudC1hdXRob3JpbmctaW5wdXQvdjE=\nspec_id: spec-techvault-red-tactic-sweep-v1\nspec_version: 1.0.0\ntitle: TechVault red-tactic sweep\ndescription: >-\n  Pre-run design comparing aggressive vs stealthy red tactics over the fixed\n  TechVault task, with seeded replication.\n\n# The task carries scenario + protocol + metric definitions; reference it by id.\ntask_ref:\n  ref_kind: task\n  ref_id: task-techvault-red-team-v1\n  ref_version: 1.0.0\n\n# Optionally pin the intended scenario snapshot the design targets.\nintended_scenario_ref:\n  ref_kind: scenario-snapshot\n  ref_id: scenario-techvault\n  ref_version: \"2026-05-26\"\n  ref_digest: sha256:1111111111111111111111111111111111111111111111111111111111111111\n\n# Declared apparatus intent (planned, not the run-scoped observed context).\napparatus_intent:\n  required_capabilities:\n    - workflow-results\n    - evaluation-results\n  notes:\n    - Any backend that realizes evaluation-results may execute this design.\n\nrun_plan:\n  stochastic_controls:\n    - control_id: episode-seed\n      role: seed\n      value: 123456\n      description: Base RNG seed; per-run seeds derived deterministically for replication.\n  episode_control:\n    turn_order: sequential\n    max_steps: 100\n    termination_rule: Terminate each episode after 100 logical steps (fixed horizon).\n    description: Fixed-horizon episode with sequential turns.\n  # Exactly one of allocation / target_run_count. Here: a two-condition sweep.\n  allocation:\n    allocation_unit: run\n    allocation_method: balanced\n    compared_conditions:\n      - cond-aggressive\n      - cond-stealthy\n    condition_assignments:\n      cond-aggressive:\n        condition_id: cond-aggressive\n        factor_levels:\n          red-tactic: aggressive\n        required_parameters:\n          - name: red_tactic\n            value: aggressive\n            value_kind: protocol\n      cond-stealthy:\n        condition_id: cond-stealthy\n        factor_levels:\n          red-tactic: stealthy\n        required_parameters:\n          - name: red_tactic\n            value: stealthy\n            value_kind: protocol\n    target_runs_per_condition: 100\n    randomization_unit: run\n    replication_policy: 100 independent seeded runs per red-tactic condition.\n  red_variant_selections:\n    aggressive:\n      variant_id: aggressive\n      agent_ref: red-agent\n      description: \"Aggressive red tactic: direct exploitation path.\"\n    stealthy:\n      variant_id: stealthy\n      agent_ref: red-agent\n      description: \"Stealthy red tactic: low-and-slow exploration.\"\n  clock_intent:\n    clock_id: sim-clock\n    authority: reference-backend\n    time_domain: simulated\n\nfactors:\n  red-tactic:\n    name: Red tactic profile\n    factor_kind: treatment\n    levels:\n      - aggressive\n      - stealthy\n\ncapture_spec_refs:\n  - ref_kind: capture-spec\n    ref_id: capture-techvault-evidence-v1\n    ref_version: 1.0.0\n\nvalidity_notes:\n  - category: internal\n    note: Per-run seeds derive deterministically from the base seed.\n    mitigation: Record derived seeds in each run's stochastic controls.\n",
+      "result": null,
+      "code": "contract-invalid"
+    },
+    {
+      "name": "binding_semantics",
+      "text": "# TechVault red-tactic sweep \u2014 an authored experiment specification.\n#\n# This is the pre-run authoring/input counterpart to the archival\n# experiment-core outputs (run/study/apparatus-context). It references the\n# separately authored task (experiment-task-v1) and declares the experimental\n# design \u2014 apparatus intent, run plan, factors, and intended capture \u2014 before\n# any run executes. See specs/formal/experiment-core/ and ADR-074.\nschema_version: experiment-authoring-input/v1\nspec_id: spec-techvault-red-tactic-sweep-v1\nspec_version: 1.0.0\ntitle: TechVault red-tactic sweep\ndescription: >-\n  Pre-run design comparing aggressive vs stealthy red tactics over the fixed\n  TechVault task, with seeded replication.\n\n# The task carries scenario + protocol + metric definitions; reference it by id.\ntask_ref:\n  ref_kind: task\n  ref_id: task-techvault-red-team-v1\n  ref_version: 1.0.0\n\n# Optionally pin the intended scenario snapshot the design targets.\nintended_scenario_ref:\n  ref_kind: scenario-snapshot\n  ref_id: scenario-techvault\n  ref_version: \"2026-05-26\"\n  ref_digest: sha256:1111111111111111111111111111111111111111111111111111111111111111\n\n# Declared apparatus intent (planned, not the run-scoped observed context).\napparatus_intent:\n  required_capabilities:\n    - workflow-results\n    - evaluation-results\n  notes:\n    - Any backend that realizes evaluation-results may execute this design.\n\nrun_plan:\n  stochastic_controls:\n    - control_id: episode-seed\n      role: seed\n      value: 123456\n      description: Base RNG seed; per-run seeds derived deterministically for replication.\n  episode_control:\n    turn_order: sequential\n    max_steps: 100\n    termination_rule: Terminate each episode after 100 logical steps (fixed horizon).\n    description: Fixed-horizon episode with sequential turns.\n  # Exactly one of allocation / target_run_count. Here: a two-condition sweep.\n  allocation:\n    allocation_unit: run\n    allocation_method: balanced\n    compared_conditions:\n      - cond-aggressive\n      - cond-stealthy\n    condition_assignments:\n      cond-aggressive:\n        condition_id: cond-aggressive\n        factor_levels:\n          red-tactic: aggressive\n        required_parameters:\n          - name: red_tactic\n            value: aggressive\n            value_kind: protocol\n      cond-stealthy:\n        condition_id: cond-stealthy\n        factor_levels:\n          red-tactic: stealthy\n        required_parameters:\n          - name: red_tactic\n            value: stealthy\n            value_kind: protocol\n    target_runs_per_condition: 100\n    randomization_unit: run\n    replication_policy: 100 independent seeded runs per red-tactic condition.\n  red_variant_selections:\n    aggressive:\n      variant_id: aggressive\n      agent_ref: red-agent\n      description: \"Aggressive red tactic: direct exploitation path.\"\n    stealthy:\n      variant_id: stealthy\n      agent_ref: red-agent\n      description: \"Stealthy red tactic: low-and-slow exploration.\"\n  clock_intent:\n    clock_id: sim-clock\n    authority: reference-backend\n    time_domain: simulated\n\nfactors:\n  red-tactic:\n    name: Red tactic profile\n    factor_kind: treatment\n    levels:\n      - aggressive\n      - stealthy\n\ncapture_spec_refs:\n  - ref_kind: capture-spec\n    ref_id: capture-techvault-evidence-v1\n    ref_version: 1.0.0\n\nvalidity_notes:\n  - category: internal\n    note: Per-run seeds derive deterministically from the base seed.\n    mitigation: Record derived seeds in each run's stochastic controls.\nbinding_semantics: !!binary ZGVzY3JpcHRpdmU=\n",
+      "result": null,
+      "code": "contract-invalid"
+    }
+  ]
+}

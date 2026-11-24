@@ -1,0 +1,1713 @@
+{
+  "reference": "Published resource-budget models and issue-899 defect cases",
+  "baselines": {
+    "participant-resource-budget-policy-v1": {
+      "contract_id": "participant-resource-budget-policy-v1",
+      "payload": {
+        "schema_version": "participant-resource-budget-policy/v1",
+        "policy_id": "green-shared-capacity",
+        "policy_address": "participant.autonomous-execution.green",
+        "policy_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+        "owners": [
+          {
+            "owner_id": "participant",
+            "kind": "participant",
+            "owner_ref": "participant.behavior.green"
+          },
+          {
+            "owner_id": "range",
+            "kind": "deployment_tenant",
+            "owner_ref": "deployment.tenant.range-a"
+          },
+          {
+            "owner_id": "inference",
+            "kind": "shared_service",
+            "owner_ref": "provision.node.inference.service.http"
+          },
+          {
+            "owner_id": "fleet",
+            "kind": "fleet",
+            "owner_ref": "fleet.primary"
+          }
+        ],
+        "demands": [
+          {
+            "budget_id": "actions",
+            "owner": {
+              "owner_id": "participant",
+              "kind": "participant",
+              "owner_ref": "participant.behavior.green"
+            },
+            "pool_ref": "participant-pool",
+            "quantity": {
+              "resource_kind": "action_rate",
+              "unit": "actions",
+              "accounting_mode": "windowed_counter",
+              "meter_profile_ref": "raes.action-attempt/v1",
+              "amount": 1
+            },
+            "limit": 24,
+            "reservation": 1,
+            "reset": "time_segment",
+            "window_ticks": 100
+          },
+          {
+            "budget_id": "concurrency",
+            "owner": {
+              "owner_id": "participant",
+              "kind": "participant",
+              "owner_ref": "participant.behavior.green"
+            },
+            "pool_ref": "participant-pool",
+            "quantity": {
+              "resource_kind": "concurrent_actions",
+              "unit": "actions",
+              "accounting_mode": "reservable_gauge",
+              "meter_profile_ref": "raes.concurrent-action/v1",
+              "amount": 1
+            },
+            "limit": 2,
+            "reservation": 1,
+            "reset": "reconciled"
+          },
+          {
+            "budget_id": "storage",
+            "owner": {
+              "owner_id": "range",
+              "kind": "deployment_tenant",
+              "owner_ref": "deployment.tenant.range-a"
+            },
+            "pool_ref": "range-pool",
+            "quantity": {
+              "resource_kind": "storage_growth",
+              "unit": "bytes",
+              "accounting_mode": "growth_counter",
+              "meter_profile_ref": "raes.logical-byte/v1",
+              "amount": 4096
+            },
+            "limit": 1048576,
+            "reservation": 4096,
+            "reset": "reconciled"
+          },
+          {
+            "budget_id": "tokens",
+            "owner": {
+              "owner_id": "inference",
+              "kind": "shared_service",
+              "owner_ref": "provision.node.inference.service.http"
+            },
+            "pool_ref": "inference-pool",
+            "quantity": {
+              "resource_kind": "inference_tokens",
+              "unit": "tokens",
+              "accounting_mode": "windowed_counter",
+              "meter_profile_ref": "tokenizer.example/v1",
+              "amount": 500
+            },
+            "limit": 20000,
+            "reservation": 500,
+            "reset": "time_segment",
+            "window_ticks": 100
+          },
+          {
+            "budget_id": "images",
+            "owner": {
+              "owner_id": "inference",
+              "kind": "shared_service",
+              "owner_ref": "provision.node.inference.service.http"
+            },
+            "pool_ref": "inference-pool",
+            "quantity": {
+              "resource_kind": "image_generations",
+              "unit": "images",
+              "accounting_mode": "cumulative_counter",
+              "meter_profile_ref": "raes.image-generation/v1",
+              "amount": 1
+            },
+            "limit": 20,
+            "reservation": 1,
+            "reset": "run"
+          },
+          {
+            "budget_id": "accelerator",
+            "owner": {
+              "owner_id": "fleet",
+              "kind": "fleet",
+              "owner_ref": "fleet.primary"
+            },
+            "pool_ref": "accelerator-pool",
+            "quantity": {
+              "resource_kind": "accelerator",
+              "unit": "accelerator_milliseconds",
+              "accounting_mode": "lease",
+              "meter_profile_ref": "raes.accelerator-class.generic/v1",
+              "amount": 1000
+            },
+            "limit": 60000,
+            "reservation": 1000,
+            "reset": "reconciled"
+          }
+        ],
+        "fairness": {
+          "policy": "weighted_fair",
+          "priority_class": "background",
+          "weight": 1,
+          "protected": false,
+          "borrowing": "lendable_only",
+          "reclaim": "yield",
+          "max_queue_ticks": 20,
+          "starvation_bound_ticks": 100
+        }
+      }
+    },
+    "participant-resource-pool-capacity-v1": {
+      "contract_id": "participant-resource-pool-capacity-v1",
+      "payload": {
+        "schema_version": "participant-resource-pool-capacity/v1",
+        "pool_ref": "inference-pool",
+        "owner_kind": "shared_service",
+        "owner_ref": "provision.node.inference.service.http",
+        "resource_kind": "inference_tokens",
+        "unit": "tokens",
+        "accounting_mode": "windowed_counter",
+        "meter_profile_ref": "tokenizer.example/v1",
+        "capacity": 20000,
+        "tenant_isolation": "tenant_partitioned",
+        "configuration_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+        "fairness_policy": "weighted_fair",
+        "priority_classes": [
+          "evaluated",
+          "standard",
+          "background"
+        ],
+        "borrowing": "lendable_only",
+        "reclaim": "yield",
+        "max_queue_ticks": 20,
+        "starvation_bound_ticks": 100,
+        "protected_capacity": 1000,
+        "evidence_contract_ids": [
+          "participant-resource-budget-event-v1"
+        ]
+      }
+    },
+    "participant-resource-budget-state-v1": {
+      "contract_id": "participant-resource-budget-state-v1",
+      "payload": {
+        "schema_version": "participant-resource-budget-state/v1",
+        "state_ref": "participant.autonomous-execution.green.resource-budget-state.tokens",
+        "budget_id": "tokens",
+        "policy_address": "participant.autonomous-execution.green",
+        "owner_kind": "shared_service",
+        "owner_ref": "provision.node.inference.service.http",
+        "pool_ref": "inference-pool",
+        "resource_kind": "inference_tokens",
+        "unit": "tokens",
+        "accounting_mode": "windowed_counter",
+        "meter_profile_ref": "tokenizer.example/v1",
+        "reset": "time_segment",
+        "generation": 3,
+        "limit": 20000,
+        "configured_capacity": 20000,
+        "reserved": 0,
+        "current_use": 0,
+        "cumulative_use": 450,
+        "throttled": 0,
+        "rejected": 0,
+        "reconciliation_status": "reconciled",
+        "last_event_ref": "action-1:participant.autonomous-execution.green.resource-budget-state.tokens:commit",
+        "evidence_refs": [
+          "evidence.resource-meter.action-1"
+        ]
+      }
+    },
+    "participant-resource-budget-event-v1": {
+      "contract_id": "participant-resource-budget-event-v1",
+      "payload": {
+        "schema_version": "participant-resource-budget-event/v1",
+        "event_id": "action-1:participant.autonomous-execution.green.resource-budget-state.tokens:commit",
+        "operation_id": "action-1",
+        "budget_state_ref": "participant.autonomous-execution.green.resource-budget-state.tokens",
+        "budget_id": "tokens",
+        "policy_address": "participant.autonomous-execution.green",
+        "owner_ref": "provision.node.inference.service.http",
+        "pool_ref": "inference-pool",
+        "execution_generation": 3,
+        "transition": "commit",
+        "disposition": "committed",
+        "requested": 500,
+        "measured": 450,
+        "resource_kind": "inference_tokens",
+        "unit": "tokens",
+        "meter_profile_ref": "tokenizer.example/v1",
+        "predecessor_event_ref": "action-1:participant.autonomous-execution.green.resource-budget-state.tokens:reserve",
+        "evidence_refs": [
+          "evidence.resource-meter.action-1"
+        ]
+      }
+    }
+  },
+  "cases": [
+    {
+      "name": "participant-resource-budget-policy-v1-reference",
+      "contract_id": "participant-resource-budget-policy-v1",
+      "baseline": "participant-resource-budget-policy-v1",
+      "valid": true,
+      "changes": []
+    },
+    {
+      "name": "participant-resource-pool-capacity-v1-reference",
+      "contract_id": "participant-resource-pool-capacity-v1",
+      "baseline": "participant-resource-pool-capacity-v1",
+      "valid": true,
+      "changes": []
+    },
+    {
+      "name": "participant-resource-budget-state-v1-reference",
+      "contract_id": "participant-resource-budget-state-v1",
+      "baseline": "participant-resource-budget-state-v1",
+      "valid": true,
+      "changes": []
+    },
+    {
+      "name": "participant-resource-budget-event-v1-reference",
+      "contract_id": "participant-resource-budget-event-v1",
+      "baseline": "participant-resource-budget-event-v1",
+      "valid": true,
+      "changes": []
+    },
+    {
+      "name": "duplicate-owners",
+      "contract_id": "participant-resource-budget-policy-v1",
+      "baseline": "participant-resource-budget-policy-v1",
+      "valid": false,
+      "changes": [
+        {
+          "path": [
+            "owners"
+          ],
+          "value": [
+            {
+              "owner_id": "participant",
+              "kind": "participant",
+              "owner_ref": "participant.behavior.green"
+            },
+            {
+              "owner_id": "range",
+              "kind": "deployment_tenant",
+              "owner_ref": "deployment.tenant.range-a"
+            },
+            {
+              "owner_id": "inference",
+              "kind": "shared_service",
+              "owner_ref": "provision.node.inference.service.http"
+            },
+            {
+              "owner_id": "fleet",
+              "kind": "fleet",
+              "owner_ref": "fleet.primary"
+            },
+            {
+              "owner_id": "participant",
+              "kind": "participant",
+              "owner_ref": "participant.behavior.green"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "duplicate-demands",
+      "contract_id": "participant-resource-budget-policy-v1",
+      "baseline": "participant-resource-budget-policy-v1",
+      "valid": false,
+      "changes": [
+        {
+          "path": [
+            "demands"
+          ],
+          "value": [
+            {
+              "budget_id": "actions",
+              "owner": {
+                "owner_id": "participant",
+                "kind": "participant",
+                "owner_ref": "participant.behavior.green"
+              },
+              "pool_ref": "participant-pool",
+              "quantity": {
+                "resource_kind": "action_rate",
+                "unit": "actions",
+                "accounting_mode": "windowed_counter",
+                "meter_profile_ref": "raes.action-attempt/v1",
+                "amount": 1
+              },
+              "limit": 24,
+              "reservation": 1,
+              "reset": "time_segment",
+              "window_ticks": 100
+            },
+            {
+              "budget_id": "concurrency",
+              "owner": {
+                "owner_id": "participant",
+                "kind": "participant",
+                "owner_ref": "participant.behavior.green"
+              },
+              "pool_ref": "participant-pool",
+              "quantity": {
+                "resource_kind": "concurrent_actions",
+                "unit": "actions",
+                "accounting_mode": "reservable_gauge",
+                "meter_profile_ref": "raes.concurrent-action/v1",
+                "amount": 1
+              },
+              "limit": 2,
+              "reservation": 1,
+              "reset": "reconciled"
+            },
+            {
+              "budget_id": "storage",
+              "owner": {
+                "owner_id": "range",
+                "kind": "deployment_tenant",
+                "owner_ref": "deployment.tenant.range-a"
+              },
+              "pool_ref": "range-pool",
+              "quantity": {
+                "resource_kind": "storage_growth",
+                "unit": "bytes",
+                "accounting_mode": "growth_counter",
+                "meter_profile_ref": "raes.logical-byte/v1",
+                "amount": 4096
+              },
+              "limit": 1048576,
+              "reservation": 4096,
+              "reset": "reconciled"
+            },
+            {
+              "budget_id": "tokens",
+              "owner": {
+                "owner_id": "inference",
+                "kind": "shared_service",
+                "owner_ref": "provision.node.inference.service.http"
+              },
+              "pool_ref": "inference-pool",
+              "quantity": {
+                "resource_kind": "inference_tokens",
+                "unit": "tokens",
+                "accounting_mode": "windowed_counter",
+                "meter_profile_ref": "tokenizer.example/v1",
+                "amount": 500
+              },
+              "limit": 20000,
+              "reservation": 500,
+              "reset": "time_segment",
+              "window_ticks": 100
+            },
+            {
+              "budget_id": "images",
+              "owner": {
+                "owner_id": "inference",
+                "kind": "shared_service",
+                "owner_ref": "provision.node.inference.service.http"
+              },
+              "pool_ref": "inference-pool",
+              "quantity": {
+                "resource_kind": "image_generations",
+                "unit": "images",
+                "accounting_mode": "cumulative_counter",
+                "meter_profile_ref": "raes.image-generation/v1",
+                "amount": 1
+              },
+              "limit": 20,
+              "reservation": 1,
+              "reset": "run"
+            },
+            {
+              "budget_id": "accelerator",
+              "owner": {
+                "owner_id": "fleet",
+                "kind": "fleet",
+                "owner_ref": "fleet.primary"
+              },
+              "pool_ref": "accelerator-pool",
+              "quantity": {
+                "resource_kind": "accelerator",
+                "unit": "accelerator_milliseconds",
+                "accounting_mode": "lease",
+                "meter_profile_ref": "raes.accelerator-class.generic/v1",
+                "amount": 1000
+              },
+              "limit": 60000,
+              "reservation": 1000,
+              "reset": "reconciled"
+            },
+            {
+              "budget_id": "actions",
+              "owner": {
+                "owner_id": "participant",
+                "kind": "participant",
+                "owner_ref": "participant.behavior.green"
+              },
+              "pool_ref": "participant-pool",
+              "quantity": {
+                "resource_kind": "action_rate",
+                "unit": "actions",
+                "accounting_mode": "windowed_counter",
+                "meter_profile_ref": "raes.action-attempt/v1",
+                "amount": 1
+              },
+              "limit": 24,
+              "reservation": 1,
+              "reset": "time_segment",
+              "window_ticks": 100
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "missing-vector",
+      "contract_id": "participant-resource-budget-policy-v1",
+      "baseline": "participant-resource-budget-policy-v1",
+      "valid": false,
+      "changes": [
+        {
+          "path": [
+            "demands"
+          ],
+          "value": [
+            {
+              "budget_id": "actions",
+              "owner": {
+                "owner_id": "participant",
+                "kind": "participant",
+                "owner_ref": "participant.behavior.green"
+              },
+              "pool_ref": "participant-pool",
+              "quantity": {
+                "resource_kind": "action_rate",
+                "unit": "actions",
+                "accounting_mode": "windowed_counter",
+                "meter_profile_ref": "raes.action-attempt/v1",
+                "amount": 1
+              },
+              "limit": 24,
+              "reservation": 1,
+              "reset": "time_segment",
+              "window_ticks": 100
+            },
+            {
+              "budget_id": "concurrency",
+              "owner": {
+                "owner_id": "participant",
+                "kind": "participant",
+                "owner_ref": "participant.behavior.green"
+              },
+              "pool_ref": "participant-pool",
+              "quantity": {
+                "resource_kind": "concurrent_actions",
+                "unit": "actions",
+                "accounting_mode": "reservable_gauge",
+                "meter_profile_ref": "raes.concurrent-action/v1",
+                "amount": 1
+              },
+              "limit": 2,
+              "reservation": 1,
+              "reset": "reconciled"
+            },
+            {
+              "budget_id": "storage",
+              "owner": {
+                "owner_id": "range",
+                "kind": "deployment_tenant",
+                "owner_ref": "deployment.tenant.range-a"
+              },
+              "pool_ref": "range-pool",
+              "quantity": {
+                "resource_kind": "storage_growth",
+                "unit": "bytes",
+                "accounting_mode": "growth_counter",
+                "meter_profile_ref": "raes.logical-byte/v1",
+                "amount": 4096
+              },
+              "limit": 1048576,
+              "reservation": 4096,
+              "reset": "reconciled"
+            },
+            {
+              "budget_id": "tokens",
+              "owner": {
+                "owner_id": "inference",
+                "kind": "shared_service",
+                "owner_ref": "provision.node.inference.service.http"
+              },
+              "pool_ref": "inference-pool",
+              "quantity": {
+                "resource_kind": "inference_tokens",
+                "unit": "tokens",
+                "accounting_mode": "windowed_counter",
+                "meter_profile_ref": "tokenizer.example/v1",
+                "amount": 500
+              },
+              "limit": 20000,
+              "reservation": 500,
+              "reset": "time_segment",
+              "window_ticks": 100
+            },
+            {
+              "budget_id": "images",
+              "owner": {
+                "owner_id": "inference",
+                "kind": "shared_service",
+                "owner_ref": "provision.node.inference.service.http"
+              },
+              "pool_ref": "inference-pool",
+              "quantity": {
+                "resource_kind": "image_generations",
+                "unit": "images",
+                "accounting_mode": "cumulative_counter",
+                "meter_profile_ref": "raes.image-generation/v1",
+                "amount": 1
+              },
+              "limit": 20,
+              "reservation": 1,
+              "reset": "run"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "foreign-owner",
+      "contract_id": "participant-resource-budget-policy-v1",
+      "baseline": "participant-resource-budget-policy-v1",
+      "valid": false,
+      "changes": [
+        {
+          "path": [
+            "demands"
+          ],
+          "value": [
+            {
+              "budget_id": "actions",
+              "owner": {
+                "owner_id": "participant",
+                "kind": "participant",
+                "owner_ref": "foreign"
+              },
+              "pool_ref": "participant-pool",
+              "quantity": {
+                "resource_kind": "action_rate",
+                "unit": "actions",
+                "accounting_mode": "windowed_counter",
+                "meter_profile_ref": "raes.action-attempt/v1",
+                "amount": 1
+              },
+              "limit": 24,
+              "reservation": 1,
+              "reset": "time_segment",
+              "window_ticks": 100
+            },
+            {
+              "budget_id": "concurrency",
+              "owner": {
+                "owner_id": "participant",
+                "kind": "participant",
+                "owner_ref": "participant.behavior.green"
+              },
+              "pool_ref": "participant-pool",
+              "quantity": {
+                "resource_kind": "concurrent_actions",
+                "unit": "actions",
+                "accounting_mode": "reservable_gauge",
+                "meter_profile_ref": "raes.concurrent-action/v1",
+                "amount": 1
+              },
+              "limit": 2,
+              "reservation": 1,
+              "reset": "reconciled"
+            },
+            {
+              "budget_id": "storage",
+              "owner": {
+                "owner_id": "range",
+                "kind": "deployment_tenant",
+                "owner_ref": "deployment.tenant.range-a"
+              },
+              "pool_ref": "range-pool",
+              "quantity": {
+                "resource_kind": "storage_growth",
+                "unit": "bytes",
+                "accounting_mode": "growth_counter",
+                "meter_profile_ref": "raes.logical-byte/v1",
+                "amount": 4096
+              },
+              "limit": 1048576,
+              "reservation": 4096,
+              "reset": "reconciled"
+            },
+            {
+              "budget_id": "tokens",
+              "owner": {
+                "owner_id": "inference",
+                "kind": "shared_service",
+                "owner_ref": "provision.node.inference.service.http"
+              },
+              "pool_ref": "inference-pool",
+              "quantity": {
+                "resource_kind": "inference_tokens",
+                "unit": "tokens",
+                "accounting_mode": "windowed_counter",
+                "meter_profile_ref": "tokenizer.example/v1",
+                "amount": 500
+              },
+              "limit": 20000,
+              "reservation": 500,
+              "reset": "time_segment",
+              "window_ticks": 100
+            },
+            {
+              "budget_id": "images",
+              "owner": {
+                "owner_id": "inference",
+                "kind": "shared_service",
+                "owner_ref": "provision.node.inference.service.http"
+              },
+              "pool_ref": "inference-pool",
+              "quantity": {
+                "resource_kind": "image_generations",
+                "unit": "images",
+                "accounting_mode": "cumulative_counter",
+                "meter_profile_ref": "raes.image-generation/v1",
+                "amount": 1
+              },
+              "limit": 20,
+              "reservation": 1,
+              "reset": "run"
+            },
+            {
+              "budget_id": "accelerator",
+              "owner": {
+                "owner_id": "fleet",
+                "kind": "fleet",
+                "owner_ref": "fleet.primary"
+              },
+              "pool_ref": "accelerator-pool",
+              "quantity": {
+                "resource_kind": "accelerator",
+                "unit": "accelerator_milliseconds",
+                "accounting_mode": "lease",
+                "meter_profile_ref": "raes.accelerator-class.generic/v1",
+                "amount": 1000
+              },
+              "limit": 60000,
+              "reservation": 1000,
+              "reset": "reconciled"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "bad-unit",
+      "contract_id": "participant-resource-budget-policy-v1",
+      "baseline": "participant-resource-budget-policy-v1",
+      "valid": false,
+      "changes": [
+        {
+          "path": [
+            "demands"
+          ],
+          "value": [
+            {
+              "budget_id": "actions",
+              "owner": {
+                "owner_id": "participant",
+                "kind": "participant",
+                "owner_ref": "participant.behavior.green"
+              },
+              "pool_ref": "participant-pool",
+              "quantity": {
+                "resource_kind": "action_rate",
+                "unit": "bad-unit",
+                "accounting_mode": "windowed_counter",
+                "meter_profile_ref": "raes.action-attempt/v1",
+                "amount": 1
+              },
+              "limit": 24,
+              "reservation": 1,
+              "reset": "time_segment",
+              "window_ticks": 100
+            },
+            {
+              "budget_id": "concurrency",
+              "owner": {
+                "owner_id": "participant",
+                "kind": "participant",
+                "owner_ref": "participant.behavior.green"
+              },
+              "pool_ref": "participant-pool",
+              "quantity": {
+                "resource_kind": "concurrent_actions",
+                "unit": "actions",
+                "accounting_mode": "reservable_gauge",
+                "meter_profile_ref": "raes.concurrent-action/v1",
+                "amount": 1
+              },
+              "limit": 2,
+              "reservation": 1,
+              "reset": "reconciled"
+            },
+            {
+              "budget_id": "storage",
+              "owner": {
+                "owner_id": "range",
+                "kind": "deployment_tenant",
+                "owner_ref": "deployment.tenant.range-a"
+              },
+              "pool_ref": "range-pool",
+              "quantity": {
+                "resource_kind": "storage_growth",
+                "unit": "bytes",
+                "accounting_mode": "growth_counter",
+                "meter_profile_ref": "raes.logical-byte/v1",
+                "amount": 4096
+              },
+              "limit": 1048576,
+              "reservation": 4096,
+              "reset": "reconciled"
+            },
+            {
+              "budget_id": "tokens",
+              "owner": {
+                "owner_id": "inference",
+                "kind": "shared_service",
+                "owner_ref": "provision.node.inference.service.http"
+              },
+              "pool_ref": "inference-pool",
+              "quantity": {
+                "resource_kind": "inference_tokens",
+                "unit": "tokens",
+                "accounting_mode": "windowed_counter",
+                "meter_profile_ref": "tokenizer.example/v1",
+                "amount": 500
+              },
+              "limit": 20000,
+              "reservation": 500,
+              "reset": "time_segment",
+              "window_ticks": 100
+            },
+            {
+              "budget_id": "images",
+              "owner": {
+                "owner_id": "inference",
+                "kind": "shared_service",
+                "owner_ref": "provision.node.inference.service.http"
+              },
+              "pool_ref": "inference-pool",
+              "quantity": {
+                "resource_kind": "image_generations",
+                "unit": "images",
+                "accounting_mode": "cumulative_counter",
+                "meter_profile_ref": "raes.image-generation/v1",
+                "amount": 1
+              },
+              "limit": 20,
+              "reservation": 1,
+              "reset": "run"
+            },
+            {
+              "budget_id": "accelerator",
+              "owner": {
+                "owner_id": "fleet",
+                "kind": "fleet",
+                "owner_ref": "fleet.primary"
+              },
+              "pool_ref": "accelerator-pool",
+              "quantity": {
+                "resource_kind": "accelerator",
+                "unit": "accelerator_milliseconds",
+                "accounting_mode": "lease",
+                "meter_profile_ref": "raes.accelerator-class.generic/v1",
+                "amount": 1000
+              },
+              "limit": 60000,
+              "reservation": 1000,
+              "reset": "reconciled"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "bad-accounting",
+      "contract_id": "participant-resource-budget-policy-v1",
+      "baseline": "participant-resource-budget-policy-v1",
+      "valid": false,
+      "changes": [
+        {
+          "path": [
+            "demands"
+          ],
+          "value": [
+            {
+              "budget_id": "actions",
+              "owner": {
+                "owner_id": "participant",
+                "kind": "participant",
+                "owner_ref": "participant.behavior.green"
+              },
+              "pool_ref": "participant-pool",
+              "quantity": {
+                "resource_kind": "action_rate",
+                "unit": "actions",
+                "accounting_mode": "lease",
+                "meter_profile_ref": "raes.action-attempt/v1",
+                "amount": 1
+              },
+              "limit": 24,
+              "reservation": 1,
+              "reset": "time_segment",
+              "window_ticks": 100
+            },
+            {
+              "budget_id": "concurrency",
+              "owner": {
+                "owner_id": "participant",
+                "kind": "participant",
+                "owner_ref": "participant.behavior.green"
+              },
+              "pool_ref": "participant-pool",
+              "quantity": {
+                "resource_kind": "concurrent_actions",
+                "unit": "actions",
+                "accounting_mode": "reservable_gauge",
+                "meter_profile_ref": "raes.concurrent-action/v1",
+                "amount": 1
+              },
+              "limit": 2,
+              "reservation": 1,
+              "reset": "reconciled"
+            },
+            {
+              "budget_id": "storage",
+              "owner": {
+                "owner_id": "range",
+                "kind": "deployment_tenant",
+                "owner_ref": "deployment.tenant.range-a"
+              },
+              "pool_ref": "range-pool",
+              "quantity": {
+                "resource_kind": "storage_growth",
+                "unit": "bytes",
+                "accounting_mode": "growth_counter",
+                "meter_profile_ref": "raes.logical-byte/v1",
+                "amount": 4096
+              },
+              "limit": 1048576,
+              "reservation": 4096,
+              "reset": "reconciled"
+            },
+            {
+              "budget_id": "tokens",
+              "owner": {
+                "owner_id": "inference",
+                "kind": "shared_service",
+                "owner_ref": "provision.node.inference.service.http"
+              },
+              "pool_ref": "inference-pool",
+              "quantity": {
+                "resource_kind": "inference_tokens",
+                "unit": "tokens",
+                "accounting_mode": "windowed_counter",
+                "meter_profile_ref": "tokenizer.example/v1",
+                "amount": 500
+              },
+              "limit": 20000,
+              "reservation": 500,
+              "reset": "time_segment",
+              "window_ticks": 100
+            },
+            {
+              "budget_id": "images",
+              "owner": {
+                "owner_id": "inference",
+                "kind": "shared_service",
+                "owner_ref": "provision.node.inference.service.http"
+              },
+              "pool_ref": "inference-pool",
+              "quantity": {
+                "resource_kind": "image_generations",
+                "unit": "images",
+                "accounting_mode": "cumulative_counter",
+                "meter_profile_ref": "raes.image-generation/v1",
+                "amount": 1
+              },
+              "limit": 20,
+              "reservation": 1,
+              "reset": "run"
+            },
+            {
+              "budget_id": "accelerator",
+              "owner": {
+                "owner_id": "fleet",
+                "kind": "fleet",
+                "owner_ref": "fleet.primary"
+              },
+              "pool_ref": "accelerator-pool",
+              "quantity": {
+                "resource_kind": "accelerator",
+                "unit": "accelerator_milliseconds",
+                "accounting_mode": "lease",
+                "meter_profile_ref": "raes.accelerator-class.generic/v1",
+                "amount": 1000
+              },
+              "limit": 60000,
+              "reservation": 1000,
+              "reset": "reconciled"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "excess-reservation",
+      "contract_id": "participant-resource-budget-policy-v1",
+      "baseline": "participant-resource-budget-policy-v1",
+      "valid": false,
+      "changes": [
+        {
+          "path": [
+            "demands"
+          ],
+          "value": [
+            {
+              "budget_id": "actions",
+              "owner": {
+                "owner_id": "participant",
+                "kind": "participant",
+                "owner_ref": "participant.behavior.green"
+              },
+              "pool_ref": "participant-pool",
+              "quantity": {
+                "resource_kind": "action_rate",
+                "unit": "actions",
+                "accounting_mode": "windowed_counter",
+                "meter_profile_ref": "raes.action-attempt/v1",
+                "amount": 1
+              },
+              "limit": 24,
+              "reservation": 1000000000000000000,
+              "reset": "time_segment",
+              "window_ticks": 100
+            },
+            {
+              "budget_id": "concurrency",
+              "owner": {
+                "owner_id": "participant",
+                "kind": "participant",
+                "owner_ref": "participant.behavior.green"
+              },
+              "pool_ref": "participant-pool",
+              "quantity": {
+                "resource_kind": "concurrent_actions",
+                "unit": "actions",
+                "accounting_mode": "reservable_gauge",
+                "meter_profile_ref": "raes.concurrent-action/v1",
+                "amount": 1
+              },
+              "limit": 2,
+              "reservation": 1,
+              "reset": "reconciled"
+            },
+            {
+              "budget_id": "storage",
+              "owner": {
+                "owner_id": "range",
+                "kind": "deployment_tenant",
+                "owner_ref": "deployment.tenant.range-a"
+              },
+              "pool_ref": "range-pool",
+              "quantity": {
+                "resource_kind": "storage_growth",
+                "unit": "bytes",
+                "accounting_mode": "growth_counter",
+                "meter_profile_ref": "raes.logical-byte/v1",
+                "amount": 4096
+              },
+              "limit": 1048576,
+              "reservation": 4096,
+              "reset": "reconciled"
+            },
+            {
+              "budget_id": "tokens",
+              "owner": {
+                "owner_id": "inference",
+                "kind": "shared_service",
+                "owner_ref": "provision.node.inference.service.http"
+              },
+              "pool_ref": "inference-pool",
+              "quantity": {
+                "resource_kind": "inference_tokens",
+                "unit": "tokens",
+                "accounting_mode": "windowed_counter",
+                "meter_profile_ref": "tokenizer.example/v1",
+                "amount": 500
+              },
+              "limit": 20000,
+              "reservation": 500,
+              "reset": "time_segment",
+              "window_ticks": 100
+            },
+            {
+              "budget_id": "images",
+              "owner": {
+                "owner_id": "inference",
+                "kind": "shared_service",
+                "owner_ref": "provision.node.inference.service.http"
+              },
+              "pool_ref": "inference-pool",
+              "quantity": {
+                "resource_kind": "image_generations",
+                "unit": "images",
+                "accounting_mode": "cumulative_counter",
+                "meter_profile_ref": "raes.image-generation/v1",
+                "amount": 1
+              },
+              "limit": 20,
+              "reservation": 1,
+              "reset": "run"
+            },
+            {
+              "budget_id": "accelerator",
+              "owner": {
+                "owner_id": "fleet",
+                "kind": "fleet",
+                "owner_ref": "fleet.primary"
+              },
+              "pool_ref": "accelerator-pool",
+              "quantity": {
+                "resource_kind": "accelerator",
+                "unit": "accelerator_milliseconds",
+                "accounting_mode": "lease",
+                "meter_profile_ref": "raes.accelerator-class.generic/v1",
+                "amount": 1000
+              },
+              "limit": 60000,
+              "reservation": 1000,
+              "reset": "reconciled"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "unknown-parent",
+      "contract_id": "participant-resource-budget-policy-v1",
+      "baseline": "participant-resource-budget-policy-v1",
+      "valid": false,
+      "changes": [
+        {
+          "path": [
+            "demands"
+          ],
+          "value": [
+            {
+              "budget_id": "actions",
+              "owner": {
+                "owner_id": "participant",
+                "kind": "participant",
+                "owner_ref": "participant.behavior.green"
+              },
+              "pool_ref": "participant-pool",
+              "quantity": {
+                "resource_kind": "action_rate",
+                "unit": "actions",
+                "accounting_mode": "windowed_counter",
+                "meter_profile_ref": "raes.action-attempt/v1",
+                "amount": 1
+              },
+              "limit": 24,
+              "reservation": 1,
+              "reset": "time_segment",
+              "window_ticks": 100,
+              "parent_budget_ref": "missing"
+            },
+            {
+              "budget_id": "concurrency",
+              "owner": {
+                "owner_id": "participant",
+                "kind": "participant",
+                "owner_ref": "participant.behavior.green"
+              },
+              "pool_ref": "participant-pool",
+              "quantity": {
+                "resource_kind": "concurrent_actions",
+                "unit": "actions",
+                "accounting_mode": "reservable_gauge",
+                "meter_profile_ref": "raes.concurrent-action/v1",
+                "amount": 1
+              },
+              "limit": 2,
+              "reservation": 1,
+              "reset": "reconciled"
+            },
+            {
+              "budget_id": "storage",
+              "owner": {
+                "owner_id": "range",
+                "kind": "deployment_tenant",
+                "owner_ref": "deployment.tenant.range-a"
+              },
+              "pool_ref": "range-pool",
+              "quantity": {
+                "resource_kind": "storage_growth",
+                "unit": "bytes",
+                "accounting_mode": "growth_counter",
+                "meter_profile_ref": "raes.logical-byte/v1",
+                "amount": 4096
+              },
+              "limit": 1048576,
+              "reservation": 4096,
+              "reset": "reconciled"
+            },
+            {
+              "budget_id": "tokens",
+              "owner": {
+                "owner_id": "inference",
+                "kind": "shared_service",
+                "owner_ref": "provision.node.inference.service.http"
+              },
+              "pool_ref": "inference-pool",
+              "quantity": {
+                "resource_kind": "inference_tokens",
+                "unit": "tokens",
+                "accounting_mode": "windowed_counter",
+                "meter_profile_ref": "tokenizer.example/v1",
+                "amount": 500
+              },
+              "limit": 20000,
+              "reservation": 500,
+              "reset": "time_segment",
+              "window_ticks": 100
+            },
+            {
+              "budget_id": "images",
+              "owner": {
+                "owner_id": "inference",
+                "kind": "shared_service",
+                "owner_ref": "provision.node.inference.service.http"
+              },
+              "pool_ref": "inference-pool",
+              "quantity": {
+                "resource_kind": "image_generations",
+                "unit": "images",
+                "accounting_mode": "cumulative_counter",
+                "meter_profile_ref": "raes.image-generation/v1",
+                "amount": 1
+              },
+              "limit": 20,
+              "reservation": 1,
+              "reset": "run"
+            },
+            {
+              "budget_id": "accelerator",
+              "owner": {
+                "owner_id": "fleet",
+                "kind": "fleet",
+                "owner_ref": "fleet.primary"
+              },
+              "pool_ref": "accelerator-pool",
+              "quantity": {
+                "resource_kind": "accelerator",
+                "unit": "accelerator_milliseconds",
+                "accounting_mode": "lease",
+                "meter_profile_ref": "raes.accelerator-class.generic/v1",
+                "amount": 1000
+              },
+              "limit": 60000,
+              "reservation": 1000,
+              "reset": "reconciled"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "self-parent",
+      "contract_id": "participant-resource-budget-policy-v1",
+      "baseline": "participant-resource-budget-policy-v1",
+      "valid": false,
+      "changes": [
+        {
+          "path": [
+            "demands"
+          ],
+          "value": [
+            {
+              "budget_id": "actions",
+              "owner": {
+                "owner_id": "participant",
+                "kind": "participant",
+                "owner_ref": "participant.behavior.green"
+              },
+              "pool_ref": "participant-pool",
+              "quantity": {
+                "resource_kind": "action_rate",
+                "unit": "actions",
+                "accounting_mode": "windowed_counter",
+                "meter_profile_ref": "raes.action-attempt/v1",
+                "amount": 1
+              },
+              "limit": 24,
+              "reservation": 1,
+              "reset": "time_segment",
+              "window_ticks": 100,
+              "parent_budget_ref": "actions"
+            },
+            {
+              "budget_id": "concurrency",
+              "owner": {
+                "owner_id": "participant",
+                "kind": "participant",
+                "owner_ref": "participant.behavior.green"
+              },
+              "pool_ref": "participant-pool",
+              "quantity": {
+                "resource_kind": "concurrent_actions",
+                "unit": "actions",
+                "accounting_mode": "reservable_gauge",
+                "meter_profile_ref": "raes.concurrent-action/v1",
+                "amount": 1
+              },
+              "limit": 2,
+              "reservation": 1,
+              "reset": "reconciled"
+            },
+            {
+              "budget_id": "storage",
+              "owner": {
+                "owner_id": "range",
+                "kind": "deployment_tenant",
+                "owner_ref": "deployment.tenant.range-a"
+              },
+              "pool_ref": "range-pool",
+              "quantity": {
+                "resource_kind": "storage_growth",
+                "unit": "bytes",
+                "accounting_mode": "growth_counter",
+                "meter_profile_ref": "raes.logical-byte/v1",
+                "amount": 4096
+              },
+              "limit": 1048576,
+              "reservation": 4096,
+              "reset": "reconciled"
+            },
+            {
+              "budget_id": "tokens",
+              "owner": {
+                "owner_id": "inference",
+                "kind": "shared_service",
+                "owner_ref": "provision.node.inference.service.http"
+              },
+              "pool_ref": "inference-pool",
+              "quantity": {
+                "resource_kind": "inference_tokens",
+                "unit": "tokens",
+                "accounting_mode": "windowed_counter",
+                "meter_profile_ref": "tokenizer.example/v1",
+                "amount": 500
+              },
+              "limit": 20000,
+              "reservation": 500,
+              "reset": "time_segment",
+              "window_ticks": 100
+            },
+            {
+              "budget_id": "images",
+              "owner": {
+                "owner_id": "inference",
+                "kind": "shared_service",
+                "owner_ref": "provision.node.inference.service.http"
+              },
+              "pool_ref": "inference-pool",
+              "quantity": {
+                "resource_kind": "image_generations",
+                "unit": "images",
+                "accounting_mode": "cumulative_counter",
+                "meter_profile_ref": "raes.image-generation/v1",
+                "amount": 1
+              },
+              "limit": 20,
+              "reservation": 1,
+              "reset": "run"
+            },
+            {
+              "budget_id": "accelerator",
+              "owner": {
+                "owner_id": "fleet",
+                "kind": "fleet",
+                "owner_ref": "fleet.primary"
+              },
+              "pool_ref": "accelerator-pool",
+              "quantity": {
+                "resource_kind": "accelerator",
+                "unit": "accelerator_milliseconds",
+                "accounting_mode": "lease",
+                "meter_profile_ref": "raes.accelerator-class.generic/v1",
+                "amount": 1000
+              },
+              "limit": 60000,
+              "reservation": 1000,
+              "reset": "reconciled"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "demand-duplicate-evidence",
+      "contract_id": "participant-resource-budget-policy-v1",
+      "baseline": "participant-resource-budget-policy-v1",
+      "valid": false,
+      "changes": [
+        {
+          "path": [
+            "demands"
+          ],
+          "value": [
+            {
+              "budget_id": "actions",
+              "owner": {
+                "owner_id": "participant",
+                "kind": "participant",
+                "owner_ref": "participant.behavior.green"
+              },
+              "pool_ref": "participant-pool",
+              "quantity": {
+                "resource_kind": "action_rate",
+                "unit": "actions",
+                "accounting_mode": "windowed_counter",
+                "meter_profile_ref": "raes.action-attempt/v1",
+                "amount": 1
+              },
+              "limit": 24,
+              "reservation": 1,
+              "reset": "time_segment",
+              "window_ticks": 100,
+              "evidence_refs": [
+                "e",
+                "e"
+              ]
+            },
+            {
+              "budget_id": "concurrency",
+              "owner": {
+                "owner_id": "participant",
+                "kind": "participant",
+                "owner_ref": "participant.behavior.green"
+              },
+              "pool_ref": "participant-pool",
+              "quantity": {
+                "resource_kind": "concurrent_actions",
+                "unit": "actions",
+                "accounting_mode": "reservable_gauge",
+                "meter_profile_ref": "raes.concurrent-action/v1",
+                "amount": 1
+              },
+              "limit": 2,
+              "reservation": 1,
+              "reset": "reconciled"
+            },
+            {
+              "budget_id": "storage",
+              "owner": {
+                "owner_id": "range",
+                "kind": "deployment_tenant",
+                "owner_ref": "deployment.tenant.range-a"
+              },
+              "pool_ref": "range-pool",
+              "quantity": {
+                "resource_kind": "storage_growth",
+                "unit": "bytes",
+                "accounting_mode": "growth_counter",
+                "meter_profile_ref": "raes.logical-byte/v1",
+                "amount": 4096
+              },
+              "limit": 1048576,
+              "reservation": 4096,
+              "reset": "reconciled"
+            },
+            {
+              "budget_id": "tokens",
+              "owner": {
+                "owner_id": "inference",
+                "kind": "shared_service",
+                "owner_ref": "provision.node.inference.service.http"
+              },
+              "pool_ref": "inference-pool",
+              "quantity": {
+                "resource_kind": "inference_tokens",
+                "unit": "tokens",
+                "accounting_mode": "windowed_counter",
+                "meter_profile_ref": "tokenizer.example/v1",
+                "amount": 500
+              },
+              "limit": 20000,
+              "reservation": 500,
+              "reset": "time_segment",
+              "window_ticks": 100
+            },
+            {
+              "budget_id": "images",
+              "owner": {
+                "owner_id": "inference",
+                "kind": "shared_service",
+                "owner_ref": "provision.node.inference.service.http"
+              },
+              "pool_ref": "inference-pool",
+              "quantity": {
+                "resource_kind": "image_generations",
+                "unit": "images",
+                "accounting_mode": "cumulative_counter",
+                "meter_profile_ref": "raes.image-generation/v1",
+                "amount": 1
+              },
+              "limit": 20,
+              "reservation": 1,
+              "reset": "run"
+            },
+            {
+              "budget_id": "accelerator",
+              "owner": {
+                "owner_id": "fleet",
+                "kind": "fleet",
+                "owner_ref": "fleet.primary"
+              },
+              "pool_ref": "accelerator-pool",
+              "quantity": {
+                "resource_kind": "accelerator",
+                "unit": "accelerator_milliseconds",
+                "accounting_mode": "lease",
+                "meter_profile_ref": "raes.accelerator-class.generic/v1",
+                "amount": 1000
+              },
+              "limit": 60000,
+              "reservation": 1000,
+              "reset": "reconciled"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "pool-protected-overflow",
+      "contract_id": "participant-resource-pool-capacity-v1",
+      "baseline": "participant-resource-pool-capacity-v1",
+      "valid": false,
+      "changes": [
+        {
+          "path": [
+            "protected_capacity"
+          ],
+          "value": 20001
+        }
+      ]
+    },
+    {
+      "name": "pool-bad-unit",
+      "contract_id": "participant-resource-pool-capacity-v1",
+      "baseline": "participant-resource-pool-capacity-v1",
+      "valid": false,
+      "changes": [
+        {
+          "path": [
+            "unit"
+          ],
+          "value": "bad-unit"
+        }
+      ]
+    },
+    {
+      "name": "pool-bad-mode",
+      "contract_id": "participant-resource-pool-capacity-v1",
+      "baseline": "participant-resource-pool-capacity-v1",
+      "valid": false,
+      "changes": [
+        {
+          "path": [
+            "accounting_mode"
+          ],
+          "value": "lease"
+        }
+      ]
+    },
+    {
+      "name": "pool-duplicate-priority",
+      "contract_id": "participant-resource-pool-capacity-v1",
+      "baseline": "participant-resource-pool-capacity-v1",
+      "valid": false,
+      "changes": [
+        {
+          "path": [
+            "priority_classes"
+          ],
+          "value": [
+            "p",
+            "p"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "pool-duplicate-evidence-contract",
+      "contract_id": "participant-resource-pool-capacity-v1",
+      "baseline": "participant-resource-pool-capacity-v1",
+      "valid": false,
+      "changes": [
+        {
+          "path": [
+            "evidence_contract_ids"
+          ],
+          "value": [
+            "e",
+            "e"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "state-foreign-id",
+      "contract_id": "participant-resource-budget-state-v1",
+      "baseline": "participant-resource-budget-state-v1",
+      "valid": false,
+      "changes": [
+        {
+          "path": [
+            "state_ref"
+          ],
+          "value": "foreign-state"
+        }
+      ]
+    },
+    {
+      "name": "state-bad-unit",
+      "contract_id": "participant-resource-budget-state-v1",
+      "baseline": "participant-resource-budget-state-v1",
+      "valid": false,
+      "changes": [
+        {
+          "path": [
+            "unit"
+          ],
+          "value": "bad-unit"
+        }
+      ]
+    },
+    {
+      "name": "state-excess-reservation",
+      "contract_id": "participant-resource-budget-state-v1",
+      "baseline": "participant-resource-budget-state-v1",
+      "valid": false,
+      "changes": [
+        {
+          "path": [
+            "reserved"
+          ],
+          "value": 1000000000000000000
+        }
+      ]
+    },
+    {
+      "name": "state-excess-usage",
+      "contract_id": "participant-resource-budget-state-v1",
+      "baseline": "participant-resource-budget-state-v1",
+      "valid": false,
+      "changes": [
+        {
+          "path": [
+            "current_use"
+          ],
+          "value": 1000000000000000000
+        }
+      ]
+    },
+    {
+      "name": "state-duplicate-evidence",
+      "contract_id": "participant-resource-budget-state-v1",
+      "baseline": "participant-resource-budget-state-v1",
+      "valid": false,
+      "changes": [
+        {
+          "path": [
+            "evidence_refs"
+          ],
+          "value": [
+            "e",
+            "e"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "event-foreign-id",
+      "contract_id": "participant-resource-budget-event-v1",
+      "baseline": "participant-resource-budget-event-v1",
+      "valid": false,
+      "changes": [
+        {
+          "path": [
+            "budget_state_ref"
+          ],
+          "value": "foreign-state"
+        }
+      ]
+    },
+    {
+      "name": "event-wrong-disposition",
+      "contract_id": "participant-resource-budget-event-v1",
+      "baseline": "participant-resource-budget-event-v1",
+      "valid": false,
+      "changes": [
+        {
+          "path": [
+            "disposition"
+          ],
+          "value": "reserved"
+        }
+      ]
+    },
+    {
+      "name": "commit-without-measurement",
+      "contract_id": "participant-resource-budget-event-v1",
+      "baseline": "participant-resource-budget-event-v1",
+      "valid": false,
+      "changes": [
+        {
+          "path": [
+            "measured"
+          ],
+          "value": null
+        }
+      ]
+    },
+    {
+      "name": "event-duplicate-evidence",
+      "contract_id": "participant-resource-budget-event-v1",
+      "baseline": "participant-resource-budget-event-v1",
+      "valid": false,
+      "changes": [
+        {
+          "path": [
+            "evidence_refs"
+          ],
+          "value": [
+            "e",
+            "e"
+          ]
+        }
+      ]
+    }
+  ]
+}

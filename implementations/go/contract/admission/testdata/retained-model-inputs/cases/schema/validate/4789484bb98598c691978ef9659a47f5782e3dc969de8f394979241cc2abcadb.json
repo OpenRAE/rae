@@ -1,0 +1,14 @@
+{
+  "args": [
+    "participant-resource-pool-capacity-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:eeb21f8deb1b0e841f01a013b9346d5704d038e79d39503add055969511acb17"
+  },
+  "name": "regression/a9b46e952fd55a44b2556093cc50750508376d76374316084ae535c596611023",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

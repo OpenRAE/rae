@@ -7,7 +7,7 @@ import (
 	"maps"
 	"slices"
 
-	"github.com/OpenRAE/rae/implementations/go/internal/base/fault"
+	"github.com/OpenRAE/rae/implementations/go/base/fault"
 )
 
 // ErrGraph reports a missing key in a graph required to be closed.

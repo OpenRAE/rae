@@ -407,6 +407,27 @@ demonstrated its lost-update and partial-state failures.
   bounded issues in the Runtime Control-Plane milestone; no guarantee named
   here is claimable before its issue lands.
 
+## Repository ownership at the Go cutover
+
+At #1804, the shared engine and control plane move to the new runtime repository.
+Its owner also takes the HTTP API, stores and Temporal workers.
+Live participant control, injects, experiment/run execution and operational archives move with them.
+The [split plan](../issue-1891-runtime-repository-boundary.md) changes where the code lives and who publishes it.
+It does not change behavior.
+
+Runtime uses released public SDL, processor, contract and backend APIs from `OpenRAE/rae`.
+`rae` keeps the specs, schemas, DTOs, profiles and contract validation.
+All lifecycle and admission rules still apply.
+Keep actor and scope checks, idempotency, leases, recovery and store rules.
+Keep uncertain-effect handling, evidence and secret boundaries, and authored retry limits.
+A repository split grants no new rights.
+
+Local embedding still needs no service.
+P3 stays unavailable.
+Coldlight uses this shared runtime from its new owner.
+It must not build a second scenario runtime.
+There is no user-facing runtime launch before the common #1804 gate.
+
 ## Amendments
 
 | Date | Commit/PR | Summary |
@@ -419,3 +440,4 @@ demonstrated its lost-update and partial-state failures.
 | 2026-09-25 | #1356 follow-up | Clarified SDK method access, optional P2 identity scope, host policy, and the legacy no-resolver projection gap. |
 | 2026-10-27 | #1660 | Required one runtime authority for the interaction lifetime, reusing control-plane invariants and composing only needed scenario components. |
 | 2026-10-28 | #1629 | Separated shared engine lifetime from fixed run contexts, preserving resource reservations and authored retry policy across local and Temporal execution. |
+| 2026-11-04 | #1891 | Recorded the planned runtime repository owner and one-way public dependencies at the common Go cutover; preserved behavioral decisions. |

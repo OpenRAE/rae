@@ -1,13 +1,9 @@
 # Code scanning across branches
 
-CodeQL default setup uses one language list for the whole repository.
-Main and dev contain the release helper's JavaScript source.
-Go cutover has no JavaScript source.
-The shared list makes its JavaScript scan fail before analysis.
-
-The CodeQL workflow uses the PR base or push branch to select languages.
-Actions and Python scans run on all three branches.
-JavaScript scans run on main and dev.
+The CodeQL workflow replaces CodeQL default setup.
+Main, dev and Go cutover contain the release helper's JavaScript source.
+Actions, Python and JavaScript scans run on all three branches.
+The rulesets of the three branches require each of these scan results.
 The current Go compiler, analyzer, Sonar and OSV checks stay required.
 Update this language matrix as part of the hard cutover.
 
@@ -41,7 +37,7 @@ It may not add command steps, build source code or acquire other write scopes.
    Restore default setup, retain the failure evidence, and fix the workflow.
 
 The dev change reaches main through the existing promotion PR.
-The Go cutover copy travels with the module verification change.
+The Go cutover copy travels with the semantic fixture change (#2036).
 Activate after the main and dev copies land and the cutover copy is reviewed.
 Do not merge a Go cutover change that lacks the replacement workflow.
 

@@ -17,7 +17,7 @@
       "binding_class": "external-service-project-key",
       "rationale": "Retains the existing service-owned Ground Control and SonarCloud project designations without treating them as current RAES product identity.",
       "occurrences": 2,
-      "content_sha256": "ad8eff3558b5b1a0b9334c7f14746b0f1ba336a96d70feb8d9cd96937f8b1e5a"
+      "content_sha256": "1f0e4c250c997fc8d74b54bdb54465a1b2d2338ccfbb5c44cee77b6bcc8279e2"
     },
     {
       "path": "sonar-project.properties",
@@ -213,9 +213,9 @@
     {
       "path": "docs/decisions/adrs/adr-036-sdl-processor-runtime-module-boundaries.md",
       "record_class": "accepted-adr",
-      "rationale": "Preserves an accepted architecture decision as written before the RAES identity cutover.",
+      "rationale": "Preserves an accepted architecture decision as written before the RAES identity cutover. Records the issue-1891 repository ownership amendment and pins while preserving the pre-cutover identity text.",
       "occurrences": 18,
-      "content_sha256": "80274b6f6f7529fdce17d3451acb2201f6ecf07095dbc5f6b36aa81399ddcdd9"
+      "content_sha256": "8b23019d17144225d08d6a38301a62a3eb2490c122a3d2ed36a67ab0804d84fa"
     },
     {
       "path": "docs/decisions/adrs/adr-037-runtime-file-service-and-filesystem-presence-semantics.md",
@@ -479,9 +479,9 @@
     {
       "path": "docs/decisions/adrs/adr-092-autonomous-benign-participants-under-shared-time.md",
       "record_class": "accepted-adr",
-      "rationale": "Preserves pre-cutover identity occurrences in the accepted decision, including the authorized issue-1740 invocation tool-action amendment.",
+      "rationale": "Preserves pre-cutover identity occurrences in the accepted decision, including the authorized issue-1740 invocation tool-action amendment and the issue-2020 participant release amendment.",
       "occurrences": 1,
-      "content_sha256": "c0b2643a15581d527918a4f83a96e4e8b08a8bf34ccbfcc350c445aac5ebda4f"
+      "content_sha256": "c6172e9ad1b7be23f664655db094977d516d2940a3e75c8de59ac465be115e0f"
     },
     {
       "path": "docs/decisions/adrs/adr-093-raes-rename-and-compatibility-boundaries.md",
@@ -493,9 +493,9 @@
     {
       "path": "docs/decisions/adrs/adr-index.yaml",
       "record_class": "historical-index",
-      "rationale": "Preserves pre-cutover ADR identity entries while registering the authorized issue-1630, issue-1008, issue-1740 and issue-1773 amendments, the PR-1752 ADR-117 amendment, the issue-1774 ADR-121 entry, the issue-1775 ADR-121 amendment and ADR-122 entry, the issue-1776 ADR-055 and ADR-098 amendments, the issue-1778 ADR-122 amendment, the issue-976 ADR-100 amendment, and their pins.",
+      "rationale": "Preserves pre-cutover ADR identity entries while registering the authorized issue-1630, issue-1008, issue-1740 and issue-1773 amendments, the PR-1752 ADR-117 amendment, the issue-1774 ADR-121 entry, the issue-1775 ADR-121 amendment and ADR-122 entry, the issue-1776 ADR-055 and ADR-098 amendments, the issue-1778 ADR-122 amendment, the issue-976 ADR-100 amendment, and their pins. Also records the issue-1780 ADR-122 snapshot-storage amendment. Records the issue-1891 repository ownership amendment and pins while preserving the pre-cutover identity text. Records the issue-1825 public consumer API amendment and pin without changing historical identity entries. Records the issue-1892 public package relocation amendment and pin. Records the issue-2020 ADR-092 participant release amendment and pin.",
       "occurrences": 4,
-      "content_sha256": "3e3d19aea624d1cf646459a4c7a7116dfa206cb4d77a4dbe95d531b9aaeb4c79"
+      "content_sha256": "f1cf1bdc78102414b0e48e0e44333ca5e150ca4a01cca6c95719dbfbd7eae3e0"
     },
     {
       "path": "docs/decisions/cage-2-replication-design.md",

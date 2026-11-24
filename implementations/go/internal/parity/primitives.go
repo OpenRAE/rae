@@ -7,9 +7,9 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/OpenRAE/rae/implementations/go/internal/base/address"
-	"github.com/OpenRAE/rae/implementations/go/internal/base/canonjson"
-	"github.com/OpenRAE/rae/implementations/go/internal/base/ingress"
+	"github.com/OpenRAE/rae/implementations/go/base/address"
+	"github.com/OpenRAE/rae/implementations/go/base/canonjson"
+	"github.com/OpenRAE/rae/implementations/go/base/ingress"
 	"github.com/OpenRAE/rae/implementations/go/internal/base/jsonpointer"
 	"github.com/OpenRAE/rae/implementations/go/internal/base/urisafety"
 )
@@ -85,7 +85,7 @@ func primitiveIngress(request primitiveRequest) (json.RawMessage, error) {
 		return nil, err
 	}
 	root := ingress.Array
-	if request.Root == "object" {
+	if request.Root == termObject {
 		root = ingress.Object
 	}
 	value, err := ingress.Parse(data, ingress.Limits{MaxBytes: request.MaxBytes, MaxDepth: request.MaxDepth}, root)

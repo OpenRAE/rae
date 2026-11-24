@@ -1,0 +1,2661 @@
+[
+  {
+    "name": "empty",
+    "source": "name: sample\n",
+    "revision": "1",
+    "Name": "sample",
+    "Version": "*",
+    "CanonicalDigest": "sha256:05a42e4735af268317257272f50576e402b6c8d3f45fa5a50e1167075322542f",
+    "Structural": {
+      "declarations": {
+        "nodes": [],
+        "infrastructure": [],
+        "features": [],
+        "conditions": [],
+        "propositions": [],
+        "assertions": [],
+        "entities": [],
+        "injects": [],
+        "events": [],
+        "scripts": [],
+        "stories": [],
+        "content": [],
+        "generated_artifacts": [],
+        "persistent_volumes": [],
+        "accounts": [],
+        "identity_domains": [],
+        "identity_forests": [],
+        "identity_facades": [],
+        "deployment_tenants": [],
+        "deployment_cells": [],
+        "relationships": [],
+        "agents": [],
+        "action_contracts": [],
+        "observation_boundaries": [],
+        "outcome_interpretation_rules": [],
+        "behavior_specifications": [],
+        "evidence_requirements": [],
+        "time_domains": [],
+        "clocks": [],
+        "time_domain_mappings": [],
+        "time_progression_policies": [],
+        "temporal_constraints": [],
+        "objectives": [],
+        "workflows": [],
+        "variables": [],
+        "variation_points": []
+      },
+      "forwarding_agent_count": 0,
+      "has_module_descriptor": false,
+      "import_namespaces": [],
+      "has_realization_designation": false
+    },
+    "Semantic": {
+      "accounts": {},
+      "action_contracts": {},
+      "agents": {},
+      "assertions": {},
+      "behavior_specifications": {},
+      "clocks": {},
+      "conditions": {},
+      "content": {},
+      "deployment_cells": {},
+      "deployment_tenants": {},
+      "entities": {},
+      "events": {},
+      "evidence_requirements": {},
+      "features": {},
+      "forwarding_agents": [],
+      "generated_artifacts": {},
+      "identity_domains": {},
+      "identity_facades": {},
+      "identity_forests": {},
+      "imports": [],
+      "infrastructure": {},
+      "injects": {},
+      "module": null,
+      "name": "sample",
+      "nodes": {},
+      "objectives": {},
+      "observation_boundaries": {},
+      "outcome_interpretation_rules": {},
+      "persistent_volumes": {},
+      "propositions": {},
+      "realization": null,
+      "relationships": {},
+      "scripts": {},
+      "stories": {},
+      "temporal_constraints": {},
+      "time_domain_mappings": {},
+      "time_domains": {},
+      "time_progression_policies": {},
+      "variables": {},
+      "variation_points": {},
+      "version": "*",
+      "workflows": {}
+    },
+    "Subjects": [],
+    "Imports": []
+  },
+  {
+    "name": "empty",
+    "source": "name: sample\n",
+    "revision": "2",
+    "Name": "sample",
+    "Version": "*",
+    "CanonicalDigest": "sha256:c40c337d224dda91de3e5dea9ce0a3f8bec5919bdd7bbf55baf47af44e9cb47e",
+    "Structural": {
+      "declarations": {
+        "nodes": [],
+        "infrastructure": [],
+        "features": [],
+        "conditions": [],
+        "propositions": [],
+        "assertions": [],
+        "entities": [],
+        "injects": [],
+        "events": [],
+        "scripts": [],
+        "stories": [],
+        "content": [],
+        "generated_artifacts": [],
+        "persistent_volumes": [],
+        "accounts": [],
+        "identity_domains": [],
+        "identity_forests": [],
+        "identity_facades": [],
+        "deployment_tenants": [],
+        "deployment_cells": [],
+        "relationships": [],
+        "agents": [],
+        "action_contracts": [],
+        "observation_boundaries": [],
+        "outcome_interpretation_rules": [],
+        "behavior_specifications": [],
+        "evidence_requirements": [],
+        "time_domains": [],
+        "clocks": [],
+        "time_domain_mappings": [],
+        "time_progression_policies": [],
+        "temporal_constraints": [],
+        "objectives": [],
+        "workflows": [],
+        "variables": [],
+        "variation_points": []
+      },
+      "forwarding_agent_count": 0,
+      "has_module_descriptor": false,
+      "import_namespaces": [],
+      "has_realization_designation": false
+    },
+    "Semantic": {
+      "name": "sample"
+    },
+    "Subjects": [],
+    "Imports": []
+  },
+  {
+    "name": "native-editorial",
+    "source": "name: sample\ndescription: editorial\n",
+    "revision": "1",
+    "Name": "sample",
+    "Version": "*",
+    "CanonicalDigest": "sha256:f3306fac114f677e7e32df5901fecc5888c48da148d666b0cc8017ae19b4742b",
+    "Structural": {
+      "declarations": {
+        "nodes": [],
+        "infrastructure": [],
+        "features": [],
+        "conditions": [],
+        "propositions": [],
+        "assertions": [],
+        "entities": [],
+        "injects": [],
+        "events": [],
+        "scripts": [],
+        "stories": [],
+        "content": [],
+        "generated_artifacts": [],
+        "persistent_volumes": [],
+        "accounts": [],
+        "identity_domains": [],
+        "identity_forests": [],
+        "identity_facades": [],
+        "deployment_tenants": [],
+        "deployment_cells": [],
+        "relationships": [],
+        "agents": [],
+        "action_contracts": [],
+        "observation_boundaries": [],
+        "outcome_interpretation_rules": [],
+        "behavior_specifications": [],
+        "evidence_requirements": [],
+        "time_domains": [],
+        "clocks": [],
+        "time_domain_mappings": [],
+        "time_progression_policies": [],
+        "temporal_constraints": [],
+        "objectives": [],
+        "workflows": [],
+        "variables": [],
+        "variation_points": []
+      },
+      "forwarding_agent_count": 0,
+      "has_module_descriptor": false,
+      "import_namespaces": [],
+      "has_realization_designation": false
+    },
+    "Semantic": {
+      "accounts": {},
+      "action_contracts": {},
+      "agents": {},
+      "assertions": {},
+      "behavior_specifications": {},
+      "clocks": {},
+      "conditions": {},
+      "content": {},
+      "deployment_cells": {},
+      "deployment_tenants": {},
+      "entities": {},
+      "events": {},
+      "evidence_requirements": {},
+      "features": {},
+      "forwarding_agents": [],
+      "generated_artifacts": {},
+      "identity_domains": {},
+      "identity_facades": {},
+      "identity_forests": {},
+      "imports": [],
+      "infrastructure": {},
+      "injects": {},
+      "module": null,
+      "name": "sample",
+      "nodes": {},
+      "objectives": {},
+      "observation_boundaries": {},
+      "outcome_interpretation_rules": {},
+      "persistent_volumes": {},
+      "propositions": {},
+      "realization": null,
+      "relationships": {},
+      "scripts": {},
+      "stories": {},
+      "temporal_constraints": {},
+      "time_domain_mappings": {},
+      "time_domains": {},
+      "time_progression_policies": {},
+      "variables": {},
+      "variation_points": {},
+      "version": "*",
+      "workflows": {}
+    },
+    "Subjects": [],
+    "Imports": []
+  },
+  {
+    "name": "native-editorial",
+    "source": "name: sample\ndescription: editorial\n",
+    "revision": "2",
+    "Name": "sample",
+    "Version": "*",
+    "CanonicalDigest": "sha256:9bf811a0442aee749b8bd58aac1ee321d7aa929fb55ef4afbed8c5e7365d5096",
+    "Structural": {
+      "declarations": {
+        "nodes": [],
+        "infrastructure": [],
+        "features": [],
+        "conditions": [],
+        "propositions": [],
+        "assertions": [],
+        "entities": [],
+        "injects": [],
+        "events": [],
+        "scripts": [],
+        "stories": [],
+        "content": [],
+        "generated_artifacts": [],
+        "persistent_volumes": [],
+        "accounts": [],
+        "identity_domains": [],
+        "identity_forests": [],
+        "identity_facades": [],
+        "deployment_tenants": [],
+        "deployment_cells": [],
+        "relationships": [],
+        "agents": [],
+        "action_contracts": [],
+        "observation_boundaries": [],
+        "outcome_interpretation_rules": [],
+        "behavior_specifications": [],
+        "evidence_requirements": [],
+        "time_domains": [],
+        "clocks": [],
+        "time_domain_mappings": [],
+        "time_progression_policies": [],
+        "temporal_constraints": [],
+        "objectives": [],
+        "workflows": [],
+        "variables": [],
+        "variation_points": []
+      },
+      "forwarding_agent_count": 0,
+      "has_module_descriptor": false,
+      "import_namespaces": [],
+      "has_realization_designation": false
+    },
+    "Semantic": {
+      "name": "sample"
+    },
+    "Subjects": [],
+    "Imports": []
+  },
+  {
+    "name": "omitted-packages",
+    "source": "name: sample\nrealization: {default: open}\nnodes: {host: {type: compute, runtime: {}}}\n",
+    "revision": "1",
+    "Name": "sample",
+    "Version": "*",
+    "CanonicalDigest": "sha256:65bcbb3424776ded309c86e118211055b93d2235601d539eee1340dfdc51e452",
+    "Structural": {
+      "declarations": {
+        "nodes": [
+          "host"
+        ],
+        "infrastructure": [],
+        "features": [],
+        "conditions": [],
+        "propositions": [],
+        "assertions": [],
+        "entities": [],
+        "injects": [],
+        "events": [],
+        "scripts": [],
+        "stories": [],
+        "content": [],
+        "generated_artifacts": [],
+        "persistent_volumes": [],
+        "accounts": [],
+        "identity_domains": [],
+        "identity_forests": [],
+        "identity_facades": [],
+        "deployment_tenants": [],
+        "deployment_cells": [],
+        "relationships": [],
+        "agents": [],
+        "action_contracts": [],
+        "observation_boundaries": [],
+        "outcome_interpretation_rules": [],
+        "behavior_specifications": [],
+        "evidence_requirements": [],
+        "time_domains": [],
+        "clocks": [],
+        "time_domain_mappings": [],
+        "time_progression_policies": [],
+        "temporal_constraints": [],
+        "objectives": [],
+        "workflows": [],
+        "variables": [],
+        "variation_points": []
+      },
+      "forwarding_agent_count": 0,
+      "has_module_descriptor": false,
+      "import_namespaces": [],
+      "has_realization_designation": true
+    },
+    "Semantic": {
+      "accounts": {},
+      "action_contracts": {},
+      "agents": {},
+      "assertions": {},
+      "behavior_specifications": {},
+      "clocks": {},
+      "conditions": {},
+      "content": {},
+      "deployment_cells": {},
+      "deployment_tenants": {},
+      "entities": {},
+      "events": {},
+      "evidence_requirements": {},
+      "features": {},
+      "forwarding_agents": [],
+      "generated_artifacts": {},
+      "identity_domains": {},
+      "identity_facades": {},
+      "identity_forests": {},
+      "imports": [],
+      "infrastructure": {},
+      "injects": {},
+      "module": null,
+      "name": "sample",
+      "nodes": {
+        "host": {
+          "architecture": null,
+          "asset_value": null,
+          "conditions": {},
+          "endpoint_persona": null,
+          "features": {},
+          "injects": {},
+          "os": null,
+          "os_distribution": null,
+          "os_version": "",
+          "resources": null,
+          "roles": {},
+          "runtime": {
+            "app_authorizations": [],
+            "applications": [],
+            "container": null,
+            "database_services": [],
+            "datastore_services": [],
+            "dependency_manifests": [],
+            "dns_services": [],
+            "environment": [],
+            "environment_files": [],
+            "file_services": [],
+            "filesystem_inventory": [],
+            "forwarding_agents": [],
+            "identity_authorities": [],
+            "linux_capabilities": null,
+            "local_control_interfaces": [],
+            "local_identity": null,
+            "mail_services": [],
+            "mounts": [],
+            "network": null,
+            "network_detection_engines": [],
+            "network_sensors": [],
+            "operational_policy": null,
+            "orchestration_authorities": [],
+            "packages": [],
+            "platform_applications": [],
+            "processes": [],
+            "repository_state": null,
+            "scheduled_jobs": [],
+            "security_monitoring_managers": [],
+            "service_listeners": [],
+            "service_manager_units": [],
+            "software_components": [],
+            "ssh_servers": []
+          },
+          "services": [],
+          "source": null,
+          "type": "compute"
+        }
+      },
+      "objectives": {},
+      "observation_boundaries": {},
+      "outcome_interpretation_rules": {},
+      "persistent_volumes": {},
+      "propositions": {},
+      "realization": {
+        "constraints": [],
+        "default": "open",
+        "scopes": []
+      },
+      "relationships": {},
+      "scripts": {},
+      "stories": {},
+      "temporal_constraints": {},
+      "time_domain_mappings": {},
+      "time_domains": {},
+      "time_progression_policies": {},
+      "variables": {},
+      "variation_points": {},
+      "version": "*",
+      "workflows": {}
+    },
+    "Subjects": [
+      {
+        "Family": "nodes",
+        "Name": "host",
+        "ModelType": "Node",
+        "PresentFields": [
+          "architecture",
+          "asset_value",
+          "conditions",
+          "description",
+          "endpoint_persona",
+          "features",
+          "injects",
+          "os",
+          "os_distribution",
+          "os_version",
+          "resources",
+          "roles",
+          "runtime",
+          "services",
+          "source",
+          "type"
+        ],
+        "Semantic": {
+          "architecture": null,
+          "asset_value": null,
+          "conditions": {},
+          "endpoint_persona": null,
+          "features": {},
+          "injects": {},
+          "os": null,
+          "os_distribution": null,
+          "os_version": "",
+          "resources": null,
+          "roles": {},
+          "runtime": {
+            "app_authorizations": [],
+            "applications": [],
+            "container": null,
+            "database_services": [],
+            "datastore_services": [],
+            "dependency_manifests": [],
+            "dns_services": [],
+            "environment": [],
+            "environment_files": [],
+            "file_services": [],
+            "filesystem_inventory": [],
+            "forwarding_agents": [],
+            "identity_authorities": [],
+            "linux_capabilities": null,
+            "local_control_interfaces": [],
+            "local_identity": null,
+            "mail_services": [],
+            "mounts": [],
+            "network": null,
+            "network_detection_engines": [],
+            "network_sensors": [],
+            "operational_policy": null,
+            "orchestration_authorities": [],
+            "packages": [],
+            "platform_applications": [],
+            "processes": [],
+            "repository_state": null,
+            "scheduled_jobs": [],
+            "security_monitoring_managers": [],
+            "service_listeners": [],
+            "service_manager_units": [],
+            "software_components": [],
+            "ssh_servers": []
+          },
+          "services": [],
+          "source": null,
+          "type": "compute"
+        }
+      }
+    ],
+    "Imports": []
+  },
+  {
+    "name": "omitted-packages",
+    "source": "name: sample\nrealization: {default: open}\nnodes: {host: {type: compute, runtime: {}}}\n",
+    "revision": "2",
+    "Name": "sample",
+    "Version": "*",
+    "CanonicalDigest": "sha256:9823e0259be517380c8878bbb2834ae530e6a8345fbc8dfc52042d1f004dd09e",
+    "Structural": {
+      "declarations": {
+        "nodes": [
+          "host"
+        ],
+        "infrastructure": [],
+        "features": [],
+        "conditions": [],
+        "propositions": [],
+        "assertions": [],
+        "entities": [],
+        "injects": [],
+        "events": [],
+        "scripts": [],
+        "stories": [],
+        "content": [],
+        "generated_artifacts": [],
+        "persistent_volumes": [],
+        "accounts": [],
+        "identity_domains": [],
+        "identity_forests": [],
+        "identity_facades": [],
+        "deployment_tenants": [],
+        "deployment_cells": [],
+        "relationships": [],
+        "agents": [],
+        "action_contracts": [],
+        "observation_boundaries": [],
+        "outcome_interpretation_rules": [],
+        "behavior_specifications": [],
+        "evidence_requirements": [],
+        "time_domains": [],
+        "clocks": [],
+        "time_domain_mappings": [],
+        "time_progression_policies": [],
+        "temporal_constraints": [],
+        "objectives": [],
+        "workflows": [],
+        "variables": [],
+        "variation_points": []
+      },
+      "forwarding_agent_count": 0,
+      "has_module_descriptor": false,
+      "import_namespaces": [],
+      "has_realization_designation": true
+    },
+    "Semantic": {
+      "name": "sample",
+      "nodes": {
+        "host": {
+          "type": "compute",
+          "runtime": {}
+        }
+      },
+      "realization": {
+        "default": "open"
+      }
+    },
+    "Subjects": [
+      {
+        "Family": "nodes",
+        "Name": "host",
+        "ModelType": "Node",
+        "PresentFields": [
+          "runtime",
+          "type"
+        ],
+        "Semantic": {
+          "type": "compute",
+          "runtime": {}
+        }
+      }
+    ],
+    "Imports": []
+  },
+  {
+    "name": "empty-packages",
+    "source": "name: sample\nrealization: {default: open}\nnodes: {host: {type: compute, runtime: {packages: []}}}\n",
+    "revision": "1",
+    "Name": "sample",
+    "Version": "*",
+    "CanonicalDigest": "sha256:65bcbb3424776ded309c86e118211055b93d2235601d539eee1340dfdc51e452",
+    "Structural": {
+      "declarations": {
+        "nodes": [
+          "host"
+        ],
+        "infrastructure": [],
+        "features": [],
+        "conditions": [],
+        "propositions": [],
+        "assertions": [],
+        "entities": [],
+        "injects": [],
+        "events": [],
+        "scripts": [],
+        "stories": [],
+        "content": [],
+        "generated_artifacts": [],
+        "persistent_volumes": [],
+        "accounts": [],
+        "identity_domains": [],
+        "identity_forests": [],
+        "identity_facades": [],
+        "deployment_tenants": [],
+        "deployment_cells": [],
+        "relationships": [],
+        "agents": [],
+        "action_contracts": [],
+        "observation_boundaries": [],
+        "outcome_interpretation_rules": [],
+        "behavior_specifications": [],
+        "evidence_requirements": [],
+        "time_domains": [],
+        "clocks": [],
+        "time_domain_mappings": [],
+        "time_progression_policies": [],
+        "temporal_constraints": [],
+        "objectives": [],
+        "workflows": [],
+        "variables": [],
+        "variation_points": []
+      },
+      "forwarding_agent_count": 0,
+      "has_module_descriptor": false,
+      "import_namespaces": [],
+      "has_realization_designation": true
+    },
+    "Semantic": {
+      "accounts": {},
+      "action_contracts": {},
+      "agents": {},
+      "assertions": {},
+      "behavior_specifications": {},
+      "clocks": {},
+      "conditions": {},
+      "content": {},
+      "deployment_cells": {},
+      "deployment_tenants": {},
+      "entities": {},
+      "events": {},
+      "evidence_requirements": {},
+      "features": {},
+      "forwarding_agents": [],
+      "generated_artifacts": {},
+      "identity_domains": {},
+      "identity_facades": {},
+      "identity_forests": {},
+      "imports": [],
+      "infrastructure": {},
+      "injects": {},
+      "module": null,
+      "name": "sample",
+      "nodes": {
+        "host": {
+          "architecture": null,
+          "asset_value": null,
+          "conditions": {},
+          "endpoint_persona": null,
+          "features": {},
+          "injects": {},
+          "os": null,
+          "os_distribution": null,
+          "os_version": "",
+          "resources": null,
+          "roles": {},
+          "runtime": {
+            "app_authorizations": [],
+            "applications": [],
+            "container": null,
+            "database_services": [],
+            "datastore_services": [],
+            "dependency_manifests": [],
+            "dns_services": [],
+            "environment": [],
+            "environment_files": [],
+            "file_services": [],
+            "filesystem_inventory": [],
+            "forwarding_agents": [],
+            "identity_authorities": [],
+            "linux_capabilities": null,
+            "local_control_interfaces": [],
+            "local_identity": null,
+            "mail_services": [],
+            "mounts": [],
+            "network": null,
+            "network_detection_engines": [],
+            "network_sensors": [],
+            "operational_policy": null,
+            "orchestration_authorities": [],
+            "packages": [],
+            "platform_applications": [],
+            "processes": [],
+            "repository_state": null,
+            "scheduled_jobs": [],
+            "security_monitoring_managers": [],
+            "service_listeners": [],
+            "service_manager_units": [],
+            "software_components": [],
+            "ssh_servers": []
+          },
+          "services": [],
+          "source": null,
+          "type": "compute"
+        }
+      },
+      "objectives": {},
+      "observation_boundaries": {},
+      "outcome_interpretation_rules": {},
+      "persistent_volumes": {},
+      "propositions": {},
+      "realization": {
+        "constraints": [],
+        "default": "open",
+        "scopes": []
+      },
+      "relationships": {},
+      "scripts": {},
+      "stories": {},
+      "temporal_constraints": {},
+      "time_domain_mappings": {},
+      "time_domains": {},
+      "time_progression_policies": {},
+      "variables": {},
+      "variation_points": {},
+      "version": "*",
+      "workflows": {}
+    },
+    "Subjects": [
+      {
+        "Family": "nodes",
+        "Name": "host",
+        "ModelType": "Node",
+        "PresentFields": [
+          "architecture",
+          "asset_value",
+          "conditions",
+          "description",
+          "endpoint_persona",
+          "features",
+          "injects",
+          "os",
+          "os_distribution",
+          "os_version",
+          "resources",
+          "roles",
+          "runtime",
+          "services",
+          "source",
+          "type"
+        ],
+        "Semantic": {
+          "architecture": null,
+          "asset_value": null,
+          "conditions": {},
+          "endpoint_persona": null,
+          "features": {},
+          "injects": {},
+          "os": null,
+          "os_distribution": null,
+          "os_version": "",
+          "resources": null,
+          "roles": {},
+          "runtime": {
+            "app_authorizations": [],
+            "applications": [],
+            "container": null,
+            "database_services": [],
+            "datastore_services": [],
+            "dependency_manifests": [],
+            "dns_services": [],
+            "environment": [],
+            "environment_files": [],
+            "file_services": [],
+            "filesystem_inventory": [],
+            "forwarding_agents": [],
+            "identity_authorities": [],
+            "linux_capabilities": null,
+            "local_control_interfaces": [],
+            "local_identity": null,
+            "mail_services": [],
+            "mounts": [],
+            "network": null,
+            "network_detection_engines": [],
+            "network_sensors": [],
+            "operational_policy": null,
+            "orchestration_authorities": [],
+            "packages": [],
+            "platform_applications": [],
+            "processes": [],
+            "repository_state": null,
+            "scheduled_jobs": [],
+            "security_monitoring_managers": [],
+            "service_listeners": [],
+            "service_manager_units": [],
+            "software_components": [],
+            "ssh_servers": []
+          },
+          "services": [],
+          "source": null,
+          "type": "compute"
+        }
+      }
+    ],
+    "Imports": []
+  },
+  {
+    "name": "empty-packages",
+    "source": "name: sample\nrealization: {default: open}\nnodes: {host: {type: compute, runtime: {packages: []}}}\n",
+    "revision": "2",
+    "Name": "sample",
+    "Version": "*",
+    "CanonicalDigest": "sha256:bf1e1d116140b4adab332d856b91ed6dfaf9e1bc6d2670db1186a173c7481a96",
+    "Structural": {
+      "declarations": {
+        "nodes": [
+          "host"
+        ],
+        "infrastructure": [],
+        "features": [],
+        "conditions": [],
+        "propositions": [],
+        "assertions": [],
+        "entities": [],
+        "injects": [],
+        "events": [],
+        "scripts": [],
+        "stories": [],
+        "content": [],
+        "generated_artifacts": [],
+        "persistent_volumes": [],
+        "accounts": [],
+        "identity_domains": [],
+        "identity_forests": [],
+        "identity_facades": [],
+        "deployment_tenants": [],
+        "deployment_cells": [],
+        "relationships": [],
+        "agents": [],
+        "action_contracts": [],
+        "observation_boundaries": [],
+        "outcome_interpretation_rules": [],
+        "behavior_specifications": [],
+        "evidence_requirements": [],
+        "time_domains": [],
+        "clocks": [],
+        "time_domain_mappings": [],
+        "time_progression_policies": [],
+        "temporal_constraints": [],
+        "objectives": [],
+        "workflows": [],
+        "variables": [],
+        "variation_points": []
+      },
+      "forwarding_agent_count": 0,
+      "has_module_descriptor": false,
+      "import_namespaces": [],
+      "has_realization_designation": true
+    },
+    "Semantic": {
+      "name": "sample",
+      "nodes": {
+        "host": {
+          "type": "compute",
+          "runtime": {
+            "packages": []
+          }
+        }
+      },
+      "realization": {
+        "default": "open"
+      }
+    },
+    "Subjects": [
+      {
+        "Family": "nodes",
+        "Name": "host",
+        "ModelType": "Node",
+        "PresentFields": [
+          "runtime",
+          "type"
+        ],
+        "Semantic": {
+          "type": "compute",
+          "runtime": {
+            "packages": []
+          }
+        }
+      }
+    ],
+    "Imports": []
+  },
+  {
+    "name": "normalized",
+    "source": "name: sample\nnodes: {host: {type: compute, os: linux, os_distribution: Ubuntu, resources: {ram: 1GB, cpu: 2}}}\n",
+    "revision": "1",
+    "Name": "sample",
+    "Version": "*",
+    "CanonicalDigest": "sha256:a06ffd0893cbf3b1f5cbe03c58489dc8d70e51e3596de709525ac90269e56680",
+    "Structural": {
+      "declarations": {
+        "nodes": [
+          "host"
+        ],
+        "infrastructure": [],
+        "features": [],
+        "conditions": [],
+        "propositions": [],
+        "assertions": [],
+        "entities": [],
+        "injects": [],
+        "events": [],
+        "scripts": [],
+        "stories": [],
+        "content": [],
+        "generated_artifacts": [],
+        "persistent_volumes": [],
+        "accounts": [],
+        "identity_domains": [],
+        "identity_forests": [],
+        "identity_facades": [],
+        "deployment_tenants": [],
+        "deployment_cells": [],
+        "relationships": [],
+        "agents": [],
+        "action_contracts": [],
+        "observation_boundaries": [],
+        "outcome_interpretation_rules": [],
+        "behavior_specifications": [],
+        "evidence_requirements": [],
+        "time_domains": [],
+        "clocks": [],
+        "time_domain_mappings": [],
+        "time_progression_policies": [],
+        "temporal_constraints": [],
+        "objectives": [],
+        "workflows": [],
+        "variables": [],
+        "variation_points": []
+      },
+      "forwarding_agent_count": 0,
+      "has_module_descriptor": false,
+      "import_namespaces": [],
+      "has_realization_designation": false
+    },
+    "Semantic": {
+      "accounts": {},
+      "action_contracts": {},
+      "agents": {},
+      "assertions": {},
+      "behavior_specifications": {},
+      "clocks": {},
+      "conditions": {},
+      "content": {},
+      "deployment_cells": {},
+      "deployment_tenants": {},
+      "entities": {},
+      "events": {},
+      "evidence_requirements": {},
+      "features": {},
+      "forwarding_agents": [],
+      "generated_artifacts": {},
+      "identity_domains": {},
+      "identity_facades": {},
+      "identity_forests": {},
+      "imports": [],
+      "infrastructure": {},
+      "injects": {},
+      "module": null,
+      "name": "sample",
+      "nodes": {
+        "host": {
+          "architecture": null,
+          "asset_value": null,
+          "conditions": {},
+          "endpoint_persona": null,
+          "features": {},
+          "injects": {},
+          "os": "linux",
+          "os_distribution": "ubuntu",
+          "os_version": "",
+          "resources": {
+            "cpu": 2,
+            "ram": 1000000000
+          },
+          "roles": {},
+          "runtime": null,
+          "services": [],
+          "source": null,
+          "type": "compute"
+        }
+      },
+      "objectives": {},
+      "observation_boundaries": {},
+      "outcome_interpretation_rules": {},
+      "persistent_volumes": {},
+      "propositions": {},
+      "realization": null,
+      "relationships": {},
+      "scripts": {},
+      "stories": {},
+      "temporal_constraints": {},
+      "time_domain_mappings": {},
+      "time_domains": {},
+      "time_progression_policies": {},
+      "variables": {},
+      "variation_points": {},
+      "version": "*",
+      "workflows": {}
+    },
+    "Subjects": [
+      {
+        "Family": "nodes",
+        "Name": "host",
+        "ModelType": "Node",
+        "PresentFields": [
+          "architecture",
+          "asset_value",
+          "conditions",
+          "description",
+          "endpoint_persona",
+          "features",
+          "injects",
+          "os",
+          "os_distribution",
+          "os_version",
+          "resources",
+          "roles",
+          "runtime",
+          "services",
+          "source",
+          "type"
+        ],
+        "Semantic": {
+          "architecture": null,
+          "asset_value": null,
+          "conditions": {},
+          "endpoint_persona": null,
+          "features": {},
+          "injects": {},
+          "os": "linux",
+          "os_distribution": "ubuntu",
+          "os_version": "",
+          "resources": {
+            "cpu": 2,
+            "ram": 1000000000
+          },
+          "roles": {},
+          "runtime": null,
+          "services": [],
+          "source": null,
+          "type": "compute"
+        }
+      }
+    ],
+    "Imports": []
+  },
+  {
+    "name": "normalized",
+    "source": "name: sample\nnodes: {host: {type: compute, os: linux, os_distribution: Ubuntu, resources: {ram: 1GB, cpu: 2}}}\n",
+    "revision": "2",
+    "Name": "sample",
+    "Version": "*",
+    "CanonicalDigest": "sha256:8373bdc07578cf3a2b8cbc8dceb782166cb375571f6f1c627e76875e48c93c9f",
+    "Structural": {
+      "declarations": {
+        "nodes": [
+          "host"
+        ],
+        "infrastructure": [],
+        "features": [],
+        "conditions": [],
+        "propositions": [],
+        "assertions": [],
+        "entities": [],
+        "injects": [],
+        "events": [],
+        "scripts": [],
+        "stories": [],
+        "content": [],
+        "generated_artifacts": [],
+        "persistent_volumes": [],
+        "accounts": [],
+        "identity_domains": [],
+        "identity_forests": [],
+        "identity_facades": [],
+        "deployment_tenants": [],
+        "deployment_cells": [],
+        "relationships": [],
+        "agents": [],
+        "action_contracts": [],
+        "observation_boundaries": [],
+        "outcome_interpretation_rules": [],
+        "behavior_specifications": [],
+        "evidence_requirements": [],
+        "time_domains": [],
+        "clocks": [],
+        "time_domain_mappings": [],
+        "time_progression_policies": [],
+        "temporal_constraints": [],
+        "objectives": [],
+        "workflows": [],
+        "variables": [],
+        "variation_points": []
+      },
+      "forwarding_agent_count": 0,
+      "has_module_descriptor": false,
+      "import_namespaces": [],
+      "has_realization_designation": false
+    },
+    "Semantic": {
+      "name": "sample",
+      "nodes": {
+        "host": {
+          "type": "compute",
+          "resources": {
+            "ram": 1000000000,
+            "cpu": 2
+          },
+          "os": "linux",
+          "os_distribution": "ubuntu"
+        }
+      }
+    },
+    "Subjects": [
+      {
+        "Family": "nodes",
+        "Name": "host",
+        "ModelType": "Node",
+        "PresentFields": [
+          "os",
+          "os_distribution",
+          "resources",
+          "type"
+        ],
+        "Semantic": {
+          "type": "compute",
+          "resources": {
+            "ram": 1000000000,
+            "cpu": 2
+          },
+          "os": "linux",
+          "os_distribution": "ubuntu"
+        }
+      }
+    ],
+    "Imports": []
+  },
+  {
+    "name": "progressive",
+    "source": "name: sample\nsemantic_revision: raes-progressive-semantics/v1\n",
+    "revision": "1",
+    "Name": "sample",
+    "Version": "*",
+    "CanonicalDigest": "sha256:d592c9b43bd8f10a19636d07c5cc51228ad8d58e9f960c0080eece25064b1433",
+    "Structural": {
+      "declarations": {
+        "nodes": [],
+        "infrastructure": [],
+        "features": [],
+        "conditions": [],
+        "propositions": [],
+        "assertions": [],
+        "entities": [],
+        "injects": [],
+        "events": [],
+        "scripts": [],
+        "stories": [],
+        "content": [],
+        "generated_artifacts": [],
+        "persistent_volumes": [],
+        "accounts": [],
+        "identity_domains": [],
+        "identity_forests": [],
+        "identity_facades": [],
+        "deployment_tenants": [],
+        "deployment_cells": [],
+        "relationships": [],
+        "agents": [],
+        "action_contracts": [],
+        "observation_boundaries": [],
+        "outcome_interpretation_rules": [],
+        "behavior_specifications": [],
+        "evidence_requirements": [],
+        "time_domains": [],
+        "clocks": [],
+        "time_domain_mappings": [],
+        "time_progression_policies": [],
+        "temporal_constraints": [],
+        "objectives": [],
+        "workflows": [],
+        "variables": [],
+        "variation_points": []
+      },
+      "forwarding_agent_count": 0,
+      "has_module_descriptor": false,
+      "import_namespaces": [],
+      "has_realization_designation": false
+    },
+    "Semantic": {
+      "accounts": {},
+      "action_contracts": {},
+      "agents": {},
+      "assertions": {},
+      "behavior_specifications": {},
+      "clocks": {},
+      "conditions": {},
+      "content": {},
+      "deployment_cells": {},
+      "deployment_tenants": {},
+      "entities": {},
+      "events": {},
+      "evidence_requirements": {},
+      "features": {},
+      "forwarding_agents": [],
+      "generated_artifacts": {},
+      "identity_domains": {},
+      "identity_facades": {},
+      "identity_forests": {},
+      "imports": [],
+      "infrastructure": {},
+      "injects": {},
+      "module": null,
+      "name": "sample",
+      "nodes": {},
+      "objectives": {},
+      "observation_boundaries": {},
+      "outcome_interpretation_rules": {},
+      "persistent_volumes": {},
+      "propositions": {},
+      "realization": null,
+      "relationships": {},
+      "scripts": {},
+      "stories": {},
+      "temporal_constraints": {},
+      "time_domain_mappings": {},
+      "time_domains": {},
+      "time_progression_policies": {},
+      "variables": {},
+      "variation_points": {},
+      "version": "*",
+      "workflows": {}
+    },
+    "Subjects": [],
+    "Imports": []
+  },
+  {
+    "name": "progressive",
+    "source": "name: sample\nsemantic_revision: raes-progressive-semantics/v1\n",
+    "revision": "2",
+    "Name": "sample",
+    "Version": "*",
+    "CanonicalDigest": "sha256:0a7d9fdc6b0045ec9faca2faf90d1af6bf25fec789f62d54280f3ee8a0c2ec28",
+    "Structural": {
+      "declarations": {
+        "nodes": [],
+        "infrastructure": [],
+        "features": [],
+        "conditions": [],
+        "propositions": [],
+        "assertions": [],
+        "entities": [],
+        "injects": [],
+        "events": [],
+        "scripts": [],
+        "stories": [],
+        "content": [],
+        "generated_artifacts": [],
+        "persistent_volumes": [],
+        "accounts": [],
+        "identity_domains": [],
+        "identity_forests": [],
+        "identity_facades": [],
+        "deployment_tenants": [],
+        "deployment_cells": [],
+        "relationships": [],
+        "agents": [],
+        "action_contracts": [],
+        "observation_boundaries": [],
+        "outcome_interpretation_rules": [],
+        "behavior_specifications": [],
+        "evidence_requirements": [],
+        "time_domains": [],
+        "clocks": [],
+        "time_domain_mappings": [],
+        "time_progression_policies": [],
+        "temporal_constraints": [],
+        "objectives": [],
+        "workflows": [],
+        "variables": [],
+        "variation_points": []
+      },
+      "forwarding_agent_count": 0,
+      "has_module_descriptor": false,
+      "import_namespaces": [],
+      "has_realization_designation": false
+    },
+    "Semantic": {
+      "name": "sample",
+      "semantic_revision": "raes-progressive-semantics/v1"
+    },
+    "Subjects": [],
+    "Imports": []
+  },
+  {
+    "name": "private-first",
+    "source": "{\"name\": \"private\", \"nodes\": {\"host\": {\"type\": \"compute\"}}, \"content\": {\"seed\": {\"type\": \"file\", \"target\": \"host\", \"path\": \"/seed\", \"service_materialization\": {\"schema_version\": \"domain-profile-binding/v1\", \"binding_id\": \"repository-binding\", \"coordinate\": {\"namespace\": \"com.example.private\", \"authority\": \"urn:example:profiles\", \"profile_id\": \"resource-label\", \"revision\": \"1.0.0\", \"definition_digest\": \"sha256:9736ea021ba3f8e31d67d1c8adf57d1b822858bff195eca8aa50c028d7883dbc\"}, \"owner\": {\"owning_contract_id\": \"plan-realization-profiles-v1\", \"canonical_address\": \"#/resources/provision.content.seed\", \"concept_family\": \"resource-realization\", \"lifecycle_phase\": \"planning\", \"context\": \"service-materialization\", \"use\": \"constraint\"}, \"value\": {\"description\": \"first\"}, \"provenance\": {\"basis\": \"author-supplied\", \"source_ref\": \"urn:example:binding-source\", \"evidence_refs\": []}, \"children\": []}}}}",
+    "revision": "2",
+    "Name": "private",
+    "Version": "*",
+    "CanonicalDigest": "sha256:cba69fc44e54212aaebda5076bc2a8b5e65939c68f36aba650dd2ad43280a5be",
+    "Structural": {
+      "declarations": {
+        "nodes": [
+          "host"
+        ],
+        "infrastructure": [],
+        "features": [],
+        "conditions": [],
+        "propositions": [],
+        "assertions": [],
+        "entities": [],
+        "injects": [],
+        "events": [],
+        "scripts": [],
+        "stories": [],
+        "content": [
+          "seed"
+        ],
+        "generated_artifacts": [],
+        "persistent_volumes": [],
+        "accounts": [],
+        "identity_domains": [],
+        "identity_forests": [],
+        "identity_facades": [],
+        "deployment_tenants": [],
+        "deployment_cells": [],
+        "relationships": [],
+        "agents": [],
+        "action_contracts": [],
+        "observation_boundaries": [],
+        "outcome_interpretation_rules": [],
+        "behavior_specifications": [],
+        "evidence_requirements": [],
+        "time_domains": [],
+        "clocks": [],
+        "time_domain_mappings": [],
+        "time_progression_policies": [],
+        "temporal_constraints": [],
+        "objectives": [],
+        "workflows": [],
+        "variables": [],
+        "variation_points": []
+      },
+      "forwarding_agent_count": 0,
+      "has_module_descriptor": false,
+      "import_namespaces": [],
+      "has_realization_designation": false
+    },
+    "Semantic": {
+      "name": "private",
+      "nodes": {
+        "host": {
+          "type": "compute"
+        }
+      },
+      "content": {
+        "seed": {
+          "type": "file",
+          "target": "host",
+          "path": "/seed",
+          "service_materialization": {
+            "schema_version": "domain-profile-binding/v1",
+            "binding_id": "repository-binding",
+            "coordinate": {
+              "namespace": "com.example.private",
+              "authority": "urn:example:profiles",
+              "profile_id": "resource-label",
+              "revision": "1.0.0",
+              "definition_digest": "sha256:9736ea021ba3f8e31d67d1c8adf57d1b822858bff195eca8aa50c028d7883dbc"
+            },
+            "owner": {
+              "owning_contract_id": "plan-realization-profiles-v1",
+              "canonical_address": "#/resources/provision.content.seed",
+              "concept_family": "resource-realization",
+              "lifecycle_phase": "planning",
+              "context": "service-materialization",
+              "use": "constraint"
+            },
+            "value": {
+              "description": "first"
+            },
+            "provenance": {
+              "basis": "author-supplied",
+              "source_ref": "urn:example:binding-source",
+              "evidence_refs": []
+            },
+            "children": []
+          }
+        }
+      }
+    },
+    "Subjects": [
+      {
+        "Family": "nodes",
+        "Name": "host",
+        "ModelType": "Node",
+        "PresentFields": [
+          "type"
+        ],
+        "Semantic": {
+          "type": "compute"
+        }
+      },
+      {
+        "Family": "content",
+        "Name": "seed",
+        "ModelType": "Content",
+        "PresentFields": [
+          "path",
+          "service_materialization",
+          "target",
+          "type"
+        ],
+        "Semantic": {
+          "type": "file",
+          "target": "host",
+          "path": "/seed",
+          "service_materialization": {
+            "schema_version": "domain-profile-binding/v1",
+            "binding_id": "repository-binding",
+            "coordinate": {
+              "namespace": "com.example.private",
+              "authority": "urn:example:profiles",
+              "profile_id": "resource-label",
+              "revision": "1.0.0",
+              "definition_digest": "sha256:9736ea021ba3f8e31d67d1c8adf57d1b822858bff195eca8aa50c028d7883dbc"
+            },
+            "owner": {
+              "owning_contract_id": "plan-realization-profiles-v1",
+              "canonical_address": "#/resources/provision.content.seed",
+              "concept_family": "resource-realization",
+              "lifecycle_phase": "planning",
+              "context": "service-materialization",
+              "use": "constraint"
+            },
+            "value": {
+              "description": "first"
+            },
+            "provenance": {
+              "basis": "author-supplied",
+              "source_ref": "urn:example:binding-source",
+              "evidence_refs": []
+            },
+            "children": []
+          }
+        }
+      }
+    ],
+    "Imports": []
+  },
+  {
+    "name": "private-second",
+    "source": "{\"name\": \"private\", \"nodes\": {\"host\": {\"type\": \"compute\"}}, \"content\": {\"seed\": {\"type\": \"file\", \"target\": \"host\", \"path\": \"/seed\", \"service_materialization\": {\"schema_version\": \"domain-profile-binding/v1\", \"binding_id\": \"repository-binding\", \"coordinate\": {\"namespace\": \"com.example.private\", \"authority\": \"urn:example:profiles\", \"profile_id\": \"resource-label\", \"revision\": \"1.0.0\", \"definition_digest\": \"sha256:9736ea021ba3f8e31d67d1c8adf57d1b822858bff195eca8aa50c028d7883dbc\"}, \"owner\": {\"owning_contract_id\": \"plan-realization-profiles-v1\", \"canonical_address\": \"#/resources/provision.content.seed\", \"concept_family\": \"resource-realization\", \"lifecycle_phase\": \"planning\", \"context\": \"service-materialization\", \"use\": \"constraint\"}, \"value\": {\"description\": \"second\"}, \"provenance\": {\"basis\": \"author-supplied\", \"source_ref\": \"urn:example:binding-source\", \"evidence_refs\": []}, \"children\": []}}}}",
+    "revision": "2",
+    "Name": "private",
+    "Version": "*",
+    "CanonicalDigest": "sha256:3908da0003605468a761118c223d3a59ec7b39f42cc08aab8d7bc51a0e355c54",
+    "Structural": {
+      "declarations": {
+        "nodes": [
+          "host"
+        ],
+        "infrastructure": [],
+        "features": [],
+        "conditions": [],
+        "propositions": [],
+        "assertions": [],
+        "entities": [],
+        "injects": [],
+        "events": [],
+        "scripts": [],
+        "stories": [],
+        "content": [
+          "seed"
+        ],
+        "generated_artifacts": [],
+        "persistent_volumes": [],
+        "accounts": [],
+        "identity_domains": [],
+        "identity_forests": [],
+        "identity_facades": [],
+        "deployment_tenants": [],
+        "deployment_cells": [],
+        "relationships": [],
+        "agents": [],
+        "action_contracts": [],
+        "observation_boundaries": [],
+        "outcome_interpretation_rules": [],
+        "behavior_specifications": [],
+        "evidence_requirements": [],
+        "time_domains": [],
+        "clocks": [],
+        "time_domain_mappings": [],
+        "time_progression_policies": [],
+        "temporal_constraints": [],
+        "objectives": [],
+        "workflows": [],
+        "variables": [],
+        "variation_points": []
+      },
+      "forwarding_agent_count": 0,
+      "has_module_descriptor": false,
+      "import_namespaces": [],
+      "has_realization_designation": false
+    },
+    "Semantic": {
+      "name": "private",
+      "nodes": {
+        "host": {
+          "type": "compute"
+        }
+      },
+      "content": {
+        "seed": {
+          "type": "file",
+          "target": "host",
+          "path": "/seed",
+          "service_materialization": {
+            "schema_version": "domain-profile-binding/v1",
+            "binding_id": "repository-binding",
+            "coordinate": {
+              "namespace": "com.example.private",
+              "authority": "urn:example:profiles",
+              "profile_id": "resource-label",
+              "revision": "1.0.0",
+              "definition_digest": "sha256:9736ea021ba3f8e31d67d1c8adf57d1b822858bff195eca8aa50c028d7883dbc"
+            },
+            "owner": {
+              "owning_contract_id": "plan-realization-profiles-v1",
+              "canonical_address": "#/resources/provision.content.seed",
+              "concept_family": "resource-realization",
+              "lifecycle_phase": "planning",
+              "context": "service-materialization",
+              "use": "constraint"
+            },
+            "value": {
+              "description": "second"
+            },
+            "provenance": {
+              "basis": "author-supplied",
+              "source_ref": "urn:example:binding-source",
+              "evidence_refs": []
+            },
+            "children": []
+          }
+        }
+      }
+    },
+    "Subjects": [
+      {
+        "Family": "nodes",
+        "Name": "host",
+        "ModelType": "Node",
+        "PresentFields": [
+          "type"
+        ],
+        "Semantic": {
+          "type": "compute"
+        }
+      },
+      {
+        "Family": "content",
+        "Name": "seed",
+        "ModelType": "Content",
+        "PresentFields": [
+          "path",
+          "service_materialization",
+          "target",
+          "type"
+        ],
+        "Semantic": {
+          "type": "file",
+          "target": "host",
+          "path": "/seed",
+          "service_materialization": {
+            "schema_version": "domain-profile-binding/v1",
+            "binding_id": "repository-binding",
+            "coordinate": {
+              "namespace": "com.example.private",
+              "authority": "urn:example:profiles",
+              "profile_id": "resource-label",
+              "revision": "1.0.0",
+              "definition_digest": "sha256:9736ea021ba3f8e31d67d1c8adf57d1b822858bff195eca8aa50c028d7883dbc"
+            },
+            "owner": {
+              "owning_contract_id": "plan-realization-profiles-v1",
+              "canonical_address": "#/resources/provision.content.seed",
+              "concept_family": "resource-realization",
+              "lifecycle_phase": "planning",
+              "context": "service-materialization",
+              "use": "constraint"
+            },
+            "value": {
+              "description": "second"
+            },
+            "provenance": {
+              "basis": "author-supplied",
+              "source_ref": "urn:example:binding-source",
+              "evidence_refs": []
+            },
+            "children": []
+          }
+        }
+      }
+    ],
+    "Imports": []
+  },
+  {
+    "name": "imported-root",
+    "source": "name: root\nimports:\n- source: local:parts/module.yaml\n  namespace: demo\n  version: \">=1,<2\"\n  digest: sha256:e65b325f1fe88e1b5040fc7fc468f470a4f42eb36da06fff7b69d7db96244e55\n",
+    "root": "space/main.yaml",
+    "sources": {
+      "space/main.yaml": "name: root\nimports:\n- source: local:parts/module.yaml\n  namespace: demo\n  version: \">=1,<2\"\n  digest: sha256:e65b325f1fe88e1b5040fc7fc468f470a4f42eb36da06fff7b69d7db96244e55\n",
+      "space/parts/module.yaml": "name: module\nmodule: {id: example/demo, version: \"1.2\", exports: {nodes: [web]}}\nnodes: {web: {type: compute}}\n",
+      "space/raes.lock.json": "{\"schema_version\":\"raes-lock/v1\",\"imports\":[{\"source\":\"local:parts/module.yaml\",\"namespace\":\"demo\",\"requested_version\":\">=1,<2\",\"resolved_source\":\"parts/module.yaml\",\"module_id\":\"example/demo\",\"module_version\":\"1.2\",\"manifest_digest\":\"\",\"content_digest\":\"sha256:e65b325f1fe88e1b5040fc7fc468f470a4f42eb36da06fff7b69d7db96244e55\",\"export_hash\":\"15b62a5767f3de3c7beed9dd791f4af113564d7c43a59eae4f6ebf57b51954e5\",\"signer_id\":\"\"}]}"
+    },
+    "revision": "1",
+    "Name": "root",
+    "Version": "*",
+    "CanonicalDigest": "sha256:f652b274782942079e227f66398dec8f34f0efa323363fd72b7324804479085c",
+    "Structural": {
+      "declarations": {
+        "nodes": [],
+        "infrastructure": [],
+        "features": [],
+        "conditions": [],
+        "propositions": [],
+        "assertions": [],
+        "entities": [],
+        "injects": [],
+        "events": [],
+        "scripts": [],
+        "stories": [],
+        "content": [],
+        "generated_artifacts": [],
+        "persistent_volumes": [],
+        "accounts": [],
+        "identity_domains": [],
+        "identity_forests": [],
+        "identity_facades": [],
+        "deployment_tenants": [],
+        "deployment_cells": [],
+        "relationships": [],
+        "agents": [],
+        "action_contracts": [],
+        "observation_boundaries": [],
+        "outcome_interpretation_rules": [],
+        "behavior_specifications": [],
+        "evidence_requirements": [],
+        "time_domains": [],
+        "clocks": [],
+        "time_domain_mappings": [],
+        "time_progression_policies": [],
+        "temporal_constraints": [],
+        "objectives": [],
+        "workflows": [],
+        "variables": [],
+        "variation_points": []
+      },
+      "forwarding_agent_count": 0,
+      "has_module_descriptor": false,
+      "import_namespaces": [
+        "demo"
+      ],
+      "has_realization_designation": false
+    },
+    "Semantic": {
+      "accounts": {},
+      "action_contracts": {},
+      "agents": {},
+      "assertions": {},
+      "behavior_specifications": {},
+      "clocks": {},
+      "conditions": {},
+      "content": {},
+      "deployment_cells": {},
+      "deployment_tenants": {},
+      "entities": {},
+      "events": {},
+      "evidence_requirements": {},
+      "features": {},
+      "forwarding_agents": [],
+      "generated_artifacts": {},
+      "identity_domains": {},
+      "identity_facades": {},
+      "identity_forests": {},
+      "imports": [
+        {
+          "digest": "sha256:e65b325f1fe88e1b5040fc7fc468f470a4f42eb36da06fff7b69d7db96244e55",
+          "namespace": "demo",
+          "parameters": {},
+          "path": "",
+          "source": "local:parts/module.yaml",
+          "version": ">=1,<2"
+        }
+      ],
+      "infrastructure": {},
+      "injects": {},
+      "module": null,
+      "name": "root",
+      "nodes": {},
+      "objectives": {},
+      "observation_boundaries": {},
+      "outcome_interpretation_rules": {},
+      "persistent_volumes": {},
+      "propositions": {},
+      "realization": null,
+      "relationships": {},
+      "scripts": {},
+      "stories": {},
+      "temporal_constraints": {},
+      "time_domain_mappings": {},
+      "time_domains": {},
+      "time_progression_policies": {},
+      "variables": {},
+      "variation_points": {},
+      "version": "*",
+      "workflows": {}
+    },
+    "Subjects": [],
+    "Imports": [
+      {
+        "source": "local:parts/module.yaml",
+        "path": "",
+        "namespace": "demo",
+        "version": ">=1,<2",
+        "parameters": {},
+        "digest": "sha256:e65b325f1fe88e1b5040fc7fc468f470a4f42eb36da06fff7b69d7db96244e55"
+      }
+    ]
+  },
+  {
+    "name": "imported-root",
+    "source": "name: root\nimports:\n- source: local:parts/module.yaml\n  namespace: demo\n  version: \">=1,<2\"\n  digest: sha256:e65b325f1fe88e1b5040fc7fc468f470a4f42eb36da06fff7b69d7db96244e55\n",
+    "root": "space/main.yaml",
+    "sources": {
+      "space/main.yaml": "name: root\nimports:\n- source: local:parts/module.yaml\n  namespace: demo\n  version: \">=1,<2\"\n  digest: sha256:e65b325f1fe88e1b5040fc7fc468f470a4f42eb36da06fff7b69d7db96244e55\n",
+      "space/parts/module.yaml": "name: module\nmodule: {id: example/demo, version: \"1.2\", exports: {nodes: [web]}}\nnodes: {web: {type: compute}}\n",
+      "space/raes.lock.json": "{\"schema_version\":\"raes-lock/v1\",\"imports\":[{\"source\":\"local:parts/module.yaml\",\"namespace\":\"demo\",\"requested_version\":\">=1,<2\",\"resolved_source\":\"parts/module.yaml\",\"module_id\":\"example/demo\",\"module_version\":\"1.2\",\"manifest_digest\":\"\",\"content_digest\":\"sha256:e65b325f1fe88e1b5040fc7fc468f470a4f42eb36da06fff7b69d7db96244e55\",\"export_hash\":\"15b62a5767f3de3c7beed9dd791f4af113564d7c43a59eae4f6ebf57b51954e5\",\"signer_id\":\"\"}]}"
+    },
+    "revision": "2",
+    "Name": "root",
+    "Version": "*",
+    "CanonicalDigest": "sha256:e36d5734b43d03fe1465ea9d4a6105bc224f71f0691dd8501554496b2a2bbd9c",
+    "Structural": {
+      "declarations": {
+        "nodes": [],
+        "infrastructure": [],
+        "features": [],
+        "conditions": [],
+        "propositions": [],
+        "assertions": [],
+        "entities": [],
+        "injects": [],
+        "events": [],
+        "scripts": [],
+        "stories": [],
+        "content": [],
+        "generated_artifacts": [],
+        "persistent_volumes": [],
+        "accounts": [],
+        "identity_domains": [],
+        "identity_forests": [],
+        "identity_facades": [],
+        "deployment_tenants": [],
+        "deployment_cells": [],
+        "relationships": [],
+        "agents": [],
+        "action_contracts": [],
+        "observation_boundaries": [],
+        "outcome_interpretation_rules": [],
+        "behavior_specifications": [],
+        "evidence_requirements": [],
+        "time_domains": [],
+        "clocks": [],
+        "time_domain_mappings": [],
+        "time_progression_policies": [],
+        "temporal_constraints": [],
+        "objectives": [],
+        "workflows": [],
+        "variables": [],
+        "variation_points": []
+      },
+      "forwarding_agent_count": 0,
+      "has_module_descriptor": false,
+      "import_namespaces": [
+        "demo"
+      ],
+      "has_realization_designation": false
+    },
+    "Semantic": {
+      "name": "root",
+      "imports": [
+        {
+          "source": "local:parts/module.yaml",
+          "namespace": "demo",
+          "version": ">=1,<2",
+          "digest": "sha256:e65b325f1fe88e1b5040fc7fc468f470a4f42eb36da06fff7b69d7db96244e55"
+        }
+      ]
+    },
+    "Subjects": [],
+    "Imports": [
+      {
+        "source": "local:parts/module.yaml",
+        "path": "",
+        "namespace": "demo",
+        "version": ">=1,<2",
+        "parameters": {},
+        "digest": "sha256:e65b325f1fe88e1b5040fc7fc468f470a4f42eb36da06fff7b69d7db96244e55"
+      }
+    ]
+  },
+  {
+    "name": "workflow-model-names",
+    "source": "name: workflow\nnodes: {server: {type: compute}}\nentities: {blue: {role: blue}}\npropositions:\n health:\n  description: declared runtime\n  subjects: [nodes.server]\n  basis: declared_state\n  predicate: {kind: presence, property: runtime, semantic_ref: urn:raes:declared-property:runtime, operator: exists}\nassertions:\n gate: {proposition: health, role: precondition}\n result: {proposition: health, role: postcondition}\nobjectives:\n first: {owner: blue, success: {assertions: [result]}}\nworkflows:\n flow:\n  start: branch\n  steps:\n   branch: {type: decision, when: {assertions: [gate]}, then: execute, else: finish}\n   execute: {type: objective, objective: first, on_success: finish}\n   finish: {type: end}\n",
+    "revision": "1",
+    "Name": "workflow",
+    "Version": "*",
+    "CanonicalDigest": "sha256:44948bb3e5d96effc54ff77318e841fff510a4edb74a4fbd715603cbc2b268a7",
+    "Structural": {
+      "declarations": {
+        "nodes": [
+          "server"
+        ],
+        "infrastructure": [],
+        "features": [],
+        "conditions": [],
+        "propositions": [
+          "health"
+        ],
+        "assertions": [
+          "gate",
+          "result"
+        ],
+        "entities": [
+          "blue"
+        ],
+        "injects": [],
+        "events": [],
+        "scripts": [],
+        "stories": [],
+        "content": [],
+        "generated_artifacts": [],
+        "persistent_volumes": [],
+        "accounts": [],
+        "identity_domains": [],
+        "identity_forests": [],
+        "identity_facades": [],
+        "deployment_tenants": [],
+        "deployment_cells": [],
+        "relationships": [],
+        "agents": [],
+        "action_contracts": [],
+        "observation_boundaries": [],
+        "outcome_interpretation_rules": [],
+        "behavior_specifications": [],
+        "evidence_requirements": [],
+        "time_domains": [],
+        "clocks": [],
+        "time_domain_mappings": [],
+        "time_progression_policies": [],
+        "temporal_constraints": [],
+        "objectives": [
+          "first"
+        ],
+        "workflows": [
+          "flow"
+        ],
+        "variables": [],
+        "variation_points": []
+      },
+      "forwarding_agent_count": 0,
+      "has_module_descriptor": false,
+      "import_namespaces": [],
+      "has_realization_designation": false
+    },
+    "Semantic": {
+      "accounts": {},
+      "action_contracts": {},
+      "agents": {},
+      "assertions": {
+        "gate": {
+          "polarity": "positive",
+          "proposition": "health",
+          "role": "precondition"
+        },
+        "result": {
+          "polarity": "positive",
+          "proposition": "health",
+          "role": "postcondition"
+        }
+      },
+      "behavior_specifications": {},
+      "clocks": {},
+      "conditions": {},
+      "content": {},
+      "deployment_cells": {},
+      "deployment_tenants": {},
+      "entities": {
+        "blue": {
+          "entities": {},
+          "events": [],
+          "facts": {},
+          "mission": "",
+          "name": "",
+          "role": "blue"
+        }
+      },
+      "events": {},
+      "evidence_requirements": {},
+      "features": {},
+      "forwarding_agents": [],
+      "generated_artifacts": {},
+      "identity_domains": {},
+      "identity_facades": {},
+      "identity_forests": {},
+      "imports": [],
+      "infrastructure": {},
+      "injects": {},
+      "module": null,
+      "name": "workflow",
+      "nodes": {
+        "server": {
+          "architecture": null,
+          "asset_value": null,
+          "conditions": {},
+          "endpoint_persona": null,
+          "features": {},
+          "injects": {},
+          "os": null,
+          "os_distribution": null,
+          "os_version": "",
+          "resources": null,
+          "roles": {},
+          "runtime": null,
+          "services": [],
+          "source": null,
+          "type": "compute"
+        }
+      },
+      "objectives": {
+        "first": {
+          "actions": [],
+          "assigned_participant": null,
+          "depends_on": [],
+          "name": "",
+          "owner": "blue",
+          "success": {
+            "assertions": [
+              "result"
+            ],
+            "mode": "all_of",
+            "threshold": null
+          },
+          "targets": [],
+          "window": null
+        }
+      },
+      "observation_boundaries": {},
+      "outcome_interpretation_rules": {},
+      "persistent_volumes": {},
+      "propositions": {
+        "health": {
+          "basis": "declared_state",
+          "evidence_requirements": [],
+          "predicate": {
+            "kind": "presence",
+            "operator": "exists",
+            "property": "runtime",
+            "semantic_ref": "urn:raes:declared-property:runtime"
+          },
+          "quantifier": "all",
+          "subjects": [
+            "nodes.server"
+          ],
+          "threshold": null
+        }
+      },
+      "realization": null,
+      "relationships": {},
+      "scripts": {},
+      "stories": {},
+      "temporal_constraints": {},
+      "time_domain_mappings": {},
+      "time_domains": {},
+      "time_progression_policies": {},
+      "variables": {},
+      "variation_points": {},
+      "version": "*",
+      "workflows": {
+        "flow": {
+          "compensation": null,
+          "start": "branch",
+          "steps": {
+            "branch": {
+              "allowed_action_families": [],
+              "branches": [],
+              "capability_refs": [],
+              "cases": [],
+              "compensate_with": "",
+              "default_step": "",
+              "else_step": "finish",
+              "execution_mode": "scripted",
+              "fact_binding_refs": [],
+              "join": "",
+              "max_attempts": null,
+              "next": "",
+              "objective": "",
+              "on_exhausted": "",
+              "on_failure": "",
+              "on_success": "",
+              "procedure_ref": "",
+              "scaffold_refs": [],
+              "then_step": "execute",
+              "tool_affordance_refs": [],
+              "type": "decision",
+              "when": {
+                "assertions": [
+                  "gate"
+                ],
+                "objectives": [],
+                "steps": []
+              },
+              "workflow": ""
+            },
+            "execute": {
+              "allowed_action_families": [],
+              "branches": [],
+              "capability_refs": [],
+              "cases": [],
+              "compensate_with": "",
+              "default_step": "",
+              "else_step": "",
+              "execution_mode": "scripted",
+              "fact_binding_refs": [],
+              "join": "",
+              "max_attempts": null,
+              "next": "",
+              "objective": "first",
+              "on_exhausted": "",
+              "on_failure": "",
+              "on_success": "finish",
+              "procedure_ref": "",
+              "scaffold_refs": [],
+              "then_step": "",
+              "tool_affordance_refs": [],
+              "type": "objective",
+              "when": null,
+              "workflow": ""
+            },
+            "finish": {
+              "allowed_action_families": [],
+              "branches": [],
+              "capability_refs": [],
+              "cases": [],
+              "compensate_with": "",
+              "default_step": "",
+              "else_step": "",
+              "execution_mode": "scripted",
+              "fact_binding_refs": [],
+              "join": "",
+              "max_attempts": null,
+              "next": "",
+              "objective": "",
+              "on_exhausted": "",
+              "on_failure": "",
+              "on_success": "",
+              "procedure_ref": "",
+              "scaffold_refs": [],
+              "then_step": "",
+              "tool_affordance_refs": [],
+              "type": "end",
+              "when": null,
+              "workflow": ""
+            }
+          },
+          "timeout": null
+        }
+      }
+    },
+    "Subjects": [
+      {
+        "Family": "nodes",
+        "Name": "server",
+        "ModelType": "Node",
+        "PresentFields": [
+          "architecture",
+          "asset_value",
+          "conditions",
+          "description",
+          "endpoint_persona",
+          "features",
+          "injects",
+          "os",
+          "os_distribution",
+          "os_version",
+          "resources",
+          "roles",
+          "runtime",
+          "services",
+          "source",
+          "type"
+        ],
+        "Semantic": {
+          "architecture": null,
+          "asset_value": null,
+          "conditions": {},
+          "endpoint_persona": null,
+          "features": {},
+          "injects": {},
+          "os": null,
+          "os_distribution": null,
+          "os_version": "",
+          "resources": null,
+          "roles": {},
+          "runtime": null,
+          "services": [],
+          "source": null,
+          "type": "compute"
+        }
+      },
+      {
+        "Family": "propositions",
+        "Name": "health",
+        "ModelType": "Proposition",
+        "PresentFields": [
+          "basis",
+          "description",
+          "evidence_requirements",
+          "predicate",
+          "quantifier",
+          "subjects",
+          "threshold"
+        ],
+        "Semantic": {
+          "basis": "declared_state",
+          "evidence_requirements": [],
+          "predicate": {
+            "kind": "presence",
+            "operator": "exists",
+            "property": "runtime",
+            "semantic_ref": "urn:raes:declared-property:runtime"
+          },
+          "quantifier": "all",
+          "subjects": [
+            "nodes.server"
+          ],
+          "threshold": null
+        }
+      },
+      {
+        "Family": "assertions",
+        "Name": "gate",
+        "ModelType": "Assertion",
+        "PresentFields": [
+          "description",
+          "polarity",
+          "proposition",
+          "role"
+        ],
+        "Semantic": {
+          "polarity": "positive",
+          "proposition": "health",
+          "role": "precondition"
+        }
+      },
+      {
+        "Family": "assertions",
+        "Name": "result",
+        "ModelType": "Assertion",
+        "PresentFields": [
+          "description",
+          "polarity",
+          "proposition",
+          "role"
+        ],
+        "Semantic": {
+          "polarity": "positive",
+          "proposition": "health",
+          "role": "postcondition"
+        }
+      },
+      {
+        "Family": "entities",
+        "Name": "blue",
+        "ModelType": "Entity",
+        "PresentFields": [
+          "description",
+          "entities",
+          "events",
+          "facts",
+          "mission",
+          "name",
+          "role"
+        ],
+        "Semantic": {
+          "entities": {},
+          "events": [],
+          "facts": {},
+          "mission": "",
+          "name": "",
+          "role": "blue"
+        }
+      },
+      {
+        "Family": "objectives",
+        "Name": "first",
+        "ModelType": "Objective",
+        "PresentFields": [
+          "actions",
+          "assigned_participant",
+          "depends_on",
+          "description",
+          "name",
+          "owner",
+          "success",
+          "targets",
+          "window"
+        ],
+        "Semantic": {
+          "actions": [],
+          "assigned_participant": null,
+          "depends_on": [],
+          "name": "",
+          "owner": "blue",
+          "success": {
+            "assertions": [
+              "result"
+            ],
+            "mode": "all_of",
+            "threshold": null
+          },
+          "targets": [],
+          "window": null
+        }
+      },
+      {
+        "Family": "workflows",
+        "Name": "flow",
+        "ModelType": "Workflow",
+        "PresentFields": [
+          "compensation",
+          "description",
+          "start",
+          "steps",
+          "timeout"
+        ],
+        "Semantic": {
+          "compensation": null,
+          "start": "branch",
+          "steps": {
+            "branch": {
+              "allowed_action_families": [],
+              "branches": [],
+              "capability_refs": [],
+              "cases": [],
+              "compensate_with": "",
+              "default_step": "",
+              "else_step": "finish",
+              "execution_mode": "scripted",
+              "fact_binding_refs": [],
+              "join": "",
+              "max_attempts": null,
+              "next": "",
+              "objective": "",
+              "on_exhausted": "",
+              "on_failure": "",
+              "on_success": "",
+              "procedure_ref": "",
+              "scaffold_refs": [],
+              "then_step": "execute",
+              "tool_affordance_refs": [],
+              "type": "decision",
+              "when": {
+                "assertions": [
+                  "gate"
+                ],
+                "objectives": [],
+                "steps": []
+              },
+              "workflow": ""
+            },
+            "execute": {
+              "allowed_action_families": [],
+              "branches": [],
+              "capability_refs": [],
+              "cases": [],
+              "compensate_with": "",
+              "default_step": "",
+              "else_step": "",
+              "execution_mode": "scripted",
+              "fact_binding_refs": [],
+              "join": "",
+              "max_attempts": null,
+              "next": "",
+              "objective": "first",
+              "on_exhausted": "",
+              "on_failure": "",
+              "on_success": "finish",
+              "procedure_ref": "",
+              "scaffold_refs": [],
+              "then_step": "",
+              "tool_affordance_refs": [],
+              "type": "objective",
+              "when": null,
+              "workflow": ""
+            },
+            "finish": {
+              "allowed_action_families": [],
+              "branches": [],
+              "capability_refs": [],
+              "cases": [],
+              "compensate_with": "",
+              "default_step": "",
+              "else_step": "",
+              "execution_mode": "scripted",
+              "fact_binding_refs": [],
+              "join": "",
+              "max_attempts": null,
+              "next": "",
+              "objective": "",
+              "on_exhausted": "",
+              "on_failure": "",
+              "on_success": "",
+              "procedure_ref": "",
+              "scaffold_refs": [],
+              "then_step": "",
+              "tool_affordance_refs": [],
+              "type": "end",
+              "when": null,
+              "workflow": ""
+            }
+          },
+          "timeout": null
+        }
+      }
+    ],
+    "Imports": []
+  },
+  {
+    "name": "workflow-model-names",
+    "source": "name: workflow\nnodes: {server: {type: compute}}\nentities: {blue: {role: blue}}\npropositions:\n health:\n  description: declared runtime\n  subjects: [nodes.server]\n  basis: declared_state\n  predicate: {kind: presence, property: runtime, semantic_ref: urn:raes:declared-property:runtime, operator: exists}\nassertions:\n gate: {proposition: health, role: precondition}\n result: {proposition: health, role: postcondition}\nobjectives:\n first: {owner: blue, success: {assertions: [result]}}\nworkflows:\n flow:\n  start: branch\n  steps:\n   branch: {type: decision, when: {assertions: [gate]}, then: execute, else: finish}\n   execute: {type: objective, objective: first, on_success: finish}\n   finish: {type: end}\n",
+    "revision": "2",
+    "Name": "workflow",
+    "Version": "*",
+    "CanonicalDigest": "sha256:29eb6161546ca2fbd40ee92cb2ff28d1f5df4ec2179b5727357b63b3c8e16caa",
+    "Structural": {
+      "declarations": {
+        "nodes": [
+          "server"
+        ],
+        "infrastructure": [],
+        "features": [],
+        "conditions": [],
+        "propositions": [
+          "health"
+        ],
+        "assertions": [
+          "gate",
+          "result"
+        ],
+        "entities": [
+          "blue"
+        ],
+        "injects": [],
+        "events": [],
+        "scripts": [],
+        "stories": [],
+        "content": [],
+        "generated_artifacts": [],
+        "persistent_volumes": [],
+        "accounts": [],
+        "identity_domains": [],
+        "identity_forests": [],
+        "identity_facades": [],
+        "deployment_tenants": [],
+        "deployment_cells": [],
+        "relationships": [],
+        "agents": [],
+        "action_contracts": [],
+        "observation_boundaries": [],
+        "outcome_interpretation_rules": [],
+        "behavior_specifications": [],
+        "evidence_requirements": [],
+        "time_domains": [],
+        "clocks": [],
+        "time_domain_mappings": [],
+        "time_progression_policies": [],
+        "temporal_constraints": [],
+        "objectives": [
+          "first"
+        ],
+        "workflows": [
+          "flow"
+        ],
+        "variables": [],
+        "variation_points": []
+      },
+      "forwarding_agent_count": 0,
+      "has_module_descriptor": false,
+      "import_namespaces": [],
+      "has_realization_designation": false
+    },
+    "Semantic": {
+      "name": "workflow",
+      "nodes": {
+        "server": {
+          "type": "compute"
+        }
+      },
+      "propositions": {
+        "health": {
+          "subjects": [
+            "nodes.server"
+          ],
+          "basis": "declared_state",
+          "predicate": {
+            "kind": "presence",
+            "property": "runtime",
+            "semantic_ref": "urn:raes:declared-property:runtime",
+            "operator": "exists"
+          }
+        }
+      },
+      "assertions": {
+        "gate": {
+          "proposition": "health",
+          "role": "precondition"
+        },
+        "result": {
+          "proposition": "health",
+          "role": "postcondition"
+        }
+      },
+      "entities": {
+        "blue": {
+          "role": "blue"
+        }
+      },
+      "objectives": {
+        "first": {
+          "owner": "blue",
+          "success": {
+            "assertions": [
+              "result"
+            ]
+          }
+        }
+      },
+      "workflows": {
+        "flow": {
+          "start": "branch",
+          "steps": {
+            "branch": {
+              "type": "decision",
+              "when": {
+                "assertions": [
+                  "gate"
+                ]
+              },
+              "then": "execute",
+              "else": "finish"
+            },
+            "execute": {
+              "type": "objective",
+              "objective": "first",
+              "on_success": "finish"
+            },
+            "finish": {
+              "type": "end"
+            }
+          }
+        }
+      }
+    },
+    "Subjects": [
+      {
+        "Family": "nodes",
+        "Name": "server",
+        "ModelType": "Node",
+        "PresentFields": [
+          "type"
+        ],
+        "Semantic": {
+          "type": "compute"
+        }
+      },
+      {
+        "Family": "propositions",
+        "Name": "health",
+        "ModelType": "Proposition",
+        "PresentFields": [
+          "basis",
+          "description",
+          "predicate",
+          "subjects"
+        ],
+        "Semantic": {
+          "subjects": [
+            "nodes.server"
+          ],
+          "basis": "declared_state",
+          "predicate": {
+            "kind": "presence",
+            "property": "runtime",
+            "semantic_ref": "urn:raes:declared-property:runtime",
+            "operator": "exists"
+          }
+        }
+      },
+      {
+        "Family": "assertions",
+        "Name": "gate",
+        "ModelType": "Assertion",
+        "PresentFields": [
+          "proposition",
+          "role"
+        ],
+        "Semantic": {
+          "proposition": "health",
+          "role": "precondition"
+        }
+      },
+      {
+        "Family": "assertions",
+        "Name": "result",
+        "ModelType": "Assertion",
+        "PresentFields": [
+          "proposition",
+          "role"
+        ],
+        "Semantic": {
+          "proposition": "health",
+          "role": "postcondition"
+        }
+      },
+      {
+        "Family": "entities",
+        "Name": "blue",
+        "ModelType": "Entity",
+        "PresentFields": [
+          "role"
+        ],
+        "Semantic": {
+          "role": "blue"
+        }
+      },
+      {
+        "Family": "objectives",
+        "Name": "first",
+        "ModelType": "Objective",
+        "PresentFields": [
+          "owner",
+          "success"
+        ],
+        "Semantic": {
+          "owner": "blue",
+          "success": {
+            "assertions": [
+              "result"
+            ]
+          }
+        }
+      },
+      {
+        "Family": "workflows",
+        "Name": "flow",
+        "ModelType": "Workflow",
+        "PresentFields": [
+          "start",
+          "steps"
+        ],
+        "Semantic": {
+          "start": "branch",
+          "steps": {
+            "branch": {
+              "type": "decision",
+              "when": {
+                "assertions": [
+                  "gate"
+                ]
+              },
+              "then": "execute",
+              "else": "finish"
+            },
+            "execute": {
+              "type": "objective",
+              "objective": "first",
+              "on_success": "finish"
+            },
+            "finish": {
+              "type": "end"
+            }
+          }
+        }
+      }
+    ],
+    "Imports": []
+  }
+]

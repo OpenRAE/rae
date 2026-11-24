@@ -1,0 +1,56 @@
+package temporal
+
+import (
+	"RUNTIME/runtime/execution"
+	"context"
+	"crypto/tls"
+	"github.com/OpenRAE/rae/implementations/go/backend"
+	"time"
+)
+
+type Configuration struct {
+	Namespace, WorkflowQueue, EffectQueue, ControlQueue, WorkerIdentity string
+	RPCBudget                                                           time.Duration
+}
+
+func DefaultConfiguration() Configuration
+func (config Configuration) Validate() error
+
+type ClientOptions struct {
+	Endpoint, Namespace string
+	TLS                 *tls.Config
+	Authorization       func(context.Context) (map[string]string, error)
+}
+
+// Dial wraps the supported Temporal SDK client; the caller supplies its
+// approved endpoint and credentials. Namespace and queue checks precede use.
+type Client interface {
+	Namespace() string
+	Close() error
+	temporalClient()
+}
+
+func Dial(context.Context, ClientOptions) (Client, error)
+
+type Adapter interface{ execution.Dispatcher }
+type Worker interface {
+	Run(context.Context) error
+	Close() error
+}
+
+type WorkerOptions struct {
+	Provider                          backend.OperationProvider
+	EffectAuthority, ControlAuthority execution.WorkerAuthority
+	EffectCapacity, ControlCapacity   int
+}
+
+func New(client Client, config Configuration) (Adapter, error)
+func NewWorker(client Client, config Configuration, options WorkerOptions) (Worker, error)
+
+type RuntimeWorkerOptions struct {
+	StateQueue, WorkerIdentity string
+	Authority                  execution.WorkerAuthority
+	Capacity                   int
+}
+
+func NewRuntimeWorker(client Client, options RuntimeWorkerOptions) (Worker, error)

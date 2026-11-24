@@ -1,0 +1,3347 @@
+{
+  "cases": [
+    {
+      "name": "refuse-collision",
+      "root": "collision.sdl.yaml",
+      "files": {
+        "references.sdl.yaml": "name: transformation-reference-case\nnodes:\n  web:\n    type: compute\n    resources:\n      ram: 1 GiB\n      cpu: 1\n  peer:\n    type: switch\ncontent:\n  payload:\n    type: file\n    target: web\n    path: /opt/payload\nrelationships:\n  loop:\n    type: connects_to\n    source: web\n    target: web\n",
+        "collision.sdl.yaml": "name: transformation-collision-case\nnodes:\n  web:\n    type: switch\n  frontend:\n    type: switch\n",
+        "nested-references.sdl.yaml": "name: transformation-nested-reference-case\nnodes:\n  lan:\n    type: switch\n  web:\n    type: compute\n    resources:\n      ram: 1 GiB\n      cpu: 1\n    services:\n      - port: 80\n        name: http\n    runtime:\n      service_listeners:\n        - service_listener_id: telemetry\n          port: 9100\ncontent:\n  bundle:\n    type: dataset\n    target: web\n    items:\n      - name: report\nentities:\n  red-team:\n    role: red\nagents:\n  red-agent:\n    affiliations: [red-team]\n    actions: [probe]\n    operating_scope:\n      - nodes.web.services.http\n      - content.bundle.items.report\naction_contracts:\n  probe:\n    semantic_version: 1.0.0\n    behavioral_granularity: atomic\n    procedure_basis: probe the web service\n    realization_profile: backend-declared\n    fidelity_claim: records probe intent\n    preconditions:\n      - precondition_id: in-scope\n        precondition_class: authority\n        description: the web service is in scope\n    effects:\n      - effect_id: observed\n        effect_class: observation_effect\n        description: probe observation\n        evidence_refs: [evidence.probe-output]\n    failure_classes: [unknown]\nbehavior_specifications:\n  probe-behavior:\n    semantic_version: 1.0.0\n    lifecycle_state: active\n    participant_refs: [red-agent]\n    action_contract_refs: [probe]\n    authority_scope_refs:\n      - nodes.web.services.http\n      - nodes.web.runtime.service_listeners.telemetry\n      - content.bundle.items.report\n"
+      },
+      "request": {
+        "operation_profile": "rename-sdl-declaration/v1",
+        "request": {
+          "target_address": "nodes.web",
+          "new_local_name": "frontend"
+        },
+        "policy": {
+          "allowed_loss_kinds": []
+        },
+        "binding_documents": []
+      },
+      "output": null,
+      "result": {
+        "report": {
+          "schema_version": "artifact-transformation-report/v1",
+          "operation_profile": "rename-sdl-declaration/v1",
+          "status": "refused",
+          "artifact_kind": "sdl-authoring",
+          "source_profile": "sdl-authoring-input/v1",
+          "target_profile": "sdl-authoring-input/v1",
+          "canonicalization_profile": "raes-sdl-semantic/v2",
+          "source_digest": "sha256:e71a78194ecb696e89bd693dfcfb4eb1e9aaf2785680baee9d1a57df635d3ae6",
+          "target_digest": null,
+          "policy_digest": "sha256:2388c8a8d22d8b12ae1bff62dd7112af81adce07b35ce2047b3d6ce57ec716fc",
+          "derivation_digest": "sha256:1a069d8c78e0f9a330bd04cd8000478452a2138a5ababde79d07410f04f988b8",
+          "preconditions": [
+            {
+              "check_id": "source-admitted",
+              "outcome": "passed",
+              "diagnostic_codes": []
+            },
+            {
+              "check_id": "target-exact",
+              "outcome": "passed",
+              "diagnostic_codes": []
+            },
+            {
+              "check_id": "target-injective",
+              "outcome": "failed",
+              "diagnostic_codes": [
+                "artifact-transformation.identity-collision"
+              ]
+            },
+            {
+              "check_id": "target-supported",
+              "outcome": "passed",
+              "diagnostic_codes": []
+            }
+          ],
+          "postconditions": [],
+          "affected_identities": [
+            "nodes.web"
+          ],
+          "identity_map": [],
+          "preservation": {
+            "profile": "sdl-declaration-identity-transport/v1",
+            "outcome": "failed",
+            "evidence_digests": [],
+            "limitations": [
+              "Finite verification does not establish behavioral equivalence."
+            ]
+          },
+          "losses": [],
+          "diagnostics": [
+            {
+              "code": "artifact-transformation.identity-collision",
+              "domain": "artifact-transformation",
+              "address": "/request/target_address",
+              "message": "The requested replacement collides with an existing canonical declaration.",
+              "severity": "error"
+            }
+          ]
+        },
+        "binding_documents": []
+      }
+    },
+    {
+      "name": "remove-with-explicit-loss",
+      "root": "references.sdl.yaml",
+      "files": {
+        "references.sdl.yaml": "name: transformation-reference-case\nnodes:\n  web:\n    type: compute\n    resources:\n      ram: 1 GiB\n      cpu: 1\n  peer:\n    type: switch\ncontent:\n  payload:\n    type: file\n    target: web\n    path: /opt/payload\nrelationships:\n  loop:\n    type: connects_to\n    source: web\n    target: web\n",
+        "collision.sdl.yaml": "name: transformation-collision-case\nnodes:\n  web:\n    type: switch\n  frontend:\n    type: switch\n",
+        "nested-references.sdl.yaml": "name: transformation-nested-reference-case\nnodes:\n  lan:\n    type: switch\n  web:\n    type: compute\n    resources:\n      ram: 1 GiB\n      cpu: 1\n    services:\n      - port: 80\n        name: http\n    runtime:\n      service_listeners:\n        - service_listener_id: telemetry\n          port: 9100\ncontent:\n  bundle:\n    type: dataset\n    target: web\n    items:\n      - name: report\nentities:\n  red-team:\n    role: red\nagents:\n  red-agent:\n    affiliations: [red-team]\n    actions: [probe]\n    operating_scope:\n      - nodes.web.services.http\n      - content.bundle.items.report\naction_contracts:\n  probe:\n    semantic_version: 1.0.0\n    behavioral_granularity: atomic\n    procedure_basis: probe the web service\n    realization_profile: backend-declared\n    fidelity_claim: records probe intent\n    preconditions:\n      - precondition_id: in-scope\n        precondition_class: authority\n        description: the web service is in scope\n    effects:\n      - effect_id: observed\n        effect_class: observation_effect\n        description: probe observation\n        evidence_refs: [evidence.probe-output]\n    failure_classes: [unknown]\nbehavior_specifications:\n  probe-behavior:\n    semantic_version: 1.0.0\n    lifecycle_state: active\n    participant_refs: [red-agent]\n    action_contract_refs: [probe]\n    authority_scope_refs:\n      - nodes.web.services.http\n      - nodes.web.runtime.service_listeners.telemetry\n      - content.bundle.items.report\n"
+      },
+      "request": {
+        "operation_profile": "remove-sdl-declaration/v1",
+        "request": {
+          "target_address": "nodes.peer"
+        },
+        "policy": {
+          "allowed_loss_kinds": [
+            "declaration-removed"
+          ]
+        },
+        "binding_documents": []
+      },
+      "output": {
+        "name": "transformation-reference-case",
+        "nodes": {
+          "web": {
+            "type": "compute",
+            "resources": {
+              "ram": 1073741824,
+              "cpu": 1
+            }
+          }
+        },
+        "content": {
+          "payload": {
+            "type": "file",
+            "target": "web",
+            "path": "/opt/payload"
+          }
+        },
+        "relationships": {
+          "loop": {
+            "type": "connects_to",
+            "source": "web",
+            "target": "web"
+          }
+        }
+      },
+      "result": {
+        "report": {
+          "schema_version": "artifact-transformation-report/v1",
+          "operation_profile": "remove-sdl-declaration/v1",
+          "status": "success",
+          "artifact_kind": "sdl-authoring",
+          "source_profile": "sdl-authoring-input/v1",
+          "target_profile": "sdl-authoring-input/v1",
+          "canonicalization_profile": "raes-sdl-semantic/v2",
+          "source_digest": "sha256:a68a5aa6a01bef3a6bec239fff1982e6666f7d4e22e7cc0496a121d5d03347a8",
+          "target_digest": "sha256:df799c156917c32991747caf8beac128f00620aead41226eb8b10d9b7b564ea9",
+          "policy_digest": "sha256:1fe04ef44c123a83448f8f77998ccdab444cb1b91a592a62e66350aab08e2a1d",
+          "derivation_digest": "sha256:7256b1e6e3563b6873ce7f8b8c302c5a28dfdb35b2572c43168580845bdd03fc",
+          "preconditions": [
+            {
+              "check_id": "loss-authorized",
+              "outcome": "passed",
+              "diagnostic_codes": []
+            },
+            {
+              "check_id": "source-admitted",
+              "outcome": "passed",
+              "diagnostic_codes": []
+            },
+            {
+              "check_id": "target-exact",
+              "outcome": "passed",
+              "diagnostic_codes": []
+            }
+          ],
+          "postconditions": [
+            {
+              "check_id": "target-admitted",
+              "outcome": "passed",
+              "diagnostic_codes": []
+            }
+          ],
+          "affected_identities": [
+            "nodes.peer"
+          ],
+          "identity_map": [],
+          "preservation": {
+            "profile": "explicit-loss-accounting/v1",
+            "outcome": "not-applicable",
+            "evidence_digests": [
+              "sha256:a68a5aa6a01bef3a6bec239fff1982e6666f7d4e22e7cc0496a121d5d03347a8",
+              "sha256:df799c156917c32991747caf8beac128f00620aead41226eb8b10d9b7b564ea9"
+            ],
+            "limitations": [
+              "Removal does not preserve the selected declaration."
+            ]
+          },
+          "losses": [
+            {
+              "kind": "declaration-removed",
+              "affected_identity": "nodes.peer",
+              "diagnostic": {
+                "code": "artifact-transformation.declaration-removed",
+                "domain": "artifact-transformation",
+                "address": "",
+                "message": "The selected declaration is absent from the transformed artifact.",
+                "severity": "warning"
+              }
+            }
+          ],
+          "diagnostics": []
+        },
+        "binding_documents": []
+      }
+    },
+    {
+      "name": "rename-composed-reference",
+      "root": "root.yaml",
+      "files": {
+        "module.yaml": "name: fixture-module\nversion: 1.0.0\nmodule:\n  id: raes/fixture-family\n  version: 1.0.0\n  exports:\n    nodes: [primary, secondary]\n    content: [payload]\n    variation_points: [payload-host]\nnodes:\n  primary: {type: compute, resources: {ram: 1 GiB, cpu: 1}}\n  secondary: {type: compute, resources: {ram: 1 GiB, cpu: 1}}\ncontent:\n  payload: {type: file, target: primary, path: /opt/payload}\nvariation_points:\n  private-host:\n    kind: alternative\n    target: {kind: reference, owner: payload, slot: content.target}\n    alternatives:\n      primary-host: {reference: primary}\n      secondary-host: {reference: secondary}\n  payload-host:\n    kind: alternative\n    target: {kind: reference, owner: payload, slot: content.target}\n    alternatives:\n      primary-host:\n        reference: primary\n        requires: [{point: private-host, members: [primary-host]}]\n      secondary-host: {reference: secondary}\n",
+        "root.yaml": "name: composed-family\nimports:\n  - path: module.yaml\n    namespace: shared\n    version: 1.0.0\n"
+      },
+      "request": {
+        "operation_profile": "rename-sdl-declaration/v1",
+        "request": {
+          "target_address": "nodes.shared.primary",
+          "new_local_name": "frontend"
+        },
+        "policy": {
+          "allowed_loss_kinds": []
+        },
+        "binding_documents": []
+      },
+      "output": {
+        "name": "composed-family",
+        "version": "*",
+        "nodes": {
+          "shared.secondary": {
+            "type": "compute",
+            "description": "",
+            "source": null,
+            "resources": {
+              "ram": 1073741824,
+              "cpu": 1
+            },
+            "os": null,
+            "os_distribution": null,
+            "os_version": "",
+            "architecture": null,
+            "features": {},
+            "conditions": {},
+            "injects": {},
+            "roles": {},
+            "services": [],
+            "asset_value": null,
+            "endpoint_persona": null,
+            "runtime": null
+          },
+          "shared.frontend": {
+            "type": "compute",
+            "description": "",
+            "source": null,
+            "resources": {
+              "ram": 1073741824,
+              "cpu": 1
+            },
+            "os": null,
+            "os_distribution": null,
+            "os_version": "",
+            "architecture": null,
+            "features": {},
+            "conditions": {},
+            "injects": {},
+            "roles": {},
+            "services": [],
+            "asset_value": null,
+            "endpoint_persona": null,
+            "runtime": null
+          }
+        },
+        "infrastructure": {},
+        "features": {},
+        "conditions": {},
+        "propositions": {},
+        "assertions": {},
+        "entities": {},
+        "injects": {},
+        "events": {},
+        "scripts": {},
+        "stories": {},
+        "content": {
+          "shared.payload": {
+            "type": "file",
+            "description": "",
+            "target": "shared.frontend",
+            "path": "/opt/payload",
+            "destination": "",
+            "text": null,
+            "source": null,
+            "format": "",
+            "items": [],
+            "sensitive": false,
+            "tags": [],
+            "service_materialization": null
+          }
+        },
+        "generated_artifacts": {},
+        "persistent_volumes": {},
+        "accounts": {},
+        "identity_domains": {},
+        "identity_forests": {},
+        "identity_facades": {},
+        "deployment_tenants": {},
+        "deployment_cells": {},
+        "relationships": {},
+        "forwarding_agents": [],
+        "agents": {},
+        "action_contracts": {},
+        "observation_boundaries": {},
+        "outcome_interpretation_rules": {},
+        "behavior_specifications": {},
+        "evidence_requirements": {},
+        "time_domains": {},
+        "clocks": {},
+        "time_domain_mappings": {},
+        "time_progression_policies": {},
+        "temporal_constraints": {},
+        "objectives": {},
+        "workflows": {},
+        "variables": {},
+        "variation_points": {
+          "shared.__private.private-host": {
+            "kind": "alternative",
+            "target": {
+              "kind": "reference",
+              "owner": "shared.payload",
+              "slot": "content.target"
+            },
+            "alternatives": {
+              "primary-host": {
+                "description": "",
+                "requires": [],
+                "excludes": [],
+                "reference": "shared.frontend"
+              },
+              "secondary-host": {
+                "description": "",
+                "requires": [],
+                "excludes": [],
+                "reference": "shared.secondary"
+              }
+            },
+            "description": ""
+          },
+          "shared.payload-host": {
+            "kind": "alternative",
+            "target": {
+              "kind": "reference",
+              "owner": "shared.payload",
+              "slot": "content.target"
+            },
+            "alternatives": {
+              "primary-host": {
+                "description": "",
+                "requires": [
+                  {
+                    "point": "shared.__private.private-host",
+                    "members": [
+                      "primary-host"
+                    ]
+                  }
+                ],
+                "excludes": [],
+                "reference": "shared.frontend"
+              },
+              "secondary-host": {
+                "description": "",
+                "requires": [],
+                "excludes": [],
+                "reference": "shared.secondary"
+              }
+            },
+            "description": ""
+          }
+        },
+        "expansion_provenance": {
+          "imports": [
+            {
+              "namespace": [
+                "shared"
+              ],
+              "requested_source": "local:module.yaml",
+              "requested_version": "1.0.0",
+              "requested_digest": "",
+              "module_id": "raes/fixture-family",
+              "module_version": "1.0.0",
+              "resolved_source": "module.yaml",
+              "manifest_digest": "",
+              "content_digest": "sha256:d2d1dbf60479004f1725f9e8027654948eb919be6f136b76a527107e9b0901ed",
+              "export_hash": "sha256:eaeb8f4d744d62a50fbef345bacc6429652837af1b831f839b28a3995e63d5ba",
+              "signer_id": "",
+              "bindings": []
+            }
+          ],
+          "capability_constraints": [],
+          "explicitness": [
+            {
+              "model_path": "nodes.shared.primary.type",
+              "classification": "exact",
+              "provenance": "author-declared",
+              "reason": "authored concrete value",
+              "parameters": []
+            },
+            {
+              "model_path": "nodes.shared.primary.resources.ram",
+              "classification": "exact",
+              "provenance": "author-declared",
+              "reason": "authored concrete value",
+              "parameters": []
+            },
+            {
+              "model_path": "nodes.shared.primary.resources.cpu",
+              "classification": "exact",
+              "provenance": "author-declared",
+              "reason": "authored concrete value",
+              "parameters": []
+            },
+            {
+              "model_path": "nodes.shared.primary.resources",
+              "classification": "exact",
+              "provenance": "author-declared",
+              "reason": "derived from child declarations",
+              "parameters": []
+            },
+            {
+              "model_path": "nodes.shared.primary",
+              "classification": "exact",
+              "provenance": "author-declared",
+              "reason": "derived from child declarations",
+              "parameters": []
+            },
+            {
+              "model_path": "nodes.shared.secondary.type",
+              "classification": "exact",
+              "provenance": "author-declared",
+              "reason": "authored concrete value",
+              "parameters": []
+            },
+            {
+              "model_path": "nodes.shared.secondary.resources.ram",
+              "classification": "exact",
+              "provenance": "author-declared",
+              "reason": "authored concrete value",
+              "parameters": []
+            },
+            {
+              "model_path": "nodes.shared.secondary.resources.cpu",
+              "classification": "exact",
+              "provenance": "author-declared",
+              "reason": "authored concrete value",
+              "parameters": []
+            },
+            {
+              "model_path": "nodes.shared.secondary.resources",
+              "classification": "exact",
+              "provenance": "author-declared",
+              "reason": "derived from child declarations",
+              "parameters": []
+            },
+            {
+              "model_path": "nodes.shared.secondary",
+              "classification": "exact",
+              "provenance": "author-declared",
+              "reason": "derived from child declarations",
+              "parameters": []
+            },
+            {
+              "model_path": "content.shared.payload.type",
+              "classification": "exact",
+              "provenance": "author-declared",
+              "reason": "authored concrete value",
+              "parameters": []
+            },
+            {
+              "model_path": "content.shared.payload.target",
+              "classification": "exact",
+              "provenance": "author-declared",
+              "reason": "authored concrete value",
+              "parameters": []
+            },
+            {
+              "model_path": "content.shared.payload.path",
+              "classification": "exact",
+              "provenance": "author-declared",
+              "reason": "authored concrete value",
+              "parameters": []
+            },
+            {
+              "model_path": "content.shared.payload",
+              "classification": "exact",
+              "provenance": "author-declared",
+              "reason": "derived from child declarations",
+              "parameters": []
+            },
+            {
+              "model_path": "variation_points.shared.__private.private-host.kind",
+              "classification": "exact",
+              "provenance": "author-declared",
+              "reason": "authored concrete value",
+              "parameters": []
+            },
+            {
+              "model_path": "variation_points.shared.__private.private-host.target.kind",
+              "classification": "exact",
+              "provenance": "author-declared",
+              "reason": "authored concrete value",
+              "parameters": []
+            },
+            {
+              "model_path": "variation_points.shared.__private.private-host.target.owner",
+              "classification": "exact",
+              "provenance": "author-declared",
+              "reason": "authored concrete value",
+              "parameters": []
+            },
+            {
+              "model_path": "variation_points.shared.__private.private-host.target.slot",
+              "classification": "exact",
+              "provenance": "author-declared",
+              "reason": "authored concrete value",
+              "parameters": []
+            },
+            {
+              "model_path": "variation_points.shared.__private.private-host.target",
+              "classification": "exact",
+              "provenance": "author-declared",
+              "reason": "derived from child declarations",
+              "parameters": []
+            },
+            {
+              "model_path": "variation_points.shared.__private.private-host.alternatives.primary-host.reference",
+              "classification": "exact",
+              "provenance": "author-declared",
+              "reason": "authored concrete value",
+              "parameters": []
+            },
+            {
+              "model_path": "variation_points.shared.__private.private-host.alternatives.primary-host",
+              "classification": "exact",
+              "provenance": "author-declared",
+              "reason": "derived from child declarations",
+              "parameters": []
+            },
+            {
+              "model_path": "variation_points.shared.__private.private-host.alternatives.secondary-host.reference",
+              "classification": "exact",
+              "provenance": "author-declared",
+              "reason": "authored concrete value",
+              "parameters": []
+            },
+            {
+              "model_path": "variation_points.shared.__private.private-host.alternatives.secondary-host",
+              "classification": "exact",
+              "provenance": "author-declared",
+              "reason": "derived from child declarations",
+              "parameters": []
+            },
+            {
+              "model_path": "variation_points.shared.__private.private-host.alternatives",
+              "classification": "exact",
+              "provenance": "author-declared",
+              "reason": "derived from child declarations",
+              "parameters": []
+            },
+            {
+              "model_path": "variation_points.shared.__private.private-host",
+              "classification": "exact",
+              "provenance": "author-declared",
+              "reason": "derived from child declarations",
+              "parameters": []
+            },
+            {
+              "model_path": "variation_points.shared.payload-host.kind",
+              "classification": "exact",
+              "provenance": "author-declared",
+              "reason": "authored concrete value",
+              "parameters": []
+            },
+            {
+              "model_path": "variation_points.shared.payload-host.target.kind",
+              "classification": "exact",
+              "provenance": "author-declared",
+              "reason": "authored concrete value",
+              "parameters": []
+            },
+            {
+              "model_path": "variation_points.shared.payload-host.target.owner",
+              "classification": "exact",
+              "provenance": "author-declared",
+              "reason": "authored concrete value",
+              "parameters": []
+            },
+            {
+              "model_path": "variation_points.shared.payload-host.target.slot",
+              "classification": "exact",
+              "provenance": "author-declared",
+              "reason": "authored concrete value",
+              "parameters": []
+            },
+            {
+              "model_path": "variation_points.shared.payload-host.target",
+              "classification": "exact",
+              "provenance": "author-declared",
+              "reason": "derived from child declarations",
+              "parameters": []
+            },
+            {
+              "model_path": "variation_points.shared.payload-host.alternatives.primary-host.requires[0].point",
+              "classification": "exact",
+              "provenance": "author-declared",
+              "reason": "authored concrete value",
+              "parameters": []
+            },
+            {
+              "model_path": "variation_points.shared.payload-host.alternatives.primary-host.requires[0].members[0]",
+              "classification": "exact",
+              "provenance": "author-declared",
+              "reason": "authored concrete value",
+              "parameters": []
+            },
+            {
+              "model_path": "variation_points.shared.payload-host.alternatives.primary-host.requires[0].members",
+              "classification": "exact",
+              "provenance": "author-declared",
+              "reason": "derived from child declarations",
+              "parameters": []
+            },
+            {
+              "model_path": "variation_points.shared.payload-host.alternatives.primary-host.requires[0]",
+              "classification": "exact",
+              "provenance": "author-declared",
+              "reason": "derived from child declarations",
+              "parameters": []
+            },
+            {
+              "model_path": "variation_points.shared.payload-host.alternatives.primary-host.requires",
+              "classification": "exact",
+              "provenance": "author-declared",
+              "reason": "derived from child declarations",
+              "parameters": []
+            },
+            {
+              "model_path": "variation_points.shared.payload-host.alternatives.primary-host.reference",
+              "classification": "exact",
+              "provenance": "author-declared",
+              "reason": "authored concrete value",
+              "parameters": []
+            },
+            {
+              "model_path": "variation_points.shared.payload-host.alternatives.primary-host",
+              "classification": "exact",
+              "provenance": "author-declared",
+              "reason": "derived from child declarations",
+              "parameters": []
+            },
+            {
+              "model_path": "variation_points.shared.payload-host.alternatives.secondary-host.reference",
+              "classification": "exact",
+              "provenance": "author-declared",
+              "reason": "authored concrete value",
+              "parameters": []
+            },
+            {
+              "model_path": "variation_points.shared.payload-host.alternatives.secondary-host",
+              "classification": "exact",
+              "provenance": "author-declared",
+              "reason": "derived from child declarations",
+              "parameters": []
+            },
+            {
+              "model_path": "variation_points.shared.payload-host.alternatives",
+              "classification": "exact",
+              "provenance": "author-declared",
+              "reason": "derived from child declarations",
+              "parameters": []
+            },
+            {
+              "model_path": "variation_points.shared.payload-host",
+              "classification": "exact",
+              "provenance": "author-declared",
+              "reason": "derived from child declarations",
+              "parameters": []
+            }
+          ],
+          "realization_designations": [],
+          "realization_constraints": []
+        }
+      },
+      "result": {
+        "report": {
+          "schema_version": "artifact-transformation-report/v1",
+          "operation_profile": "rename-sdl-declaration/v1",
+          "status": "success",
+          "artifact_kind": "sdl-authoring",
+          "source_profile": "sdl-authoring-input/v1",
+          "target_profile": "sdl-authoring-input/v1",
+          "canonicalization_profile": "raes-sdl-semantic/v2",
+          "source_digest": "sha256:f4070b833b2e6f0b7861aa252e046bb01b5af6329dfec0e2a91ac43c0f97bc8c",
+          "target_digest": "sha256:9354e85dae2ec96dcb08dba8fa2d7e03d26645ca55e7b0293f03693f4984b2b8",
+          "policy_digest": "sha256:2388c8a8d22d8b12ae1bff62dd7112af81adce07b35ce2047b3d6ce57ec716fc",
+          "derivation_digest": "sha256:4fcf4803fbf3fe9a065b4f8bfa3f3e712bb0845c504bc2b486722a639576ea7f",
+          "preconditions": [
+            {
+              "check_id": "linked-artifacts-current",
+              "outcome": "passed",
+              "diagnostic_codes": []
+            },
+            {
+              "check_id": "source-admitted",
+              "outcome": "passed",
+              "diagnostic_codes": []
+            },
+            {
+              "check_id": "target-exact",
+              "outcome": "passed",
+              "diagnostic_codes": []
+            },
+            {
+              "check_id": "target-injective",
+              "outcome": "passed",
+              "diagnostic_codes": []
+            },
+            {
+              "check_id": "target-supported",
+              "outcome": "passed",
+              "diagnostic_codes": []
+            }
+          ],
+          "postconditions": [
+            {
+              "check_id": "identity-map-bijective",
+              "outcome": "passed",
+              "diagnostic_codes": []
+            },
+            {
+              "check_id": "linked-artifacts-retargeted",
+              "outcome": "passed",
+              "diagnostic_codes": []
+            },
+            {
+              "check_id": "round-trip-canonical-identity",
+              "outcome": "passed",
+              "diagnostic_codes": []
+            },
+            {
+              "check_id": "target-admitted",
+              "outcome": "passed",
+              "diagnostic_codes": []
+            }
+          ],
+          "affected_identities": [
+            "nodes.shared.primary"
+          ],
+          "identity_map": [
+            {
+              "declaration_kind": "node",
+              "before": "nodes.shared.primary",
+              "after": "nodes.shared.frontend"
+            }
+          ],
+          "preservation": {
+            "profile": "sdl-declaration-identity-transport/v1",
+            "outcome": "verified",
+            "evidence_digests": [
+              "sha256:9354e85dae2ec96dcb08dba8fa2d7e03d26645ca55e7b0293f03693f4984b2b8",
+              "sha256:f4070b833b2e6f0b7861aa252e046bb01b5af6329dfec0e2a91ac43c0f97bc8c"
+            ],
+            "limitations": [
+              "Finite structural and semantic verification does not establish behavioral equivalence."
+            ]
+          },
+          "losses": [],
+          "diagnostics": []
+        },
+        "binding_documents": []
+      }
+    },
+    {
+      "name": "rename-nested-references",
+      "root": "nested-references.sdl.yaml",
+      "files": {
+        "references.sdl.yaml": "name: transformation-reference-case\nnodes:\n  web:\n    type: compute\n    resources:\n      ram: 1 GiB\n      cpu: 1\n  peer:\n    type: switch\ncontent:\n  payload:\n    type: file\n    target: web\n    path: /opt/payload\nrelationships:\n  loop:\n    type: connects_to\n    source: web\n    target: web\n",
+        "collision.sdl.yaml": "name: transformation-collision-case\nnodes:\n  web:\n    type: switch\n  frontend:\n    type: switch\n",
+        "nested-references.sdl.yaml": "name: transformation-nested-reference-case\nnodes:\n  lan:\n    type: switch\n  web:\n    type: compute\n    resources:\n      ram: 1 GiB\n      cpu: 1\n    services:\n      - port: 80\n        name: http\n    runtime:\n      service_listeners:\n        - service_listener_id: telemetry\n          port: 9100\ncontent:\n  bundle:\n    type: dataset\n    target: web\n    items:\n      - name: report\nentities:\n  red-team:\n    role: red\nagents:\n  red-agent:\n    affiliations: [red-team]\n    actions: [probe]\n    operating_scope:\n      - nodes.web.services.http\n      - content.bundle.items.report\naction_contracts:\n  probe:\n    semantic_version: 1.0.0\n    behavioral_granularity: atomic\n    procedure_basis: probe the web service\n    realization_profile: backend-declared\n    fidelity_claim: records probe intent\n    preconditions:\n      - precondition_id: in-scope\n        precondition_class: authority\n        description: the web service is in scope\n    effects:\n      - effect_id: observed\n        effect_class: observation_effect\n        description: probe observation\n        evidence_refs: [evidence.probe-output]\n    failure_classes: [unknown]\nbehavior_specifications:\n  probe-behavior:\n    semantic_version: 1.0.0\n    lifecycle_state: active\n    participant_refs: [red-agent]\n    action_contract_refs: [probe]\n    authority_scope_refs:\n      - nodes.web.services.http\n      - nodes.web.runtime.service_listeners.telemetry\n      - content.bundle.items.report\n"
+      },
+      "request": {
+        "operation_profile": "rename-sdl-declaration/v1",
+        "request": {
+          "target_address": "nodes.web",
+          "new_local_name": "frontend"
+        },
+        "policy": {
+          "allowed_loss_kinds": []
+        },
+        "binding_documents": []
+      },
+      "output": {
+        "name": "transformation-nested-reference-case",
+        "nodes": {
+          "lan": {
+            "type": "switch"
+          },
+          "frontend": {
+            "type": "compute",
+            "resources": {
+              "ram": 1073741824,
+              "cpu": 1
+            },
+            "services": [
+              {
+                "port": 80,
+                "name": "http"
+              }
+            ],
+            "runtime": {
+              "service_listeners": [
+                {
+                  "service_listener_id": "telemetry",
+                  "port": 9100
+                }
+              ]
+            }
+          }
+        },
+        "entities": {
+          "red-team": {
+            "role": "red"
+          }
+        },
+        "content": {
+          "bundle": {
+            "type": "dataset",
+            "target": "frontend",
+            "items": [
+              {
+                "name": "report"
+              }
+            ]
+          }
+        },
+        "agents": {
+          "red-agent": {
+            "affiliations": [
+              "red-team"
+            ],
+            "actions": [
+              "probe"
+            ],
+            "operating_scope": [
+              "nodes.frontend.services.http",
+              "content.bundle.items.report"
+            ]
+          }
+        },
+        "action_contracts": {
+          "probe": {
+            "semantic_version": "1.0.0",
+            "behavioral_granularity": "atomic",
+            "procedure_basis": "probe the web service",
+            "realization_profile": "backend-declared",
+            "fidelity_claim": "records probe intent",
+            "preconditions": [
+              {
+                "precondition_id": "in-scope",
+                "precondition_class": "authority",
+                "description": "the web service is in scope"
+              }
+            ],
+            "effects": [
+              {
+                "effect_id": "observed",
+                "effect_class": "observation_effect",
+                "description": "probe observation",
+                "evidence_refs": [
+                  "evidence.probe-output"
+                ]
+              }
+            ],
+            "failure_classes": [
+              "unknown"
+            ]
+          }
+        },
+        "behavior_specifications": {
+          "probe-behavior": {
+            "semantic_version": "1.0.0",
+            "lifecycle_state": "active",
+            "participant_refs": [
+              "red-agent"
+            ],
+            "action_contract_refs": [
+              "probe"
+            ],
+            "authority_scope_refs": [
+              "nodes.frontend.services.http",
+              "nodes.frontend.runtime.service_listeners.telemetry",
+              "content.bundle.items.report"
+            ]
+          }
+        }
+      },
+      "result": {
+        "report": {
+          "schema_version": "artifact-transformation-report/v1",
+          "operation_profile": "rename-sdl-declaration/v1",
+          "status": "success",
+          "artifact_kind": "sdl-authoring",
+          "source_profile": "sdl-authoring-input/v1",
+          "target_profile": "sdl-authoring-input/v1",
+          "canonicalization_profile": "raes-sdl-semantic/v2",
+          "source_digest": "sha256:1968359d595e2c43d62257865dbdbf3d5228575e9d4451e672b3308c7d76eb8f",
+          "target_digest": "sha256:f9609c1936f556b2c9949aa113d0940f0cbc54e9cc0728e41498f545e9b1dd3b",
+          "policy_digest": "sha256:2388c8a8d22d8b12ae1bff62dd7112af81adce07b35ce2047b3d6ce57ec716fc",
+          "derivation_digest": "sha256:dc1bc7c9228bd04ae62371f3bf3a69af5462a1f3fbfbc1074f707c06c757d362",
+          "preconditions": [
+            {
+              "check_id": "linked-artifacts-current",
+              "outcome": "passed",
+              "diagnostic_codes": []
+            },
+            {
+              "check_id": "source-admitted",
+              "outcome": "passed",
+              "diagnostic_codes": []
+            },
+            {
+              "check_id": "target-exact",
+              "outcome": "passed",
+              "diagnostic_codes": []
+            },
+            {
+              "check_id": "target-injective",
+              "outcome": "passed",
+              "diagnostic_codes": []
+            },
+            {
+              "check_id": "target-supported",
+              "outcome": "passed",
+              "diagnostic_codes": []
+            }
+          ],
+          "postconditions": [
+            {
+              "check_id": "identity-map-bijective",
+              "outcome": "passed",
+              "diagnostic_codes": []
+            },
+            {
+              "check_id": "linked-artifacts-retargeted",
+              "outcome": "passed",
+              "diagnostic_codes": []
+            },
+            {
+              "check_id": "round-trip-canonical-identity",
+              "outcome": "passed",
+              "diagnostic_codes": []
+            },
+            {
+              "check_id": "target-admitted",
+              "outcome": "passed",
+              "diagnostic_codes": []
+            }
+          ],
+          "affected_identities": [
+            "nodes.web"
+          ],
+          "identity_map": [
+            {
+              "declaration_kind": "node",
+              "before": "nodes.web",
+              "after": "nodes.frontend"
+            }
+          ],
+          "preservation": {
+            "profile": "sdl-declaration-identity-transport/v1",
+            "outcome": "verified",
+            "evidence_digests": [
+              "sha256:1968359d595e2c43d62257865dbdbf3d5228575e9d4451e672b3308c7d76eb8f",
+              "sha256:f9609c1936f556b2c9949aa113d0940f0cbc54e9cc0728e41498f545e9b1dd3b"
+            ],
+            "limitations": [
+              "Finite structural and semantic verification does not establish behavioral equivalence."
+            ]
+          },
+          "losses": [],
+          "diagnostics": []
+        },
+        "binding_documents": []
+      }
+    },
+    {
+      "name": "rename-references",
+      "root": "references.sdl.yaml",
+      "files": {
+        "references.sdl.yaml": "name: transformation-reference-case\nnodes:\n  web:\n    type: compute\n    resources:\n      ram: 1 GiB\n      cpu: 1\n  peer:\n    type: switch\ncontent:\n  payload:\n    type: file\n    target: web\n    path: /opt/payload\nrelationships:\n  loop:\n    type: connects_to\n    source: web\n    target: web\n",
+        "collision.sdl.yaml": "name: transformation-collision-case\nnodes:\n  web:\n    type: switch\n  frontend:\n    type: switch\n",
+        "nested-references.sdl.yaml": "name: transformation-nested-reference-case\nnodes:\n  lan:\n    type: switch\n  web:\n    type: compute\n    resources:\n      ram: 1 GiB\n      cpu: 1\n    services:\n      - port: 80\n        name: http\n    runtime:\n      service_listeners:\n        - service_listener_id: telemetry\n          port: 9100\ncontent:\n  bundle:\n    type: dataset\n    target: web\n    items:\n      - name: report\nentities:\n  red-team:\n    role: red\nagents:\n  red-agent:\n    affiliations: [red-team]\n    actions: [probe]\n    operating_scope:\n      - nodes.web.services.http\n      - content.bundle.items.report\naction_contracts:\n  probe:\n    semantic_version: 1.0.0\n    behavioral_granularity: atomic\n    procedure_basis: probe the web service\n    realization_profile: backend-declared\n    fidelity_claim: records probe intent\n    preconditions:\n      - precondition_id: in-scope\n        precondition_class: authority\n        description: the web service is in scope\n    effects:\n      - effect_id: observed\n        effect_class: observation_effect\n        description: probe observation\n        evidence_refs: [evidence.probe-output]\n    failure_classes: [unknown]\nbehavior_specifications:\n  probe-behavior:\n    semantic_version: 1.0.0\n    lifecycle_state: active\n    participant_refs: [red-agent]\n    action_contract_refs: [probe]\n    authority_scope_refs:\n      - nodes.web.services.http\n      - nodes.web.runtime.service_listeners.telemetry\n      - content.bundle.items.report\n"
+      },
+      "request": {
+        "operation_profile": "rename-sdl-declaration/v1",
+        "request": {
+          "target_address": "nodes.web",
+          "new_local_name": "frontend"
+        },
+        "policy": {
+          "allowed_loss_kinds": []
+        },
+        "binding_documents": []
+      },
+      "output": {
+        "name": "transformation-reference-case",
+        "nodes": {
+          "peer": {
+            "type": "switch"
+          },
+          "frontend": {
+            "type": "compute",
+            "resources": {
+              "ram": 1073741824,
+              "cpu": 1
+            }
+          }
+        },
+        "content": {
+          "payload": {
+            "type": "file",
+            "target": "frontend",
+            "path": "/opt/payload"
+          }
+        },
+        "relationships": {
+          "loop": {
+            "type": "connects_to",
+            "source": "frontend",
+            "target": "frontend"
+          }
+        }
+      },
+      "result": {
+        "report": {
+          "schema_version": "artifact-transformation-report/v1",
+          "operation_profile": "rename-sdl-declaration/v1",
+          "status": "success",
+          "artifact_kind": "sdl-authoring",
+          "source_profile": "sdl-authoring-input/v1",
+          "target_profile": "sdl-authoring-input/v1",
+          "canonicalization_profile": "raes-sdl-semantic/v2",
+          "source_digest": "sha256:a68a5aa6a01bef3a6bec239fff1982e6666f7d4e22e7cc0496a121d5d03347a8",
+          "target_digest": "sha256:02bdeac2089ff6b5c25fb842ca3252b5214ed82155a61b35c681859cdefd2719",
+          "policy_digest": "sha256:2388c8a8d22d8b12ae1bff62dd7112af81adce07b35ce2047b3d6ce57ec716fc",
+          "derivation_digest": "sha256:bb95b2829295460573414e9335483ce6e9e98116ab59443c87381c527c6c66f3",
+          "preconditions": [
+            {
+              "check_id": "linked-artifacts-current",
+              "outcome": "passed",
+              "diagnostic_codes": []
+            },
+            {
+              "check_id": "source-admitted",
+              "outcome": "passed",
+              "diagnostic_codes": []
+            },
+            {
+              "check_id": "target-exact",
+              "outcome": "passed",
+              "diagnostic_codes": []
+            },
+            {
+              "check_id": "target-injective",
+              "outcome": "passed",
+              "diagnostic_codes": []
+            },
+            {
+              "check_id": "target-supported",
+              "outcome": "passed",
+              "diagnostic_codes": []
+            }
+          ],
+          "postconditions": [
+            {
+              "check_id": "identity-map-bijective",
+              "outcome": "passed",
+              "diagnostic_codes": []
+            },
+            {
+              "check_id": "linked-artifacts-retargeted",
+              "outcome": "passed",
+              "diagnostic_codes": []
+            },
+            {
+              "check_id": "round-trip-canonical-identity",
+              "outcome": "passed",
+              "diagnostic_codes": []
+            },
+            {
+              "check_id": "target-admitted",
+              "outcome": "passed",
+              "diagnostic_codes": []
+            }
+          ],
+          "affected_identities": [
+            "nodes.web"
+          ],
+          "identity_map": [
+            {
+              "declaration_kind": "node",
+              "before": "nodes.web",
+              "after": "nodes.frontend"
+            }
+          ],
+          "preservation": {
+            "profile": "sdl-declaration-identity-transport/v1",
+            "outcome": "verified",
+            "evidence_digests": [
+              "sha256:02bdeac2089ff6b5c25fb842ca3252b5214ed82155a61b35c681859cdefd2719",
+              "sha256:a68a5aa6a01bef3a6bec239fff1982e6666f7d4e22e7cc0496a121d5d03347a8"
+            ],
+            "limitations": [
+              "Finite structural and semantic verification does not establish behavioral equivalence."
+            ]
+          },
+          "losses": [],
+          "diagnostics": []
+        },
+        "binding_documents": []
+      }
+    },
+    {
+      "name": "alias",
+      "root": "main.yaml",
+      "files": {
+        "main.yaml": "name: transformation\nnodes: {web: {type: compute}, peer: {type: compute}}\ncontent: {payload: {type: file, target: web, path: /tmp/test}}\n"
+      },
+      "request": {
+        "operation_profile": "rename-sdl-declaration/v1",
+        "request": {
+          "target_address": "web",
+          "new_local_name": "front"
+        },
+        "policy": {},
+        "binding_documents": []
+      },
+      "output": null,
+      "result": {
+        "report": {
+          "schema_version": "artifact-transformation-report/v1",
+          "operation_profile": "rename-sdl-declaration/v1",
+          "status": "refused",
+          "artifact_kind": "sdl-authoring",
+          "source_profile": "sdl-authoring-input/v1",
+          "target_profile": "sdl-authoring-input/v1",
+          "canonicalization_profile": "raes-sdl-semantic/v2",
+          "source_digest": "sha256:52f2cb7969a7f676a9da9f7b5cbb280b917ef8d7e287b4b79834854f2d8a92c2",
+          "target_digest": null,
+          "policy_digest": "sha256:2388c8a8d22d8b12ae1bff62dd7112af81adce07b35ce2047b3d6ce57ec716fc",
+          "derivation_digest": "sha256:6ff3ac21b1cf1a89bb0771849440eb600ce838e1352f8ef758248ada6a367008",
+          "preconditions": [
+            {
+              "check_id": "source-admitted",
+              "outcome": "passed",
+              "diagnostic_codes": []
+            },
+            {
+              "check_id": "target-exact",
+              "outcome": "failed",
+              "diagnostic_codes": [
+                "artifact-transformation.target-not-exact"
+              ]
+            }
+          ],
+          "postconditions": [],
+          "affected_identities": [],
+          "identity_map": [],
+          "preservation": {
+            "profile": "sdl-declaration-identity-transport/v1",
+            "outcome": "failed",
+            "evidence_digests": [],
+            "limitations": [
+              "Finite verification does not establish behavioral equivalence."
+            ]
+          },
+          "losses": [],
+          "diagnostics": [
+            {
+              "code": "artifact-transformation.target-not-exact",
+              "domain": "artifact-transformation",
+              "address": "/request/target_address",
+              "message": "The request target is not an exact supported declaration address.",
+              "severity": "error"
+            }
+          ]
+        },
+        "binding_documents": []
+      }
+    },
+    {
+      "name": "node-length",
+      "root": "main.yaml",
+      "files": {
+        "main.yaml": "name: transformation\nnodes: {web: {type: compute}, peer: {type: compute}}\ncontent: {payload: {type: file, target: web, path: /tmp/test}}\n"
+      },
+      "request": {
+        "operation_profile": "rename-sdl-declaration/v1",
+        "request": {
+          "target_address": "nodes.web",
+          "new_local_name": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        "policy": {},
+        "binding_documents": []
+      },
+      "output": null,
+      "result": {
+        "report": {
+          "schema_version": "artifact-transformation-report/v1",
+          "operation_profile": "rename-sdl-declaration/v1",
+          "status": "refused",
+          "artifact_kind": "sdl-authoring",
+          "source_profile": "sdl-authoring-input/v1",
+          "target_profile": "sdl-authoring-input/v1",
+          "canonicalization_profile": "raes-sdl-semantic/v2",
+          "source_digest": "sha256:52f2cb7969a7f676a9da9f7b5cbb280b917ef8d7e287b4b79834854f2d8a92c2",
+          "target_digest": null,
+          "policy_digest": "sha256:2388c8a8d22d8b12ae1bff62dd7112af81adce07b35ce2047b3d6ce57ec716fc",
+          "derivation_digest": "sha256:baad93aa3977cc3e2a0ee2e777279ed7edd89de88ce1d1a1c665384036a4b253",
+          "preconditions": [
+            {
+              "check_id": "source-admitted",
+              "outcome": "passed",
+              "diagnostic_codes": []
+            },
+            {
+              "check_id": "target-exact",
+              "outcome": "passed",
+              "diagnostic_codes": []
+            },
+            {
+              "check_id": "target-supported",
+              "outcome": "failed",
+              "diagnostic_codes": [
+                "artifact-transformation.target-unsupported"
+              ]
+            }
+          ],
+          "postconditions": [],
+          "affected_identities": [
+            "nodes.web"
+          ],
+          "identity_map": [],
+          "preservation": {
+            "profile": "sdl-declaration-identity-transport/v1",
+            "outcome": "failed",
+            "evidence_digests": [],
+            "limitations": [
+              "Finite verification does not establish behavioral equivalence."
+            ]
+          },
+          "losses": [],
+          "diagnostics": [
+            {
+              "code": "artifact-transformation.target-unsupported",
+              "domain": "artifact-transformation",
+              "address": "/request/target_address",
+              "message": "The requested replacement is outside the declaration's supported identity boundary.",
+              "severity": "error"
+            }
+          ]
+        },
+        "binding_documents": []
+      }
+    },
+    {
+      "name": "missing",
+      "root": "main.yaml",
+      "files": {
+        "main.yaml": "name: transformation\nnodes: {web: {type: compute}, peer: {type: compute}}\ncontent: {payload: {type: file, target: web, path: /tmp/test}}\n"
+      },
+      "request": {
+        "operation_profile": "rename-sdl-declaration/v1",
+        "request": {
+          "target_address": "nodes.absent",
+          "new_local_name": "front"
+        },
+        "policy": {},
+        "binding_documents": []
+      },
+      "output": null,
+      "result": {
+        "report": {
+          "schema_version": "artifact-transformation-report/v1",
+          "operation_profile": "rename-sdl-declaration/v1",
+          "status": "refused",
+          "artifact_kind": "sdl-authoring",
+          "source_profile": "sdl-authoring-input/v1",
+          "target_profile": "sdl-authoring-input/v1",
+          "canonicalization_profile": "raes-sdl-semantic/v2",
+          "source_digest": "sha256:52f2cb7969a7f676a9da9f7b5cbb280b917ef8d7e287b4b79834854f2d8a92c2",
+          "target_digest": null,
+          "policy_digest": "sha256:2388c8a8d22d8b12ae1bff62dd7112af81adce07b35ce2047b3d6ce57ec716fc",
+          "derivation_digest": "sha256:20bbb958997adb3f1a6634c2053e09609ef02816a41a465bcd7eb0b31db6ed8a",
+          "preconditions": [
+            {
+              "check_id": "source-admitted",
+              "outcome": "passed",
+              "diagnostic_codes": []
+            },
+            {
+              "check_id": "target-exact",
+              "outcome": "failed",
+              "diagnostic_codes": [
+                "artifact-transformation.target-not-exact"
+              ]
+            }
+          ],
+          "postconditions": [],
+          "affected_identities": [],
+          "identity_map": [],
+          "preservation": {
+            "profile": "sdl-declaration-identity-transport/v1",
+            "outcome": "failed",
+            "evidence_digests": [],
+            "limitations": [
+              "Finite verification does not establish behavioral equivalence."
+            ]
+          },
+          "losses": [],
+          "diagnostics": [
+            {
+              "code": "artifact-transformation.target-not-exact",
+              "domain": "artifact-transformation",
+              "address": "/request/target_address",
+              "message": "The request target is not an exact supported declaration address.",
+              "severity": "error"
+            }
+          ]
+        },
+        "binding_documents": []
+      }
+    },
+    {
+      "name": "same-identity",
+      "root": "main.yaml",
+      "files": {
+        "main.yaml": "name: transformation\nnodes: {web: {type: compute}, peer: {type: compute}}\ncontent: {payload: {type: file, target: web, path: /tmp/test}}\n"
+      },
+      "request": {
+        "operation_profile": "rename-sdl-declaration/v1",
+        "request": {
+          "target_address": "nodes.web",
+          "new_local_name": "web"
+        },
+        "policy": {},
+        "binding_documents": []
+      },
+      "output": null,
+      "result": {
+        "report": {
+          "schema_version": "artifact-transformation-report/v1",
+          "operation_profile": "rename-sdl-declaration/v1",
+          "status": "refused",
+          "artifact_kind": "sdl-authoring",
+          "source_profile": "sdl-authoring-input/v1",
+          "target_profile": "sdl-authoring-input/v1",
+          "canonicalization_profile": "raes-sdl-semantic/v2",
+          "source_digest": "sha256:52f2cb7969a7f676a9da9f7b5cbb280b917ef8d7e287b4b79834854f2d8a92c2",
+          "target_digest": null,
+          "policy_digest": "sha256:2388c8a8d22d8b12ae1bff62dd7112af81adce07b35ce2047b3d6ce57ec716fc",
+          "derivation_digest": "sha256:f9ba1f00a0382e6a24a438e785aaeaef64beaf3f84987e2e36008a6a0168b7e1",
+          "preconditions": [
+            {
+              "check_id": "linked-artifacts-current",
+              "outcome": "passed",
+              "diagnostic_codes": []
+            },
+            {
+              "check_id": "round-trip-canonical-identity",
+              "outcome": "failed",
+              "diagnostic_codes": [
+                "artifact-transformation.preservation-failed"
+              ]
+            },
+            {
+              "check_id": "source-admitted",
+              "outcome": "passed",
+              "diagnostic_codes": []
+            },
+            {
+              "check_id": "target-admitted",
+              "outcome": "passed",
+              "diagnostic_codes": []
+            },
+            {
+              "check_id": "target-exact",
+              "outcome": "passed",
+              "diagnostic_codes": []
+            },
+            {
+              "check_id": "target-injective",
+              "outcome": "passed",
+              "diagnostic_codes": []
+            },
+            {
+              "check_id": "target-supported",
+              "outcome": "passed",
+              "diagnostic_codes": []
+            }
+          ],
+          "postconditions": [],
+          "affected_identities": [
+            "nodes.web"
+          ],
+          "identity_map": [],
+          "preservation": {
+            "profile": "sdl-declaration-identity-transport/v1",
+            "outcome": "failed",
+            "evidence_digests": [],
+            "limitations": [
+              "Finite verification does not establish behavioral equivalence."
+            ]
+          },
+          "losses": [],
+          "diagnostics": [
+            {
+              "code": "artifact-transformation.preservation-failed",
+              "domain": "artifact-transformation",
+              "address": "/request/target_address",
+              "message": "The transformed candidate did not satisfy the identity-transport round-trip relation.",
+              "severity": "error"
+            }
+          ]
+        },
+        "binding_documents": []
+      }
+    },
+    {
+      "name": "remove-unauthorized",
+      "root": "main.yaml",
+      "files": {
+        "main.yaml": "name: transformation\nnodes: {web: {type: compute}, peer: {type: compute}}\ncontent: {payload: {type: file, target: web, path: /tmp/test}}\n"
+      },
+      "request": {
+        "operation_profile": "remove-sdl-declaration/v1",
+        "request": {
+          "target_address": "nodes.peer"
+        },
+        "policy": {},
+        "binding_documents": []
+      },
+      "output": null,
+      "result": {
+        "report": {
+          "schema_version": "artifact-transformation-report/v1",
+          "operation_profile": "remove-sdl-declaration/v1",
+          "status": "refused",
+          "artifact_kind": "sdl-authoring",
+          "source_profile": "sdl-authoring-input/v1",
+          "target_profile": "sdl-authoring-input/v1",
+          "canonicalization_profile": "raes-sdl-semantic/v2",
+          "source_digest": "sha256:52f2cb7969a7f676a9da9f7b5cbb280b917ef8d7e287b4b79834854f2d8a92c2",
+          "target_digest": null,
+          "policy_digest": "sha256:2388c8a8d22d8b12ae1bff62dd7112af81adce07b35ce2047b3d6ce57ec716fc",
+          "derivation_digest": "sha256:fd2386a5ef43282c3942b296dd2f9cb30cef511dce823698a174426f6d711972",
+          "preconditions": [
+            {
+              "check_id": "loss-authorized",
+              "outcome": "failed",
+              "diagnostic_codes": [
+                "artifact-transformation.loss-not-authorized"
+              ]
+            },
+            {
+              "check_id": "source-admitted",
+              "outcome": "passed",
+              "diagnostic_codes": []
+            },
+            {
+              "check_id": "target-exact",
+              "outcome": "passed",
+              "diagnostic_codes": []
+            }
+          ],
+          "postconditions": [],
+          "affected_identities": [
+            "nodes.peer"
+          ],
+          "identity_map": [],
+          "preservation": {
+            "profile": "explicit-loss-accounting/v1",
+            "outcome": "not-applicable",
+            "evidence_digests": [],
+            "limitations": [
+              "Removal does not preserve the selected declaration."
+            ]
+          },
+          "losses": [
+            {
+              "kind": "declaration-removed",
+              "affected_identity": "nodes.peer",
+              "diagnostic": {
+                "code": "artifact-transformation.declaration-removed",
+                "domain": "artifact-transformation",
+                "address": "",
+                "message": "The selected declaration is absent from the transformed artifact.",
+                "severity": "error"
+              }
+            }
+          ],
+          "diagnostics": [
+            {
+              "code": "artifact-transformation.loss-not-authorized",
+              "domain": "artifact-transformation",
+              "address": "/request/target_address",
+              "message": "Declaration removal requires explicit authorization of its exact loss kind.",
+              "severity": "error"
+            }
+          ]
+        },
+        "binding_documents": []
+      }
+    },
+    {
+      "name": "remove-alias",
+      "root": "main.yaml",
+      "files": {
+        "main.yaml": "name: transformation\nnodes: {web: {type: compute}, peer: {type: compute}}\ncontent: {payload: {type: file, target: web, path: /tmp/test}}\n"
+      },
+      "request": {
+        "operation_profile": "remove-sdl-declaration/v1",
+        "request": {
+          "target_address": "peer"
+        },
+        "policy": {
+          "allowed_loss_kinds": [
+            "declaration-removed"
+          ]
+        },
+        "binding_documents": []
+      },
+      "output": null,
+      "result": {
+        "report": {
+          "schema_version": "artifact-transformation-report/v1",
+          "operation_profile": "remove-sdl-declaration/v1",
+          "status": "refused",
+          "artifact_kind": "sdl-authoring",
+          "source_profile": "sdl-authoring-input/v1",
+          "target_profile": "sdl-authoring-input/v1",
+          "canonicalization_profile": "raes-sdl-semantic/v2",
+          "source_digest": "sha256:52f2cb7969a7f676a9da9f7b5cbb280b917ef8d7e287b4b79834854f2d8a92c2",
+          "target_digest": null,
+          "policy_digest": "sha256:1fe04ef44c123a83448f8f77998ccdab444cb1b91a592a62e66350aab08e2a1d",
+          "derivation_digest": "sha256:7042a8af4c0df615c5e1ed2ad1abe843a8e446a5a44e6515269893972d4cbf2b",
+          "preconditions": [
+            {
+              "check_id": "source-admitted",
+              "outcome": "passed",
+              "diagnostic_codes": []
+            },
+            {
+              "check_id": "target-exact",
+              "outcome": "failed",
+              "diagnostic_codes": [
+                "artifact-transformation.target-not-exact"
+              ]
+            }
+          ],
+          "postconditions": [],
+          "affected_identities": [
+            "peer"
+          ],
+          "identity_map": [],
+          "preservation": {
+            "profile": "explicit-loss-accounting/v1",
+            "outcome": "not-applicable",
+            "evidence_digests": [],
+            "limitations": [
+              "Removal does not preserve the selected declaration."
+            ]
+          },
+          "losses": [],
+          "diagnostics": [
+            {
+              "code": "artifact-transformation.target-not-exact",
+              "domain": "artifact-transformation",
+              "address": "/request/target_address",
+              "message": "The request target is not an exact supported declaration address.",
+              "severity": "error"
+            }
+          ]
+        },
+        "binding_documents": []
+      }
+    },
+    {
+      "name": "remove-dangling",
+      "root": "main.yaml",
+      "files": {
+        "main.yaml": "name: transformation\nnodes: {web: {type: compute}, peer: {type: compute}}\ncontent: {payload: {type: file, target: web, path: /tmp/test}}\n"
+      },
+      "request": {
+        "operation_profile": "remove-sdl-declaration/v1",
+        "request": {
+          "target_address": "nodes.web"
+        },
+        "policy": {
+          "allowed_loss_kinds": [
+            "declaration-removed"
+          ]
+        },
+        "binding_documents": []
+      },
+      "output": null,
+      "result": {
+        "report": {
+          "schema_version": "artifact-transformation-report/v1",
+          "operation_profile": "remove-sdl-declaration/v1",
+          "status": "refused",
+          "artifact_kind": "sdl-authoring",
+          "source_profile": "sdl-authoring-input/v1",
+          "target_profile": "sdl-authoring-input/v1",
+          "canonicalization_profile": "raes-sdl-semantic/v2",
+          "source_digest": "sha256:52f2cb7969a7f676a9da9f7b5cbb280b917ef8d7e287b4b79834854f2d8a92c2",
+          "target_digest": null,
+          "policy_digest": "sha256:1fe04ef44c123a83448f8f77998ccdab444cb1b91a592a62e66350aab08e2a1d",
+          "derivation_digest": "sha256:996564d4e7c62d6b248f7107f9b2ba66fc087b672d1f17627b4d5bb70b96de78",
+          "preconditions": [
+            {
+              "check_id": "loss-authorized",
+              "outcome": "passed",
+              "diagnostic_codes": []
+            },
+            {
+              "check_id": "source-admitted",
+              "outcome": "passed",
+              "diagnostic_codes": []
+            },
+            {
+              "check_id": "target-admitted",
+              "outcome": "failed",
+              "diagnostic_codes": [
+                "artifact-transformation.target-invalid"
+              ]
+            },
+            {
+              "check_id": "target-exact",
+              "outcome": "passed",
+              "diagnostic_codes": []
+            }
+          ],
+          "postconditions": [],
+          "affected_identities": [
+            "nodes.web"
+          ],
+          "identity_map": [],
+          "preservation": {
+            "profile": "explicit-loss-accounting/v1",
+            "outcome": "not-applicable",
+            "evidence_digests": [],
+            "limitations": [
+              "Removal does not preserve the selected declaration."
+            ]
+          },
+          "losses": [
+            {
+              "kind": "declaration-removed",
+              "affected_identity": "nodes.web",
+              "diagnostic": {
+                "code": "artifact-transformation.declaration-removed",
+                "domain": "artifact-transformation",
+                "address": "",
+                "message": "The selected declaration is absent from the transformed artifact.",
+                "severity": "error"
+              }
+            }
+          ],
+          "diagnostics": [
+            {
+              "code": "artifact-transformation.target-invalid",
+              "domain": "artifact-transformation",
+              "address": "/request/target_address",
+              "message": "The complete transformed candidate failed structural or semantic admission.",
+              "severity": "error"
+            }
+          ]
+        },
+        "binding_documents": []
+      }
+    },
+    {
+      "name": "augmentation-default",
+      "root": "main.yaml",
+      "files": {
+        "main.yaml": "name: transformation\nnodes: {web: {type: compute}, peer: {type: compute}}\ncontent: {payload: {type: file, target: web, path: /tmp/test}}\naugmentation_scope: {default: closed}\n"
+      },
+      "request": {
+        "operation_profile": "rename-sdl-declaration/v1",
+        "request": {
+          "target_address": "nodes.web",
+          "new_local_name": "front"
+        },
+        "policy": {},
+        "binding_documents": []
+      },
+      "output": {
+        "name": "transformation",
+        "nodes": {
+          "peer": {
+            "type": "compute"
+          },
+          "front": {
+            "type": "compute"
+          }
+        },
+        "content": {
+          "payload": {
+            "type": "file",
+            "target": "front",
+            "path": "/tmp/test"
+          }
+        },
+        "augmentation_scope": {
+          "default": "closed"
+        }
+      },
+      "result": {
+        "report": {
+          "schema_version": "artifact-transformation-report/v1",
+          "operation_profile": "rename-sdl-declaration/v1",
+          "status": "success",
+          "artifact_kind": "sdl-authoring",
+          "source_profile": "sdl-authoring-input/v1",
+          "target_profile": "sdl-authoring-input/v1",
+          "canonicalization_profile": "raes-sdl-semantic/v2",
+          "source_digest": "sha256:cd831528a38de56bb4761b023004be9b68947f45d0880f886c39fa81e50e4568",
+          "target_digest": "sha256:5d901f19bb5f6248f3aaae5bb2a17a7b564f7e91472736fec95b65d00ab37635",
+          "policy_digest": "sha256:2388c8a8d22d8b12ae1bff62dd7112af81adce07b35ce2047b3d6ce57ec716fc",
+          "derivation_digest": "sha256:ba3f302eb84f27091ca1b604bd6ec4b7eb50fafb4bc8e0e4c8c168a36d6c39b0",
+          "preconditions": [
+            {
+              "check_id": "linked-artifacts-current",
+              "outcome": "passed",
+              "diagnostic_codes": []
+            },
+            {
+              "check_id": "source-admitted",
+              "outcome": "passed",
+              "diagnostic_codes": []
+            },
+            {
+              "check_id": "target-exact",
+              "outcome": "passed",
+              "diagnostic_codes": []
+            },
+            {
+              "check_id": "target-injective",
+              "outcome": "passed",
+              "diagnostic_codes": []
+            },
+            {
+              "check_id": "target-supported",
+              "outcome": "passed",
+              "diagnostic_codes": []
+            }
+          ],
+          "postconditions": [
+            {
+              "check_id": "identity-map-bijective",
+              "outcome": "passed",
+              "diagnostic_codes": []
+            },
+            {
+              "check_id": "linked-artifacts-retargeted",
+              "outcome": "passed",
+              "diagnostic_codes": []
+            },
+            {
+              "check_id": "round-trip-canonical-identity",
+              "outcome": "passed",
+              "diagnostic_codes": []
+            },
+            {
+              "check_id": "target-admitted",
+              "outcome": "passed",
+              "diagnostic_codes": []
+            }
+          ],
+          "affected_identities": [
+            "nodes.web"
+          ],
+          "identity_map": [
+            {
+              "declaration_kind": "node",
+              "before": "nodes.web",
+              "after": "nodes.front"
+            }
+          ],
+          "preservation": {
+            "profile": "sdl-declaration-identity-transport/v1",
+            "outcome": "verified",
+            "evidence_digests": [
+              "sha256:5d901f19bb5f6248f3aaae5bb2a17a7b564f7e91472736fec95b65d00ab37635",
+              "sha256:cd831528a38de56bb4761b023004be9b68947f45d0880f886c39fa81e50e4568"
+            ],
+            "limitations": [
+              "Finite structural and semantic verification does not establish behavioral equivalence."
+            ]
+          },
+          "losses": [],
+          "diagnostics": []
+        },
+        "binding_documents": []
+      }
+    },
+    {
+      "name": "augmentation-scope",
+      "root": "main.yaml",
+      "files": {
+        "main.yaml": "name: transformation\nnodes: {web: {type: compute}, peer: {type: compute}}\ncontent: {payload: {type: file, target: web, path: /tmp/test}}\naugmentation_scope: {default: closed, scopes: [{scope: /nodes/web, permission: open}]}\n"
+      },
+      "request": {
+        "operation_profile": "rename-sdl-declaration/v1",
+        "request": {
+          "target_address": "nodes.web",
+          "new_local_name": "front"
+        },
+        "policy": {},
+        "binding_documents": []
+      },
+      "output": {
+        "name": "transformation",
+        "nodes": {
+          "peer": {
+            "type": "compute"
+          },
+          "front": {
+            "type": "compute"
+          }
+        },
+        "content": {
+          "payload": {
+            "type": "file",
+            "target": "front",
+            "path": "/tmp/test"
+          }
+        },
+        "augmentation_scope": {
+          "default": "closed",
+          "scopes": [
+            {
+              "scope": "/nodes/front",
+              "permission": "open"
+            }
+          ]
+        }
+      },
+      "result": {
+        "report": {
+          "schema_version": "artifact-transformation-report/v1",
+          "operation_profile": "rename-sdl-declaration/v1",
+          "status": "success",
+          "artifact_kind": "sdl-authoring",
+          "source_profile": "sdl-authoring-input/v1",
+          "target_profile": "sdl-authoring-input/v1",
+          "canonicalization_profile": "raes-sdl-semantic/v2",
+          "source_digest": "sha256:5c7dc472cb97d7745d181b107700962445cc74bb68079492343377911428d766",
+          "target_digest": "sha256:ad291f689cddc0401ecf077d8af21ed1bf992543f659c5a9ccbcdfa35d0cbd99",
+          "policy_digest": "sha256:2388c8a8d22d8b12ae1bff62dd7112af81adce07b35ce2047b3d6ce57ec716fc",
+          "derivation_digest": "sha256:cbeffc813dd1b8f3810c8a1e416b8648d07a614674f5c48d61d70f5e9d22d353",
+          "preconditions": [
+            {
+              "check_id": "linked-artifacts-current",
+              "outcome": "passed",
+              "diagnostic_codes": []
+            },
+            {
+              "check_id": "source-admitted",
+              "outcome": "passed",
+              "diagnostic_codes": []
+            },
+            {
+              "check_id": "target-exact",
+              "outcome": "passed",
+              "diagnostic_codes": []
+            },
+            {
+              "check_id": "target-injective",
+              "outcome": "passed",
+              "diagnostic_codes": []
+            },
+            {
+              "check_id": "target-supported",
+              "outcome": "passed",
+              "diagnostic_codes": []
+            }
+          ],
+          "postconditions": [
+            {
+              "check_id": "identity-map-bijective",
+              "outcome": "passed",
+              "diagnostic_codes": []
+            },
+            {
+              "check_id": "linked-artifacts-retargeted",
+              "outcome": "passed",
+              "diagnostic_codes": []
+            },
+            {
+              "check_id": "round-trip-canonical-identity",
+              "outcome": "passed",
+              "diagnostic_codes": []
+            },
+            {
+              "check_id": "target-admitted",
+              "outcome": "passed",
+              "diagnostic_codes": []
+            }
+          ],
+          "affected_identities": [
+            "nodes.web"
+          ],
+          "identity_map": [
+            {
+              "declaration_kind": "node",
+              "before": "nodes.web",
+              "after": "nodes.front"
+            }
+          ],
+          "preservation": {
+            "profile": "sdl-declaration-identity-transport/v1",
+            "outcome": "verified",
+            "evidence_digests": [
+              "sha256:5c7dc472cb97d7745d181b107700962445cc74bb68079492343377911428d766",
+              "sha256:ad291f689cddc0401ecf077d8af21ed1bf992543f659c5a9ccbcdfa35d0cbd99"
+            ],
+            "limitations": [
+              "Finite structural and semantic verification does not establish behavioral equivalence."
+            ]
+          },
+          "losses": [],
+          "diagnostics": []
+        },
+        "binding_documents": []
+      }
+    },
+    {
+      "name": "execution-default",
+      "root": "main.yaml",
+      "files": {
+        "main.yaml": "name: transformation\nnodes: {web: {type: compute}, peer: {type: compute}}\ncontent: {payload: {type: file, target: web, path: /tmp/test}}\nexecution_policy: {default: {policy_id: p, response: terminate}}\n"
+      },
+      "request": {
+        "operation_profile": "rename-sdl-declaration/v1",
+        "request": {
+          "target_address": "nodes.web",
+          "new_local_name": "front"
+        },
+        "policy": {},
+        "binding_documents": []
+      },
+      "output": {
+        "name": "transformation",
+        "nodes": {
+          "peer": {
+            "type": "compute"
+          },
+          "front": {
+            "type": "compute"
+          }
+        },
+        "content": {
+          "payload": {
+            "type": "file",
+            "target": "front",
+            "path": "/tmp/test"
+          }
+        },
+        "execution_policy": {
+          "default": {
+            "policy_id": "p",
+            "response": "terminate"
+          }
+        }
+      },
+      "result": {
+        "report": {
+          "schema_version": "artifact-transformation-report/v1",
+          "operation_profile": "rename-sdl-declaration/v1",
+          "status": "success",
+          "artifact_kind": "sdl-authoring",
+          "source_profile": "sdl-authoring-input/v1",
+          "target_profile": "sdl-authoring-input/v1",
+          "canonicalization_profile": "raes-sdl-semantic/v2",
+          "source_digest": "sha256:173d4ca7bf605c683b55cc7b2c14459141a065d859e1a54c8352966ece234f56",
+          "target_digest": "sha256:4d768a1a29e74fcb94609ce11aace5a11625965e2498314857dcbdf26f43ce5d",
+          "policy_digest": "sha256:2388c8a8d22d8b12ae1bff62dd7112af81adce07b35ce2047b3d6ce57ec716fc",
+          "derivation_digest": "sha256:4ee855e19b0ae7a695348fa8e15f7391c4affc6b28bda5635bc3a89dc8f7cb2d",
+          "preconditions": [
+            {
+              "check_id": "linked-artifacts-current",
+              "outcome": "passed",
+              "diagnostic_codes": []
+            },
+            {
+              "check_id": "source-admitted",
+              "outcome": "passed",
+              "diagnostic_codes": []
+            },
+            {
+              "check_id": "target-exact",
+              "outcome": "passed",
+              "diagnostic_codes": []
+            },
+            {
+              "check_id": "target-injective",
+              "outcome": "passed",
+              "diagnostic_codes": []
+            },
+            {
+              "check_id": "target-supported",
+              "outcome": "passed",
+              "diagnostic_codes": []
+            }
+          ],
+          "postconditions": [
+            {
+              "check_id": "identity-map-bijective",
+              "outcome": "passed",
+              "diagnostic_codes": []
+            },
+            {
+              "check_id": "linked-artifacts-retargeted",
+              "outcome": "passed",
+              "diagnostic_codes": []
+            },
+            {
+              "check_id": "round-trip-canonical-identity",
+              "outcome": "passed",
+              "diagnostic_codes": []
+            },
+            {
+              "check_id": "target-admitted",
+              "outcome": "passed",
+              "diagnostic_codes": []
+            }
+          ],
+          "affected_identities": [
+            "nodes.web"
+          ],
+          "identity_map": [
+            {
+              "declaration_kind": "node",
+              "before": "nodes.web",
+              "after": "nodes.front"
+            }
+          ],
+          "preservation": {
+            "profile": "sdl-declaration-identity-transport/v1",
+            "outcome": "verified",
+            "evidence_digests": [
+              "sha256:173d4ca7bf605c683b55cc7b2c14459141a065d859e1a54c8352966ece234f56",
+              "sha256:4d768a1a29e74fcb94609ce11aace5a11625965e2498314857dcbdf26f43ce5d"
+            ],
+            "limitations": [
+              "Finite structural and semantic verification does not establish behavioral equivalence."
+            ]
+          },
+          "losses": [],
+          "diagnostics": []
+        },
+        "binding_documents": []
+      }
+    },
+    {
+      "name": "execution-scope",
+      "root": "main.yaml",
+      "files": {
+        "main.yaml": "name: transformation\nnodes: {web: {type: compute}, peer: {type: compute}}\ncontent: {payload: {type: file, target: web, path: /tmp/test}}\nexecution_policy: {default: {policy_id: p, response: terminate}, scopes: [{scope: /nodes/web, policy: {policy_id: q, response: terminate}}]}\n"
+      },
+      "request": {
+        "operation_profile": "rename-sdl-declaration/v1",
+        "request": {
+          "target_address": "nodes.web",
+          "new_local_name": "front"
+        },
+        "policy": {},
+        "binding_documents": []
+      },
+      "output": {
+        "name": "transformation",
+        "nodes": {
+          "peer": {
+            "type": "compute"
+          },
+          "front": {
+            "type": "compute"
+          }
+        },
+        "content": {
+          "payload": {
+            "type": "file",
+            "target": "front",
+            "path": "/tmp/test"
+          }
+        },
+        "execution_policy": {
+          "default": {
+            "policy_id": "p",
+            "response": "terminate"
+          },
+          "scopes": [
+            {
+              "scope": "/nodes/front",
+              "policy": {
+                "policy_id": "q",
+                "response": "terminate"
+              }
+            }
+          ]
+        }
+      },
+      "result": {
+        "report": {
+          "schema_version": "artifact-transformation-report/v1",
+          "operation_profile": "rename-sdl-declaration/v1",
+          "status": "success",
+          "artifact_kind": "sdl-authoring",
+          "source_profile": "sdl-authoring-input/v1",
+          "target_profile": "sdl-authoring-input/v1",
+          "canonicalization_profile": "raes-sdl-semantic/v2",
+          "source_digest": "sha256:dd3d63c2f94483e61d6e436fb0b245b4bb7627a9615ebec73f9b5f8b472be348",
+          "target_digest": "sha256:7eee7578e843a45bcbee7bba69d31be3b9c60145a2dcc5b51a058b10bf65b60b",
+          "policy_digest": "sha256:2388c8a8d22d8b12ae1bff62dd7112af81adce07b35ce2047b3d6ce57ec716fc",
+          "derivation_digest": "sha256:a33841a0e39465719f274f45ddd2bb0f8ce4ea5244b0601b5ad61a84723b4696",
+          "preconditions": [
+            {
+              "check_id": "linked-artifacts-current",
+              "outcome": "passed",
+              "diagnostic_codes": []
+            },
+            {
+              "check_id": "source-admitted",
+              "outcome": "passed",
+              "diagnostic_codes": []
+            },
+            {
+              "check_id": "target-exact",
+              "outcome": "passed",
+              "diagnostic_codes": []
+            },
+            {
+              "check_id": "target-injective",
+              "outcome": "passed",
+              "diagnostic_codes": []
+            },
+            {
+              "check_id": "target-supported",
+              "outcome": "passed",
+              "diagnostic_codes": []
+            }
+          ],
+          "postconditions": [
+            {
+              "check_id": "identity-map-bijective",
+              "outcome": "passed",
+              "diagnostic_codes": []
+            },
+            {
+              "check_id": "linked-artifacts-retargeted",
+              "outcome": "passed",
+              "diagnostic_codes": []
+            },
+            {
+              "check_id": "round-trip-canonical-identity",
+              "outcome": "passed",
+              "diagnostic_codes": []
+            },
+            {
+              "check_id": "target-admitted",
+              "outcome": "passed",
+              "diagnostic_codes": []
+            }
+          ],
+          "affected_identities": [
+            "nodes.web"
+          ],
+          "identity_map": [
+            {
+              "declaration_kind": "node",
+              "before": "nodes.web",
+              "after": "nodes.front"
+            }
+          ],
+          "preservation": {
+            "profile": "sdl-declaration-identity-transport/v1",
+            "outcome": "verified",
+            "evidence_digests": [
+              "sha256:7eee7578e843a45bcbee7bba69d31be3b9c60145a2dcc5b51a058b10bf65b60b",
+              "sha256:dd3d63c2f94483e61d6e436fb0b245b4bb7627a9615ebec73f9b5f8b472be348"
+            ],
+            "limitations": [
+              "Finite structural and semantic verification does not establish behavioral equivalence."
+            ]
+          },
+          "losses": [],
+          "diagnostics": []
+        },
+        "binding_documents": []
+      }
+    },
+    {
+      "name": "retarget-bindings",
+      "root": "main.yaml",
+      "files": {
+        "main.yaml": "{\"name\":\"external-binding-subject\",\"nodes\":{\"web\":{\"type\":\"compute\"}}}"
+      },
+      "request": {
+        "operation_profile": "rename-sdl-declaration/v1",
+        "request": {
+          "target_address": "nodes.web",
+          "new_local_name": "front"
+        },
+        "policy": {},
+        "binding_documents": [
+          {
+            "schema_version": "external-concept-bindings/v1",
+            "binding_set_id": "portable-scheme-examples",
+            "binding_set_version": "1.0.0",
+            "bindings": {
+              "attack-execution": {
+                "binding_id": "attack-execution",
+                "subject": {
+                  "subject_kind": "node",
+                  "owning_contract_id": "sdl-authoring-input-v1",
+                  "lifecycle_phase": "normalized-authoring",
+                  "canonical_ref": "nodes.web",
+                  "artifact_digest": "sha256:a22d5d994e8bd4c4634a884f0f1be2e395c96a5b8efe3ed25e79e8d8847a99ff"
+                },
+                "scheme": {
+                  "scheme_id": "mitre-attack-enterprise-tactics",
+                  "authority": "MITRE ATT&CK",
+                  "revision": "v19.1",
+                  "source_locator": "https://raw.githubusercontent.com/mitre-attack/attack-stix-data/v19.1/enterprise-attack/enterprise-attack-19.1.json",
+                  "source_digest": "sha256:bdf1ce86a4e604214c5076d37ae4dcb322678afc528df8492e6fdc1b554f5da3",
+                  "concept_id": "TA0002"
+                },
+                "assertion": {
+                  "relationship_kind": "related-to",
+                  "motivation": "Record a reviewed relationship between the authored execution node and the ATT&CK Execution tactic.",
+                  "motivation_basis_refs": [
+                    {
+                      "ref_kind": "other",
+                      "ref_id": "author-analysis",
+                      "ref_version": "v1",
+                      "ref_digest": null,
+                      "ref_path": null
+                    }
+                  ],
+                  "semantic_effect": "annotates",
+                  "semantic_effect_basis_refs": [
+                    {
+                      "ref_kind": "profile",
+                      "ref_id": "sem-217",
+                      "ref_version": "v1",
+                      "ref_digest": null,
+                      "ref_path": null
+                    }
+                  ]
+                },
+                "perspective": {
+                  "asserting_party_kind": "author",
+                  "asserting_party_ref": "authors.fixture",
+                  "perspective": "scenario-author",
+                  "authority_basis_refs": [
+                    {
+                      "ref_kind": "other",
+                      "ref_id": "fixture-review-charter",
+                      "ref_version": "v1",
+                      "ref_digest": null,
+                      "ref_path": null
+                    }
+                  ],
+                  "participant_availability": null
+                },
+                "provenance": {
+                  "asserted_at": "2026-07-30T12:00:00Z",
+                  "source_refs": [
+                    {
+                      "ref_kind": "other",
+                      "ref_id": "attack-enterprise-v19.1",
+                      "ref_version": "v19.1",
+                      "ref_digest": "sha256:bdf1ce86a4e604214c5076d37ae4dcb322678afc528df8492e6fdc1b554f5da3",
+                      "ref_path": null
+                    }
+                  ]
+                },
+                "supporting_evidence_refs": [
+                  {
+                    "ref_kind": "evidence-record",
+                    "ref_id": "fixture-review-attack",
+                    "ref_version": "v1"
+                  }
+                ],
+                "confidence": {
+                  "posture": "high",
+                  "basis": "The canonical subject and pinned source revision were reviewed together.",
+                  "score": null,
+                  "calibration_profile_ref": null
+                },
+                "approximation": {
+                  "posture": "approximate",
+                  "loss_details": [
+                    "A RAES node is not itself an ATT&CK tactic; the binding records contextual relevance only."
+                  ]
+                },
+                "limitations": [
+                  "The assertion does not claim that the node executes every technique associated with the tactic."
+                ],
+                "review": {
+                  "status": "accepted",
+                  "review_refs": [
+                    {
+                      "ref_kind": "other",
+                      "ref_id": "fixture-review-attack",
+                      "ref_version": "v1",
+                      "ref_digest": null,
+                      "ref_path": null
+                    }
+                  ]
+                }
+              },
+              "attack-scenario-context": {
+                "binding_id": "attack-scenario-context",
+                "subject": {
+                  "subject_kind": "scenario",
+                  "owning_contract_id": "sdl-authoring-input-v1",
+                  "lifecycle_phase": "normalized-authoring",
+                  "canonical_ref": "scenario.external-binding-subject",
+                  "artifact_digest": "sha256:a22d5d994e8bd4c4634a884f0f1be2e395c96a5b8efe3ed25e79e8d8847a99ff"
+                },
+                "scheme": {
+                  "scheme_id": "mitre-attack-enterprise-tactics",
+                  "authority": "MITRE ATT&CK",
+                  "revision": "v19.1",
+                  "source_locator": "https://raw.githubusercontent.com/mitre-attack/attack-stix-data/v19.1/enterprise-attack/enterprise-attack-19.1.json",
+                  "source_digest": "sha256:bdf1ce86a4e604214c5076d37ae4dcb322678afc528df8492e6fdc1b554f5da3",
+                  "concept_id": "TA0002"
+                },
+                "assertion": {
+                  "relationship_kind": "related-to",
+                  "motivation": "Record a reviewed relationship between the authored execution node and the ATT&CK Execution tactic.",
+                  "motivation_basis_refs": [
+                    {
+                      "ref_kind": "other",
+                      "ref_id": "author-analysis",
+                      "ref_version": "v1",
+                      "ref_digest": null,
+                      "ref_path": null
+                    }
+                  ],
+                  "semantic_effect": "annotates",
+                  "semantic_effect_basis_refs": [
+                    {
+                      "ref_kind": "profile",
+                      "ref_id": "sem-217",
+                      "ref_version": "v1",
+                      "ref_digest": null,
+                      "ref_path": null
+                    }
+                  ]
+                },
+                "perspective": {
+                  "asserting_party_kind": "author",
+                  "asserting_party_ref": "authors.fixture",
+                  "perspective": "scenario-author",
+                  "authority_basis_refs": [
+                    {
+                      "ref_kind": "other",
+                      "ref_id": "fixture-review-charter",
+                      "ref_version": "v1",
+                      "ref_digest": null,
+                      "ref_path": null
+                    }
+                  ],
+                  "participant_availability": null
+                },
+                "provenance": {
+                  "asserted_at": "2026-07-30T12:00:00Z",
+                  "source_refs": [
+                    {
+                      "ref_kind": "other",
+                      "ref_id": "attack-enterprise-v19.1",
+                      "ref_version": "v19.1",
+                      "ref_digest": "sha256:bdf1ce86a4e604214c5076d37ae4dcb322678afc528df8492e6fdc1b554f5da3",
+                      "ref_path": null
+                    }
+                  ]
+                },
+                "supporting_evidence_refs": [
+                  {
+                    "ref_kind": "evidence-record",
+                    "ref_id": "fixture-review-attack",
+                    "ref_version": "v1"
+                  }
+                ],
+                "confidence": {
+                  "posture": "high",
+                  "basis": "The canonical subject and pinned source revision were reviewed together.",
+                  "score": null,
+                  "calibration_profile_ref": null
+                },
+                "approximation": {
+                  "posture": "approximate",
+                  "loss_details": [
+                    "A RAES node is not itself an ATT&CK tactic; the binding records contextual relevance only."
+                  ]
+                },
+                "limitations": [
+                  "The assertion does not claim that the node executes every technique associated with the tactic."
+                ],
+                "review": {
+                  "status": "accepted",
+                  "review_refs": [
+                    {
+                      "ref_kind": "other",
+                      "ref_id": "fixture-review-attack",
+                      "ref_version": "v1",
+                      "ref_digest": null,
+                      "ref_path": null
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        ]
+      },
+      "output": {
+        "name": "external-binding-subject",
+        "nodes": {
+          "front": {
+            "type": "compute"
+          }
+        }
+      },
+      "result": {
+        "report": {
+          "schema_version": "artifact-transformation-report/v1",
+          "operation_profile": "rename-sdl-declaration/v1",
+          "status": "success",
+          "artifact_kind": "sdl-authoring",
+          "source_profile": "sdl-authoring-input/v1",
+          "target_profile": "sdl-authoring-input/v1",
+          "canonicalization_profile": "raes-sdl-semantic/v2",
+          "source_digest": "sha256:a22d5d994e8bd4c4634a884f0f1be2e395c96a5b8efe3ed25e79e8d8847a99ff",
+          "target_digest": "sha256:b24f9da7458867a4ad842934f47e86c03edd782c4a55783cca46f78eefb44b79",
+          "policy_digest": "sha256:2388c8a8d22d8b12ae1bff62dd7112af81adce07b35ce2047b3d6ce57ec716fc",
+          "derivation_digest": "sha256:d44d0a63b2881294efdf838c1f1896f529660144e48222a0be711f50b7b3ecaa",
+          "preconditions": [
+            {
+              "check_id": "linked-artifacts-current",
+              "outcome": "passed",
+              "diagnostic_codes": []
+            },
+            {
+              "check_id": "source-admitted",
+              "outcome": "passed",
+              "diagnostic_codes": []
+            },
+            {
+              "check_id": "target-exact",
+              "outcome": "passed",
+              "diagnostic_codes": []
+            },
+            {
+              "check_id": "target-injective",
+              "outcome": "passed",
+              "diagnostic_codes": []
+            },
+            {
+              "check_id": "target-supported",
+              "outcome": "passed",
+              "diagnostic_codes": []
+            }
+          ],
+          "postconditions": [
+            {
+              "check_id": "identity-map-bijective",
+              "outcome": "passed",
+              "diagnostic_codes": []
+            },
+            {
+              "check_id": "linked-artifacts-retargeted",
+              "outcome": "passed",
+              "diagnostic_codes": []
+            },
+            {
+              "check_id": "round-trip-canonical-identity",
+              "outcome": "passed",
+              "diagnostic_codes": []
+            },
+            {
+              "check_id": "target-admitted",
+              "outcome": "passed",
+              "diagnostic_codes": []
+            }
+          ],
+          "affected_identities": [
+            "nodes.web"
+          ],
+          "identity_map": [
+            {
+              "declaration_kind": "node",
+              "before": "nodes.web",
+              "after": "nodes.front"
+            }
+          ],
+          "preservation": {
+            "profile": "sdl-declaration-identity-transport/v1",
+            "outcome": "verified",
+            "evidence_digests": [
+              "sha256:a22d5d994e8bd4c4634a884f0f1be2e395c96a5b8efe3ed25e79e8d8847a99ff",
+              "sha256:b24f9da7458867a4ad842934f47e86c03edd782c4a55783cca46f78eefb44b79"
+            ],
+            "limitations": [
+              "Finite structural and semantic verification does not establish behavioral equivalence."
+            ]
+          },
+          "losses": [],
+          "diagnostics": []
+        },
+        "binding_documents": [
+          {
+            "schema_version": "external-concept-bindings/v1",
+            "binding_set_id": "portable-scheme-examples",
+            "binding_set_version": "1.0.0",
+            "bindings": {
+              "attack-execution": {
+                "binding_id": "attack-execution",
+                "subject": {
+                  "subject_kind": "node",
+                  "owning_contract_id": "sdl-authoring-input-v1",
+                  "lifecycle_phase": "normalized-authoring",
+                  "canonical_ref": "nodes.front",
+                  "artifact_digest": "sha256:b24f9da7458867a4ad842934f47e86c03edd782c4a55783cca46f78eefb44b79"
+                },
+                "scheme": {
+                  "scheme_id": "mitre-attack-enterprise-tactics",
+                  "authority": "MITRE ATT&CK",
+                  "revision": "v19.1",
+                  "source_locator": "https://raw.githubusercontent.com/mitre-attack/attack-stix-data/v19.1/enterprise-attack/enterprise-attack-19.1.json",
+                  "source_digest": "sha256:bdf1ce86a4e604214c5076d37ae4dcb322678afc528df8492e6fdc1b554f5da3",
+                  "concept_id": "TA0002"
+                },
+                "assertion": {
+                  "relationship_kind": "related-to",
+                  "motivation": "Record a reviewed relationship between the authored execution node and the ATT&CK Execution tactic.",
+                  "motivation_basis_refs": [
+                    {
+                      "ref_kind": "other",
+                      "ref_id": "author-analysis",
+                      "ref_version": "v1",
+                      "ref_digest": null,
+                      "ref_path": null
+                    }
+                  ],
+                  "semantic_effect": "annotates",
+                  "semantic_effect_basis_refs": [
+                    {
+                      "ref_kind": "profile",
+                      "ref_id": "sem-217",
+                      "ref_version": "v1",
+                      "ref_digest": null,
+                      "ref_path": null
+                    }
+                  ]
+                },
+                "perspective": {
+                  "asserting_party_kind": "author",
+                  "asserting_party_ref": "authors.fixture",
+                  "perspective": "scenario-author",
+                  "authority_basis_refs": [
+                    {
+                      "ref_kind": "other",
+                      "ref_id": "fixture-review-charter",
+                      "ref_version": "v1",
+                      "ref_digest": null,
+                      "ref_path": null
+                    }
+                  ],
+                  "participant_availability": null
+                },
+                "provenance": {
+                  "asserted_at": "2026-07-30T12:00:00Z",
+                  "source_refs": [
+                    {
+                      "ref_kind": "other",
+                      "ref_id": "attack-enterprise-v19.1",
+                      "ref_version": "v19.1",
+                      "ref_digest": "sha256:bdf1ce86a4e604214c5076d37ae4dcb322678afc528df8492e6fdc1b554f5da3",
+                      "ref_path": null
+                    }
+                  ]
+                },
+                "supporting_evidence_refs": [
+                  {
+                    "ref_kind": "evidence-record",
+                    "ref_id": "fixture-review-attack",
+                    "ref_version": "v1"
+                  }
+                ],
+                "confidence": {
+                  "posture": "high",
+                  "basis": "The canonical subject and pinned source revision were reviewed together.",
+                  "score": null,
+                  "calibration_profile_ref": null
+                },
+                "approximation": {
+                  "posture": "approximate",
+                  "loss_details": [
+                    "A RAES node is not itself an ATT&CK tactic; the binding records contextual relevance only."
+                  ]
+                },
+                "limitations": [
+                  "The assertion does not claim that the node executes every technique associated with the tactic."
+                ],
+                "review": {
+                  "status": "accepted",
+                  "review_refs": [
+                    {
+                      "ref_kind": "other",
+                      "ref_id": "fixture-review-attack",
+                      "ref_version": "v1",
+                      "ref_digest": null,
+                      "ref_path": null
+                    }
+                  ]
+                }
+              },
+              "attack-scenario-context": {
+                "binding_id": "attack-scenario-context",
+                "subject": {
+                  "subject_kind": "scenario",
+                  "owning_contract_id": "sdl-authoring-input-v1",
+                  "lifecycle_phase": "normalized-authoring",
+                  "canonical_ref": "scenario.external-binding-subject",
+                  "artifact_digest": "sha256:b24f9da7458867a4ad842934f47e86c03edd782c4a55783cca46f78eefb44b79"
+                },
+                "scheme": {
+                  "scheme_id": "mitre-attack-enterprise-tactics",
+                  "authority": "MITRE ATT&CK",
+                  "revision": "v19.1",
+                  "source_locator": "https://raw.githubusercontent.com/mitre-attack/attack-stix-data/v19.1/enterprise-attack/enterprise-attack-19.1.json",
+                  "source_digest": "sha256:bdf1ce86a4e604214c5076d37ae4dcb322678afc528df8492e6fdc1b554f5da3",
+                  "concept_id": "TA0002"
+                },
+                "assertion": {
+                  "relationship_kind": "related-to",
+                  "motivation": "Record a reviewed relationship between the authored execution node and the ATT&CK Execution tactic.",
+                  "motivation_basis_refs": [
+                    {
+                      "ref_kind": "other",
+                      "ref_id": "author-analysis",
+                      "ref_version": "v1",
+                      "ref_digest": null,
+                      "ref_path": null
+                    }
+                  ],
+                  "semantic_effect": "annotates",
+                  "semantic_effect_basis_refs": [
+                    {
+                      "ref_kind": "profile",
+                      "ref_id": "sem-217",
+                      "ref_version": "v1",
+                      "ref_digest": null,
+                      "ref_path": null
+                    }
+                  ]
+                },
+                "perspective": {
+                  "asserting_party_kind": "author",
+                  "asserting_party_ref": "authors.fixture",
+                  "perspective": "scenario-author",
+                  "authority_basis_refs": [
+                    {
+                      "ref_kind": "other",
+                      "ref_id": "fixture-review-charter",
+                      "ref_version": "v1",
+                      "ref_digest": null,
+                      "ref_path": null
+                    }
+                  ],
+                  "participant_availability": null
+                },
+                "provenance": {
+                  "asserted_at": "2026-07-30T12:00:00Z",
+                  "source_refs": [
+                    {
+                      "ref_kind": "other",
+                      "ref_id": "attack-enterprise-v19.1",
+                      "ref_version": "v19.1",
+                      "ref_digest": "sha256:bdf1ce86a4e604214c5076d37ae4dcb322678afc528df8492e6fdc1b554f5da3",
+                      "ref_path": null
+                    }
+                  ]
+                },
+                "supporting_evidence_refs": [
+                  {
+                    "ref_kind": "evidence-record",
+                    "ref_id": "fixture-review-attack",
+                    "ref_version": "v1"
+                  }
+                ],
+                "confidence": {
+                  "posture": "high",
+                  "basis": "The canonical subject and pinned source revision were reviewed together.",
+                  "score": null,
+                  "calibration_profile_ref": null
+                },
+                "approximation": {
+                  "posture": "approximate",
+                  "loss_details": [
+                    "A RAES node is not itself an ATT&CK tactic; the binding records contextual relevance only."
+                  ]
+                },
+                "limitations": [
+                  "The assertion does not claim that the node executes every technique associated with the tactic."
+                ],
+                "review": {
+                  "status": "accepted",
+                  "review_refs": [
+                    {
+                      "ref_kind": "other",
+                      "ref_id": "fixture-review-attack",
+                      "ref_version": "v1",
+                      "ref_digest": null,
+                      "ref_path": null
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "stale-binding",
+      "root": "main.yaml",
+      "files": {
+        "main.yaml": "{\"name\":\"external-binding-subject\",\"nodes\":{\"web\":{\"type\":\"compute\"}}}"
+      },
+      "request": {
+        "operation_profile": "rename-sdl-declaration/v1",
+        "request": {
+          "target_address": "nodes.web",
+          "new_local_name": "front"
+        },
+        "policy": {},
+        "binding_documents": [
+          {
+            "schema_version": "external-concept-bindings/v1",
+            "binding_set_id": "portable-scheme-examples",
+            "binding_set_version": "1.0.0",
+            "bindings": {
+              "attack-execution": {
+                "binding_id": "attack-execution",
+                "subject": {
+                  "subject_kind": "node",
+                  "owning_contract_id": "sdl-authoring-input-v1",
+                  "lifecycle_phase": "normalized-authoring",
+                  "canonical_ref": "nodes.web",
+                  "artifact_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+                },
+                "scheme": {
+                  "scheme_id": "mitre-attack-enterprise-tactics",
+                  "authority": "MITRE ATT&CK",
+                  "revision": "v19.1",
+                  "source_locator": "https://raw.githubusercontent.com/mitre-attack/attack-stix-data/v19.1/enterprise-attack/enterprise-attack-19.1.json",
+                  "source_digest": "sha256:bdf1ce86a4e604214c5076d37ae4dcb322678afc528df8492e6fdc1b554f5da3",
+                  "concept_id": "TA0002"
+                },
+                "assertion": {
+                  "relationship_kind": "related-to",
+                  "motivation": "Record a reviewed relationship between the authored execution node and the ATT&CK Execution tactic.",
+                  "motivation_basis_refs": [
+                    {
+                      "ref_kind": "other",
+                      "ref_id": "author-analysis",
+                      "ref_version": "v1",
+                      "ref_digest": null,
+                      "ref_path": null
+                    }
+                  ],
+                  "semantic_effect": "annotates",
+                  "semantic_effect_basis_refs": [
+                    {
+                      "ref_kind": "profile",
+                      "ref_id": "sem-217",
+                      "ref_version": "v1",
+                      "ref_digest": null,
+                      "ref_path": null
+                    }
+                  ]
+                },
+                "perspective": {
+                  "asserting_party_kind": "author",
+                  "asserting_party_ref": "authors.fixture",
+                  "perspective": "scenario-author",
+                  "authority_basis_refs": [
+                    {
+                      "ref_kind": "other",
+                      "ref_id": "fixture-review-charter",
+                      "ref_version": "v1",
+                      "ref_digest": null,
+                      "ref_path": null
+                    }
+                  ],
+                  "participant_availability": null
+                },
+                "provenance": {
+                  "asserted_at": "2026-07-30T12:00:00Z",
+                  "source_refs": [
+                    {
+                      "ref_kind": "other",
+                      "ref_id": "attack-enterprise-v19.1",
+                      "ref_version": "v19.1",
+                      "ref_digest": "sha256:bdf1ce86a4e604214c5076d37ae4dcb322678afc528df8492e6fdc1b554f5da3",
+                      "ref_path": null
+                    }
+                  ]
+                },
+                "supporting_evidence_refs": [
+                  {
+                    "ref_kind": "evidence-record",
+                    "ref_id": "fixture-review-attack",
+                    "ref_version": "v1"
+                  }
+                ],
+                "confidence": {
+                  "posture": "high",
+                  "basis": "The canonical subject and pinned source revision were reviewed together.",
+                  "score": null,
+                  "calibration_profile_ref": null
+                },
+                "approximation": {
+                  "posture": "approximate",
+                  "loss_details": [
+                    "A RAES node is not itself an ATT&CK tactic; the binding records contextual relevance only."
+                  ]
+                },
+                "limitations": [
+                  "The assertion does not claim that the node executes every technique associated with the tactic."
+                ],
+                "review": {
+                  "status": "accepted",
+                  "review_refs": [
+                    {
+                      "ref_kind": "other",
+                      "ref_id": "fixture-review-attack",
+                      "ref_version": "v1",
+                      "ref_digest": null,
+                      "ref_path": null
+                    }
+                  ]
+                }
+              },
+              "attack-scenario-context": {
+                "binding_id": "attack-scenario-context",
+                "subject": {
+                  "subject_kind": "scenario",
+                  "owning_contract_id": "sdl-authoring-input-v1",
+                  "lifecycle_phase": "normalized-authoring",
+                  "canonical_ref": "scenario.external-binding-subject",
+                  "artifact_digest": "sha256:a22d5d994e8bd4c4634a884f0f1be2e395c96a5b8efe3ed25e79e8d8847a99ff"
+                },
+                "scheme": {
+                  "scheme_id": "mitre-attack-enterprise-tactics",
+                  "authority": "MITRE ATT&CK",
+                  "revision": "v19.1",
+                  "source_locator": "https://raw.githubusercontent.com/mitre-attack/attack-stix-data/v19.1/enterprise-attack/enterprise-attack-19.1.json",
+                  "source_digest": "sha256:bdf1ce86a4e604214c5076d37ae4dcb322678afc528df8492e6fdc1b554f5da3",
+                  "concept_id": "TA0002"
+                },
+                "assertion": {
+                  "relationship_kind": "related-to",
+                  "motivation": "Record a reviewed relationship between the authored execution node and the ATT&CK Execution tactic.",
+                  "motivation_basis_refs": [
+                    {
+                      "ref_kind": "other",
+                      "ref_id": "author-analysis",
+                      "ref_version": "v1",
+                      "ref_digest": null,
+                      "ref_path": null
+                    }
+                  ],
+                  "semantic_effect": "annotates",
+                  "semantic_effect_basis_refs": [
+                    {
+                      "ref_kind": "profile",
+                      "ref_id": "sem-217",
+                      "ref_version": "v1",
+                      "ref_digest": null,
+                      "ref_path": null
+                    }
+                  ]
+                },
+                "perspective": {
+                  "asserting_party_kind": "author",
+                  "asserting_party_ref": "authors.fixture",
+                  "perspective": "scenario-author",
+                  "authority_basis_refs": [
+                    {
+                      "ref_kind": "other",
+                      "ref_id": "fixture-review-charter",
+                      "ref_version": "v1",
+                      "ref_digest": null,
+                      "ref_path": null
+                    }
+                  ],
+                  "participant_availability": null
+                },
+                "provenance": {
+                  "asserted_at": "2026-07-30T12:00:00Z",
+                  "source_refs": [
+                    {
+                      "ref_kind": "other",
+                      "ref_id": "attack-enterprise-v19.1",
+                      "ref_version": "v19.1",
+                      "ref_digest": "sha256:bdf1ce86a4e604214c5076d37ae4dcb322678afc528df8492e6fdc1b554f5da3",
+                      "ref_path": null
+                    }
+                  ]
+                },
+                "supporting_evidence_refs": [
+                  {
+                    "ref_kind": "evidence-record",
+                    "ref_id": "fixture-review-attack",
+                    "ref_version": "v1"
+                  }
+                ],
+                "confidence": {
+                  "posture": "high",
+                  "basis": "The canonical subject and pinned source revision were reviewed together.",
+                  "score": null,
+                  "calibration_profile_ref": null
+                },
+                "approximation": {
+                  "posture": "approximate",
+                  "loss_details": [
+                    "A RAES node is not itself an ATT&CK tactic; the binding records contextual relevance only."
+                  ]
+                },
+                "limitations": [
+                  "The assertion does not claim that the node executes every technique associated with the tactic."
+                ],
+                "review": {
+                  "status": "accepted",
+                  "review_refs": [
+                    {
+                      "ref_kind": "other",
+                      "ref_id": "fixture-review-attack",
+                      "ref_version": "v1",
+                      "ref_digest": null,
+                      "ref_path": null
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        ]
+      },
+      "output": null,
+      "result": {
+        "report": {
+          "schema_version": "artifact-transformation-report/v1",
+          "operation_profile": "rename-sdl-declaration/v1",
+          "status": "refused",
+          "artifact_kind": "sdl-authoring",
+          "source_profile": "sdl-authoring-input/v1",
+          "target_profile": "sdl-authoring-input/v1",
+          "canonicalization_profile": "raes-sdl-semantic/v2",
+          "source_digest": "sha256:a22d5d994e8bd4c4634a884f0f1be2e395c96a5b8efe3ed25e79e8d8847a99ff",
+          "target_digest": null,
+          "policy_digest": "sha256:2388c8a8d22d8b12ae1bff62dd7112af81adce07b35ce2047b3d6ce57ec716fc",
+          "derivation_digest": "sha256:d44d0a63b2881294efdf838c1f1896f529660144e48222a0be711f50b7b3ecaa",
+          "preconditions": [
+            {
+              "check_id": "linked-artifacts-current",
+              "outcome": "failed",
+              "diagnostic_codes": [
+                "artifact-transformation.linked-artifact-stale"
+              ]
+            },
+            {
+              "check_id": "source-admitted",
+              "outcome": "passed",
+              "diagnostic_codes": []
+            },
+            {
+              "check_id": "target-exact",
+              "outcome": "passed",
+              "diagnostic_codes": []
+            },
+            {
+              "check_id": "target-injective",
+              "outcome": "passed",
+              "diagnostic_codes": []
+            },
+            {
+              "check_id": "target-supported",
+              "outcome": "passed",
+              "diagnostic_codes": []
+            }
+          ],
+          "postconditions": [],
+          "affected_identities": [
+            "nodes.web"
+          ],
+          "identity_map": [],
+          "preservation": {
+            "profile": "sdl-declaration-identity-transport/v1",
+            "outcome": "failed",
+            "evidence_digests": [],
+            "limitations": [
+              "Finite verification does not establish behavioral equivalence."
+            ]
+          },
+          "losses": [],
+          "diagnostics": [
+            {
+              "code": "artifact-transformation.linked-artifact-stale",
+              "domain": "artifact-transformation",
+              "address": "/request/target_address",
+              "message": "A supplied linked artifact does not resolve against the exact source and target identities.",
+              "severity": "error"
+            }
+          ]
+        },
+        "binding_documents": []
+      }
+    },
+    {
+      "name": "remove-bindings",
+      "root": "main.yaml",
+      "files": {
+        "main.yaml": "{\"name\":\"external-binding-subject\",\"nodes\":{\"web\":{\"type\":\"compute\"}}}"
+      },
+      "request": {
+        "operation_profile": "remove-sdl-declaration/v1",
+        "request": {
+          "target_address": "nodes.web"
+        },
+        "policy": {
+          "allowed_loss_kinds": [
+            "declaration-removed"
+          ]
+        },
+        "binding_documents": [
+          {
+            "schema_version": "external-concept-bindings/v1",
+            "binding_set_id": "portable-scheme-examples",
+            "binding_set_version": "1.0.0",
+            "bindings": {
+              "attack-execution": {
+                "binding_id": "attack-execution",
+                "subject": {
+                  "subject_kind": "node",
+                  "owning_contract_id": "sdl-authoring-input-v1",
+                  "lifecycle_phase": "normalized-authoring",
+                  "canonical_ref": "nodes.web",
+                  "artifact_digest": "sha256:a22d5d994e8bd4c4634a884f0f1be2e395c96a5b8efe3ed25e79e8d8847a99ff"
+                },
+                "scheme": {
+                  "scheme_id": "mitre-attack-enterprise-tactics",
+                  "authority": "MITRE ATT&CK",
+                  "revision": "v19.1",
+                  "source_locator": "https://raw.githubusercontent.com/mitre-attack/attack-stix-data/v19.1/enterprise-attack/enterprise-attack-19.1.json",
+                  "source_digest": "sha256:bdf1ce86a4e604214c5076d37ae4dcb322678afc528df8492e6fdc1b554f5da3",
+                  "concept_id": "TA0002"
+                },
+                "assertion": {
+                  "relationship_kind": "related-to",
+                  "motivation": "Record a reviewed relationship between the authored execution node and the ATT&CK Execution tactic.",
+                  "motivation_basis_refs": [
+                    {
+                      "ref_kind": "other",
+                      "ref_id": "author-analysis",
+                      "ref_version": "v1",
+                      "ref_digest": null,
+                      "ref_path": null
+                    }
+                  ],
+                  "semantic_effect": "annotates",
+                  "semantic_effect_basis_refs": [
+                    {
+                      "ref_kind": "profile",
+                      "ref_id": "sem-217",
+                      "ref_version": "v1",
+                      "ref_digest": null,
+                      "ref_path": null
+                    }
+                  ]
+                },
+                "perspective": {
+                  "asserting_party_kind": "author",
+                  "asserting_party_ref": "authors.fixture",
+                  "perspective": "scenario-author",
+                  "authority_basis_refs": [
+                    {
+                      "ref_kind": "other",
+                      "ref_id": "fixture-review-charter",
+                      "ref_version": "v1",
+                      "ref_digest": null,
+                      "ref_path": null
+                    }
+                  ],
+                  "participant_availability": null
+                },
+                "provenance": {
+                  "asserted_at": "2026-07-30T12:00:00Z",
+                  "source_refs": [
+                    {
+                      "ref_kind": "other",
+                      "ref_id": "attack-enterprise-v19.1",
+                      "ref_version": "v19.1",
+                      "ref_digest": "sha256:bdf1ce86a4e604214c5076d37ae4dcb322678afc528df8492e6fdc1b554f5da3",
+                      "ref_path": null
+                    }
+                  ]
+                },
+                "supporting_evidence_refs": [
+                  {
+                    "ref_kind": "evidence-record",
+                    "ref_id": "fixture-review-attack",
+                    "ref_version": "v1"
+                  }
+                ],
+                "confidence": {
+                  "posture": "high",
+                  "basis": "The canonical subject and pinned source revision were reviewed together.",
+                  "score": null,
+                  "calibration_profile_ref": null
+                },
+                "approximation": {
+                  "posture": "approximate",
+                  "loss_details": [
+                    "A RAES node is not itself an ATT&CK tactic; the binding records contextual relevance only."
+                  ]
+                },
+                "limitations": [
+                  "The assertion does not claim that the node executes every technique associated with the tactic."
+                ],
+                "review": {
+                  "status": "accepted",
+                  "review_refs": [
+                    {
+                      "ref_kind": "other",
+                      "ref_id": "fixture-review-attack",
+                      "ref_version": "v1",
+                      "ref_digest": null,
+                      "ref_path": null
+                    }
+                  ]
+                }
+              },
+              "attack-scenario-context": {
+                "binding_id": "attack-scenario-context",
+                "subject": {
+                  "subject_kind": "scenario",
+                  "owning_contract_id": "sdl-authoring-input-v1",
+                  "lifecycle_phase": "normalized-authoring",
+                  "canonical_ref": "scenario.external-binding-subject",
+                  "artifact_digest": "sha256:a22d5d994e8bd4c4634a884f0f1be2e395c96a5b8efe3ed25e79e8d8847a99ff"
+                },
+                "scheme": {
+                  "scheme_id": "mitre-attack-enterprise-tactics",
+                  "authority": "MITRE ATT&CK",
+                  "revision": "v19.1",
+                  "source_locator": "https://raw.githubusercontent.com/mitre-attack/attack-stix-data/v19.1/enterprise-attack/enterprise-attack-19.1.json",
+                  "source_digest": "sha256:bdf1ce86a4e604214c5076d37ae4dcb322678afc528df8492e6fdc1b554f5da3",
+                  "concept_id": "TA0002"
+                },
+                "assertion": {
+                  "relationship_kind": "related-to",
+                  "motivation": "Record a reviewed relationship between the authored execution node and the ATT&CK Execution tactic.",
+                  "motivation_basis_refs": [
+                    {
+                      "ref_kind": "other",
+                      "ref_id": "author-analysis",
+                      "ref_version": "v1",
+                      "ref_digest": null,
+                      "ref_path": null
+                    }
+                  ],
+                  "semantic_effect": "annotates",
+                  "semantic_effect_basis_refs": [
+                    {
+                      "ref_kind": "profile",
+                      "ref_id": "sem-217",
+                      "ref_version": "v1",
+                      "ref_digest": null,
+                      "ref_path": null
+                    }
+                  ]
+                },
+                "perspective": {
+                  "asserting_party_kind": "author",
+                  "asserting_party_ref": "authors.fixture",
+                  "perspective": "scenario-author",
+                  "authority_basis_refs": [
+                    {
+                      "ref_kind": "other",
+                      "ref_id": "fixture-review-charter",
+                      "ref_version": "v1",
+                      "ref_digest": null,
+                      "ref_path": null
+                    }
+                  ],
+                  "participant_availability": null
+                },
+                "provenance": {
+                  "asserted_at": "2026-07-30T12:00:00Z",
+                  "source_refs": [
+                    {
+                      "ref_kind": "other",
+                      "ref_id": "attack-enterprise-v19.1",
+                      "ref_version": "v19.1",
+                      "ref_digest": "sha256:bdf1ce86a4e604214c5076d37ae4dcb322678afc528df8492e6fdc1b554f5da3",
+                      "ref_path": null
+                    }
+                  ]
+                },
+                "supporting_evidence_refs": [
+                  {
+                    "ref_kind": "evidence-record",
+                    "ref_id": "fixture-review-attack",
+                    "ref_version": "v1"
+                  }
+                ],
+                "confidence": {
+                  "posture": "high",
+                  "basis": "The canonical subject and pinned source revision were reviewed together.",
+                  "score": null,
+                  "calibration_profile_ref": null
+                },
+                "approximation": {
+                  "posture": "approximate",
+                  "loss_details": [
+                    "A RAES node is not itself an ATT&CK tactic; the binding records contextual relevance only."
+                  ]
+                },
+                "limitations": [
+                  "The assertion does not claim that the node executes every technique associated with the tactic."
+                ],
+                "review": {
+                  "status": "accepted",
+                  "review_refs": [
+                    {
+                      "ref_kind": "other",
+                      "ref_id": "fixture-review-attack",
+                      "ref_version": "v1",
+                      "ref_digest": null,
+                      "ref_path": null
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        ]
+      },
+      "output": null,
+      "result": {
+        "report": {
+          "schema_version": "artifact-transformation-report/v1",
+          "operation_profile": "remove-sdl-declaration/v1",
+          "status": "refused",
+          "artifact_kind": "sdl-authoring",
+          "source_profile": "sdl-authoring-input/v1",
+          "target_profile": "sdl-authoring-input/v1",
+          "canonicalization_profile": "raes-sdl-semantic/v2",
+          "source_digest": "sha256:a22d5d994e8bd4c4634a884f0f1be2e395c96a5b8efe3ed25e79e8d8847a99ff",
+          "target_digest": null,
+          "policy_digest": "sha256:1fe04ef44c123a83448f8f77998ccdab444cb1b91a592a62e66350aab08e2a1d",
+          "derivation_digest": "sha256:6ccbfbdc5fc2c6669a5bfaf40c84d5e80c94b039a1c46415d01f09c010cb202e",
+          "preconditions": [
+            {
+              "check_id": "linked-artifacts-supported",
+              "outcome": "failed",
+              "diagnostic_codes": [
+                "artifact-transformation.linked-artifact-unsupported"
+              ]
+            },
+            {
+              "check_id": "loss-authorized",
+              "outcome": "passed",
+              "diagnostic_codes": []
+            },
+            {
+              "check_id": "source-admitted",
+              "outcome": "passed",
+              "diagnostic_codes": []
+            },
+            {
+              "check_id": "target-exact",
+              "outcome": "passed",
+              "diagnostic_codes": []
+            }
+          ],
+          "postconditions": [],
+          "affected_identities": [
+            "nodes.web"
+          ],
+          "identity_map": [],
+          "preservation": {
+            "profile": "explicit-loss-accounting/v1",
+            "outcome": "not-applicable",
+            "evidence_digests": [],
+            "limitations": [
+              "Removal does not preserve the selected declaration."
+            ]
+          },
+          "losses": [
+            {
+              "kind": "declaration-removed",
+              "affected_identity": "nodes.web",
+              "diagnostic": {
+                "code": "artifact-transformation.declaration-removed",
+                "domain": "artifact-transformation",
+                "address": "",
+                "message": "The selected declaration is absent from the transformed artifact.",
+                "severity": "error"
+              }
+            }
+          ],
+          "diagnostics": [
+            {
+              "code": "artifact-transformation.linked-artifact-unsupported",
+              "domain": "artifact-transformation",
+              "address": "/request/target_address",
+              "message": "Declaration removal cannot silently discard or retarget supplied concept bindings.",
+              "severity": "error"
+            }
+          ]
+        },
+        "binding_documents": []
+      }
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "args": [
+    "artifact-requirement-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:d384fcfadcbd03fa80f6c44175d36866d67a0f87583f3ca75943701c5a74a0d0"
+  },
+  "name": "regression/5d43f70a6cb154dfeceafb5487551494eea834d28ef36045b8b1e079304b700f",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

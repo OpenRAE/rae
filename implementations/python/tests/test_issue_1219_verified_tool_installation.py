@@ -719,7 +719,7 @@ def test_hardlinked_installed_leaf_is_quarantined_and_terminal(
             osv_scanner_tool,
             osv_scanner_tool.ensure_osv_scanner,
             "osv-scanner",
-            "2.4.0",
+            osv_scanner_tool.OSV_SCANNER_VERSION,
             "osv-scanner",
             "materialize_direct",
         ),

@@ -10,8 +10,8 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	"github.com/OpenRAE/rae/implementations/go/internal/base/canonjson"
-	"github.com/OpenRAE/rae/implementations/go/internal/base/fault"
+	"github.com/OpenRAE/rae/implementations/go/base/canonjson"
+	"github.com/OpenRAE/rae/implementations/go/base/fault"
 )
 
 // The failure classes contain no rejected values.
@@ -108,6 +108,21 @@ type budget struct {
 // It never calls methods on an unknown carrier. The walk is iterative and
 // bounded even for a cyclic Go map or slice.
 func Validate(value any, limits Limits) error {
+	return validate(value, limits, nil)
+}
+
+// ValidateProjected admits one shallow view per visited value. The caller
+// explicitly supplies trusted projection code; unknown projected scalar
+// carriers retain Validate's refusal. Depth and node limits are checked before
+// invoking project, and queued children are bounded before visiting them.
+func ValidateProjected(root any, limits Limits, project func(any) (any, error)) error {
+	if project == nil {
+		return ErrInput
+	}
+	return validate(root, limits, project)
+}
+
+func validate(value any, limits Limits, project func(any) (any, error)) error {
 	if err := limits.Validate(); err != nil {
 		return err
 	}
@@ -119,6 +134,13 @@ func Validate(value any, limits Limits) error {
 		state.nodes++
 		if item.depth > limits.MaxDepth || state.nodes > limits.MaxNodes || state.nodes > limits.MaxOperations {
 			return ErrLimit
+		}
+		if project != nil {
+			projected, err := project(item.value)
+			if err != nil {
+				return err
+			}
+			item.value = projected
 		}
 		children, err := state.visit(item)
 		if err != nil {
@@ -232,6 +254,16 @@ func numberSize(number json.Number) (int, error) {
 // Canonical admits a snapshot before invoking the canonical encoder. Unknown
 // marshal callbacks are refused during validation, not invoked during encoding.
 func Canonical(value any, limits Limits) ([]byte, error) {
+	text, err := Encode(value, limits)
+	if err != nil {
+		return nil, err
+	}
+	return canonjson.JCS(text)
+}
+
+// Encode admits a snapshot and returns its exact JSON text. Unlike Canonical,
+// it keeps an integer outside the exact range of RFC 8785.
+func Encode(value any, limits Limits) ([]byte, error) {
 	if err := Validate(value, limits); err != nil {
 		return nil, err
 	}
@@ -239,11 +271,7 @@ func Canonical(value any, limits Limits) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	text, err := json.Marshal(snapshot)
-	if err != nil {
-		return nil, err
-	}
-	return canonjson.JCS(text)
+	return json.Marshal(snapshot)
 }
 
 // snapshot preserves the int/float distinction that encoding/json's shortest

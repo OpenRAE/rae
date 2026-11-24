@@ -1,0 +1,28 @@
+package conformance
+
+import (
+	"github.com/OpenRAE/rae/implementations/go/contract/diagnostic"
+	"github.com/OpenRAE/rae/implementations/go/processor"
+)
+
+type ModularOwnerObservation struct {
+	EffectID, ReceiptRef, Disposition string
+	EvidenceRefs                      []string
+}
+type ModularControlEvidence struct {
+	Obligation                                                   string
+	SelectedObligations, ClaimedEffectKinds, ExcludedEffectKinds []string
+	ArtifactDigests                                              map[string]string
+	Support                                                      []map[string]any
+	ExpectedCalls, ActualCalls                                   map[string]int
+	OwnerOutcomes                                                map[string]string
+	OwnerObservations                                            []ModularOwnerObservation
+	Reopened                                                     bool
+	ExactReplays                                                 int
+	ReplayedAfterReopen                                          bool
+	RefusalCauses                                                []string
+}
+
+func ValidateFixture(fixture map[string]any) ([]diagnostic.Diagnostic, error)
+func ValidateProcessor(compilation processor.Compilation) ([]diagnostic.Diagnostic, error)
+func ValidateModularReport(report ModularControlEvidence, owners []ModularOwnerObservation) ([]diagnostic.Diagnostic, error)

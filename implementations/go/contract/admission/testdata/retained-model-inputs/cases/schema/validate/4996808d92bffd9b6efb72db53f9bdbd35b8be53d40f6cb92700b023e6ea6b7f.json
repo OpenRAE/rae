@@ -1,0 +1,14 @@
+{
+  "args": [
+    "w3c-activitystreams-activity-types-source-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:0e3be78efd1bd471a13b6ded48e982545390376550d5d94a2aa15ac45701787a"
+  },
+  "name": "w3c-activitystreams-activity-types-source-v1/routed/contracts/concept-authority/w3c-activitystreams-activity-types-source-v1.json",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

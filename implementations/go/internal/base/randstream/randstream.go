@@ -18,7 +18,7 @@ import (
 
 	"github.com/zeebo/blake3"
 
-	"github.com/OpenRAE/rae/implementations/go/internal/base/fault"
+	"github.com/OpenRAE/rae/implementations/go/base/fault"
 )
 
 const (

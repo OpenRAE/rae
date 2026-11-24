@@ -1,0 +1,14 @@
+{
+  "args": [
+    "domain-profile-binding-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:fd54ebd63796e173bc55f7a7cc1cb05ddcdbcaebca5393d148cfca6f4a38e845"
+  },
+  "name": "regression/b83dcdff0e8280a6987cd0ff159f530f54c0fc4a614e82a8fc60eca706394477",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

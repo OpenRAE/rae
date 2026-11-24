@@ -138,7 +138,16 @@ def run_reference_processor(
     scope: PlanScope | None = None,
     processor_manifest: ProcessorManifestV2Model | None = None,
 ) -> ReferenceProcessorResult:
-    """Convenience wrapper around :meth:`ReferenceProcessor.realize`."""
+    """Return the combined runtime model, execution plan and diagnostics.
+
+    ``scenario`` accepts SDL text, a ``Path`` or an already parsed scenario.
+    A string is always source text, not a file path.
+    ``backend_manifest`` declares the planning target; this call does not invoke it.
+    Optional parameters, profile, snapshot, scope and processor manifest pass to
+    :meth:`ReferenceProcessor.realize` without changing their meaning.
+    File-backed parsing can acquire imports and raise SDL or file exceptions.
+    Compilation and planning diagnostics remain on the result.
+    """
 
     return ReferenceProcessor.realize(
         scenario,

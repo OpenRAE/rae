@@ -1,0 +1,3380 @@
+{
+  "reference": "BackendManifestV2Model and ProcessorManifestV2Model intrinsic capability validators",
+  "baselines": {
+    "backend-reference": {
+      "contract_id": "backend-manifest-v2",
+      "payload": {
+        "capabilities": {
+          "cleanup": {
+            "name": "stub-cleanup",
+            "supported_action_kinds": [
+              "compensate",
+              "destroy",
+              "reset",
+              "restore",
+              "verify"
+            ],
+            "supported_contract_versions": [
+              "trial-cleanup-plan-v1",
+              "trial-cleanup-receipt-v1"
+            ],
+            "supported_verification_methods": [
+              "probe",
+              "receipt"
+            ],
+            "supports_residual_state_disclosure": true,
+            "supports_reusable_state": true
+          },
+          "evaluator": {
+            "constraints": {},
+            "name": "stub-evaluator",
+            "preserves_binding_provenance": true,
+            "supported_evidence_channels": [
+              "api_response",
+              "file_artifact",
+              "log"
+            ],
+            "supported_predicate_families": [
+              "boolean",
+              "number",
+              "presence",
+              "string"
+            ],
+            "supported_quantifiers": [
+              "all",
+              "any",
+              "at_least"
+            ],
+            "supported_sections": [
+              "assertions",
+              "conditions",
+              "objectives",
+              "propositions"
+            ],
+            "supported_time_domains": [
+              "scenario_time"
+            ],
+            "supported_truth_outcomes": [
+              "false",
+              "true",
+              "unknown",
+              "unsupported"
+            ],
+            "supports_deferred_expected_comparison": false,
+            "supports_objectives": true,
+            "supports_scoring": true
+          },
+          "observation": {
+            "capture_offers": [],
+            "constraints": {},
+            "name": "stub-observation",
+            "supported_capture_kinds": [
+              "artifact",
+              "log",
+              "observation",
+              "packet-capture",
+              "telemetry",
+              "trace"
+            ],
+            "supported_channel_kinds": [
+              "backend-log",
+              "evaluation-history",
+              "file-artifact",
+              "packet-capture",
+              "participant-observation",
+              "runtime-snapshot",
+              "workflow-history"
+            ],
+            "supported_evidence_contracts": [
+              "experiment-capture-spec-v1",
+              "experiment-derived-measure-v1",
+              "experiment-evidence-record-v1",
+              "experiment-run-v1"
+            ],
+            "supported_media_types": [
+              "application/json",
+              "text/plain"
+            ],
+            "supported_sealing_modes": [
+              "digest",
+              "immutable-store"
+            ],
+            "supports_chain_of_custody": false,
+            "supports_loss_disclosure": true,
+            "supports_redaction": true
+          },
+          "orchestrator": {
+            "constraints": {},
+            "name": "stub-orchestrator",
+            "supported_sections": [
+              "events",
+              "injects",
+              "scripts",
+              "stories",
+              "workflows"
+            ],
+            "supported_workflow_features": [
+              "call",
+              "cancellation",
+              "compensation",
+              "decision",
+              "failure-transitions",
+              "parallel-barrier",
+              "retry",
+              "switch",
+              "timeouts"
+            ],
+            "supported_workflow_state_predicates": [
+              "attempt-counts",
+              "outcome-matching"
+            ],
+            "supports_assertion_refs": true,
+            "supports_inject_bindings": true,
+            "supports_workflows": true
+          },
+          "participant_runtime": {
+            "constraints": {},
+            "execution_bindings": [],
+            "feature_support": [
+              {
+                "constraint_refs": [],
+                "disclosure_refs": [
+                  "disclosure:participant_boundary_flow_resolution:unsupported"
+                ],
+                "evidence_refs": [],
+                "feature": "participant_boundary_flow_resolution",
+                "limitation_refs": [
+                  "limitation:participant_boundary_flow_resolution:not-realized"
+                ],
+                "support_level": "unsupported"
+              },
+              {
+                "constraint_refs": [],
+                "disclosure_refs": [
+                  "disclosure:participant_declassification:unsupported"
+                ],
+                "evidence_refs": [],
+                "feature": "participant_declassification",
+                "limitation_refs": [
+                  "limitation:participant_declassification:not-realized"
+                ],
+                "support_level": "unsupported"
+              },
+              {
+                "constraint_refs": [],
+                "disclosure_refs": [
+                  "disclosure:participant_directed_inject_delivery:unsupported"
+                ],
+                "evidence_refs": [],
+                "feature": "participant_directed_inject_delivery",
+                "limitation_refs": [
+                  "limitation:participant_directed_inject_delivery:not-realized"
+                ],
+                "support_level": "unsupported"
+              },
+              {
+                "constraint_refs": [],
+                "disclosure_refs": [
+                  "disclosure:participant_egress_projection:unsupported"
+                ],
+                "evidence_refs": [],
+                "feature": "participant_egress_projection",
+                "limitation_refs": [
+                  "limitation:participant_egress_projection:not-realized"
+                ],
+                "support_level": "unsupported"
+              },
+              {
+                "constraint_refs": [],
+                "disclosure_refs": [
+                  "disclosure:participant_final_sink_mediation:unsupported"
+                ],
+                "evidence_refs": [],
+                "feature": "participant_final_sink_mediation",
+                "limitation_refs": [
+                  "limitation:participant_final_sink_mediation:not-realized"
+                ],
+                "support_level": "unsupported"
+              },
+              {
+                "constraint_refs": [],
+                "disclosure_refs": [
+                  "disclosure:participant_ingress_admission:unsupported"
+                ],
+                "evidence_refs": [],
+                "feature": "participant_ingress_admission",
+                "limitation_refs": [
+                  "limitation:participant_ingress_admission:not-realized"
+                ],
+                "support_level": "unsupported"
+              },
+              {
+                "constraint_refs": [],
+                "disclosure_refs": [
+                  "disclosure:participant_intervention:unsupported"
+                ],
+                "evidence_refs": [],
+                "feature": "participant_intervention",
+                "limitation_refs": [
+                  "limitation:participant_intervention:not-realized"
+                ],
+                "support_level": "unsupported"
+              },
+              {
+                "constraint_refs": [],
+                "disclosure_refs": [
+                  "disclosure:participant_modular_control:unsupported"
+                ],
+                "evidence_refs": [],
+                "feature": "participant_modular_control",
+                "limitation_refs": [
+                  "limitation:participant_modular_control:not-realized"
+                ],
+                "support_level": "unsupported"
+              },
+              {
+                "constraint_refs": [],
+                "disclosure_refs": [
+                  "disclosure:participant_monitor_topology:unsupported"
+                ],
+                "evidence_refs": [],
+                "feature": "participant_monitor_topology",
+                "limitation_refs": [
+                  "limitation:participant_monitor_topology:not-realized"
+                ],
+                "support_level": "unsupported"
+              },
+              {
+                "constraint_refs": [],
+                "disclosure_refs": [
+                  "disclosure:participant_predicate_opacity:unsupported"
+                ],
+                "evidence_refs": [],
+                "feature": "participant_predicate_opacity",
+                "limitation_refs": [
+                  "limitation:participant_predicate_opacity:not-realized"
+                ],
+                "support_level": "unsupported"
+              },
+              {
+                "constraint_refs": [],
+                "disclosure_refs": [
+                  "disclosure:participant_processing_role_trust:unsupported"
+                ],
+                "evidence_refs": [],
+                "feature": "participant_processing_role_trust",
+                "limitation_refs": [
+                  "limitation:participant_processing_role_trust:not-realized"
+                ],
+                "support_level": "unsupported"
+              },
+              {
+                "constraint_refs": [],
+                "disclosure_refs": [
+                  "disclosure:participant_quarantined_processing:unsupported"
+                ],
+                "evidence_refs": [],
+                "feature": "participant_quarantined_processing",
+                "limitation_refs": [
+                  "limitation:participant_quarantined_processing:not-realized"
+                ],
+                "support_level": "unsupported"
+              },
+              {
+                "constraint_refs": [],
+                "disclosure_refs": [
+                  "disclosure:participant_transformation:unsupported"
+                ],
+                "evidence_refs": [],
+                "feature": "participant_transformation",
+                "limitation_refs": [
+                  "limitation:participant_transformation:not-realized"
+                ],
+                "support_level": "unsupported"
+              },
+              {
+                "constraint_refs": [],
+                "disclosure_refs": [
+                  "disclosure:scoped_tool_affordances:unsupported"
+                ],
+                "evidence_refs": [],
+                "feature": "scoped_tool_affordances",
+                "limitation_refs": [
+                  "limitation:scoped_tool_affordances:not-realized"
+                ],
+                "support_level": "unsupported"
+              },
+              {
+                "constraint_refs": [],
+                "disclosure_refs": [
+                  "disclosure:tool_affordances:unsupported"
+                ],
+                "evidence_refs": [],
+                "feature": "tool_affordances",
+                "limitation_refs": [
+                  "limitation:tool_affordances:not-realized"
+                ],
+                "support_level": "unsupported"
+              }
+            ],
+            "max_autonomous_action_attempts": null,
+            "max_autonomous_burst_size": null,
+            "max_autonomous_in_flight": null,
+            "max_autonomous_occurrences": null,
+            "max_autonomous_participants": null,
+            "max_autonomous_retries_per_occurrence": null,
+            "max_concurrent_actions": null,
+            "max_execution_services": null,
+            "name": "stub-participant-runtime",
+            "resource_budgets": null,
+            "supported_autonomous_action_contracts": [],
+            "supported_autonomous_activity_features": [],
+            "supported_autonomous_observation_boundaries": [],
+            "supported_autonomous_policy_profiles": [],
+            "supported_autonomous_random_stream_profiles": [],
+            "supported_autonomous_selection_strategies": [],
+            "supported_autonomous_target_addresses": [],
+            "supported_behavior_features": [
+              "action_contracts",
+              "attribution_support",
+              "behavior_history",
+              "effects",
+              "failure_classes",
+              "observation_boundaries",
+              "outcome_interpretation",
+              "preconditions",
+              "state_transitions",
+              "temporal_contracts"
+            ],
+            "supported_execution_control_actions": [],
+            "supported_interaction_features": [
+              "contention",
+              "coordination",
+              "interference",
+              "shared_state_change"
+            ],
+            "supported_participant_roles": [
+              "blue",
+              "green",
+              "red",
+              "white"
+            ],
+            "supports_autonomous_execution": false,
+            "supports_bounded_concurrency": false,
+            "supports_execution_control": false
+          },
+          "provisioner": {
+            "constraints": {},
+            "max_total_nodes": null,
+            "name": "stub-provisioner",
+            "operating_systems": [],
+            "supported_account_features": [
+              "auth_method",
+              "disabled",
+              "groups",
+              "home",
+              "mail",
+              "shell",
+              "spn"
+            ],
+            "supported_content_types": [
+              "dataset",
+              "directory",
+              "file"
+            ],
+            "supported_domain_profiles": [
+              "active_directory"
+            ],
+            "supported_generated_artifact_delivery_modes": [
+              "env_file",
+              "environment",
+              "mount"
+            ],
+            "supported_generated_artifact_kinds": [
+              "certificate_bundle",
+              "rendered_config",
+              "ssh_key_bundle"
+            ],
+            "supported_node_architectures": [
+              "aarch64",
+              "x86_64"
+            ],
+            "supported_node_types": [
+              "compute",
+              "switch"
+            ],
+            "supported_os_families": [
+              "freebsd",
+              "linux",
+              "macos",
+              "other",
+              "windows"
+            ],
+            "supported_regeneration_scopes": [],
+            "supported_service_materialization_profiles": [],
+            "supports_accounts": true,
+            "supports_acls": true,
+            "supports_generated_artifacts": true,
+            "supports_persistent_volumes": true
+          }
+        },
+        "compatibility": {
+          "processors": [
+            "raes-reference-processor"
+          ]
+        },
+        "concept_bindings": [
+          {
+            "family": "assets",
+            "scope": "capabilities.provisioner.supported_node_types"
+          },
+          {
+            "family": "assets",
+            "scope": "capabilities.provisioner.supported_os_families"
+          },
+          {
+            "family": "assets",
+            "scope": "capabilities.provisioner.supported_node_architectures"
+          },
+          {
+            "family": "tools-and-artifacts",
+            "scope": "capabilities.provisioner.supported_content_types"
+          },
+          {
+            "family": "identities",
+            "scope": "capabilities.provisioner.supported_account_features"
+          },
+          {
+            "family": "identities",
+            "scope": "capabilities.provisioner.supported_domain_profiles"
+          },
+          {
+            "family": "tools-and-artifacts",
+            "scope": "capabilities.provisioner.supported_service_materialization_profiles"
+          },
+          {
+            "family": "actions-and-events",
+            "scope": "capabilities.orchestrator.supported_sections"
+          },
+          {
+            "family": "observables",
+            "scope": "capabilities.evaluator.supported_sections"
+          },
+          {
+            "family": "identities",
+            "scope": "capabilities.participant_runtime.supported_participant_roles"
+          },
+          {
+            "family": "actions-and-events",
+            "scope": "capabilities.participant_runtime.supported_behavior_features"
+          },
+          {
+            "family": "relationships",
+            "scope": "capabilities.participant_runtime.supported_interaction_features"
+          },
+          {
+            "family": "provenance-and-evidence",
+            "scope": "capabilities.observation.supported_capture_kinds"
+          },
+          {
+            "family": "apparatus-declarations",
+            "scope": "capabilities.observation.supported_channel_kinds"
+          },
+          {
+            "family": "provenance-and-evidence",
+            "scope": "capabilities.observation.supported_sealing_modes"
+          }
+        ],
+        "constraints": {},
+        "identity": {
+          "name": "stub",
+          "version": "0.3.0"
+        },
+        "realization_support": [
+          {
+            "artifact_mechanisms": [],
+            "constraints": {},
+            "disclosure_kinds": [
+              "backend-manifest-v2",
+              "operation-status-v1",
+              "runtime-snapshot-v1"
+            ],
+            "domain": "runtime-realization",
+            "observation_capabilities": {},
+            "process_resource_limits": [],
+            "support_mode": "constrained",
+            "supported_constraint_kinds": [
+              "account-feature",
+              "content-type",
+              "node-architecture",
+              "node-type",
+              "os-family",
+              "workflow-feature",
+              "workflow-state-predicate"
+            ],
+            "supported_exact_requirement_kinds": [
+              "declared-capability-match"
+            ]
+          }
+        ],
+        "schema_version": "backend-manifest/v2",
+        "supported_contract_versions": [
+          "backend-manifest-v2",
+          "artifact-requirement-v1",
+          "provisioning-plan-v1",
+          "orchestration-plan-v1",
+          "evaluation-plan-v1",
+          "operation-receipt-v1",
+          "operation-status-v1",
+          "runtime-snapshot-v1",
+          "workflow-result-envelope-v1",
+          "workflow-history-event-stream-v1",
+          "evaluation-result-envelope-v1",
+          "proposition-truth-result-v1",
+          "evaluation-history-event-stream-v1",
+          "participant-episode-state-envelope-v1",
+          "participant-episode-history-event-stream-v1",
+          "participant-behavior-history-event-stream-v1",
+          "participant-execution-binding-v1",
+          "participant-execution-control-v1",
+          "participant-execution-service-state-v1",
+          "participant-resource-budget-policy-v1",
+          "participant-resource-pool-capacity-v1",
+          "participant-resource-budget-state-v1",
+          "participant-resource-budget-event-v1",
+          "participant-control-occurrence-v1",
+          "participant-control-selection-v1",
+          "participant-control-evaluation-v1",
+          "participant-control-selection-v2",
+          "participant-control-evaluation-v2",
+          "participant-crossing-occurrence-v1",
+          "participant-flow-control-relation-v1",
+          "participant-lifecycle-event-v1",
+          "participant-observation-envelope-v1",
+          "participant-shared-state-record-v1",
+          "participant-joint-action-record-v1",
+          "participant-time-management-context-v1",
+          "participant-outcome-report-v1",
+          "experiment-capture-spec-v1",
+          "experiment-evidence-record-v1",
+          "experiment-derived-measure-v1",
+          "experiment-run-v1",
+          "trial-cleanup-plan-v1",
+          "trial-cleanup-receipt-v1"
+        ]
+      }
+    },
+    "processor-reference": {
+      "contract_id": "processor-manifest-v2",
+      "payload": {
+        "schema_version": "processor-manifest/v2",
+        "identity": {
+          "name": "raes-reference-processor",
+          "version": "0.2.0"
+        },
+        "supported_contract_versions": [
+          "processor-manifest-v2",
+          "provisioning-plan-v1",
+          "orchestration-plan-v1",
+          "evaluation-plan-v1",
+          "workflow-cancellation-request-v1",
+          "operation-receipt-v1",
+          "operation-status-v1",
+          "runtime-snapshot-v1"
+        ],
+        "compatibility": {
+          "backends": [
+            "stub"
+          ]
+        },
+        "concept_bindings": [
+          {
+            "scope": "capabilities.supported_sdl_versions",
+            "family": "scenarios"
+          },
+          {
+            "scope": "capabilities.supported_features",
+            "family": "apparatus-declarations"
+          }
+        ],
+        "constraints": {},
+        "capabilities": {
+          "supported_sdl_versions": [
+            "sdl-authoring-input-v1"
+          ],
+          "supported_features": [
+            "compilation",
+            "planning",
+            "orchestration-coordination",
+            "evaluation-coordination",
+            "workflow-semantics",
+            "objective-window-consistency",
+            "dependency-ordering",
+            "runtime-control-plane"
+          ],
+          "participant_tools": {
+            "semantic_versions": [
+              "participant-tool-profile/v1"
+            ],
+            "max_bindings_per_profile": null,
+            "max_participants_per_binding": null,
+            "feature_support": [
+              {
+                "feature": "tool_affordances",
+                "support_level": "exact",
+                "constraint_refs": [],
+                "limitation_refs": [],
+                "disclosure_refs": [],
+                "evidence_refs": [
+                  "tests:ACT-619",
+                  "tests:API-414"
+                ]
+              },
+              {
+                "feature": "scoped_tool_affordances",
+                "support_level": "exact",
+                "constraint_refs": [],
+                "limitation_refs": [],
+                "disclosure_refs": [],
+                "evidence_refs": [
+                  "tests:ACT-619",
+                  "tests:API-414"
+                ]
+              }
+            ]
+          }
+        }
+      }
+    },
+    "runtime-minimal": {
+      "contract_id": "backend-manifest-v2",
+      "payload": {
+        "capabilities": {
+          "cleanup": {
+            "name": "stub-cleanup",
+            "supported_action_kinds": [
+              "compensate",
+              "destroy",
+              "reset",
+              "restore",
+              "verify"
+            ],
+            "supported_contract_versions": [
+              "trial-cleanup-plan-v1",
+              "trial-cleanup-receipt-v1"
+            ],
+            "supported_verification_methods": [
+              "probe",
+              "receipt"
+            ],
+            "supports_residual_state_disclosure": true,
+            "supports_reusable_state": true
+          },
+          "evaluator": {
+            "constraints": {},
+            "name": "stub-evaluator",
+            "preserves_binding_provenance": true,
+            "supported_evidence_channels": [
+              "api_response",
+              "file_artifact",
+              "log"
+            ],
+            "supported_predicate_families": [
+              "boolean",
+              "number",
+              "presence",
+              "string"
+            ],
+            "supported_quantifiers": [
+              "all",
+              "any",
+              "at_least"
+            ],
+            "supported_sections": [
+              "assertions",
+              "conditions",
+              "objectives",
+              "propositions"
+            ],
+            "supported_time_domains": [
+              "scenario_time"
+            ],
+            "supported_truth_outcomes": [
+              "false",
+              "true",
+              "unknown",
+              "unsupported"
+            ],
+            "supports_deferred_expected_comparison": false,
+            "supports_objectives": true,
+            "supports_scoring": true
+          },
+          "observation": {
+            "capture_offers": [],
+            "constraints": {},
+            "name": "stub-observation",
+            "supported_capture_kinds": [
+              "artifact",
+              "log",
+              "observation",
+              "packet-capture",
+              "telemetry",
+              "trace"
+            ],
+            "supported_channel_kinds": [
+              "backend-log",
+              "evaluation-history",
+              "file-artifact",
+              "packet-capture",
+              "participant-observation",
+              "runtime-snapshot",
+              "workflow-history"
+            ],
+            "supported_evidence_contracts": [
+              "experiment-capture-spec-v1",
+              "experiment-derived-measure-v1",
+              "experiment-evidence-record-v1",
+              "experiment-run-v1"
+            ],
+            "supported_media_types": [
+              "application/json",
+              "text/plain"
+            ],
+            "supported_sealing_modes": [
+              "digest",
+              "immutable-store"
+            ],
+            "supports_chain_of_custody": false,
+            "supports_loss_disclosure": true,
+            "supports_redaction": true
+          },
+          "orchestrator": {
+            "constraints": {},
+            "name": "stub-orchestrator",
+            "supported_sections": [
+              "events",
+              "injects",
+              "scripts",
+              "stories",
+              "workflows"
+            ],
+            "supported_workflow_features": [
+              "call",
+              "cancellation",
+              "compensation",
+              "decision",
+              "failure-transitions",
+              "parallel-barrier",
+              "retry",
+              "switch",
+              "timeouts"
+            ],
+            "supported_workflow_state_predicates": [
+              "attempt-counts",
+              "outcome-matching"
+            ],
+            "supports_assertion_refs": true,
+            "supports_inject_bindings": true,
+            "supports_workflows": true
+          },
+          "participant_runtime": {
+            "name": "runtime",
+            "supported_participant_roles": [
+              "red"
+            ],
+            "supported_behavior_features": [],
+            "supported_interaction_features": []
+          },
+          "provisioner": {
+            "constraints": {},
+            "max_total_nodes": null,
+            "name": "stub-provisioner",
+            "operating_systems": [],
+            "supported_account_features": [
+              "auth_method",
+              "disabled",
+              "groups",
+              "home",
+              "mail",
+              "shell",
+              "spn"
+            ],
+            "supported_content_types": [
+              "dataset",
+              "directory",
+              "file"
+            ],
+            "supported_domain_profiles": [
+              "active_directory"
+            ],
+            "supported_generated_artifact_delivery_modes": [
+              "env_file",
+              "environment",
+              "mount"
+            ],
+            "supported_generated_artifact_kinds": [
+              "certificate_bundle",
+              "rendered_config",
+              "ssh_key_bundle"
+            ],
+            "supported_node_architectures": [
+              "aarch64",
+              "x86_64"
+            ],
+            "supported_node_types": [
+              "compute",
+              "switch"
+            ],
+            "supported_os_families": [
+              "freebsd",
+              "linux",
+              "macos",
+              "other",
+              "windows"
+            ],
+            "supported_regeneration_scopes": [],
+            "supported_service_materialization_profiles": [],
+            "supports_accounts": true,
+            "supports_acls": true,
+            "supports_generated_artifacts": true,
+            "supports_persistent_volumes": true
+          }
+        },
+        "compatibility": {
+          "processors": [
+            "raes-reference-processor"
+          ]
+        },
+        "concept_bindings": [
+          {
+            "family": "assets",
+            "scope": "capabilities.provisioner.supported_node_types"
+          },
+          {
+            "family": "assets",
+            "scope": "capabilities.provisioner.supported_os_families"
+          },
+          {
+            "family": "assets",
+            "scope": "capabilities.provisioner.supported_node_architectures"
+          },
+          {
+            "family": "tools-and-artifacts",
+            "scope": "capabilities.provisioner.supported_content_types"
+          },
+          {
+            "family": "identities",
+            "scope": "capabilities.provisioner.supported_account_features"
+          },
+          {
+            "family": "identities",
+            "scope": "capabilities.provisioner.supported_domain_profiles"
+          },
+          {
+            "family": "tools-and-artifacts",
+            "scope": "capabilities.provisioner.supported_service_materialization_profiles"
+          },
+          {
+            "family": "actions-and-events",
+            "scope": "capabilities.orchestrator.supported_sections"
+          },
+          {
+            "family": "observables",
+            "scope": "capabilities.evaluator.supported_sections"
+          },
+          {
+            "family": "identities",
+            "scope": "capabilities.participant_runtime.supported_participant_roles"
+          },
+          {
+            "family": "actions-and-events",
+            "scope": "capabilities.participant_runtime.supported_behavior_features"
+          },
+          {
+            "family": "relationships",
+            "scope": "capabilities.participant_runtime.supported_interaction_features"
+          },
+          {
+            "family": "provenance-and-evidence",
+            "scope": "capabilities.observation.supported_capture_kinds"
+          },
+          {
+            "family": "apparatus-declarations",
+            "scope": "capabilities.observation.supported_channel_kinds"
+          },
+          {
+            "family": "provenance-and-evidence",
+            "scope": "capabilities.observation.supported_sealing_modes"
+          }
+        ],
+        "constraints": {},
+        "identity": {
+          "name": "stub",
+          "version": "0.3.0"
+        },
+        "realization_support": [
+          {
+            "artifact_mechanisms": [],
+            "constraints": {},
+            "disclosure_kinds": [
+              "backend-manifest-v2",
+              "operation-status-v1",
+              "runtime-snapshot-v1"
+            ],
+            "domain": "runtime-realization",
+            "observation_capabilities": {},
+            "process_resource_limits": [],
+            "support_mode": "constrained",
+            "supported_constraint_kinds": [
+              "account-feature",
+              "content-type",
+              "node-architecture",
+              "node-type",
+              "os-family",
+              "workflow-feature",
+              "workflow-state-predicate"
+            ],
+            "supported_exact_requirement_kinds": [
+              "declared-capability-match"
+            ]
+          }
+        ],
+        "schema_version": "backend-manifest/v2",
+        "supported_contract_versions": [
+          "backend-manifest-v2",
+          "artifact-requirement-v1",
+          "provisioning-plan-v1",
+          "orchestration-plan-v1",
+          "evaluation-plan-v1",
+          "operation-receipt-v1",
+          "operation-status-v1",
+          "runtime-snapshot-v1",
+          "workflow-result-envelope-v1",
+          "workflow-history-event-stream-v1",
+          "evaluation-result-envelope-v1",
+          "proposition-truth-result-v1",
+          "evaluation-history-event-stream-v1",
+          "participant-episode-state-envelope-v1",
+          "participant-episode-history-event-stream-v1",
+          "participant-behavior-history-event-stream-v1",
+          "participant-execution-binding-v1",
+          "participant-execution-control-v1",
+          "participant-execution-service-state-v1",
+          "participant-resource-budget-policy-v1",
+          "participant-resource-pool-capacity-v1",
+          "participant-resource-budget-state-v1",
+          "participant-resource-budget-event-v1",
+          "participant-control-occurrence-v1",
+          "participant-control-selection-v1",
+          "participant-control-evaluation-v1",
+          "participant-control-selection-v2",
+          "participant-control-evaluation-v2",
+          "participant-crossing-occurrence-v1",
+          "participant-flow-control-relation-v1",
+          "participant-lifecycle-event-v1",
+          "participant-observation-envelope-v1",
+          "participant-shared-state-record-v1",
+          "participant-joint-action-record-v1",
+          "participant-time-management-context-v1",
+          "participant-outcome-report-v1",
+          "experiment-capture-spec-v1",
+          "experiment-evidence-record-v1",
+          "experiment-derived-measure-v1",
+          "experiment-run-v1",
+          "trial-cleanup-plan-v1",
+          "trial-cleanup-receipt-v1"
+        ]
+      }
+    },
+    "autonomy-complete": {
+      "contract_id": "backend-manifest-v2",
+      "payload": {
+        "capabilities": {
+          "cleanup": {
+            "name": "stub-cleanup",
+            "supported_action_kinds": [
+              "compensate",
+              "destroy",
+              "reset",
+              "restore",
+              "verify"
+            ],
+            "supported_contract_versions": [
+              "trial-cleanup-plan-v1",
+              "trial-cleanup-receipt-v1"
+            ],
+            "supported_verification_methods": [
+              "probe",
+              "receipt"
+            ],
+            "supports_residual_state_disclosure": true,
+            "supports_reusable_state": true
+          },
+          "evaluator": {
+            "constraints": {},
+            "name": "stub-evaluator",
+            "preserves_binding_provenance": true,
+            "supported_evidence_channels": [
+              "api_response",
+              "file_artifact",
+              "log"
+            ],
+            "supported_predicate_families": [
+              "boolean",
+              "number",
+              "presence",
+              "string"
+            ],
+            "supported_quantifiers": [
+              "all",
+              "any",
+              "at_least"
+            ],
+            "supported_sections": [
+              "assertions",
+              "conditions",
+              "objectives",
+              "propositions"
+            ],
+            "supported_time_domains": [
+              "scenario_time"
+            ],
+            "supported_truth_outcomes": [
+              "false",
+              "true",
+              "unknown",
+              "unsupported"
+            ],
+            "supports_deferred_expected_comparison": false,
+            "supports_objectives": true,
+            "supports_scoring": true
+          },
+          "observation": {
+            "capture_offers": [],
+            "constraints": {},
+            "name": "stub-observation",
+            "supported_capture_kinds": [
+              "artifact",
+              "log",
+              "observation",
+              "packet-capture",
+              "telemetry",
+              "trace"
+            ],
+            "supported_channel_kinds": [
+              "backend-log",
+              "evaluation-history",
+              "file-artifact",
+              "packet-capture",
+              "participant-observation",
+              "runtime-snapshot",
+              "workflow-history"
+            ],
+            "supported_evidence_contracts": [
+              "experiment-capture-spec-v1",
+              "experiment-derived-measure-v1",
+              "experiment-evidence-record-v1",
+              "experiment-run-v1"
+            ],
+            "supported_media_types": [
+              "application/json",
+              "text/plain"
+            ],
+            "supported_sealing_modes": [
+              "digest",
+              "immutable-store"
+            ],
+            "supports_chain_of_custody": false,
+            "supports_loss_disclosure": true,
+            "supports_redaction": true
+          },
+          "orchestrator": {
+            "constraints": {},
+            "name": "stub-orchestrator",
+            "supported_sections": [
+              "events",
+              "injects",
+              "scripts",
+              "stories",
+              "workflows"
+            ],
+            "supported_workflow_features": [
+              "call",
+              "cancellation",
+              "compensation",
+              "decision",
+              "failure-transitions",
+              "parallel-barrier",
+              "retry",
+              "switch",
+              "timeouts"
+            ],
+            "supported_workflow_state_predicates": [
+              "attempt-counts",
+              "outcome-matching"
+            ],
+            "supports_assertion_refs": true,
+            "supports_inject_bindings": true,
+            "supports_workflows": true
+          },
+          "participant_runtime": {
+            "name": "runtime",
+            "supported_participant_roles": [
+              "red"
+            ],
+            "supported_behavior_features": [
+              "autonomous_execution"
+            ],
+            "supported_interaction_features": [],
+            "supports_autonomous_execution": true,
+            "supported_autonomous_selection_strategies": [
+              "ordered_cycle"
+            ],
+            "supported_autonomous_action_contracts": [
+              "actions.shell.execute"
+            ],
+            "supported_autonomous_observation_boundaries": [
+              "observations.runtime"
+            ],
+            "supported_autonomous_target_addresses": [
+              "targets.red.workstation",
+              "targets.red.jumphost"
+            ],
+            "supported_autonomous_policy_profiles": [
+              "participant-autonomous-execution/v1"
+            ],
+            "execution_bindings": [
+              {
+                "action_contract_address": "actions.shell.execute",
+                "binding_id": "binding-red-operator-shell-v1",
+                "constraint_refs": [
+                  "constraints/red-operator-shell-scope-v1"
+                ],
+                "evidence_refs": [
+                  "evidence/red-operator-shell-transcript-v1"
+                ],
+                "max_action_attempts": 3,
+                "max_in_flight": 2,
+                "max_retries": 1,
+                "participant_implementation_ref": "participant-implementations/red-operator-v1",
+                "schema_version": "participant-execution-binding/v1",
+                "target_addresses": [
+                  "targets.red.workstation",
+                  "targets.red.jumphost"
+                ],
+                "timeout_seconds": 120
+              }
+            ],
+            "max_concurrent_actions": 2,
+            "max_autonomous_participants": 2,
+            "max_autonomous_action_attempts": 2,
+            "max_autonomous_in_flight": 2,
+            "max_autonomous_occurrences": 2,
+            "max_autonomous_retries_per_occurrence": 2,
+            "max_autonomous_burst_size": 2
+          },
+          "provisioner": {
+            "constraints": {},
+            "max_total_nodes": null,
+            "name": "stub-provisioner",
+            "operating_systems": [],
+            "supported_account_features": [
+              "auth_method",
+              "disabled",
+              "groups",
+              "home",
+              "mail",
+              "shell",
+              "spn"
+            ],
+            "supported_content_types": [
+              "dataset",
+              "directory",
+              "file"
+            ],
+            "supported_domain_profiles": [
+              "active_directory"
+            ],
+            "supported_generated_artifact_delivery_modes": [
+              "env_file",
+              "environment",
+              "mount"
+            ],
+            "supported_generated_artifact_kinds": [
+              "certificate_bundle",
+              "rendered_config",
+              "ssh_key_bundle"
+            ],
+            "supported_node_architectures": [
+              "aarch64",
+              "x86_64"
+            ],
+            "supported_node_types": [
+              "compute",
+              "switch"
+            ],
+            "supported_os_families": [
+              "freebsd",
+              "linux",
+              "macos",
+              "other",
+              "windows"
+            ],
+            "supported_regeneration_scopes": [],
+            "supported_service_materialization_profiles": [],
+            "supports_accounts": true,
+            "supports_acls": true,
+            "supports_generated_artifacts": true,
+            "supports_persistent_volumes": true
+          }
+        },
+        "compatibility": {
+          "processors": [
+            "raes-reference-processor"
+          ]
+        },
+        "concept_bindings": [
+          {
+            "family": "assets",
+            "scope": "capabilities.provisioner.supported_node_types"
+          },
+          {
+            "family": "assets",
+            "scope": "capabilities.provisioner.supported_os_families"
+          },
+          {
+            "family": "assets",
+            "scope": "capabilities.provisioner.supported_node_architectures"
+          },
+          {
+            "family": "tools-and-artifacts",
+            "scope": "capabilities.provisioner.supported_content_types"
+          },
+          {
+            "family": "identities",
+            "scope": "capabilities.provisioner.supported_account_features"
+          },
+          {
+            "family": "identities",
+            "scope": "capabilities.provisioner.supported_domain_profiles"
+          },
+          {
+            "family": "tools-and-artifacts",
+            "scope": "capabilities.provisioner.supported_service_materialization_profiles"
+          },
+          {
+            "family": "actions-and-events",
+            "scope": "capabilities.orchestrator.supported_sections"
+          },
+          {
+            "family": "observables",
+            "scope": "capabilities.evaluator.supported_sections"
+          },
+          {
+            "family": "identities",
+            "scope": "capabilities.participant_runtime.supported_participant_roles"
+          },
+          {
+            "family": "actions-and-events",
+            "scope": "capabilities.participant_runtime.supported_behavior_features"
+          },
+          {
+            "family": "relationships",
+            "scope": "capabilities.participant_runtime.supported_interaction_features"
+          },
+          {
+            "family": "provenance-and-evidence",
+            "scope": "capabilities.observation.supported_capture_kinds"
+          },
+          {
+            "family": "apparatus-declarations",
+            "scope": "capabilities.observation.supported_channel_kinds"
+          },
+          {
+            "family": "provenance-and-evidence",
+            "scope": "capabilities.observation.supported_sealing_modes"
+          }
+        ],
+        "constraints": {},
+        "identity": {
+          "name": "stub",
+          "version": "0.3.0"
+        },
+        "realization_support": [
+          {
+            "artifact_mechanisms": [],
+            "constraints": {},
+            "disclosure_kinds": [
+              "backend-manifest-v2",
+              "operation-status-v1",
+              "runtime-snapshot-v1"
+            ],
+            "domain": "runtime-realization",
+            "observation_capabilities": {},
+            "process_resource_limits": [],
+            "support_mode": "constrained",
+            "supported_constraint_kinds": [
+              "account-feature",
+              "content-type",
+              "node-architecture",
+              "node-type",
+              "os-family",
+              "workflow-feature",
+              "workflow-state-predicate"
+            ],
+            "supported_exact_requirement_kinds": [
+              "declared-capability-match"
+            ]
+          }
+        ],
+        "schema_version": "backend-manifest/v2",
+        "supported_contract_versions": [
+          "backend-manifest-v2",
+          "artifact-requirement-v1",
+          "provisioning-plan-v1",
+          "orchestration-plan-v1",
+          "evaluation-plan-v1",
+          "operation-receipt-v1",
+          "operation-status-v1",
+          "runtime-snapshot-v1",
+          "workflow-result-envelope-v1",
+          "workflow-history-event-stream-v1",
+          "evaluation-result-envelope-v1",
+          "proposition-truth-result-v1",
+          "evaluation-history-event-stream-v1",
+          "participant-episode-state-envelope-v1",
+          "participant-episode-history-event-stream-v1",
+          "participant-behavior-history-event-stream-v1",
+          "participant-execution-binding-v1",
+          "participant-execution-control-v1",
+          "participant-execution-service-state-v1",
+          "participant-resource-budget-policy-v1",
+          "participant-resource-pool-capacity-v1",
+          "participant-resource-budget-state-v1",
+          "participant-resource-budget-event-v1",
+          "participant-control-occurrence-v1",
+          "participant-control-selection-v1",
+          "participant-control-evaluation-v1",
+          "participant-control-selection-v2",
+          "participant-control-evaluation-v2",
+          "participant-crossing-occurrence-v1",
+          "participant-flow-control-relation-v1",
+          "participant-lifecycle-event-v1",
+          "participant-observation-envelope-v1",
+          "participant-shared-state-record-v1",
+          "participant-joint-action-record-v1",
+          "participant-time-management-context-v1",
+          "participant-outcome-report-v1",
+          "experiment-capture-spec-v1",
+          "experiment-evidence-record-v1",
+          "experiment-derived-measure-v1",
+          "experiment-run-v1",
+          "trial-cleanup-plan-v1",
+          "trial-cleanup-receipt-v1"
+        ]
+      }
+    },
+    "tools-bounded": {
+      "contract_id": "backend-manifest-v2",
+      "payload": {
+        "capabilities": {
+          "cleanup": {
+            "name": "stub-cleanup",
+            "supported_action_kinds": [
+              "compensate",
+              "destroy",
+              "reset",
+              "restore",
+              "verify"
+            ],
+            "supported_contract_versions": [
+              "trial-cleanup-plan-v1",
+              "trial-cleanup-receipt-v1"
+            ],
+            "supported_verification_methods": [
+              "probe",
+              "receipt"
+            ],
+            "supports_residual_state_disclosure": true,
+            "supports_reusable_state": true
+          },
+          "evaluator": {
+            "constraints": {},
+            "name": "stub-evaluator",
+            "preserves_binding_provenance": true,
+            "supported_evidence_channels": [
+              "api_response",
+              "file_artifact",
+              "log"
+            ],
+            "supported_predicate_families": [
+              "boolean",
+              "number",
+              "presence",
+              "string"
+            ],
+            "supported_quantifiers": [
+              "all",
+              "any",
+              "at_least"
+            ],
+            "supported_sections": [
+              "assertions",
+              "conditions",
+              "objectives",
+              "propositions"
+            ],
+            "supported_time_domains": [
+              "scenario_time"
+            ],
+            "supported_truth_outcomes": [
+              "false",
+              "true",
+              "unknown",
+              "unsupported"
+            ],
+            "supports_deferred_expected_comparison": false,
+            "supports_objectives": true,
+            "supports_scoring": true
+          },
+          "observation": {
+            "capture_offers": [],
+            "constraints": {},
+            "name": "stub-observation",
+            "supported_capture_kinds": [
+              "artifact",
+              "log",
+              "observation",
+              "packet-capture",
+              "telemetry",
+              "trace"
+            ],
+            "supported_channel_kinds": [
+              "backend-log",
+              "evaluation-history",
+              "file-artifact",
+              "packet-capture",
+              "participant-observation",
+              "runtime-snapshot",
+              "workflow-history"
+            ],
+            "supported_evidence_contracts": [
+              "experiment-capture-spec-v1",
+              "experiment-derived-measure-v1",
+              "experiment-evidence-record-v1",
+              "experiment-run-v1"
+            ],
+            "supported_media_types": [
+              "application/json",
+              "text/plain"
+            ],
+            "supported_sealing_modes": [
+              "digest",
+              "immutable-store"
+            ],
+            "supports_chain_of_custody": false,
+            "supports_loss_disclosure": true,
+            "supports_redaction": true
+          },
+          "orchestrator": {
+            "constraints": {},
+            "name": "stub-orchestrator",
+            "supported_sections": [
+              "events",
+              "injects",
+              "scripts",
+              "stories",
+              "workflows"
+            ],
+            "supported_workflow_features": [
+              "call",
+              "cancellation",
+              "compensation",
+              "decision",
+              "failure-transitions",
+              "parallel-barrier",
+              "retry",
+              "switch",
+              "timeouts"
+            ],
+            "supported_workflow_state_predicates": [
+              "attempt-counts",
+              "outcome-matching"
+            ],
+            "supports_assertion_refs": true,
+            "supports_inject_bindings": true,
+            "supports_workflows": true
+          },
+          "participant_runtime": {
+            "name": "runtime",
+            "supported_participant_roles": [
+              "red"
+            ],
+            "supported_behavior_features": [
+              "tool_affordances"
+            ],
+            "supported_interaction_features": [],
+            "tool_profiles": {
+              "semantic_versions": [
+                "participant-tool-profile/v1"
+              ],
+              "max_bindings_per_profile": 2
+            },
+            "feature_support": [
+              {
+                "feature": "tool_affordances",
+                "support_level": "bounded",
+                "constraint_refs": [
+                  "tool_profiles.max_bindings_per_profile"
+                ],
+                "limitation_refs": [
+                  "limits.bindings"
+                ],
+                "disclosure_refs": [
+                  "disclosures.bindings"
+                ],
+                "evidence_refs": [
+                  "evidence.bindings"
+                ]
+              }
+            ]
+          },
+          "provisioner": {
+            "constraints": {},
+            "max_total_nodes": null,
+            "name": "stub-provisioner",
+            "operating_systems": [],
+            "supported_account_features": [
+              "auth_method",
+              "disabled",
+              "groups",
+              "home",
+              "mail",
+              "shell",
+              "spn"
+            ],
+            "supported_content_types": [
+              "dataset",
+              "directory",
+              "file"
+            ],
+            "supported_domain_profiles": [
+              "active_directory"
+            ],
+            "supported_generated_artifact_delivery_modes": [
+              "env_file",
+              "environment",
+              "mount"
+            ],
+            "supported_generated_artifact_kinds": [
+              "certificate_bundle",
+              "rendered_config",
+              "ssh_key_bundle"
+            ],
+            "supported_node_architectures": [
+              "aarch64",
+              "x86_64"
+            ],
+            "supported_node_types": [
+              "compute",
+              "switch"
+            ],
+            "supported_os_families": [
+              "freebsd",
+              "linux",
+              "macos",
+              "other",
+              "windows"
+            ],
+            "supported_regeneration_scopes": [],
+            "supported_service_materialization_profiles": [],
+            "supports_accounts": true,
+            "supports_acls": true,
+            "supports_generated_artifacts": true,
+            "supports_persistent_volumes": true
+          }
+        },
+        "compatibility": {
+          "processors": [
+            "raes-reference-processor"
+          ]
+        },
+        "concept_bindings": [
+          {
+            "family": "assets",
+            "scope": "capabilities.provisioner.supported_node_types"
+          },
+          {
+            "family": "assets",
+            "scope": "capabilities.provisioner.supported_os_families"
+          },
+          {
+            "family": "assets",
+            "scope": "capabilities.provisioner.supported_node_architectures"
+          },
+          {
+            "family": "tools-and-artifacts",
+            "scope": "capabilities.provisioner.supported_content_types"
+          },
+          {
+            "family": "identities",
+            "scope": "capabilities.provisioner.supported_account_features"
+          },
+          {
+            "family": "identities",
+            "scope": "capabilities.provisioner.supported_domain_profiles"
+          },
+          {
+            "family": "tools-and-artifacts",
+            "scope": "capabilities.provisioner.supported_service_materialization_profiles"
+          },
+          {
+            "family": "actions-and-events",
+            "scope": "capabilities.orchestrator.supported_sections"
+          },
+          {
+            "family": "observables",
+            "scope": "capabilities.evaluator.supported_sections"
+          },
+          {
+            "family": "identities",
+            "scope": "capabilities.participant_runtime.supported_participant_roles"
+          },
+          {
+            "family": "actions-and-events",
+            "scope": "capabilities.participant_runtime.supported_behavior_features"
+          },
+          {
+            "family": "relationships",
+            "scope": "capabilities.participant_runtime.supported_interaction_features"
+          },
+          {
+            "family": "provenance-and-evidence",
+            "scope": "capabilities.observation.supported_capture_kinds"
+          },
+          {
+            "family": "apparatus-declarations",
+            "scope": "capabilities.observation.supported_channel_kinds"
+          },
+          {
+            "family": "provenance-and-evidence",
+            "scope": "capabilities.observation.supported_sealing_modes"
+          }
+        ],
+        "constraints": {},
+        "identity": {
+          "name": "stub",
+          "version": "0.3.0"
+        },
+        "realization_support": [
+          {
+            "artifact_mechanisms": [],
+            "constraints": {},
+            "disclosure_kinds": [
+              "backend-manifest-v2",
+              "operation-status-v1",
+              "runtime-snapshot-v1"
+            ],
+            "domain": "runtime-realization",
+            "observation_capabilities": {},
+            "process_resource_limits": [],
+            "support_mode": "constrained",
+            "supported_constraint_kinds": [
+              "account-feature",
+              "content-type",
+              "node-architecture",
+              "node-type",
+              "os-family",
+              "workflow-feature",
+              "workflow-state-predicate"
+            ],
+            "supported_exact_requirement_kinds": [
+              "declared-capability-match"
+            ]
+          }
+        ],
+        "schema_version": "backend-manifest/v2",
+        "supported_contract_versions": [
+          "artifact-requirement-v1",
+          "backend-manifest-v2",
+          "evaluation-history-event-stream-v1",
+          "evaluation-plan-v1",
+          "evaluation-result-envelope-v1",
+          "experiment-capture-spec-v1",
+          "experiment-derived-measure-v1",
+          "experiment-evidence-record-v1",
+          "experiment-run-v1",
+          "operation-receipt-v1",
+          "operation-status-v1",
+          "orchestration-plan-v1",
+          "participant-behavior-history-event-stream-v1",
+          "participant-control-evaluation-v1",
+          "participant-control-evaluation-v2",
+          "participant-control-occurrence-v1",
+          "participant-control-selection-v1",
+          "participant-control-selection-v2",
+          "participant-crossing-occurrence-v1",
+          "participant-episode-history-event-stream-v1",
+          "participant-episode-state-envelope-v1",
+          "participant-execution-binding-v1",
+          "participant-execution-control-v1",
+          "participant-execution-service-state-v1",
+          "participant-flow-control-relation-v1",
+          "participant-joint-action-record-v1",
+          "participant-lifecycle-event-v1",
+          "participant-observation-envelope-v1",
+          "participant-outcome-report-v1",
+          "participant-resource-budget-event-v1",
+          "participant-resource-budget-policy-v1",
+          "participant-resource-budget-state-v1",
+          "participant-resource-pool-capacity-v1",
+          "participant-shared-state-record-v1",
+          "participant-time-management-context-v1",
+          "proposition-truth-result-v1",
+          "provisioning-plan-v1",
+          "runtime-snapshot-v1",
+          "trial-cleanup-plan-v1",
+          "trial-cleanup-receipt-v1",
+          "workflow-history-event-stream-v1",
+          "workflow-result-envelope-v1"
+        ]
+      }
+    }
+  },
+  "cases": [
+    {
+      "name": "backend-reference",
+      "contract_id": "backend-manifest-v2",
+      "valid": true,
+      "baseline": "backend-reference",
+      "changes": []
+    },
+    {
+      "name": "backend-duplicate-version",
+      "contract_id": "backend-manifest-v2",
+      "valid": false,
+      "baseline": "backend-reference",
+      "changes": [
+        {
+          "path": [
+            "supported_contract_versions"
+          ],
+          "value": [
+            "backend-manifest-v2",
+            "artifact-requirement-v1",
+            "provisioning-plan-v1",
+            "orchestration-plan-v1",
+            "evaluation-plan-v1",
+            "operation-receipt-v1",
+            "operation-status-v1",
+            "runtime-snapshot-v1",
+            "workflow-result-envelope-v1",
+            "workflow-history-event-stream-v1",
+            "evaluation-result-envelope-v1",
+            "proposition-truth-result-v1",
+            "evaluation-history-event-stream-v1",
+            "participant-episode-state-envelope-v1",
+            "participant-episode-history-event-stream-v1",
+            "participant-behavior-history-event-stream-v1",
+            "participant-execution-binding-v1",
+            "participant-execution-control-v1",
+            "participant-execution-service-state-v1",
+            "participant-resource-budget-policy-v1",
+            "participant-resource-pool-capacity-v1",
+            "participant-resource-budget-state-v1",
+            "participant-resource-budget-event-v1",
+            "participant-control-occurrence-v1",
+            "participant-control-selection-v1",
+            "participant-control-evaluation-v1",
+            "participant-control-selection-v2",
+            "participant-control-evaluation-v2",
+            "participant-crossing-occurrence-v1",
+            "participant-flow-control-relation-v1",
+            "participant-lifecycle-event-v1",
+            "participant-observation-envelope-v1",
+            "participant-shared-state-record-v1",
+            "participant-joint-action-record-v1",
+            "participant-time-management-context-v1",
+            "participant-outcome-report-v1",
+            "experiment-capture-spec-v1",
+            "experiment-evidence-record-v1",
+            "experiment-derived-measure-v1",
+            "experiment-run-v1",
+            "trial-cleanup-plan-v1",
+            "trial-cleanup-receipt-v1",
+            "backend-manifest-v2"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "backend-unknown-family",
+      "contract_id": "backend-manifest-v2",
+      "valid": false,
+      "baseline": "backend-reference",
+      "changes": [
+        {
+          "path": [
+            "concept_bindings"
+          ],
+          "value": [
+            {
+              "family": "unknown-family",
+              "scope": "capabilities.provisioner.supported_node_types"
+            },
+            {
+              "family": "assets",
+              "scope": "capabilities.provisioner.supported_os_families"
+            },
+            {
+              "family": "assets",
+              "scope": "capabilities.provisioner.supported_node_architectures"
+            },
+            {
+              "family": "tools-and-artifacts",
+              "scope": "capabilities.provisioner.supported_content_types"
+            },
+            {
+              "family": "identities",
+              "scope": "capabilities.provisioner.supported_account_features"
+            },
+            {
+              "family": "identities",
+              "scope": "capabilities.provisioner.supported_domain_profiles"
+            },
+            {
+              "family": "tools-and-artifacts",
+              "scope": "capabilities.provisioner.supported_service_materialization_profiles"
+            },
+            {
+              "family": "actions-and-events",
+              "scope": "capabilities.orchestrator.supported_sections"
+            },
+            {
+              "family": "observables",
+              "scope": "capabilities.evaluator.supported_sections"
+            },
+            {
+              "family": "identities",
+              "scope": "capabilities.participant_runtime.supported_participant_roles"
+            },
+            {
+              "family": "actions-and-events",
+              "scope": "capabilities.participant_runtime.supported_behavior_features"
+            },
+            {
+              "family": "relationships",
+              "scope": "capabilities.participant_runtime.supported_interaction_features"
+            },
+            {
+              "family": "provenance-and-evidence",
+              "scope": "capabilities.observation.supported_capture_kinds"
+            },
+            {
+              "family": "apparatus-declarations",
+              "scope": "capabilities.observation.supported_channel_kinds"
+            },
+            {
+              "family": "provenance-and-evidence",
+              "scope": "capabilities.observation.supported_sealing_modes"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "backend-unknown-scope",
+      "contract_id": "backend-manifest-v2",
+      "valid": false,
+      "baseline": "backend-reference",
+      "changes": [
+        {
+          "path": [
+            "concept_bindings"
+          ],
+          "value": [
+            {
+              "family": "assets",
+              "scope": "unknown.scope"
+            },
+            {
+              "family": "assets",
+              "scope": "capabilities.provisioner.supported_os_families"
+            },
+            {
+              "family": "assets",
+              "scope": "capabilities.provisioner.supported_node_architectures"
+            },
+            {
+              "family": "tools-and-artifacts",
+              "scope": "capabilities.provisioner.supported_content_types"
+            },
+            {
+              "family": "identities",
+              "scope": "capabilities.provisioner.supported_account_features"
+            },
+            {
+              "family": "identities",
+              "scope": "capabilities.provisioner.supported_domain_profiles"
+            },
+            {
+              "family": "tools-and-artifacts",
+              "scope": "capabilities.provisioner.supported_service_materialization_profiles"
+            },
+            {
+              "family": "actions-and-events",
+              "scope": "capabilities.orchestrator.supported_sections"
+            },
+            {
+              "family": "observables",
+              "scope": "capabilities.evaluator.supported_sections"
+            },
+            {
+              "family": "identities",
+              "scope": "capabilities.participant_runtime.supported_participant_roles"
+            },
+            {
+              "family": "actions-and-events",
+              "scope": "capabilities.participant_runtime.supported_behavior_features"
+            },
+            {
+              "family": "relationships",
+              "scope": "capabilities.participant_runtime.supported_interaction_features"
+            },
+            {
+              "family": "provenance-and-evidence",
+              "scope": "capabilities.observation.supported_capture_kinds"
+            },
+            {
+              "family": "apparatus-declarations",
+              "scope": "capabilities.observation.supported_channel_kinds"
+            },
+            {
+              "family": "provenance-and-evidence",
+              "scope": "capabilities.observation.supported_sealing_modes"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "backend-duplicate-binding",
+      "contract_id": "backend-manifest-v2",
+      "valid": false,
+      "baseline": "backend-reference",
+      "changes": [
+        {
+          "path": [
+            "concept_bindings"
+          ],
+          "value": [
+            {
+              "family": "assets",
+              "scope": "capabilities.provisioner.supported_node_types"
+            },
+            {
+              "family": "assets",
+              "scope": "capabilities.provisioner.supported_os_families"
+            },
+            {
+              "family": "assets",
+              "scope": "capabilities.provisioner.supported_node_architectures"
+            },
+            {
+              "family": "tools-and-artifacts",
+              "scope": "capabilities.provisioner.supported_content_types"
+            },
+            {
+              "family": "identities",
+              "scope": "capabilities.provisioner.supported_account_features"
+            },
+            {
+              "family": "identities",
+              "scope": "capabilities.provisioner.supported_domain_profiles"
+            },
+            {
+              "family": "tools-and-artifacts",
+              "scope": "capabilities.provisioner.supported_service_materialization_profiles"
+            },
+            {
+              "family": "actions-and-events",
+              "scope": "capabilities.orchestrator.supported_sections"
+            },
+            {
+              "family": "observables",
+              "scope": "capabilities.evaluator.supported_sections"
+            },
+            {
+              "family": "identities",
+              "scope": "capabilities.participant_runtime.supported_participant_roles"
+            },
+            {
+              "family": "actions-and-events",
+              "scope": "capabilities.participant_runtime.supported_behavior_features"
+            },
+            {
+              "family": "relationships",
+              "scope": "capabilities.participant_runtime.supported_interaction_features"
+            },
+            {
+              "family": "provenance-and-evidence",
+              "scope": "capabilities.observation.supported_capture_kinds"
+            },
+            {
+              "family": "apparatus-declarations",
+              "scope": "capabilities.observation.supported_channel_kinds"
+            },
+            {
+              "family": "provenance-and-evidence",
+              "scope": "capabilities.observation.supported_sealing_modes"
+            },
+            {
+              "family": "assets",
+              "scope": "capabilities.provisioner.supported_node_types"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "backend-missing-registry-support",
+      "contract_id": "backend-manifest-v2",
+      "valid": false,
+      "baseline": "backend-reference",
+      "changes": [
+        {
+          "path": [
+            "configuration_registry"
+          ],
+          "value": {
+            "targets": {}
+          }
+        }
+      ]
+    },
+    {
+      "name": "processor-reference",
+      "contract_id": "processor-manifest-v2",
+      "valid": true,
+      "baseline": "processor-reference",
+      "changes": []
+    },
+    {
+      "name": "processor-duplicate-version",
+      "contract_id": "processor-manifest-v2",
+      "valid": false,
+      "baseline": "processor-reference",
+      "changes": [
+        {
+          "path": [
+            "supported_contract_versions"
+          ],
+          "value": [
+            "processor-manifest-v2",
+            "provisioning-plan-v1",
+            "orchestration-plan-v1",
+            "evaluation-plan-v1",
+            "workflow-cancellation-request-v1",
+            "operation-receipt-v1",
+            "operation-status-v1",
+            "runtime-snapshot-v1",
+            "processor-manifest-v2"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "processor-unknown-family",
+      "contract_id": "processor-manifest-v2",
+      "valid": false,
+      "baseline": "processor-reference",
+      "changes": [
+        {
+          "path": [
+            "concept_bindings"
+          ],
+          "value": [
+            {
+              "scope": "capabilities.supported_sdl_versions",
+              "family": "unknown-family"
+            },
+            {
+              "scope": "capabilities.supported_features",
+              "family": "apparatus-declarations"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "processor-unknown-scope",
+      "contract_id": "processor-manifest-v2",
+      "valid": false,
+      "baseline": "processor-reference",
+      "changes": [
+        {
+          "path": [
+            "concept_bindings"
+          ],
+          "value": [
+            {
+              "scope": "unknown.scope",
+              "family": "scenarios"
+            },
+            {
+              "scope": "capabilities.supported_features",
+              "family": "apparatus-declarations"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "processor-duplicate-binding",
+      "contract_id": "processor-manifest-v2",
+      "valid": false,
+      "baseline": "processor-reference",
+      "changes": [
+        {
+          "path": [
+            "concept_bindings"
+          ],
+          "value": [
+            {
+              "scope": "capabilities.supported_sdl_versions",
+              "family": "scenarios"
+            },
+            {
+              "scope": "capabilities.supported_features",
+              "family": "apparatus-declarations"
+            },
+            {
+              "scope": "capabilities.supported_sdl_versions",
+              "family": "scenarios"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "processor-missing-registry-support",
+      "contract_id": "processor-manifest-v2",
+      "valid": false,
+      "baseline": "processor-reference",
+      "changes": [
+        {
+          "path": [
+            "configuration_registry"
+          ],
+          "value": {
+            "targets": {}
+          }
+        }
+      ]
+    },
+    {
+      "name": "provisioner-unknown-supported_node_types",
+      "contract_id": "backend-manifest-v2",
+      "valid": false,
+      "baseline": "backend-reference",
+      "changes": [
+        {
+          "path": [
+            "capabilities",
+            "provisioner",
+            "supported_node_types"
+          ],
+          "value": [
+            "unknown-term"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "provisioner-unknown-supported_os_families",
+      "contract_id": "backend-manifest-v2",
+      "valid": false,
+      "baseline": "backend-reference",
+      "changes": [
+        {
+          "path": [
+            "capabilities",
+            "provisioner",
+            "supported_os_families"
+          ],
+          "value": [
+            "unknown-term"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "provisioner-unknown-supported_node_architectures",
+      "contract_id": "backend-manifest-v2",
+      "valid": false,
+      "baseline": "backend-reference",
+      "changes": [
+        {
+          "path": [
+            "capabilities",
+            "provisioner",
+            "supported_node_architectures"
+          ],
+          "value": [
+            "unknown-term"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "provisioner-unknown-supported_content_types",
+      "contract_id": "backend-manifest-v2",
+      "valid": false,
+      "baseline": "backend-reference",
+      "changes": [
+        {
+          "path": [
+            "capabilities",
+            "provisioner",
+            "supported_content_types"
+          ],
+          "value": [
+            "unknown-term"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "provisioner-unknown-supported_account_features",
+      "contract_id": "backend-manifest-v2",
+      "valid": false,
+      "baseline": "backend-reference",
+      "changes": [
+        {
+          "path": [
+            "capabilities",
+            "provisioner",
+            "supported_account_features"
+          ],
+          "value": [
+            "unknown-term"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "orchestrator-unknown-section",
+      "contract_id": "backend-manifest-v2",
+      "valid": false,
+      "baseline": "backend-reference",
+      "changes": [
+        {
+          "path": [
+            "capabilities",
+            "orchestrator",
+            "supported_sections"
+          ],
+          "value": [
+            "unknown-section"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "evaluator-unknown-section",
+      "contract_id": "backend-manifest-v2",
+      "valid": false,
+      "baseline": "backend-reference",
+      "changes": [
+        {
+          "path": [
+            "capabilities",
+            "evaluator",
+            "supported_sections"
+          ],
+          "value": [
+            "unknown-section"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "runtime-minimal",
+      "contract_id": "backend-manifest-v2",
+      "valid": true,
+      "baseline": "runtime-minimal",
+      "changes": []
+    },
+    {
+      "name": "runtime-unknown-supported_participant_roles",
+      "contract_id": "backend-manifest-v2",
+      "valid": false,
+      "baseline": "runtime-minimal",
+      "changes": [
+        {
+          "path": [
+            "capabilities",
+            "participant_runtime",
+            "supported_participant_roles"
+          ],
+          "value": [
+            "unknown-term"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "runtime-unknown-supported_behavior_features",
+      "contract_id": "backend-manifest-v2",
+      "valid": false,
+      "baseline": "runtime-minimal",
+      "changes": [
+        {
+          "path": [
+            "capabilities",
+            "participant_runtime",
+            "supported_behavior_features"
+          ],
+          "value": [
+            "unknown-term"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "runtime-unknown-supported_interaction_features",
+      "contract_id": "backend-manifest-v2",
+      "valid": false,
+      "baseline": "runtime-minimal",
+      "changes": [
+        {
+          "path": [
+            "capabilities",
+            "participant_runtime",
+            "supported_interaction_features"
+          ],
+          "value": [
+            "unknown-term"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "disabled-autonomy-max_autonomous_participants",
+      "contract_id": "backend-manifest-v2",
+      "valid": false,
+      "baseline": "runtime-minimal",
+      "changes": [
+        {
+          "path": [
+            "capabilities",
+            "participant_runtime",
+            "max_autonomous_participants"
+          ],
+          "value": 1
+        }
+      ]
+    },
+    {
+      "name": "disabled-autonomy-max_autonomous_action_attempts",
+      "contract_id": "backend-manifest-v2",
+      "valid": false,
+      "baseline": "runtime-minimal",
+      "changes": [
+        {
+          "path": [
+            "capabilities",
+            "participant_runtime",
+            "max_autonomous_action_attempts"
+          ],
+          "value": 1
+        }
+      ]
+    },
+    {
+      "name": "disabled-autonomy-max_autonomous_in_flight",
+      "contract_id": "backend-manifest-v2",
+      "valid": false,
+      "baseline": "runtime-minimal",
+      "changes": [
+        {
+          "path": [
+            "capabilities",
+            "participant_runtime",
+            "max_autonomous_in_flight"
+          ],
+          "value": 1
+        }
+      ]
+    },
+    {
+      "name": "disabled-autonomy-max_autonomous_occurrences",
+      "contract_id": "backend-manifest-v2",
+      "valid": false,
+      "baseline": "runtime-minimal",
+      "changes": [
+        {
+          "path": [
+            "capabilities",
+            "participant_runtime",
+            "max_autonomous_occurrences"
+          ],
+          "value": 1
+        }
+      ]
+    },
+    {
+      "name": "disabled-autonomy-max_autonomous_retries_per_occurrence",
+      "contract_id": "backend-manifest-v2",
+      "valid": false,
+      "baseline": "runtime-minimal",
+      "changes": [
+        {
+          "path": [
+            "capabilities",
+            "participant_runtime",
+            "max_autonomous_retries_per_occurrence"
+          ],
+          "value": 1
+        }
+      ]
+    },
+    {
+      "name": "disabled-autonomy-max_autonomous_burst_size",
+      "contract_id": "backend-manifest-v2",
+      "valid": false,
+      "baseline": "runtime-minimal",
+      "changes": [
+        {
+          "path": [
+            "capabilities",
+            "participant_runtime",
+            "max_autonomous_burst_size"
+          ],
+          "value": 1
+        }
+      ]
+    },
+    {
+      "name": "disabled-autonomy-max_execution_services",
+      "contract_id": "backend-manifest-v2",
+      "valid": false,
+      "baseline": "runtime-minimal",
+      "changes": [
+        {
+          "path": [
+            "capabilities",
+            "participant_runtime",
+            "max_execution_services"
+          ],
+          "value": 1
+        }
+      ]
+    },
+    {
+      "name": "disabled-autonomy-max_concurrent_actions",
+      "contract_id": "backend-manifest-v2",
+      "valid": false,
+      "baseline": "runtime-minimal",
+      "changes": [
+        {
+          "path": [
+            "capabilities",
+            "participant_runtime",
+            "max_concurrent_actions"
+          ],
+          "value": 1
+        }
+      ]
+    },
+    {
+      "name": "disabled-autonomy-supported_autonomous_selection_strategies",
+      "contract_id": "backend-manifest-v2",
+      "valid": false,
+      "baseline": "runtime-minimal",
+      "changes": [
+        {
+          "path": [
+            "capabilities",
+            "participant_runtime",
+            "supported_autonomous_selection_strategies"
+          ],
+          "value": [
+            "ordered_cycle"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "disabled-autonomy-supported_autonomous_action_contracts",
+      "contract_id": "backend-manifest-v2",
+      "valid": false,
+      "baseline": "runtime-minimal",
+      "changes": [
+        {
+          "path": [
+            "capabilities",
+            "participant_runtime",
+            "supported_autonomous_action_contracts"
+          ],
+          "value": [
+            "actions.example"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "disabled-autonomy-supported_autonomous_observation_boundaries",
+      "contract_id": "backend-manifest-v2",
+      "valid": false,
+      "baseline": "runtime-minimal",
+      "changes": [
+        {
+          "path": [
+            "capabilities",
+            "participant_runtime",
+            "supported_autonomous_observation_boundaries"
+          ],
+          "value": [
+            "actions.example"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "disabled-autonomy-supported_autonomous_target_addresses",
+      "contract_id": "backend-manifest-v2",
+      "valid": false,
+      "baseline": "runtime-minimal",
+      "changes": [
+        {
+          "path": [
+            "capabilities",
+            "participant_runtime",
+            "supported_autonomous_target_addresses"
+          ],
+          "value": [
+            "actions.example"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "disabled-autonomy-supported_autonomous_policy_profiles",
+      "contract_id": "backend-manifest-v2",
+      "valid": false,
+      "baseline": "runtime-minimal",
+      "changes": [
+        {
+          "path": [
+            "capabilities",
+            "participant_runtime",
+            "supported_autonomous_policy_profiles"
+          ],
+          "value": [
+            "participant-autonomous-execution/v1"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "disabled-autonomy-supported_autonomous_activity_features",
+      "contract_id": "backend-manifest-v2",
+      "valid": false,
+      "baseline": "runtime-minimal",
+      "changes": [
+        {
+          "path": [
+            "capabilities",
+            "participant_runtime",
+            "supported_autonomous_activity_features"
+          ],
+          "value": [
+            "work-windows"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "disabled-autonomy-supported_autonomous_random_stream_profiles",
+      "contract_id": "backend-manifest-v2",
+      "valid": false,
+      "baseline": "runtime-minimal",
+      "changes": [
+        {
+          "path": [
+            "capabilities",
+            "participant_runtime",
+            "supported_autonomous_random_stream_profiles"
+          ],
+          "value": [
+            "blake3-xof-participant-v1"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "autonomy-complete",
+      "contract_id": "backend-manifest-v2",
+      "valid": true,
+      "baseline": "autonomy-complete",
+      "changes": []
+    },
+    {
+      "name": "autonomy-missing-max_autonomous_participants",
+      "contract_id": "backend-manifest-v2",
+      "valid": false,
+      "baseline": "autonomy-complete",
+      "changes": [
+        {
+          "path": [
+            "capabilities",
+            "participant_runtime",
+            "max_autonomous_participants"
+          ],
+          "delete": true
+        }
+      ]
+    },
+    {
+      "name": "autonomy-missing-max_autonomous_action_attempts",
+      "contract_id": "backend-manifest-v2",
+      "valid": false,
+      "baseline": "autonomy-complete",
+      "changes": [
+        {
+          "path": [
+            "capabilities",
+            "participant_runtime",
+            "max_autonomous_action_attempts"
+          ],
+          "delete": true
+        }
+      ]
+    },
+    {
+      "name": "autonomy-missing-max_autonomous_in_flight",
+      "contract_id": "backend-manifest-v2",
+      "valid": false,
+      "baseline": "autonomy-complete",
+      "changes": [
+        {
+          "path": [
+            "capabilities",
+            "participant_runtime",
+            "max_autonomous_in_flight"
+          ],
+          "delete": true
+        }
+      ]
+    },
+    {
+      "name": "autonomy-missing-max_autonomous_occurrences",
+      "contract_id": "backend-manifest-v2",
+      "valid": false,
+      "baseline": "autonomy-complete",
+      "changes": [
+        {
+          "path": [
+            "capabilities",
+            "participant_runtime",
+            "max_autonomous_occurrences"
+          ],
+          "delete": true
+        }
+      ]
+    },
+    {
+      "name": "autonomy-missing-max_autonomous_retries_per_occurrence",
+      "contract_id": "backend-manifest-v2",
+      "valid": false,
+      "baseline": "autonomy-complete",
+      "changes": [
+        {
+          "path": [
+            "capabilities",
+            "participant_runtime",
+            "max_autonomous_retries_per_occurrence"
+          ],
+          "delete": true
+        }
+      ]
+    },
+    {
+      "name": "autonomy-missing-max_autonomous_burst_size",
+      "contract_id": "backend-manifest-v2",
+      "valid": false,
+      "baseline": "autonomy-complete",
+      "changes": [
+        {
+          "path": [
+            "capabilities",
+            "participant_runtime",
+            "max_autonomous_burst_size"
+          ],
+          "delete": true
+        }
+      ]
+    },
+    {
+      "name": "autonomy-missing-max_concurrent_actions",
+      "contract_id": "backend-manifest-v2",
+      "valid": false,
+      "baseline": "autonomy-complete",
+      "changes": [
+        {
+          "path": [
+            "capabilities",
+            "participant_runtime",
+            "max_concurrent_actions"
+          ],
+          "delete": true
+        }
+      ]
+    },
+    {
+      "name": "autonomy-missing-execution_bindings",
+      "contract_id": "backend-manifest-v2",
+      "valid": false,
+      "baseline": "autonomy-complete",
+      "changes": [
+        {
+          "path": [
+            "capabilities",
+            "participant_runtime",
+            "execution_bindings"
+          ],
+          "delete": true
+        }
+      ]
+    },
+    {
+      "name": "autonomy-missing-supported_autonomous_selection_strategies",
+      "contract_id": "backend-manifest-v2",
+      "valid": false,
+      "baseline": "autonomy-complete",
+      "changes": [
+        {
+          "path": [
+            "capabilities",
+            "participant_runtime",
+            "supported_autonomous_selection_strategies"
+          ],
+          "delete": true
+        }
+      ]
+    },
+    {
+      "name": "autonomy-missing-supported_autonomous_action_contracts",
+      "contract_id": "backend-manifest-v2",
+      "valid": false,
+      "baseline": "autonomy-complete",
+      "changes": [
+        {
+          "path": [
+            "capabilities",
+            "participant_runtime",
+            "supported_autonomous_action_contracts"
+          ],
+          "delete": true
+        }
+      ]
+    },
+    {
+      "name": "autonomy-missing-supported_autonomous_observation_boundaries",
+      "contract_id": "backend-manifest-v2",
+      "valid": false,
+      "baseline": "autonomy-complete",
+      "changes": [
+        {
+          "path": [
+            "capabilities",
+            "participant_runtime",
+            "supported_autonomous_observation_boundaries"
+          ],
+          "delete": true
+        }
+      ]
+    },
+    {
+      "name": "autonomy-missing-supported_autonomous_policy_profiles",
+      "contract_id": "backend-manifest-v2",
+      "valid": false,
+      "baseline": "autonomy-complete",
+      "changes": [
+        {
+          "path": [
+            "capabilities",
+            "participant_runtime",
+            "supported_autonomous_policy_profiles"
+          ],
+          "delete": true
+        }
+      ]
+    },
+    {
+      "name": "autonomy-flag-mismatch",
+      "contract_id": "backend-manifest-v2",
+      "valid": false,
+      "baseline": "autonomy-complete",
+      "changes": [
+        {
+          "path": [
+            "capabilities",
+            "participant_runtime",
+            "supported_behavior_features"
+          ],
+          "value": []
+        }
+      ]
+    },
+    {
+      "name": "autonomy-v2-missing-activity",
+      "contract_id": "backend-manifest-v2",
+      "valid": false,
+      "baseline": "autonomy-complete",
+      "changes": [
+        {
+          "path": [
+            "capabilities",
+            "participant_runtime",
+            "supported_autonomous_policy_profiles"
+          ],
+          "value": [
+            "participant-autonomous-execution/v2"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "autonomy-v3-missing-budget",
+      "contract_id": "backend-manifest-v2",
+      "valid": false,
+      "baseline": "autonomy-complete",
+      "changes": [
+        {
+          "path": [
+            "capabilities",
+            "participant_runtime",
+            "supported_autonomous_activity_features"
+          ],
+          "value": [
+            "work-windows"
+          ]
+        },
+        {
+          "path": [
+            "capabilities",
+            "participant_runtime",
+            "supported_autonomous_policy_profiles"
+          ],
+          "value": [
+            "participant-autonomous-execution/v3"
+          ]
+        },
+        {
+          "path": [
+            "capabilities",
+            "participant_runtime",
+            "supported_autonomous_random_stream_profiles"
+          ],
+          "value": [
+            "blake3-xof-participant-v1"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "autonomy-bad-address",
+      "contract_id": "backend-manifest-v2",
+      "valid": false,
+      "baseline": "autonomy-complete",
+      "changes": [
+        {
+          "path": [
+            "capabilities",
+            "participant_runtime",
+            "supported_autonomous_observation_boundaries"
+          ],
+          "value": [
+            "bad"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "autonomy-duplicate-binding",
+      "contract_id": "backend-manifest-v2",
+      "valid": false,
+      "baseline": "autonomy-complete",
+      "changes": [
+        {
+          "path": [
+            "capabilities",
+            "participant_runtime",
+            "execution_bindings"
+          ],
+          "value": [
+            {
+              "action_contract_address": "actions.shell.execute",
+              "binding_id": "binding-red-operator-shell-v1",
+              "constraint_refs": [
+                "constraints/red-operator-shell-scope-v1"
+              ],
+              "evidence_refs": [
+                "evidence/red-operator-shell-transcript-v1"
+              ],
+              "max_action_attempts": 3,
+              "max_in_flight": 2,
+              "max_retries": 1,
+              "participant_implementation_ref": "participant-implementations/red-operator-v1",
+              "schema_version": "participant-execution-binding/v1",
+              "target_addresses": [
+                "targets.red.workstation",
+                "targets.red.jumphost"
+              ],
+              "timeout_seconds": 120
+            },
+            {
+              "action_contract_address": "actions.shell.execute",
+              "binding_id": "binding-red-operator-shell-v1",
+              "constraint_refs": [
+                "constraints/red-operator-shell-scope-v1"
+              ],
+              "evidence_refs": [
+                "evidence/red-operator-shell-transcript-v1"
+              ],
+              "max_action_attempts": 3,
+              "max_in_flight": 2,
+              "max_retries": 1,
+              "participant_implementation_ref": "participant-implementations/red-operator-v1",
+              "schema_version": "participant-execution-binding/v1",
+              "target_addresses": [
+                "targets.red.workstation",
+                "targets.red.jumphost"
+              ],
+              "timeout_seconds": 120
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "autonomy-foreign-action",
+      "contract_id": "backend-manifest-v2",
+      "valid": false,
+      "baseline": "autonomy-complete",
+      "changes": [
+        {
+          "path": [
+            "capabilities",
+            "participant_runtime",
+            "execution_bindings"
+          ],
+          "value": [
+            {
+              "action_contract_address": "actions.other",
+              "binding_id": "binding-red-operator-shell-v1",
+              "constraint_refs": [
+                "constraints/red-operator-shell-scope-v1"
+              ],
+              "evidence_refs": [
+                "evidence/red-operator-shell-transcript-v1"
+              ],
+              "max_action_attempts": 3,
+              "max_in_flight": 2,
+              "max_retries": 1,
+              "participant_implementation_ref": "participant-implementations/red-operator-v1",
+              "schema_version": "participant-execution-binding/v1",
+              "target_addresses": [
+                "targets.red.workstation",
+                "targets.red.jumphost"
+              ],
+              "timeout_seconds": 120
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "autonomy-foreign-target",
+      "contract_id": "backend-manifest-v2",
+      "valid": false,
+      "baseline": "autonomy-complete",
+      "changes": [
+        {
+          "path": [
+            "capabilities",
+            "participant_runtime",
+            "execution_bindings"
+          ],
+          "value": [
+            {
+              "action_contract_address": "actions.shell.execute",
+              "binding_id": "binding-red-operator-shell-v1",
+              "constraint_refs": [
+                "constraints/red-operator-shell-scope-v1"
+              ],
+              "evidence_refs": [
+                "evidence/red-operator-shell-transcript-v1"
+              ],
+              "max_action_attempts": 3,
+              "max_in_flight": 2,
+              "max_retries": 1,
+              "participant_implementation_ref": "participant-implementations/red-operator-v1",
+              "schema_version": "participant-execution-binding/v1",
+              "target_addresses": [
+                "targets.other"
+              ],
+              "timeout_seconds": 120
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "autonomy-excess-concurrency",
+      "contract_id": "backend-manifest-v2",
+      "valid": false,
+      "baseline": "autonomy-complete",
+      "changes": [
+        {
+          "path": [
+            "capabilities",
+            "participant_runtime",
+            "execution_bindings"
+          ],
+          "value": [
+            {
+              "action_contract_address": "actions.shell.execute",
+              "binding_id": "binding-red-operator-shell-v1",
+              "constraint_refs": [
+                "constraints/red-operator-shell-scope-v1"
+              ],
+              "evidence_refs": [
+                "evidence/red-operator-shell-transcript-v1"
+              ],
+              "max_action_attempts": 3,
+              "max_in_flight": 3,
+              "max_retries": 1,
+              "participant_implementation_ref": "participant-implementations/red-operator-v1",
+              "schema_version": "participant-execution-binding/v1",
+              "target_addresses": [
+                "targets.red.workstation",
+                "targets.red.jumphost"
+              ],
+              "timeout_seconds": 120
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "autonomy-empty-control",
+      "contract_id": "backend-manifest-v2",
+      "valid": false,
+      "baseline": "autonomy-complete",
+      "changes": [
+        {
+          "path": [
+            "capabilities",
+            "participant_runtime",
+            "supports_execution_control"
+          ],
+          "value": true
+        }
+      ]
+    },
+    {
+      "name": "autonomy-missing-service-bound",
+      "contract_id": "backend-manifest-v2",
+      "valid": false,
+      "baseline": "autonomy-complete",
+      "changes": [
+        {
+          "path": [
+            "capabilities",
+            "participant_runtime",
+            "supported_execution_control_actions"
+          ],
+          "value": [
+            "start"
+          ]
+        },
+        {
+          "path": [
+            "capabilities",
+            "participant_runtime",
+            "supports_execution_control"
+          ],
+          "value": true
+        }
+      ]
+    },
+    {
+      "name": "autonomy-unbounded-concurrency",
+      "contract_id": "backend-manifest-v2",
+      "valid": false,
+      "baseline": "autonomy-complete",
+      "changes": [
+        {
+          "path": [
+            "capabilities",
+            "participant_runtime",
+            "max_concurrent_actions"
+          ],
+          "value": 1
+        },
+        {
+          "path": [
+            "capabilities",
+            "participant_runtime",
+            "supports_bounded_concurrency"
+          ],
+          "value": true
+        }
+      ]
+    },
+    {
+      "name": "tools-bounded",
+      "contract_id": "backend-manifest-v2",
+      "valid": true,
+      "baseline": "tools-bounded",
+      "changes": []
+    },
+    {
+      "name": "tools-missing-profile",
+      "contract_id": "backend-manifest-v2",
+      "valid": false,
+      "baseline": "tools-bounded",
+      "changes": [
+        {
+          "path": [
+            "capabilities",
+            "participant_runtime",
+            "tool_profiles"
+          ],
+          "delete": true
+        }
+      ]
+    },
+    {
+      "name": "tools-unknown-capacity",
+      "contract_id": "backend-manifest-v2",
+      "valid": false,
+      "baseline": "tools-bounded",
+      "changes": [
+        {
+          "path": [
+            "capabilities",
+            "participant_runtime",
+            "feature_support"
+          ],
+          "value": [
+            {
+              "feature": "tool_affordances",
+              "support_level": "bounded",
+              "constraint_refs": [
+                "constraints.untyped"
+              ],
+              "limitation_refs": [
+                "limits.bindings"
+              ],
+              "disclosure_refs": [
+                "disclosures.bindings"
+              ],
+              "evidence_refs": [
+                "evidence.bindings"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "tools-unevaluated-bound",
+      "contract_id": "backend-manifest-v2",
+      "valid": false,
+      "baseline": "tools-bounded",
+      "changes": [
+        {
+          "path": [
+            "capabilities",
+            "participant_runtime",
+            "feature_support"
+          ],
+          "value": [
+            {
+              "feature": "tool_affordances",
+              "support_level": "bounded",
+              "constraint_refs": [],
+              "limitation_refs": [
+                "limits.bindings"
+              ],
+              "disclosure_refs": [
+                "disclosures.bindings"
+              ],
+              "evidence_refs": [
+                "evidence.bindings"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "tools-blank-reference",
+      "contract_id": "backend-manifest-v2",
+      "valid": false,
+      "baseline": "tools-bounded",
+      "changes": [
+        {
+          "path": [
+            "capabilities",
+            "participant_runtime",
+            "feature_support"
+          ],
+          "value": [
+            {
+              "feature": "tool_affordances",
+              "support_level": "bounded",
+              "constraint_refs": [
+                "tool_profiles.max_bindings_per_profile"
+              ],
+              "limitation_refs": [
+                "limits.bindings"
+              ],
+              "disclosure_refs": [
+                "disclosures.bindings"
+              ],
+              "evidence_refs": [
+                " "
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "tools-missing-declaration",
+      "contract_id": "backend-manifest-v2",
+      "valid": false,
+      "baseline": "tools-bounded",
+      "changes": [
+        {
+          "path": [
+            "capabilities",
+            "participant_runtime",
+            "supported_behavior_features"
+          ],
+          "value": []
+        }
+      ]
+    },
+    {
+      "name": "tools-missing-contract",
+      "contract_id": "backend-manifest-v2",
+      "valid": true,
+      "baseline": "tools-bounded",
+      "changes": [
+        {
+          "path": [
+            "supported_contract_versions"
+          ],
+          "value": [
+            "artifact-requirement-v1",
+            "backend-manifest-v2",
+            "evaluation-history-event-stream-v1",
+            "evaluation-plan-v1",
+            "evaluation-result-envelope-v1",
+            "experiment-capture-spec-v1",
+            "experiment-derived-measure-v1",
+            "experiment-evidence-record-v1",
+            "experiment-run-v1",
+            "operation-receipt-v1",
+            "operation-status-v1",
+            "orchestration-plan-v1",
+            "participant-behavior-history-event-stream-v1",
+            "participant-control-evaluation-v1",
+            "participant-control-evaluation-v2",
+            "participant-control-selection-v1",
+            "participant-control-selection-v2",
+            "participant-crossing-occurrence-v1",
+            "participant-episode-history-event-stream-v1",
+            "participant-episode-state-envelope-v1",
+            "participant-execution-binding-v1",
+            "participant-execution-control-v1",
+            "participant-execution-service-state-v1",
+            "participant-flow-control-relation-v1",
+            "participant-joint-action-record-v1",
+            "participant-lifecycle-event-v1",
+            "participant-observation-envelope-v1",
+            "participant-outcome-report-v1",
+            "participant-resource-budget-event-v1",
+            "participant-resource-budget-policy-v1",
+            "participant-resource-budget-state-v1",
+            "participant-resource-pool-capacity-v1",
+            "participant-shared-state-record-v1",
+            "participant-time-management-context-v1",
+            "proposition-truth-result-v1",
+            "provisioning-plan-v1",
+            "runtime-snapshot-v1",
+            "trial-cleanup-plan-v1",
+            "trial-cleanup-receipt-v1",
+            "workflow-history-event-stream-v1",
+            "workflow-result-envelope-v1"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "processor-tools-bounded",
+      "contract_id": "processor-manifest-v2",
+      "valid": true,
+      "baseline": "processor-reference",
+      "changes": [
+        {
+          "path": [
+            "capabilities",
+            "participant_tools",
+            "feature_support"
+          ],
+          "value": [
+            {
+              "feature": "tool_affordances",
+              "support_level": "bounded",
+              "constraint_refs": [
+                "tool_profiles.max_bindings_per_profile"
+              ],
+              "limitation_refs": [
+                "limits.bindings"
+              ],
+              "disclosure_refs": [
+                "disclosures.bindings"
+              ],
+              "evidence_refs": [
+                "evidence.bindings"
+              ]
+            }
+          ]
+        },
+        {
+          "path": [
+            "capabilities",
+            "participant_tools",
+            "max_bindings_per_profile"
+          ],
+          "value": 2
+        },
+        {
+          "path": [
+            "capabilities",
+            "participant_tools",
+            "max_participants_per_binding"
+          ],
+          "delete": true
+        }
+      ]
+    }
+  ]
+}

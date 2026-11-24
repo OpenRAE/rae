@@ -26,6 +26,8 @@ class SDLSourcePosition:
     column: int
 
     def as_dict(self) -> dict[str, int]:
+        """Return the one-based line and column as a new mapping."""
+
         return {"line": self.line, "column": self.column}
 
 
@@ -37,6 +39,8 @@ class SDLSourceRange:
     end: SDLSourcePosition
 
     def as_dict(self) -> dict[str, dict[str, int]]:
+        """Return the start and end positions of this half-open range."""
+
         return {"start": self.start.as_dict(), "end": self.end.as_dict()}
 
 
@@ -58,6 +62,8 @@ class SDLParseDiagnostic:
     canonical_address: str | None = None
 
     def as_dict(self) -> dict[str, Any]:
+        """Return a diagnostic mapping with available source and related-range details."""
+
         payload: dict[str, Any] = {
             "stage": self.stage,
             "severity": self.severity,

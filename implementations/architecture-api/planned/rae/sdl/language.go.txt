@@ -1,0 +1,21 @@
+package language
+
+import (
+	"github.com/OpenRAE/rae/implementations/go/contract/diagnostic"
+	"github.com/OpenRAE/rae/implementations/go/sdl"
+)
+
+type Edit struct {
+	Operation, Pointer string
+	Value              any
+}
+type EditResult struct {
+	Status      string
+	Content     []byte
+	Diagnostics []diagnostic.Diagnostic
+}
+
+func ApplyEdit(source sdl.SourceContext, options sdl.ParseOptions, edit Edit) (EditResult, error)
+func Completions(source sdl.SourceContext, options sdl.ParseOptions, cursorPath, prefix string) (map[string]any, error)
+func Diagnostics(source sdl.SourceContext, options sdl.ParseOptions) ([]diagnostic.Diagnostic, error)
+func Format(source sdl.SourceContext, options sdl.ParseOptions) (EditResult, error)

@@ -7,11 +7,22 @@ The generated view lists the code that exists now.
 An empty layer is planned, not implemented.
 Python remains the behavioral reference for components not yet ported.
 
+The [runtime repository split](../decisions/issue-1891-runtime-repository-boundary.md) takes effect at the common #1804 Go launch.
+`OpenRAE/rae` retains SDL, processor, canonical contracts, portable backend interfaces/stubs and pure conformance.
+The planned runtime repository owns execution, control-plane/HTTP/store/worker behavior and live conformance.
+Runtime imports released public `rae` APIs; `rae` product modules never import runtime.
+The [complete source inventory](../decisions/issue-1891-runtime-extraction-inventory.json) pins the current baseline and mixed responsibilities.
+No destination or source transfer is approved by this plan.
+
 ## Components and consumer boundary
 
-Environment packs, LilRAE and Coldlight use the Go module.
-[Issue #1825](https://github.com/OpenRAE/rae/issues/1825) owns their public package design and compatibility policy.
-No product package is downstream-importable today.
+Environment packs and LilRAE consume the relevant public language/processor/contract/backend APIs.
+Coldlight embeds the shared runtime from its planned new repository owner.
+[The consumer API reference](../decisions/issue-1825-public-go-api.md) names their package owners, operations, command composition and compatibility policy.
+The nine packages that #1892 moved are downstream-importable at their public paths.
+These are `base/fault`, `base/ingress`, `base/canonjson`, `base/digest`, `base/address`, `base/clock`, `contract/binding`, `contract/validation` and `contract/admission`.
+Implemented SDL, processor and shared contract packages also expose their declared public APIs.
+Other base helpers and product implementation details stay below `internal`.
 The `public` flag is for layers.
 It does not bypass Go's `internal` rule.
 The tooling module is a development dependency, not the consumer product API.
@@ -23,29 +34,51 @@ flowchart TB
         Providers[Store / lease / clock providers]
         API[Consumer API - issue 1825 - planned]
     end
-    subgraph RAES[RAES Go module]
-        Transport[CLI / MCP / HTTP adapters - planned]
-        App[Shared application services - planned]
-        SDL[SDL admission - planned]
-        Contracts[Published contract admission - planned]
-        Processor[Compilation / planning / trial compilation - planned]
-        Runtime[Shared runtime control plane - planned]
+    subgraph RAES[OpenRAE/rae - language and contract authority]
+        Transport[Authoring CLI / MCP adapters - planned]
+        App[Authoring services - planned]
+        SDL[SDL admission - implemented, public facade]
+        Contracts[Published contract admission - implemented, public]
+        Processor[Compilation / planning / realization / comparison - implemented]
+        Trial[Trial compilation - planned]
         Backend[Backend interfaces - planned]
-        Base[Shared base primitives - implemented]
+        Base[Shared base primitives - implemented, required types public]
+    end
+    subgraph RuntimeRepo[Runtime repository - planned]
+        Runtime[Shared runtime control plane - planned]
+        HTTP[HTTP adapter - planned]
+        CLI[Combined raes publisher - planned]
     end
     Consumers --> API
     API --> App
     Transport --> App
     App --> SDL
     App --> Processor
-    App --> Runtime
+    App --> Trial
+    CLI --> Transport
+    HTTP --> Runtime
     SDL --> Contracts
     Processor --> SDL
+    Runtime --> Processor
+    Runtime --> Contracts
     Runtime --> Backend
     Runtime --> Providers
     Contracts --> Base
     Providers --> Temporal[Temporal execution composition - planned ADR-113]
 ```
+
+Published contract admission is implemented.
+It compiles the packaged schemas offline and checks family rules against explicit owner records.
+Caller payloads cannot create trusted context, and validation performs no network retrieval.
+The [contract design](../decisions/issue-1780-contract-validation-design.md) records its interfaces and failure controls.
+
+The [source decoder](../decisions/issue-1782-source-loading-design.md) now lives in `internal/sdl/source`.
+It bounds YAML work, collects key conflicts, retains source ranges and emits YAML presentation.
+It returns decoded source, without granting model, semantic or import admission.
+The native authoring owner performs those checks through the public `sdl` facade.
+The processor compiles admitted scenarios into one typed model.
+Planning, realization and semantic comparison use their declared processor owners.
+Trial compilation remains planned.
 
 Consumers need bounded SDL reads.
 They also need checks, edits, errors, locks and digests.
@@ -56,7 +89,7 @@ RAES owns semantic admission, defaults, schemas, vocabulary and address grammar.
 Consumer adapters must not call Python.
 They must not copy core checks.
 
-Coldlight embeds the shared runtime selected by ADR-104 and ADR-113.
+Coldlight embeds the shared runtime selected by ADR-104 and ADR-113, using the new runtime repository's released API after cutover.
 Its planned API includes actor-bound submissions, idempotent receipts, snapshots, participant transitions and audit.
 It also includes store, lease and clock interfaces and Temporal execution adapters.
 ADR-104's P0/P1/P2 profiles describe reference capabilities, not proof of Go delivery.
@@ -72,14 +105,18 @@ flowchart LR
         Auth[Authentication and route authority]
         Secrets[Native credentials and resources]
     end
-    subgraph Core[RAES admission and policy boundary]
+    subgraph Core[rae language and contract authority]
         Ingress[Bounded ingress - implemented primitive]
-        Admission[Schema and semantic admission - planned]
+        Admission[Contract and SDL admission - implemented]
+        Plan[Compilation and planning - implemented]
+    end
+    subgraph RuntimeRepo[Runtime repository - existing protection boundary preserved]
         Policy[Actor / scope / target policy - planned]
-        Plan[Compilation and planning - planned]
         Runtime[Shared operation runtime - planned]
     end
-    Documents -->|bounded supplied bytes| Ingress
+    Documents -->|bounded JSON bytes| Ingress
+    Documents -->|bounded YAML bytes| Source[SDL source decoding - implemented]
+    Source -->|source-checked values| Admission
     Ingress -->|parsed values| Admission
     Requests -->|credentials and operation request| Auth
     Auth -->|authenticated principal| Policy
@@ -96,7 +133,7 @@ flowchart LR
 
 | Asset / threat | Boundary and control | Evidence / verification |
 | --- | --- | --- |
-| Source containment and parser exhaustion | Bounded supplied sources; strict ingress before semantic admission | Base ingress tests; published contracts; #1782/#1785 remain planned |
+| Source containment and parser exhaustion | Bounded supplied sources; strict ingress before semantic admission | Base ingress, native SDL authoring and public facade tests; source parity vectors; transitive local import trust regressions |
 | Cross-actor operations | Transport authenticates; core binds actor, scope, target and idempotency | ADR-104; future runtime conformance tests |
 | Confused transport authority | One route authority; invalid bearer credentials cannot fall back to proxy headers | ADR-104; reference security configuration and route tests |
 | Uncertain effects and corrupt state | Backend admission, atomic terminal commits, CAS and leases | ADR-104 and ADR-113; Go runtime remains planned |
@@ -111,6 +148,7 @@ Review checks these trust explanations whenever bound evidence changes.
 
 | Concern | Canonical owner / reuse decision |
 | --- | --- |
+| SDL source decoding and presentation | `internal/sdl/source`; ordered YAML graph, Core scalars, key diagnostics, copied sources and request budgets |
 | Strict bounded JSON | `base/ingress.Parse`; standard encoding/json alone does not enforce the published ingress policy |
 | Canonical bytes | `base/canonjson`; JCS and sorted Python JSON are distinct compatibility profiles |
 | Digests | `base/digest`; reuse crypto/sha256, not local digest wrappers in each slice |
@@ -123,9 +161,26 @@ Review checks these trust explanations whenever bound evidence changes.
 | Versions and scalar domains | `base/softwareversion` and `base/domain`; closed typed descriptors and bounded comparisons |
 | Snapshot values | `base/value`; bounded closed JSON values without foreign callbacks |
 | Secret reference identities | `base/secretref`; bounded inert identities, with no secret resolution |
-| Contract admission and defaults | Planned contract layer; reuse published schemas and concept authority, not transport validators |
+| Contract admission and defaults | `contract/admission` and `contract/validation`; published schemas, full family rules and explicit trusted context |
+| Typed compilation and planning | `processor` and `processor/planning`; one compiled model, ordered diagnostics and published phase plans |
+| Realization relations | `processor/realization`; compilation, selection, evaluation and portable plan authority; shared recursive constraints stay in contract admission |
+| Semantic comparison | `processor/comparison`; bounded analysis of sealed native artifacts and explicit scopes |
 | Operation and persistence semantics | Planned runtime layer; transports and embedders share the same core |
 | Architecture checks | Tooling `arch`; standard Go types and existing model/findings, no product-internal imports |
+| Governance patterns | Tooling `governance`; the [#1983 target](../decisions/issue-1799-go-governance-design.md#issue-1983-pattern-boundary) uses Go regex syntax and classified configuration errors. Product contract matching keeps its separate profile. |
+
+These primitive owners stay in `rae`.
+The model's `consumer_api` section declares the public imports.
+#1892 moved the required existing packages to their public paths; later port issues implement their named interfaces.
+The other base helpers and `contract/corpus` stay below `internal`.
+The model's `public` flag does not override Go `internal` visibility.
+Pure conformance, authoring services and MCP remain in `rae`; live conformance, execution services, HTTP and combined `raes` publication belong with runtime.
+The current model graph below still describes this checkout before extraction.
+Its layer descriptions and bound split decision define future ownership.
+The generated consumer tables show the public package plan and the sole executable publishers.
+ARCH-015 keeps implemented runtime code on public `rae` packages and keeps `rae` consumer packages away from runtime code.
+The [external consumer fixture](../../implementations/go/testdata/consumer) imports the public packages at a pinned module version.
+The [#1892 design](../decisions/issue-1892-public-go-packages-design.md) records the moves and their controls.
 
 Compatibility reasons and parity evidence:
 [canonical JSON](../decisions/issue-1779-canonical-json-design.md),
@@ -147,23 +202,29 @@ It reviews this overview when source commitments change.
 `archcheck -view` prints the generated section for review; it does not overwrite the overview.
 `archcheck -api` prints actual interfaces for comparison; it does not approve them.
 The existing go-architecture CI job checks documentation and code changes.
+Before running the architecture checker or its consumer API tests, run `go -C implementations/go mod download`.
+This prepares the pinned product dependencies for offline type inspection.
+The tooling test job and architecture job run this preparation before their checks.
+Contract admission's independent model tests retain their recorded inputs in `admission/testdata/retained-model-inputs`.
+Parity corpus refreshes preserve these original test baselines.
+Product CI decodes and scans this retained store before running its Go tests.
 
 <!-- go-view -->
 
 | Layer | Status | Allowed dependencies |
 | --- | --- | --- |
 | `base` | implemented packages |  |
-| `contract` | planned | base |
-| `sdl` | planned | contract, base |
-| `processor` | planned | sdl, contract, base |
-| `backend` | planned | contract, base |
-| `runtime` | planned | backend, processor, sdl, contract, base |
+| `contract` | implemented packages | base |
+| `sdl` | implemented packages | contract, base |
+| `processor` | implemented packages | sdl, contract, base |
+| `backend` | implemented packages | contract, base |
+| `runtime` | implemented packages | backend, processor, sdl, contract, base |
 | `conformance` | planned | runtime, backend, processor, sdl, contract, base |
 | `app` | planned | conformance, runtime, backend, processor, sdl, contract, base |
 | `adapter` | planned | app, runtime, contract, base |
 | `command` | planned | adapter, base |
-| `parity` | implemented packages | base |
-| `tooling` | implemented packages |  |
+| `parity` | implemented packages | base, contract, sdl, processor |
+| `tooling` | implemented packages | base, contract |
 
 ```mermaid
 flowchart BT
@@ -211,19 +272,24 @@ flowchart BT
     L9 --> L0
     L10["parity"]
     L10 --> L0
+    L10 --> L1
+    L10 --> L2
+    L10 --> L3
     L11["tooling"]
+    L11 --> L0
+    L11 --> L1
 ```
 
 | Package owner | Layer | Cross-layer visibility | Consumer importable | Actual dependencies |
 | --- | --- | --- | --- | --- |
-| `implementations/go/internal/base/address` | base | true | false | implementations/go/internal/base/fault |
-| `implementations/go/internal/base/canonjson` | base | true | false | implementations/go/internal/base/fault |
-| `implementations/go/internal/base/digest` | base | true | false |  |
-| `implementations/go/internal/base/ingress` | base | true | false | implementations/go/internal/base/fault |
+| `implementations/go/base/address` | base | true | true | implementations/go/base/fault |
+| `implementations/go/base/canonjson` | base | true | true | implementations/go/base/fault |
+| `implementations/go/base/digest` | base | true | true |  |
+| `implementations/go/base/ingress` | base | true | true | implementations/go/base/fault |
 | `implementations/go/internal/base/jsonpointer` | base | true | false |  |
-| `implementations/go/internal/base/randstream` | base | true | false | implementations/go/internal/base/fault |
-| `implementations/go/internal/base/urisafety` | base | true | false | implementations/go/internal/base/fault |
-| `implementations/go/internal/parity` | parity | false | false | implementations/go/internal/base/address, implementations/go/internal/base/canonjson, implementations/go/internal/base/digest, implementations/go/internal/base/ingress, implementations/go/internal/base/jsonpointer, implementations/go/internal/base/randstream, implementations/go/internal/base/urisafety, implementations/go/internal/base/clock, implementations/go/internal/base/domain, implementations/go/internal/base/fault, implementations/go/internal/base/graph, implementations/go/internal/base/logrecord, implementations/go/internal/base/secretref, implementations/go/internal/base/softwareversion, implementations/go/internal/base/timestamp, implementations/go/internal/base/value |
+| `implementations/go/internal/base/randstream` | base | true | false | implementations/go/base/fault |
+| `implementations/go/internal/base/urisafety` | base | true | false | implementations/go/base/fault |
+| `implementations/go/internal/parity` | parity | false | false | implementations/go/base/address, implementations/go/base/canonjson, implementations/go/base/clock, implementations/go/base/digest, implementations/go/base/fault, implementations/go/base/ingress, implementations/go/contract/admission, implementations/go/contract/diagnostic, implementations/go/contract/validation, implementations/go/internal/base/domain, implementations/go/internal/base/graph, implementations/go/internal/base/jsonpointer, implementations/go/internal/base/logrecord, implementations/go/internal/base/randstream, implementations/go/internal/base/secretref, implementations/go/internal/base/softwareversion, implementations/go/internal/base/timestamp, implementations/go/internal/base/urisafety, implementations/go/internal/base/value, implementations/go/internal/sdl/authoring, implementations/go/internal/sdl/source, implementations/go/sdl/module, implementations/go/processor, implementations/go/processor/planning, implementations/go/sdl, implementations/go/contract/binding |
 | `implementations/tooling/go/arch` | tooling | false | true |  |
 | `implementations/tooling/go/cmd/archcheck` | tooling | false | false | implementations/tooling/go/arch |
 | `implementations/tooling/go/cmd/raesvet` | tooling | false | false | implementations/tooling/go/lint/getprefix, implementations/tooling/go/lint/gotwant, implementations/tooling/go/lint/wrapverb |
@@ -231,43 +297,139 @@ flowchart BT
 | `implementations/tooling/go/lint/getprefix` | tooling | false | true |  |
 | `implementations/tooling/go/lint/gotwant` | tooling | false | true |  |
 | `implementations/tooling/go/lint/wrapverb` | tooling | false | true |  |
-| `implementations/go/internal/base/clock` | base | true | false |  |
-| `implementations/go/internal/base/fault` | base | true | false |  |
-| `implementations/go/internal/base/timestamp` | base | true | false | implementations/go/internal/base/fault |
-| `implementations/go/internal/base/softwareversion` | base | true | false | implementations/go/internal/base/canonjson, implementations/go/internal/base/digest, implementations/go/internal/base/fault |
-| `implementations/go/internal/base/domain` | base | true | false | implementations/go/internal/base/softwareversion, implementations/go/internal/base/fault |
-| `implementations/go/internal/base/value` | base | true | false | implementations/go/internal/base/fault, implementations/go/internal/base/canonjson |
-| `implementations/go/internal/base/logrecord` | base | true | false | implementations/go/internal/base/fault |
-| `implementations/go/internal/base/graph` | base | true | false | implementations/go/internal/base/fault |
-| `implementations/go/internal/base/secretref` | base | true | false | implementations/go/internal/base/fault |
+| `implementations/go/base/clock` | base | true | true |  |
+| `implementations/go/base/fault` | base | true | true |  |
+| `implementations/go/internal/base/timestamp` | base | true | false | implementations/go/base/fault |
+| `implementations/go/internal/base/softwareversion` | base | true | false | implementations/go/base/canonjson, implementations/go/base/digest, implementations/go/base/fault |
+| `implementations/go/internal/base/domain` | base | true | false | implementations/go/internal/base/softwareversion, implementations/go/base/fault |
+| `implementations/go/internal/base/value` | base | true | false | implementations/go/base/fault, implementations/go/base/canonjson |
+| `implementations/go/internal/base/logrecord` | base | true | false | implementations/go/base/fault |
+| `implementations/go/internal/base/graph` | base | true | false | implementations/go/base/fault |
+| `implementations/go/internal/base/secretref` | base | true | false | implementations/go/base/fault |
+| `implementations/go/internal/contract/corpus` | contract | true | false |  |
+| `implementations/go/contract/binding` | contract | true | true |  |
+| `implementations/go/contract/validation` | contract | true | true | implementations/go/internal/contract/corpus, implementations/go/contract/binding, implementations/go/base/ingress, implementations/go/base/fault, implementations/go/base/canonjson, implementations/go/internal/base/jsonpointer |
+| `implementations/tooling/go/contractgen` | tooling | false | true |  |
+| `implementations/tooling/go/cmd/contractgen` | tooling | false | false | implementations/tooling/go/contractgen |
+| `implementations/go/contract/diagnostic` | contract | true | true | implementations/go/base/fault |
+| `implementations/go/contract/concept` | contract | true | true | implementations/go/base/digest, implementations/go/base/fault, implementations/go/base/ingress, implementations/go/contract/diagnostic, implementations/go/contract/validation, implementations/go/internal/base/urisafety, implementations/go/internal/contract/corpus, implementations/go/internal/contract/packaged |
+| `implementations/go/contract/profile` | contract | true | true | implementations/go/base/fault, implementations/go/base/ingress, implementations/go/contract/binding, implementations/go/contract/concept, implementations/go/contract/diagnostic, implementations/go/contract/validation, implementations/go/internal/contract/corpus, implementations/go/internal/contract/domainprofile, implementations/go/internal/contract/packaged |
+| `implementations/go/internal/contract/domainprofile` | contract | false | false | implementations/go/base/canonjson, implementations/go/base/digest, implementations/go/internal/base/urisafety |
+| `implementations/go/internal/contract/packaged` | contract | false | false | implementations/go/base/ingress, implementations/go/contract/validation |
+| `implementations/go/contract/admission` | contract | true | true | implementations/go/base/address, implementations/go/base/canonjson, implementations/go/base/digest, implementations/go/base/fault, implementations/go/base/ingress, implementations/go/contract/binding, implementations/go/contract/concept, implementations/go/contract/profile, implementations/go/contract/validation, implementations/go/internal/base/domain, implementations/go/internal/base/graph, implementations/go/internal/base/jsonpointer, implementations/go/internal/base/randstream, implementations/go/internal/base/softwareversion, implementations/go/internal/base/timestamp, implementations/go/internal/base/urisafety, implementations/go/internal/base/value, implementations/go/internal/contract/domainprofile, implementations/go/internal/contract/sdlrules, implementations/go/contract/diagnostic, implementations/go/internal/base/pyrepr |
+| `implementations/go/internal/sdl/source` | sdl | true | false | implementations/go/base/fault, implementations/go/internal/base/jsonpointer |
+| `implementations/go/internal/sdl/authoring` | sdl | true | false | implementations/go/base/canonjson, implementations/go/base/digest, implementations/go/base/fault, implementations/go/base/ingress, implementations/go/contract/admission, implementations/go/contract/binding, implementations/go/contract/concept, implementations/go/contract/diagnostic, implementations/go/contract/validation, implementations/go/internal/base/domain, implementations/go/internal/base/graph, implementations/go/internal/base/jsonpointer, implementations/go/internal/base/value, implementations/go/internal/contract/corpus, implementations/go/internal/contract/sdlrules, implementations/go/internal/sdl/source, implementations/go/sdl/module |
+| `implementations/tooling/go/governance` | tooling | false | true | implementations/go/base/canonjson, implementations/go/base/clock, implementations/go/base/fault, implementations/go/base/ingress, implementations/go/contract/admission, implementations/go/contract/validation |
+| `implementations/tooling/go/cmd/policycheck` | tooling | false | false | implementations/go/base/fault, implementations/tooling/go/governance |
+| `implementations/go/internal/contract/sdlrules` | contract | true | false | implementations/go/base/fault, implementations/go/contract/binding, implementations/go/internal/base/jsonpointer, implementations/go/internal/base/pyrepr |
+| `implementations/go/sdl/module` | sdl | true | true | implementations/go/base/canonjson, implementations/go/base/digest, implementations/go/base/fault, implementations/go/base/ingress, implementations/go/contract/admission, implementations/go/internal/sdl/source |
+| `implementations/go/sdl` | sdl | true | true | implementations/go/base/fault, implementations/go/base/ingress, implementations/go/contract/admission, implementations/go/contract/binding, implementations/go/contract/concept, implementations/go/contract/diagnostic, implementations/go/internal/base/jsonpointer, implementations/go/internal/sdl/authoring, implementations/go/internal/sdl/source, implementations/go/sdl/module |
+| `implementations/go/processor` | processor | true | true | implementations/go/base/address, implementations/go/base/canonjson, implementations/go/base/digest, implementations/go/base/fault, implementations/go/base/ingress, implementations/go/contract/admission, implementations/go/contract/binding, implementations/go/contract/diagnostic, implementations/go/internal/base/value, implementations/go/processor/realization, implementations/go/sdl, implementations/go/internal/base/jsonpointer, implementations/go/internal/base/pyrepr |
+| `implementations/go/processor/realization` | processor | true | true | implementations/go/base/address, implementations/go/base/canonjson, implementations/go/base/digest, implementations/go/base/fault, implementations/go/base/ingress, implementations/go/contract/admission, implementations/go/contract/binding, implementations/go/contract/diagnostic, implementations/go/internal/base/domain, implementations/go/internal/base/jsonpointer, implementations/go/internal/base/softwareversion, implementations/go/internal/base/value, implementations/go/internal/contract/sdlrules, implementations/go/sdl, implementations/go/internal/base/pyrepr |
+| `implementations/go/processor/planning` | processor | true | true | implementations/go/base/canonjson, implementations/go/base/digest, implementations/go/base/fault, implementations/go/base/ingress, implementations/go/contract/admission, implementations/go/contract/binding, implementations/go/contract/diagnostic, implementations/go/contract/validation, implementations/go/internal/base/graph, implementations/go/internal/base/value, implementations/go/processor, implementations/go/processor/realization, implementations/go/sdl, implementations/go/internal/base/jsonpointer, implementations/go/internal/base/domain |
+| `implementations/go/internal/base/pyrepr` | base | true | false |  |
+| `implementations/go/processor/comparison` | processor | true | true | implementations/go/base/canonjson, implementations/go/base/digest, implementations/go/base/fault, implementations/go/base/ingress, implementations/go/contract/admission, implementations/go/contract/profile, implementations/go/contract/validation, implementations/go/internal/base/value, implementations/go/sdl |
+| `implementations/go/processor/trial` | processor | true | true | implementations/go/base/canonjson, implementations/go/base/digest, implementations/go/base/fault, implementations/go/base/ingress, implementations/go/contract/admission, implementations/go/contract/binding, implementations/go/contract/diagnostic, implementations/go/contract/validation, implementations/go/sdl, implementations/go/processor, implementations/go/processor/planning, implementations/go/internal/base/randstream |
+| `implementations/go/runtime/experiment` | runtime | true | true | implementations/go/base/canonjson, implementations/go/base/clock, implementations/go/base/digest, implementations/go/base/fault, implementations/go/base/ingress, implementations/go/contract/admission, implementations/go/contract/binding, implementations/go/contract/validation, implementations/go/processor/trial |
+| `implementations/go/backend` | backend | true | true | implementations/go/base/fault, implementations/go/base/ingress, implementations/go/contract/admission, implementations/go/contract/binding, implementations/go/contract/diagnostic, implementations/go/contract/profile, implementations/go/contract/runtime, implementations/go/contract/validation |
+| `implementations/go/backend/stub` | backend | true | true | implementations/go/backend, implementations/go/base/clock, implementations/go/base/digest, implementations/go/base/fault, implementations/go/base/ingress, implementations/go/contract/admission, implementations/go/contract/binding, implementations/go/contract/diagnostic, implementations/go/contract/runtime, implementations/go/internal/base/pyrepr, implementations/go/internal/base/timestamp, implementations/go/internal/base/value, implementations/go/internal/contract/corpus |
+| `implementations/go/contract/runtime` | contract | true | true | implementations/go/base/address, implementations/go/base/fault, implementations/go/base/ingress, implementations/go/contract/admission, implementations/go/contract/binding, implementations/go/contract/diagnostic, implementations/go/internal/base/value |
+
+| Consumer repository owner | Module |
+| --- | --- |
+| rae | `github.com/OpenRAE/rae/implementations/go` |
+| runtime | `RUNTIME` (approval pending #1893) |
+
+| Planned public package | Owner | Operations / types | Public dependencies | Consumers | Delivery issues |
+| --- | --- | --- | --- | --- | --- |
+| `github.com/OpenRAE/rae/implementations/go/base/fault` | rae | Error, Category, CategoryOf, New |  | environment-packs, lilrae, runtime | #1892 |
+| `github.com/OpenRAE/rae/implementations/go/base/ingress` | rae | Limits, Parse | rae:base/fault | environment-packs, lilrae, runtime | #1892 |
+| `github.com/OpenRAE/rae/implementations/go/base/canonjson` | rae | JCS, Sorted | rae:base/fault | environment-packs, lilrae, runtime | #1892 |
+| `github.com/OpenRAE/rae/implementations/go/base/digest` | rae | SHA256, NewChecksum |  | environment-packs, lilrae, runtime | #1892 |
+| `github.com/OpenRAE/rae/implementations/go/base/address` | rae | Valid, Render, PlanRoot | rae:base/fault | environment-packs, lilrae, runtime | #1892 |
+| `github.com/OpenRAE/rae/implementations/go/base/clock` | rae | Clock, Read, System |  | environment-packs, lilrae, runtime | #1892 |
+| `github.com/OpenRAE/rae/implementations/go/contract/binding` | rae | Field, MaterializationArchiveRecordV1, RuntimeSnapshotV1, BackendManifestV2, AdmittedTrialPlanV1, BackendRuntimeDescendantsV1 |  | environment-packs, lilrae, coldlight, runtime | #1892 |
+| `github.com/OpenRAE/rae/implementations/go/contract/validation` | rae | New, Validator, Value, Validator.CheckSchema, Validator.DecodeSchema, Validator.Defaulted, Value.JSON, Value.Transport | rae:base/ingress | environment-packs, lilrae, coldlight, runtime | #1892 |
+| `github.com/OpenRAE/rae/implementations/go/contract/admission` | rae | AdmitFragment, ApparatusManifest, ApparatusManifestKey, ArtifactSatisfaction, AssociatedArtifactLimits, AssociatedArtifactSetDigest, AssociatedArtifactsContext, BackendPreparationCommitments, BindingOwner, BindingValue, CheckAugmentationPreparation, CheckBackendContractVersions, CheckDomainProfileBindings, CheckEvidenceRequirementRelations, CheckFragment, CheckFragmentBudget, CheckPlanProfileAuthority, CheckPlanProfileSelection, CheckPortableNodeInventory, CheckPreparationOperations, CheckPreparedSnapshot, CheckTransport, CheckTransportTree, ComparisonCoordinate, ComparisonImpactScope, ComposeMaterializationContent, ConfigurationOverride, ConstraintLimits, ConstraintLimits.Validate, ControlContextAssetReference, ControlContextSelection, DefaultAssociatedArtifactLimits, DefaultConstraintLimits, DiscoverExperiments, DomainProfileContextDigest, EnvelopeProbeCandidate, EnvelopeProbeCandidates, EnvelopeProbeField, EnvelopeProbeScope, EnvelopeSubsumptionDiagnostics, EnvelopeWitnessProjection, EvaluateRealizationConstraint, EvidenceScenario, ExactRepresentation, ExecutionPolicyCapabilityGaps, ExperimentEvidenceInputs, ExperimentEvidenceRequirementRelation, ExperimentModelProjection, ExperimentProjection, Fragment, FragmentProfile, ImplementationIdentity, LoadAssociatedManifest, LoadExperiment, ManifestModelProjection, MaterializationArchive, MaterializationCompiler, MaterializationContentMatches, MaterializationInventoryContext, New, NormalizeBackendManifest, NormalizeObservationDemands, NormalizeRealizationLiteral, ObservationDemandResolution, ObservationDemandSelection, ObservationFieldSelector, ParseExperiment, ParsePythonPattern, ParticipantConfiguration, ParticipantConfigurationRequest, ParticipantConfigurationValidator, ParticipantControlContextValidator, ParticipantFeatureSupportGaps, ParticipantManifestKey, ParticipantOutcomeInterpretationRecord, ParticipantResourceMeasureSupported, ProcessResourceLimitCapabilityAdmits, ProjectProcessIdentity, ProjectProcessResourceLimit, PythonPatternSyntax, PythonPatternSyntax.NamedCharacter, RealizationClosure, RealizationCollectionProfile, RealizationConstraintBinding, RealizationConstraintBuildResult, RealizationMemberDiagnostics, RealizationNormalizationMetadata, RealizationOfferAdmits, RealizationOpenOfferDiagnostics, RealizationScope, RealizeParticipantConfiguration, RealizedConfigurationValue, ResolveExecutionPolicy, ResolvePlanProfileAuthority, ResolveSDLObservationScopeWithProfiles, ResolvedImportProvenance, RestoreMaterializationArchive, SDLPhaseOwner, ScenarioBindingResolution, ScenarioBindingTargetResolver, SealTrialPlan, SelectObservationDemand, SupersedeTrialRunJSON, TrialEntryOrder, TrialPlanProjection, TrialRunInputs, TrialStudyInputs, ValidateAssociatedManifest, ValidateExperimentBindingTargets, ValidateExperimentRun, ValidateParticipantConfigurationSelection, ValidateTrialRun, ValidateTrialRunJSON, ValidateTrialStudy, Validator, Validator.CheckPortable, Validator.Validate, ValueFreeAccountPlacement | rae:base/ingress, rae:contract/binding, rae:contract/diagnostic, rae:contract/validation | environment-packs, lilrae, coldlight, runtime | #1781, #1787, #1788, #1892, #1963, #1790 |
+| `github.com/OpenRAE/rae/implementations/go/contract/concept` | rae | Load, Authority, Document, Authority.Documents, Vocabulary, Authority.Vocabulary, Authority.ScopeVocabulary, Authority.Permits, Authority.CheckScope, Family, Authority.Family, Authority.Families, Relation, RelationCatalog, RelationCatalog.Relation, Authority.RelationCatalog, Authority.CurrentRelationCatalog, Subject, SnapshotTerm, SchemeSnapshot, BindingResolution, ResolutionOutcome, ResolutionOutcome.Admitted, Authority.AdmitBindings, Authority.PinnedSnapshots | rae:contract/diagnostic, rae:contract/validation | environment-packs, lilrae, runtime | #1781 |
+| `github.com/OpenRAE/rae/implementations/go/contract/profile` | rae | Load, Profiles, Profiles.Documents, RelationProfile, BehavioralClaim, Profiles.RelationProfileIDs, Profiles.RelationProfile, Profiles.CheckBehavioralClaim, ValidationCatalog, ValidationProfile, Profiles.ValidationCatalog, Profiles.SelectValidationProfile, CompletenessTaxonomy, CompletenessAssessment, CompletenessResult, Profiles.CompletenessTaxonomy, Profiles.CompletenessAssessment, EvaluateCompleteness, ComparisonProfile, Profiles.ComparisonProfile, DomainLimits, DefaultDomainLimits, DomainLimits.Validate, DomainCoordinate, DomainResolution, DomainAdmissionReport, DomainAdmissionReport.Admitted, DomainDefinitionDigest, Profiles.ResolveDomainProfile, Profiles.AdmitDomainBindings, Profiles.ParseDomainBinding, AdmitComparisonProfile | rae:contract/binding, rae:contract/concept, rae:contract/diagnostic, rae:contract/validation | environment-packs, lilrae, runtime | #1781, #1787 |
+| `github.com/OpenRAE/rae/implementations/go/contract/diagnostic` | rae | Diagnostic, Range, Error | rae:base/fault | environment-packs, lilrae, coldlight, runtime | #1781, #1782, #1783 |
+| `github.com/OpenRAE/rae/implementations/go/sdl` | rae | AdmitFamily, AdmitInstantiated, AdmitProspectiveContent, ArtifactRequirements, AuthoredScenario, CanonicalBytes, CanonicalDigest, ComparisonProjection, ComparisonSubject, ConceptSubjects, DefaultLimits, DefaultParseOptions, DescriptorProfiles, DocumentBytes, EnvelopeMembershipDiagnostics, EnvelopeProbe, EnvelopeProbes, EnvelopeWitness, EvidenceScenario, Instantiate, InstantiatedScenario, Limits, Limits.Validate, MigrationPolicy, ModelBytes, NormalizeCapabilityValue, NormalizeConcernValue, NormalizeNodeValue, ObservationScopes, ParameterDerivationImage, Parse, ParseContext, ParseFile, ParseFileWithContext, ParseOptions, ParseOptions.Validate, ParseSourceWithContext, ParseSources, ParseWithContext, ProjectComparison, ProspectiveContent, ReferenceBindings, ReferenceBindingsFor, Requirement, ResolveBindingTarget, ResolveRealizationDesignation, ResolveRealizationDesignationForNamespace, Scenario, Select, SourceContext, Validate, ValidateExperimentSelectionAgainstFamily, ValidateNodeRealizationContext, ValidateTreatment, VariationOutcomes | rae:contract/admission, rae:contract/binding, rae:contract/concept, rae:contract/diagnostic, rae:sdl/module | environment-packs, lilrae, runtime | #1782, #1783, #1784, #1785, #1790 |
+| `github.com/OpenRAE/rae/implementations/go/sdl/module` | rae | LockfileName, Lockfile, Admitter, TrustPolicy, LoadLockfile, ResolveLock, LockRecord, VerificationFacts, RegistryTrust, Policy, DefaultPolicy, Policy.AdmitModule, DecodeLockfile, PublicationAdmitter, SourceAdmitter |  | environment-packs, lilrae, runtime | #1785 |
+| `github.com/OpenRAE/rae/implementations/go/sdl/language` | rae | Edit, EditResult, ApplyEdit, Completions, Diagnostics, Format | rae:contract/diagnostic, rae:sdl | environment-packs, lilrae | #1786 |
+| `github.com/OpenRAE/rae/implementations/go/processor` | rae | Compilation, Compile, CompileInstantiated, RuntimeModel, TimeModelContract, ScenarioComponentOptions, ComponentOptions, CompiledComponentOptions, CompileOptions, CompileWithOptions, CompileMaterialized, Manifest, CompiledScenario, Resource, ResourcePayload, NodeCapabilities, Definition, ObservationDemand, CaptureDemand, ExecutionPolicy, AdmitCompilation, AdmitRuntimeModel, EvaluationFacts, CapabilityConstraint, TimeDomain, Clock, TimeMapping, TimePolicy, TemporalConstraint, CompiledTimeModel, DomainTopology, ArtifactConsumer, ArtifactFacts, ServiceMaterialization, Scalar, ResolveRealization, ResolveParticipantActionArguments, ParticipantFailureClass, ParticipantActionResultViolations, ParticipantOutcomeInterpretationViolations, ParticipantTemporalStateMachineViolations, ParticipantBehaviorHistoryViolations, ParticipantJointActionViolations, GeneratedArtifactConsumers, CaptureInputs, CompileCaptureDemands, PreparedResourceContext | rae:contract/binding, rae:contract/diagnostic, rae:sdl, rae:contract/admission, rae:processor/realization | environment-packs, lilrae, runtime | #1787 |
+| `github.com/OpenRAE/rae/implementations/go/processor/planning` | rae | Plan, Result, PlanWithManifest, ExecutionPlan, Scope, Closure, ApparatusDefaultResolver, ArtifactAvailability, MixedControlAdmission, Options, RequirementKey, PlanningContext, NewMixedControlAdmission, Actions, Reconciliation, Reconcile, AssumedSnapshot, PreparedSelection, CheckPreparedSelection, CheckPreparedDelivery, SanitizePreparedSnapshot | rae:contract/admission, rae:contract/binding, rae:contract/diagnostic, rae:contract/validation, rae:processor, rae:processor/realization | environment-packs, lilrae, runtime | #1787 |
+| `github.com/OpenRAE/rae/implementations/go/processor/trial` | rae | Request, Compile, PlanBatchSchedule, ScheduledEntry, BatchSchedule, ParticipantManifestKey, ApparatusManifestKey, ConfigurationValidatorKey, Limits, MixedCompositionLimits, Result, DefaultLimits, DefaultMixedCompositionLimits, Limits.Validate, MixedCompositionLimits.Validate, RealizationInputs, Realization, RealizationOptions, InstantiateEntry, RealizeEntry, ControlContextProvider, ReplacementRequest, ReplacementResult, CompileContext, Readmit, CompileReplacement, RealizationAssignmentKey, PlanBatchScheduleValue | rae:contract/admission, rae:contract/binding, rae:contract/diagnostic, rae:contract/validation, rae:processor/planning, rae:sdl | environment-packs, lilrae, runtime | #1788 |
+| `github.com/OpenRAE/rae/implementations/go/processor/realization` | rae | ProjectConcern, ConcernDescriptors, HasRequiredObservationSupport, Descriptor, Requirement, Authority, Resolution, Compile, Resolve, Equivalent, SanitizeSnapshot, Decision, ResolveOptions, ValueConstraint, ProcessResourceLimit, AdmitRequirement, EvaluationOptions, Provenance, Evaluation, Evaluate, ArtifactAvailability, ArtifactSupport, SelectionAdmits, CompilePreparedNode, SanitizePreparedNodeSnapshot, PlannedAuthorityDiagnostics, PlannedRequirements, EvaluatePlanned, CleanupPlannedDiagnostics | rae:contract/admission, rae:contract/binding, rae:contract/diagnostic, rae:sdl | environment-packs, lilrae, runtime | #1787 |
+| `github.com/OpenRAE/rae/implementations/go/processor/analysis` | rae | Analyze, Request, Result | rae:contract/diagnostic, rae:processor | lilrae, runtime | #1789 |
+| `github.com/OpenRAE/rae/implementations/go/backend` | rae | AugmentationPreparer, AutonomousActionBinding, AutonomousParticipantRuntime, ControlledAutonomousParticipantRuntime, CoordinatedParticipantResetRuntime, CoordinatedParticipantTimeRuntime, Evaluator, InventoryReporter, InvocationToolActionPort, InvocationToolParticipantRuntime, LoadProfile, Manifest, MixedBridge, MixedStageReader, MixedTimeCoordinator, OperationProvider, Orchestrator, ParticipantControlProvider, ParticipantControlProviderV2, ParticipantRuntime, ParticipantStageResolver, PreparingProvisioner, ProfilePreparingProvisioner, Provisioner, RecoveryObserver, RequireInjectOccurrenceProvider, RequireMixedService, RequireOperationProvider, TimeRuntime | rae:contract/admission, rae:contract/binding, rae:contract/diagnostic, rae:contract/runtime, rae:contract/validation | environment-packs, lilrae, runtime | #1790 |
+| `github.com/OpenRAE/rae/implementations/go/backend/stub` | rae | Configuration, DefaultOptions, Evaluator, Manifest, ManifestWithVersion, NewEvaluator, NewEvaluatorWithConfiguration, NewOrchestrator, NewOrchestratorWithConfiguration, NewParticipantRuntime, NewParticipantRuntimeWithConfiguration, NewProvisioner, NewProvisionerWithConfiguration, Options, Orchestrator, ParticipantRuntime, Provisioner | rae:backend, rae:base/clock, rae:contract/binding | environment-packs, lilrae, runtime | #1790 |
+| `github.com/OpenRAE/rae/implementations/go/conformance` | rae | ValidateFixture, ValidateProcessor, ValidateModularReport, ModularControlEvidence, ModularOwnerObservation | rae:contract/diagnostic, rae:processor | lilrae, runtime | #1796 |
+| `github.com/OpenRAE/rae/implementations/go/command/authoring` | rae | Commands, Command, Streams |  | runtime | #1797 |
+| `RUNTIME/runtime/control` | runtime | New, ControlPlane, ControlPlane.Submit, ControlPlane.Operation, ControlPlane.Snapshot, ControlPlane.TransitionParticipant, ControlPlane.Audit, Target, NewTarget, Options, Request, Identity, Authority, Components, ParticipantContexts, Supervision, PlanPhase, RegisteredPlan, Command, ParticipantCommandInput, ParticipantTransition, DefaultSupervision, PlanCommand, ParticipantCommand, ControlResolution, ControlResolver, ControlResolverV2, ControlStageBinding, ControlInstallation, ParticipantControlBinding, LiveCut, CutResolver, DeliveryCutResolver, MixedControlBinding, InjectResolution, InjectDeliveryResolver, InjectDeliveryBinding, InjectAdmission, ResolvedInjectOutcome, InjectExecutionResolver, NewParticipantControlBinding, NewMixedControlBinding, NewInjectDeliveryBinding, CrossingIntent, CrossingGates, CrossingTransformation, CrossingResolution, CrossingValidation, CrossingEvidence, ParticipantAudienceBinding, ViewEvidenceRequest, CrossingResolver, CrossingCut, FlowSinkRequest, FlowSinkResolution, FlowSinkResolver, SupervisionAction, SupervisionRequest, ResolutionDisposition, ResolutionRequest, EffectKind, EffectOperation, EffectRealization, InjectCaptureResult, RunProgress, RunContext, SequenceOptions, TrialUnitRequest, TrialUnitResult, TrialObservation, TrialConfigurationObservation, TrialExecutionObservation, TrialCaptureObservation, TrialCleanupObservation, TrialRetryObservation, TrialRuntimeServices, RetryTrialRuntimeServices, TrialArchiveOwner, ExperimentReplacement, ExperimentRequest, ExperimentProgress, AdmitTrialUnitRequest, TrialUnitRequest.RunID, TrialUnitRequest.ParticipantConfigurations, TrialUnitRequest.ExecutionControls, TrialUnitRequest.CleanupPlan, ParticipantCancellationStatus | rae:backend, rae:base/clock, rae:contract/admission, rae:contract/binding, rae:contract/runtime, rae:contract/validation, rae:processor, rae:processor/planning, rae:processor/trial, runtime:runtime/execution, runtime:runtime/profile, runtime:runtime/provider, runtime:runtime/result | coldlight, lilrae | #1791 |
+| `RUNTIME/runtime/provider` | runtime | Store, AtomicStore, LeaseProvider, OwnerLease, Capabilities, SnapshotState, AuditEvent, OperationRecord, OperationAdmissionContext, ClaimIdentity, ClaimState, Transition, NewClaimBlock, ClaimOptions, TerminalCommitMode, TerminalCommit, DecodeOperationRecord, RecordsEqual, IdempotencyClaimIdentity, ValidateIdempotencyReplay, ValidateNewClaim, ValidateInvocationTransition, LedgerIdentity, SequenceDecision, RuntimeDecision, RuntimeStoreDigest, NewSequenceDecision, DecodeRuntimeDecision, ValidateIdenticalDecision | rae:contract/binding, runtime:runtime/execution, runtime:runtime/profile | coldlight, lilrae | #1792 |
+| `RUNTIME/runtime/execution` | runtime | Adapter, Request, LocalAdapter, Lane, EngineReference, DeliveryBinding, RuntimeSequenceReference, Dispatcher, InvocationGrant, ControlDeliveryGrant, WorkerAuthority, NewLocal | rae:contract/binding | coldlight, lilrae | #1793 |
+| `RUNTIME/runtime/temporal` | runtime | New, Adapter, Configuration, Worker, ClientOptions, Client, WorkerOptions, DefaultConfiguration, Dial, NewWorker, Configuration.Validate, RuntimeWorkerOptions, NewRuntimeWorker | rae:backend, runtime:runtime/execution | coldlight | #1793 |
+| `RUNTIME/runtime/result` | runtime | AdmitResult, Context, EvidenceResolver, AdmitApplyResult | rae:contract/admission, rae:contract/binding, rae:contract/runtime, rae:contract/validation, rae:processor | lilrae, coldlight | #1794, #1795 |
+| `RUNTIME/runtime/profile` | runtime | ID, P0, P1, P2, P3, Capability, Claim, Declaration, StoreCapabilities, DeclarationFor, Select, RequireCapabilities, CoreCapabilities, ErrProfileUnavailable, NewStoreCapabilities, StoreCapabilities.Values, ActorBoundary, RecoveryObservationRequirement |  | coldlight, lilrae | #1791, #1792 |
+| `github.com/OpenRAE/rae/implementations/go/contract/runtime` | rae | ApplyResult, BindParticipantAction, EpisodeInitializeRequest, EpisodeResetRequest, EpisodeRestartRequest, EpisodeTerminateRequest, InvocationToolIdentity, MaterializationSubmission, NativeActionExecution, NativeActionInvoker, NativeActionOutcome, NewMaterializationSubmission, ObservedOperatingSystemIdentity, ParticipantActionApplyResult, ParticipantActionInput, ParticipantActionInputFor, ParticipantActionRequest, PrepareForRequest, ProvisionOperation, RealizationObservationDisclosure, RealizationPreparation, RecoveryObservationRequest, RecoveryObservationResult, ToolActionDecision, ToolActionReceipt, ToolActionRequest | rae:contract/admission, rae:contract/binding, rae:contract/diagnostic | lilrae, runtime | #1790 |
+| `github.com/OpenRAE/rae/implementations/go/processor/comparison` | rae | Artifact, Options, FromScenario, FromDocument, FromModule, Coordinate, BuildImpactScope, Analyze | rae:contract/admission, rae:contract/profile, rae:contract/validation, rae:sdl | environment-packs, lilrae, runtime | #1787 |
+| `RUNTIME/runtime/experiment` | runtime | Identity, Trial, Observation, Host, Decision, Journal, OwnerCaller, Options, Progress, Coordinator, RunMetadata, RecordSource, Accounting, RecordBundle, EvidenceInputs, EvidenceReader, Archive, RecordOptions, DecodeDecision, New, Phase | rae:base/clock, rae:contract/admission, rae:contract/binding, rae:processor/trial | lilrae, coldlight | #1788, #1791 |
+
+| Executable | Publisher | Entry point | Public composition dependencies |
+| --- | --- | --- | --- |
+| `raes` | runtime | `RUNTIME/cmd/raes` | rae:command/authoring, runtime:runtime/control |
+| `raes-mcp` | rae | `github.com/OpenRAE/rae/implementations/go/cmd/raes-mcp` | rae:sdl/language, rae:processor, rae:contract/admission |
+
+<!-- go-consumer 70aeff9652b23df41d3f5b036b5e247e0870957fe19f817876291196efba48f3 -->
 
 | Trust-view evidence | SHA-256 |
 | --- | --- |
 | `contracts/schemas/experiment-core/materialization-archive-record-v1.json` | `fb61b1d9bb70ffedf7fec94325c3751a29ef7db7f6e8bea8fc96c064d101ba90` |
+| `docs/decisions/adrs/adr-036-sdl-processor-runtime-module-boundaries.md` | `8b23019d17144225d08d6a38301a62a3eb2490c122a3d2ed36a67ab0804d84fa` |
 | `docs/decisions/adrs/adr-066-observability-evidence-plane-separation.md` | `938ce2443ce7bd9e5cfa151d9740610ac23fa4338efa48c3cb022c7543bab24a` |
-| `docs/decisions/adrs/adr-104-runtime-control-plane-architecture.md` | `b8a790286f92fa21777e4220ec25a321273fe2c6741345732d9aa14bc448e2cf` |
+| `docs/decisions/adrs/adr-104-runtime-control-plane-architecture.md` | `790d2c4119d2c37562aaad3d5cee3ffa4740ac150511f035f3376dd46d28e4b0` |
 | `docs/decisions/adrs/adr-113-reusable-execution-machinery.md` | `6d904befc0d37d44b07ed083d297c7a0e3ba0d520d79f9ddce1999477c78e91d` |
-| `docs/decisions/adrs/adr-115-concrete-backends-owned-outside-raes.md` | `d01cea802cfd206bcdc42ad7f92403fd3f070cfc41ecb5b7b7fdf1e5c5798558` |
+| `docs/decisions/adrs/adr-115-concrete-backends-owned-outside-raes.md` | `e7994a017f64937bfa48edfb8600b933e2acca330a2d5ebaef8a6ae95fcc91be` |
 | `docs/decisions/adrs/adr-116-shared-exceptions-and-operational-logging.md` | `a4e20904762d23ff25162b910ab91032fdaac84b38ef727401c7fe501dde6ffa` |
-| `docs/decisions/adrs/adr-122-go-architecture-model.md` | `478e8d6587a2c040bb50d4ba5a53e5f31fe989d78e53157079f5d003efcbe464` |
+| `docs/decisions/adrs/adr-119-consumer-parse-of-supplied-sdl-sources.md` | `b29df4c1c6dcb690d540532011f498a0a1afbe794877ec38e5b80d8cb66b5442` |
+| `docs/decisions/adrs/adr-122-go-architecture-model.md` | `80b64aac8e4e646f56d129c2c997c19583ecfb0f0b0b571fa46e09a3103ca45c` |
 | `docs/decisions/issue-1775-go-architecture-model-design.md` | `d12f71c98e4bcad11f42db41338d2d93e9d9ed21731e5e4a1b9ed6fbbba1d2c8` |
 | `docs/decisions/issue-1778-parity-corpus-design.md` | `c3197d51b64c8b2684096ad8d4ed4df223457b2e811a16e68bf31e9babc15830` |
-| `docs/decisions/issue-1779-canonical-json-design.md` | `c68392c70e55eabd39a1d1b287c082fc98b40aea2a50a90a43384f34aea752a3` |
-| `docs/decisions/issue-1779-ingress-design.md` | `21fe1ede3a371941bd13605037cf6e378a6f442d9622dbc9fa716e952cbad281` |
+| `docs/decisions/issue-1779-canonical-json-design.md` | `28f5cff66fdc26e01392d143e5ad52ba23072c2bd6010a35fb4f1e0c0162e8f0` |
+| `docs/decisions/issue-1779-ingress-design.md` | `0dcde22676a7429a0c92d01ed2e8d0eaf15da84d5be800404e12c9414348bed1` |
 | `docs/decisions/issue-1779-random-streams-design.md` | `dae79083acb2909a63a43849e9aeb0ddf4594d3e7d54d118b2a1dd54f68cdb8b` |
-| `docs/decisions/issue-1779-shared-primitives-completion.md` | `6db76f93cc860d13e966bd591fc4d4c4fc3d2c27789aafe1c1bd30dcc57d657e` |
-| `docs/decisions/issue-1859-go-architecture-contract-design.md` | `7a90a0ef49ec5024dfde3cdac2f99266e8a0db0148327e81dde8517dee422cf6` |
-<!-- go-component base 7abf1dde0173278473975444402336d82a95e1bac6b63fae7769e99da588005f -->
-<!-- go-component contract b1c451237f4d7bb3156c715149f4a29115e76d6d429766b5beba1c6b8d532674 -->
-<!-- go-component sdl 252a7d5d0c6c8a5f94269ff20cae4a514b984ed1e9ad2b4cb344737ab11d3a18 -->
-<!-- go-component processor e3071c20a641fc52ce8447395e8c04bacecb33a40ddc7c4b208e8ada9db69f41 -->
-<!-- go-component backend b26b983fbab5e5f59241d61e70090b3aaecdc40b94245893b9c77b6ff84cd876 -->
-<!-- go-component runtime 3daca0b4e4c66f949d031e85975707de688e7e578ac42558580df5653a8ce2b4 -->
-<!-- go-component conformance 20c81f913b25e06bad36961c59083e78e6a6a249ecac30bd75a2927d4b2e206a -->
-<!-- go-component app 3d3ae175fc0a4c30b702e3ab4ef3f6b65325edb4ac166d3c84c5edd4b9aead5e -->
-<!-- go-component adapter 24ad6c98189746725bf10882403e90934e96ce6d8b509ea8a02d5b2c10f3909d -->
-<!-- go-component command 71d36e7c0a88e565961d26509a0ed3c99e2c3b0d84d73c277ec989cf8d3b69a1 -->
-<!-- go-component parity 396ba93a717dd451935c29a8f3b83763b3eb7d83d6d60ded37b03458a786afff -->
-<!-- go-component tooling 222f450cb1ef7d00a2c0c582eda4bfb3363e81e3c35847c926576a38ed79d542 -->
+| `docs/decisions/issue-1779-shared-primitives-completion.md` | `53b8dcd5ef5e1ad44ca2948eca10fff0d180028b807a496ddbe82e61e9e573ed` |
+| `docs/decisions/issue-1780-contract-validation-design.md` | `f26e848f8998353626fc2783d1f5aad8caa2c7769699de30b84ea5e3b6651311` |
+| `docs/decisions/issue-1781-concept-profile-design.md` | `a0ab2a728136f7b20f504a29701eafd8a2b540d8b190939111297381dd39a6ad` |
+| `docs/decisions/issue-1783-sdl-semantics-design.md` | `fd11370fc74df070907fffc80e5ee400e14e2ca0585edfa29f75c6921b37c084` |
+| `docs/decisions/issue-1784-runtime-inventory-design.md` | `58b113c6cbb591035e86d1745870478fbf8aea190cac760dc4c329f813c0ee36` |
+| `docs/decisions/issue-1785-sdl-operations-design.md` | `5dda1cdd8572b3c839dc28b5a4b8bb7201c8c6441cc5df4ea09b67b02d1674ba` |
+| `docs/decisions/issue-1787-processor-design.md` | `130857b7a810e0f58fd694156b7b661e613caf9d0188fa5aea8ba37ced187219` |
+| `docs/decisions/issue-1787-processor-semantics-preflight.md` | `110613485f30ee8bd618c04b1433ce7666d8dc73182c23ed45ea0cfbb031468a` |
+| `docs/decisions/issue-1788-experiments-design.md` | `adbda62ad0c2c5b69a8ec4d1ecbf78c9f952d8af44b219d5c49c5e24196fd695` |
+| `docs/decisions/issue-1788-experiments-trials-preflight.md` | `72e13a31965e84f102c3a90c810467a34cfbaa3a19755769d9695a608cbc7cd6` |
+| `docs/decisions/issue-1788-validator-key-decision.md` | `c781e3ca480df4429459b7ef51fc932ddbf14ee500b8ed8e5cae5b4c15f271af` |
+| `docs/decisions/issue-1790-backend-design.md` | `399c218cbe38723cfe5e845720cdad77c0972d680d8fa30e474cf6454b312ccc` |
+| `docs/decisions/issue-1799-go-governance-design.md` | `abcc366a9fba4afcd8a9e0e42af3907f5cd858249152b8eacad25b85fb91e6e7` |
+| `docs/decisions/issue-1825-public-go-api.md` | `45e4568e7a6721b153e40c6de6b6d2bc2ade9f48c736b81db2e4a8624252bc4e` |
+| `docs/decisions/issue-1859-go-architecture-contract-design.md` | `df0610aa609edb15eec1327d3efef5e61f730e4da468b5c9f035ac08c0d1659a` |
+| `docs/decisions/issue-1891-runtime-repository-boundary.md` | `e8233ecdf836dbbad4dda9ef373572dd466f1cf59ad0eeb4ab01cc9fd476e406` |
+| `docs/decisions/issue-1892-public-go-packages-design.md` | `e66f0bb12f0615a6b5614fe149a2a78b13289c42845c683537df80ec1907fc53` |
+| `docs/decisions/issue-2008-sdl-semantic-fixtures-design.md` | `93ee0f27747f5adce6296d00f5190a7f5b7a917d9a6ad1afaa7d1ca2554c53b6` |
+| `specs/sdl/diagnostics.md` | `422c46a1080f4dced095729967658f300520fa59b16c1923d113a758422a231e` |
+| `specs/sdl/document-model.md` | `496290792659c189242ab93923f6f50e305e383d50588a4d75269d9ade2e2970` |
+<!-- go-component base abcb69a996945630e7349b3cd490985029f60deb0dafe281ffbb54e339dd1b0c -->
+<!-- go-component contract 57fc323473afaf267e5a3be9c62364d8134d7fc9f95ac1f4f724105c73747211 -->
+<!-- go-component sdl af0be9fcf607cb287fc926e6e4a1b7fa239bd0c7534253646453a237569e6075 -->
+<!-- go-component processor 9ff11cc10e436984539a047a394cf1646c14ef7768fd9573ebadf38c44b14f92 -->
+<!-- go-component backend 5d47f134b7355c7031db17416947da735017422047aa6187d0ad7906f0e90b1d -->
+<!-- go-component runtime 88fe26fc1f6be98c075a067fe5a5a8da9334f0db7a2bfbe133c72087ad6df40e -->
+<!-- go-component conformance 9d6345c135ae32b6754e352554e5c3f955c5747784971e490c15ebfb8880d4cb -->
+<!-- go-component app 24cf8ab8978cc2d2ebeeeafca807a52943ad4604229bf2a886d39d9d4743750f -->
+<!-- go-component adapter e69a10eff358b25ba0d27357b20010fdf64c1f66ca1e57ab572850f44e2e3e51 -->
+<!-- go-component command 0eb30b7d6eb551b695c43f7934644207fd73ecbe592ca211702cf42040af1716 -->
+<!-- go-component parity e9782d2319dca54d34bce7e945a28ad2d0e2be496217fca733a71624e5281477 -->
+<!-- go-component tooling bbb8e8ed8ee450b12d244bef7c1f478c570d993de28079e47eaa4b364c386d78 -->
 
 <!-- /go-view -->

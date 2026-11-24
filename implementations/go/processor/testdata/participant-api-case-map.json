@@ -1,0 +1,1424 @@
+{
+  "format_version": 1,
+  "scope": "Issue1787 pure compiler/participant argument/result/outcome/temporal/history/joint relations; native constructors and sealed ownership. Actual runtime recording, apply, ledger, store, conformance execution, decision/exposure1794, trial1788 and satisfiability1789 are excluded.",
+  "evidence_policy": "covered-scoped preserves native sealed ownership differences and excludes adjacent runtime assertions. gap-test is explicitly not claimed complete. Reference fixtures derive local pure helper outputs independently; direct source guard cases name original invoked tests.",
+  "sources": [
+    {
+      "path": "implementations/python/tests/test_sem_208_participant_behavior.py",
+      "sha256": "eaaf0a87998a6b273c15512a9f3bc2ea15a07a62ab4fb5a05cdb3a7fd213b08b"
+    },
+    {
+      "path": "implementations/python/tests/test_sem_211_participant_action_semantics.py",
+      "sha256": "9bb89077253662631024d391c052822a0369daa3c25543825b26b1b0ab532eef"
+    },
+    {
+      "path": "implementations/python/tests/test_sem_213_temporal_participant_semantics.py",
+      "sha256": "5daa14b99a2943e22dbcc2f8f8835f250ab9c0727ed6a56f65a8f0b4072d6010"
+    },
+    {
+      "path": "implementations/python/tests/test_sem_215_participant_outcome_interpretation.py",
+      "sha256": "513a53bed7821201a781d92220087b34fb2cd3e3583df0514d444da20fc4312f"
+    },
+    {
+      "path": "implementations/python/tests/test_act_622_participant_action_arguments.py",
+      "sha256": "b74a4ee3d1bb01c52c9809f3229b75262fd413935760a4d4eec7895f7932dc30"
+    },
+    {
+      "path": "implementations/python/tests/test_sem_212_participant_attribution_semantics.py",
+      "sha256": "63d40599cf949c9012b86bb0f8790f2bea0f38d1dd029fd2acb5179f7857cd60"
+    },
+    {
+      "path": "implementations/python/tests/test_issue_301_history_alias_visibility.py",
+      "sha256": "8539a701bb1e6178142c5575d05411270e16c73add564a3ec9e041e2eacdd045"
+    },
+    {
+      "path": "implementations/python/tests/test_issue_304_tool_support.py",
+      "sha256": "1f08ab39971e7804d5d7d6ddbc31dcf3477d5e251824ac693f3f2240b3f67ff9"
+    },
+    {
+      "path": "implementations/python/tests/test_issue_301_projection_boundaries.py",
+      "sha256": "0495abb9cddb021c4039dd2ba7b9b16cdab1d87f6c52e5ceccb2ef60cc769826"
+    }
+  ],
+  "data": [
+    {
+      "file": "participant-relations-reference.json",
+      "sha256": "6bd026587d6781304b4cc1dfb6de87361e1c2c01131079d5976409f26ecc5b30",
+      "cases": {
+        "arguments": [
+          "normalize-default",
+          "omit",
+          "missing-required",
+          "unknown",
+          "allowed",
+          "maximum",
+          "minimum",
+          "max-items",
+          "min-items",
+          "unique",
+          "wrong-reference",
+          "boolean-integer",
+          "float-integer",
+          "scalar-collection",
+          "many-scalar",
+          "wrong-address",
+          "wrong-shape",
+          "empty-proposal",
+          "number-integer-type",
+          "number-float-type",
+          "unicode-runes",
+          "unicode-min-length",
+          "unicode-max-length",
+          "number-boolean",
+          "authored-domain-normalized"
+        ],
+        "actions": [
+          "valid",
+          "missing-precondition",
+          "unknown-precondition-class",
+          "unknown-precondition-id",
+          "undeclared-support",
+          "undeclared-precondition-evidence",
+          "undeclared-effect",
+          "undeclared-effect-class",
+          "undeclared-target",
+          "undeclared-effect-evidence",
+          "undeclared-summary-evidence",
+          "ungrounded-summary-evidence",
+          "empty-preconditions",
+          "empty-effects",
+          "blocked-success",
+          "precondition-scope",
+          "precondition-anchor",
+          "result-anchor",
+          "duplicate-precondition",
+          "duplicate-effect",
+          "invalid-effect-grounding",
+          "success-failure",
+          "undeclared-failure",
+          "failure-without-class",
+          "partial-without-effects",
+          "wrong-address"
+        ],
+        "outcomes": [
+          "valid",
+          "source-id",
+          "source-ref",
+          "source-evidence",
+          "source-provenance",
+          "missing-provenance",
+          "unreported-provenance-source",
+          "target-id",
+          "target-ref",
+          "target-governance",
+          "target-evidence",
+          "target-limitations",
+          "summary-evidence",
+          "empty-sources",
+          "empty-targets",
+          "empty-target-evidence",
+          "empty-target-limitations",
+          "reward-target-valid",
+          "reward-target-governance",
+          "reward-target-missing-governance"
+        ],
+        "temporal": [
+          "valid-cadence",
+          "repeated-cadence",
+          "cadence-not-ready",
+          "from-state",
+          "domain-authority",
+          "dwell-inactive",
+          "dwell-active",
+          "terminal",
+          "reset",
+          "replay",
+          "malformed-recovery",
+          "wrong-enum",
+          "empty-evidence"
+        ]
+      }
+    },
+    {
+      "file": "participant-history-reference.json",
+      "sha256": "467003b3946f119ff9ddb553b2afa44937f6f6b21fc413d9f24a0b006bdd9c4b",
+      "cases": {
+        "history": [
+          "valid",
+          "missing-terminal",
+          "missing-attempt",
+          "duplicate-attempt",
+          "missing-transition",
+          "digest-pair",
+          "malformed-entry",
+          "multiple-malformed",
+          "outer-key",
+          "unknown-action",
+          "unknown-boundary",
+          "missing-result",
+          "unsupported-details",
+          "nested-detail-side-channel",
+          "duplicate-details",
+          "wrong-detail-shape",
+          "details-on-attempt",
+          "future-anchor-hidden-visible",
+          "future-anchor-hidden-disclosed",
+          "unknown-evidence",
+          "orphaned-no-state",
+          "action-scope-invalid",
+          "result-nonterminal",
+          "compiled-precondition",
+          "compiled-effect",
+          "outcome-valid",
+          "outcome-status",
+          "outcome-grounding",
+          "outcome-compiled-source",
+          "outcome-provenance",
+          "outcome-unknown-rule",
+          "outcome-no-action-result",
+          "joint-id-without-order",
+          "joint-order-without-id",
+          "bare-action-address",
+          "valid-shared-state",
+          "shared-state-empty",
+          "shared-state-string",
+          "outcome-participant-scope",
+          "outcome-episode-scope",
+          "outcome-point-scope",
+          "outcome-source-evidence-grounding",
+          "local-success-without-interpretation",
+          "attribution-valid",
+          "attribution-participant",
+          "attribution-episode",
+          "attribution-point",
+          "attribution-cause",
+          "attribution-effect-grounding",
+          "attribution-order-required",
+          "attribution-evidence-required",
+          "attribution-evidence-unbound",
+          "attribution-empty-limitations",
+          "attribution-duplicate-edge",
+          "attribution-strong-ablation_support",
+          "attribution-strong-counterfactual_support",
+          "attribution-strong-intervention_support",
+          "attribution-strong-replay_support",
+          "attribution-strong-structural_causal_support",
+          "attribution-outcome-rule-downstream_outcome",
+          "attribution-outcome-rule-evaluation_result",
+          "attribution-outcome-rule-objective_result",
+          "temporal-valid",
+          "temporal-id",
+          "temporal-domain",
+          "temporal-authority",
+          "temporal-events",
+          "temporal-disclosure",
+          "temporal-reset",
+          "temporal-replay",
+          "temporal-duplicate-events",
+          "alias-details-hidden-nodes-web",
+          "alias-details-hidden-provision-node-web",
+          "alias-details-hidden-web",
+          "alias-result-hidden-nodes-web",
+          "alias-result-hidden-provision-node-web",
+          "alias-result-hidden-web",
+          "alias-attribution-hidden-nodes-web",
+          "alias-attribution-hidden-provision-node-web",
+          "alias-attribution-hidden-web",
+          "alias-provenance-hidden-nodes-web",
+          "alias-provenance-hidden-provision-node-web",
+          "alias-provenance-hidden-web",
+          "alias-details-observable-nodes-web",
+          "alias-details-observable-provision-node-web",
+          "alias-details-observable-web",
+          "alias-result-observable-nodes-web",
+          "alias-result-observable-provision-node-web",
+          "alias-result-observable-web",
+          "alias-attribution-observable-nodes-web",
+          "alias-attribution-observable-provision-node-web",
+          "alias-attribution-observable-web",
+          "alias-provenance-observable-nodes-web",
+          "alias-provenance-observable-provision-node-web",
+          "alias-provenance-observable-web",
+          "alias-details-ambiguous-web",
+          "alias-result-ambiguous-web",
+          "alias-attribution-ambiguous-web",
+          "alias-provenance-ambiguous-web",
+          "episode-status-unreported",
+          "episode-status-matching",
+          "episode-status-mismatch",
+          "concealment-details",
+          "concealment-result",
+          "concealment-attribution",
+          "concealment-provenance",
+          "episode-close-unresolved",
+          "episode-close-resolved",
+          "episode-close-mapping-remains-unresolved",
+          "evidence-alias-content-receipt",
+          "evidence-alias-receipt",
+          "evidence-alias-provision-content-receipt",
+          "outcome-evidence-hidden",
+          "unanchored-lower-order-snapshot"
+        ],
+        "joint": [
+          "empty",
+          "valid",
+          "duplicate",
+          "skip-malformed",
+          "large-order-unique",
+          "large-order-duplicate"
+        ]
+      },
+      "parts": [
+        {
+          "file": "participant-history-reference.json",
+          "sha256": "467003b3946f119ff9ddb553b2afa44937f6f6b21fc413d9f24a0b006bdd9c4b"
+        },
+        {
+          "file": "participant-history-reference-2.json",
+          "sha256": "83f7009e53bc18e39966d99e7f54682334acdaa3056d3ae898287b7c4e97d453"
+        },
+        {
+          "file": "participant-history-reference-3.json",
+          "sha256": "9f456c6b51fc3bb10636ca1a078646490c787dfdcbc411e69a856fe800d4a650"
+        }
+      ]
+    },
+    {
+      "file": "participant-source-guards.json",
+      "sha256": "d14e767b591d50ccfc72f888eb6b4ac5e5298efe6b5fd70ad01abceefcfc6e6b",
+      "cases": {}
+    }
+  ],
+  "entries": [
+    {
+      "python_file": "implementations/python/tests/test_sem_208_participant_behavior.py",
+      "python_test": "test_behavior_specifications_parse_validate_and_compile",
+      "status": "covered",
+      "go_test": "TestCompiledResourcesKeepReferenceParticipantCases/behavior_specifications_parse_validate_and_compile",
+      "behavior": "Exact compiled operation payloads, dependencies and ordered diagnostics, including absence and full nested contract fields. Captured from the released compiler and retained in local Go testdata."
+    },
+    {
+      "python_file": "implementations/python/tests/test_sem_208_participant_behavior.py",
+      "python_test": "test_sem219_tool_affordance_parses_validates_and_compiles_typed_ir",
+      "status": "covered",
+      "go_test": "TestCompiledResourcesKeepReferenceParticipantCases/sem219_tool_affordance_parses_validates_and_compiles_typed_ir",
+      "behavior": "Exact compiled operation payloads, dependencies and ordered diagnostics, including absence and full nested contract fields. Captured from the released compiler and retained in local Go testdata."
+    },
+    {
+      "python_file": "implementations/python/tests/test_sem_208_participant_behavior.py",
+      "python_test": "test_sem219_one_tool_identity_can_bind_multiple_distinct_affordances",
+      "status": "covered",
+      "go_test": "TestCompiledResourcesKeepReferenceParticipantCases/sem219_one_tool_identity_can_bind_multiple_distinct_affordances",
+      "behavior": "Exact compiled operation payloads, dependencies and ordered diagnostics, including absence and full nested contract fields. Captured from the released compiler and retained in local Go testdata."
+    },
+    {
+      "python_file": "implementations/python/tests/test_sem_208_participant_behavior.py",
+      "python_test": "test_sem219_role_scoped_affordance_resolves_each_matching_participant",
+      "status": "covered",
+      "go_test": "TestCompiledResourcesKeepReferenceParticipantCases/sem219_role_scoped_affordance_resolves_each_matching_participant",
+      "behavior": "Exact compiled operation payloads, dependencies and ordered diagnostics, including absence and full nested contract fields. Captured from the released compiler and retained in local Go testdata."
+    },
+    {
+      "python_file": "implementations/python/tests/test_sem_208_participant_behavior.py",
+      "python_test": "test_sem219_hidden_affordance_remains_authored_without_becoming_visible",
+      "status": "covered",
+      "go_test": "TestCompiledResourcesKeepReferenceParticipantCases/sem219_hidden_affordance_remains_authored_without_becoming_visible",
+      "behavior": "Exact compiled operation payloads, dependencies and ordered diagnostics, including absence and full nested contract fields. Captured from the released compiler and retained in local Go testdata."
+    },
+    {
+      "python_file": "implementations/python/tests/test_sem_208_participant_behavior.py",
+      "python_test": "test_sem219_optional_tool_identity_does_not_weaken_affordance_meaning",
+      "status": "covered",
+      "go_test": "TestCompiledResourcesKeepReferenceParticipantCases/sem219_optional_tool_identity_does_not_weaken_affordance_meaning",
+      "behavior": "Exact compiled operation payloads, dependencies and ordered diagnostics, including absence and full nested contract fields. Captured from the released compiler and retained in local Go testdata."
+    },
+    {
+      "python_file": "implementations/python/tests/test_sem_208_participant_behavior.py",
+      "python_test": "test_sem219_global_tool_identity_does_not_synthesize_participant_availability",
+      "status": "covered",
+      "go_test": "TestCompiledResourcesKeepReferenceParticipantCases/sem219_global_tool_identity_does_not_synthesize_participant_availability",
+      "behavior": "Exact compiled operation payloads, dependencies and ordered diagnostics, including absence and full nested contract fields. Captured from the released compiler and retained in local Go testdata."
+    },
+    {
+      "python_file": "implementations/python/tests/test_sem_208_participant_behavior.py",
+      "python_test": "test_sem219_backend_support_does_not_synthesize_participant_authority",
+      "status": "covered",
+      "go_test": "TestCompiledResourcesKeepReferenceParticipantCases/sem219_backend_support_does_not_synthesize_participant_authority",
+      "behavior": "Exact compiled operation payloads, dependencies and ordered diagnostics, including absence and full nested contract fields. Captured from the released compiler and retained in local Go testdata."
+    },
+    {
+      "python_file": "implementations/python/tests/test_sem_208_participant_behavior.py",
+      "python_test": "test_sem219_constraints_and_failure_classes_remain_on_action_contract",
+      "status": "covered",
+      "go_test": "TestCompiledResourcesKeepReferenceParticipantCases/sem219_constraints_and_failure_classes_remain_on_action_contract",
+      "behavior": "Exact compiled operation payloads, dependencies and ordered diagnostics, including absence and full nested contract fields. Captured from the released compiler and retained in local Go testdata."
+    },
+    {
+      "python_file": "implementations/python/tests/test_sem_208_participant_behavior.py",
+      "python_test": "test_participant_behavior_runtime_carries_act607_authority_scope_metadata",
+      "status": "covered",
+      "go_test": "TestCompiledResourcesKeepReferenceParticipantCases/participant_behavior_runtime_carries_act607_authority_scope_metadata",
+      "behavior": "Exact compiled operation payloads, dependencies and ordered diagnostics, including absence and full nested contract fields. Captured from the released compiler and retained in local Go testdata."
+    },
+    {
+      "python_file": "implementations/python/tests/test_sem_208_participant_behavior.py",
+      "python_test": "test_participant_typed_authority_refs_ignore_global_alias_collisions",
+      "status": "covered",
+      "go_test": "TestCompiledResourcesKeepReferenceParticipantCases/participant_typed_authority_refs_ignore_global_alias_collisions",
+      "behavior": "Exact compiled operation payloads, dependencies and ordered diagnostics, including absence and full nested contract fields. Captured from the released compiler and retained in local Go testdata."
+    },
+    {
+      "python_file": "implementations/python/tests/test_sem_208_participant_behavior.py",
+      "python_test": "test_behavior_specification_runtime_carries_authority_scope_addresses",
+      "status": "covered",
+      "go_test": "TestCompiledResourcesKeepReferenceParticipantCases/behavior_specification_runtime_carries_authority_scope_addresses",
+      "behavior": "Exact compiled operation payloads, dependencies and ordered diagnostics, including absence and full nested contract fields. Captured from the released compiler and retained in local Go testdata."
+    },
+    {
+      "python_file": "implementations/python/tests/test_sem_208_participant_behavior.py",
+      "python_test": "test_behavior_specification_refs_are_namespaced_during_module_composition",
+      "status": "covered",
+      "go_test": "TestCompiledResourcesKeepReferenceParticipantCases/behavior_specification_refs_are_namespaced_during_module_composition",
+      "behavior": "Exact compiled operation payloads, dependencies and ordered diagnostics, including absence and full nested contract fields. Captured from the released compiler and retained in local Go testdata."
+    },
+    {
+      "python_file": "implementations/python/tests/test_sem_208_participant_behavior.py",
+      "python_test": "test_behavior_specification_optional_fields_compile_empty_when_omitted",
+      "status": "covered",
+      "go_test": "TestCompiledResourcesKeepReferenceParticipantCases/behavior_specification_optional_fields_compile_empty_when_omitted",
+      "behavior": "Exact compiled operation payloads, dependencies and ordered diagnostics, including absence and full nested contract fields. Captured from the released compiler and retained in local Go testdata."
+    },
+    {
+      "python_file": "implementations/python/tests/test_sem_208_participant_behavior.py",
+      "python_test": "test_behavior_specification_behavior_mode_allows_governed_extensions",
+      "status": "covered",
+      "go_test": "TestCompiledResourcesKeepReferenceParticipantCases/behavior_specification_behavior_mode_allows_governed_extensions",
+      "behavior": "Exact compiled operation payloads, dependencies and ordered diagnostics, including absence and full nested contract fields. Captured from the released compiler and retained in local Go testdata."
+    },
+    {
+      "python_file": "implementations/python/tests/test_sem_208_participant_behavior.py",
+      "python_test": "test_compiler_maps_participant_behavior_to_runtime_addresses",
+      "status": "covered",
+      "go_test": "TestCompiledResourcesKeepReferenceParticipantCases/compiler_maps_participant_behavior_to_runtime_addresses",
+      "behavior": "Exact compiled operation payloads, dependencies and ordered diagnostics, including absence and full nested contract fields. Captured from the released compiler and retained in local Go testdata."
+    },
+    {
+      "python_file": "implementations/python/tests/test_sem_208_participant_behavior.py",
+      "python_test": "test_view_relation_timeline_tracks_inference_and_concealment_transitions",
+      "status": "covered",
+      "go_test": "TestCompiledResourcesKeepReferenceParticipantCases/view_relation_timeline_tracks_inference_and_concealment_transitions",
+      "behavior": "Exact compiled operation payloads, dependencies and ordered diagnostics, including absence and full nested contract fields. Captured from the released compiler and retained in local Go testdata."
+    },
+    {
+      "python_file": "implementations/python/tests/test_sem_208_participant_behavior.py",
+      "python_test": "test_hidden_truth_disclosure_is_separate_from_observable_projection",
+      "status": "covered",
+      "go_test": "TestCompiledResourcesKeepReferenceParticipantCases/hidden_truth_disclosure_is_separate_from_observable_projection",
+      "behavior": "Exact compiled operation payloads, dependencies and ordered diagnostics, including absence and full nested contract fields. Captured from the released compiler and retained in local Go testdata."
+    },
+    {
+      "python_file": "implementations/python/tests/test_sem_208_participant_behavior.py",
+      "python_test": "test_view_transition_effective_order_drives_timeline_not_declaration_order",
+      "status": "covered",
+      "go_test": "TestCompiledResourcesKeepReferenceParticipantCases/view_transition_effective_order_drives_timeline_not_declaration_order",
+      "behavior": "Exact compiled operation payloads, dependencies and ordered diagnostics, including absence and full nested contract fields. Captured from the released compiler and retained in local Go testdata."
+    },
+    {
+      "python_file": "implementations/python/tests/test_sem_211_participant_action_semantics.py",
+      "python_test": "test_action_contract_declares_sem_211_classes_and_compiles_them",
+      "status": "covered",
+      "go_test": "TestCompiledResourcesKeepReferenceParticipantCases/action_contract_declares_sem_211_classes_and_compiles_them",
+      "behavior": "Exact compiled operation payloads, dependencies and ordered diagnostics, including absence and full nested contract fields. Captured from the released compiler and retained in local Go testdata."
+    },
+    {
+      "python_file": "implementations/python/tests/test_sem_213_temporal_participant_semantics.py",
+      "python_test": "test_temporal_action_contract_declares_sem_213_and_compiles_it",
+      "status": "covered",
+      "go_test": "TestCompiledResourcesKeepReferenceParticipantCases/temporal_action_contract_declares_sem_213_and_compiles_it",
+      "behavior": "Exact compiled operation payloads, dependencies and ordered diagnostics, including absence and full nested contract fields. Captured from the released compiler and retained in local Go testdata."
+    },
+    {
+      "python_file": "implementations/python/tests/test_sem_215_participant_outcome_interpretation.py",
+      "python_test": "test_outcome_interpretation_rule_parses_and_compiles_explicit_layers",
+      "status": "covered",
+      "go_test": "TestCompiledResourcesKeepReferenceParticipantCases/outcome_interpretation_rule_parses_and_compiles_explicit_layers",
+      "behavior": "Exact compiled operation payloads, dependencies and ordered diagnostics, including absence and full nested contract fields. Captured from the released compiler and retained in local Go testdata."
+    },
+    {
+      "python_file": "implementations/python/tests/test_act_622_participant_action_arguments.py",
+      "python_test": "test_authored_argument_shape_is_closed_and_typed",
+      "python_line": 87,
+      "status": "covered",
+      "go_test": "TestParticipantArgumentShapeCommitsToAdmittedDomains; TestParticipantArgumentsMatchPureReference/normalize-default",
+      "behavior": "Once-compiled typed argument definitions; exact source-derived shape pin and normalized immutable carrier.25pure reference cases plus source/domain/shape, foreign ownership and aggregate work boundary tests. No backend execution."
+    },
+    {
+      "python_file": "implementations/python/tests/test_act_622_participant_action_arguments.py",
+      "python_test": "test_authored_argument_shape_rejects_incoherent_domains",
+      "python_line": 108,
+      "status": "covered",
+      "go_test": "contract/admission/TestSDLConstructorOracle/ParticipantActionArgumentDefinition.ci-default-above,ci-inverted-bounds,reference-trim,ci-inverted-items",
+      "behavior": "Exact default-outside-max, minimum>maximum, reference trim and min_items>max_items constructor refusal branches in sdl-constructors.json; no compiler/resolver claims."
+    },
+    {
+      "python_file": "implementations/python/tests/test_act_622_participant_action_arguments.py",
+      "python_test": "test_authored_domain_literals_are_normalized_before_validation_and_compilation",
+      "python_line": 120,
+      "status": "covered",
+      "go_test": "TestParticipantArgumentsMatchPureReference/authored-domain-normalized",
+      "behavior": "Once-compiled typed argument definitions; exact source-derived shape pin and normalized immutable carrier.25pure reference cases plus source/domain/shape, foreign ownership and aggregate work boundary tests. No backend execution."
+    },
+    {
+      "python_file": "implementations/python/tests/test_act_622_participant_action_arguments.py",
+      "python_test": "test_authored_domain_constraints_are_evaluated_after_normalization",
+      "python_line": 148,
+      "status": "covered",
+      "go_test": "TestParticipantArgumentShapeCommitsToAdmittedDomains",
+      "behavior": "Once-compiled typed argument definitions; exact source-derived shape pin and normalized immutable carrier.25pure reference cases plus source/domain/shape, foreign ownership and aggregate work boundary tests. No backend execution."
+    },
+    {
+      "python_file": "implementations/python/tests/test_act_622_participant_action_arguments.py",
+      "python_test": "test_compiler_binds_argument_shape_identity_to_compiled_action",
+      "python_line": 159,
+      "status": "covered",
+      "go_test": "TestParticipantArgumentShapeCommitsToAdmittedDomains",
+      "behavior": "Once-compiled typed argument definitions; exact source-derived shape pin and normalized immutable carrier.25pure reference cases plus source/domain/shape, foreign ownership and aggregate work boundary tests. No backend execution."
+    },
+    {
+      "python_file": "implementations/python/tests/test_act_622_participant_action_arguments.py",
+      "python_test": "test_argument_shape_survives_scenario_instantiation_and_public_compilation",
+      "python_line": 176,
+      "status": "covered",
+      "go_test": "TestParticipantArgumentsMatchPureReference/normalize-default,authored-domain-normalized",
+      "behavior": "Once-compiled typed argument definitions; exact source-derived shape pin and normalized immutable carrier.25pure reference cases plus source/domain/shape, foreign ownership and aggregate work boundary tests. No backend execution."
+    },
+    {
+      "python_file": "implementations/python/tests/test_act_622_participant_action_arguments.py",
+      "python_test": "test_concrete_arguments_are_normalized_before_backend_admission",
+      "python_line": 193,
+      "status": "covered",
+      "go_test": "TestParticipantArgumentsMatchPureReference/normalize-default,omit",
+      "behavior": "Once-compiled typed argument definitions; exact source-derived shape pin and normalized immutable carrier.25pure reference cases plus source/domain/shape, foreign ownership and aggregate work boundary tests. No backend execution."
+    },
+    {
+      "python_file": "implementations/python/tests/test_act_622_participant_action_arguments.py",
+      "python_test": "test_concrete_arguments_fail_closed",
+      "python_line": 228,
+      "status": "covered",
+      "go_test": "TestParticipantArgumentsMatchPureReference/unknown,allowed,maximum,max-items,unique,wrong-reference",
+      "behavior": "Once-compiled typed argument definitions; exact source-derived shape pin and normalized immutable carrier.25pure reference cases plus source/domain/shape, foreign ownership and aggregate work boundary tests. No backend execution."
+    },
+    {
+      "python_file": "implementations/python/tests/test_act_622_participant_action_arguments.py",
+      "python_test": "test_normalized_carrier_is_backend_independent_and_immutable",
+      "python_line": 244,
+      "status": "covered",
+      "go_test": "TestParticipantArgumentResolutionRetainsImmutableNativeMeaning",
+      "behavior": "Once-compiled typed argument definitions; exact source-derived shape pin and normalized immutable carrier.25pure reference cases plus source/domain/shape, foreign ownership and aggregate work boundary tests. No backend execution."
+    },
+    {
+      "python_file": "implementations/python/tests/test_sem_211_participant_action_semantics.py",
+      "python_test": "test_legacy_string_preconditions_are_not_sem_211_contracts",
+      "python_line": 334,
+      "status": "covered",
+      "go_test": "TestParticipantSourceGuardsMatchDirectReferenceTests/test_legacy_string_preconditions_are_not_sem_211_contracts-0",
+      "behavior": "Exact authored source inputs captured by invoking this Python test method and recording actual source admission; native source/model owner must match the same refusal.13directcases cover SEM211/213/215 local shape/security guards."
+    },
+    {
+      "python_file": "implementations/python/tests/test_sem_211_participant_action_semantics.py",
+      "python_test": "test_action_result_rejects_success_when_preconditions_are_unresolved",
+      "python_line": 343,
+      "status": "covered",
+      "go_test": "TestParticipantActionResultsMatchPureReference/blocked-success",
+      "behavior": "Typed local constructor fail-closed/scope rules precede compiled declaration joins; exact ordered Python leaf/history findings, explicit failure mapping and boundary authorization. Individual valid input fragments are not treated as compiled conformance."
+    },
+    {
+      "python_file": "implementations/python/tests/test_sem_211_participant_action_semantics.py",
+      "python_test": "test_successful_action_result_requires_declared_effects",
+      "python_line": 368,
+      "status": "covered",
+      "go_test": "TestParticipantActionResultsMatchPureReference/empty-effects",
+      "behavior": "Typed local constructor fail-closed/scope rules precede compiled declaration joins; exact ordered Python leaf/history findings, explicit failure mapping and boundary authorization. Individual valid input fragments are not treated as compiled conformance."
+    },
+    {
+      "python_file": "implementations/python/tests/test_sem_211_participant_action_semantics.py",
+      "python_test": "test_partial_success_action_result_requires_declared_effects",
+      "python_line": 382,
+      "status": "covered",
+      "go_test": "TestParticipantActionResultsMatchPureReference/partial-without-effects",
+      "behavior": "Typed local constructor fail-closed/scope rules precede compiled declaration joins; exact ordered Python leaf/history findings, explicit failure mapping and boundary authorization. Individual valid input fragments are not treated as compiled conformance."
+    },
+    {
+      "python_file": "implementations/python/tests/test_sem_211_participant_action_semantics.py",
+      "python_test": "test_side_effect_results_require_target_or_evidence_refs",
+      "python_line": 397,
+      "status": "covered",
+      "go_test": "TestParticipantActionResultsMatchPureReference/invalid-effect-grounding",
+      "behavior": "Typed local constructor fail-closed/scope rules precede compiled declaration joins; exact ordered Python leaf/history findings, explicit failure mapping and boundary authorization. Individual valid input fragments are not treated as compiled conformance."
+    },
+    {
+      "python_file": "implementations/python/tests/test_sem_211_participant_action_semantics.py",
+      "python_test": "test_rejected_action_result_round_trips_with_portable_failure_class",
+      "python_line": 406,
+      "status": "covered",
+      "go_test": "TestParticipantActionResultsMatchPureReference/undeclared-failure; contract/admission/TestFragmentsMatchTheReferenceModels/participant-action-result",
+      "behavior": "Typed local constructor fail-closed/scope rules precede compiled declaration joins; exact ordered Python leaf/history findings, explicit failure mapping and boundary authorization. Individual valid input fragments are not treated as compiled conformance."
+    },
+    {
+      "python_file": "implementations/python/tests/test_sem_211_participant_action_semantics.py",
+      "python_test": "test_terminal_observation_action_result_must_match_behavior_event_scope",
+      "python_line": 433,
+      "status": "covered",
+      "go_test": "TestParticipantBehaviorHistoriesMatchPureReference/action-scope-invalid",
+      "behavior": "Typed local constructor fail-closed/scope rules precede compiled declaration joins; exact ordered Python leaf/history findings, explicit failure mapping and boundary authorization. Individual valid input fragments are not treated as compiled conformance."
+    },
+    {
+      "python_file": "implementations/python/tests/test_sem_211_participant_action_semantics.py",
+      "python_test": "test_action_result_requires_concrete_action_contract_address",
+      "python_line": 461,
+      "status": "covered",
+      "go_test": "TestParticipantActionResultsMatchPureReference/wrong-address; TestParticipantRelationsRefuseForeignModelsBeforeMethods",
+      "behavior": "Typed local constructor fail-closed/scope rules precede compiled declaration joins; exact ordered Python leaf/history findings, explicit failure mapping and boundary authorization. Individual valid input fragments are not treated as compiled conformance."
+    },
+    {
+      "python_file": "implementations/python/tests/test_sem_211_participant_action_semantics.py",
+      "python_test": "test_action_result_observation_points_must_anchor_to_action_instance",
+      "python_line": 491,
+      "status": "covered",
+      "go_test": "TestParticipantActionResultsMatchPureReference/result-anchor,precondition-anchor",
+      "behavior": "Typed local constructor fail-closed/scope rules precede compiled declaration joins; exact ordered Python leaf/history findings, explicit failure mapping and boundary authorization. Individual valid input fragments are not treated as compiled conformance."
+    },
+    {
+      "python_file": "implementations/python/tests/test_sem_211_participant_action_semantics.py",
+      "python_test": "test_terminal_observation_rejects_nonterminal_accepted_action_result",
+      "python_line": 530,
+      "status": "covered",
+      "go_test": "TestParticipantBehaviorHistoriesMatchPureReference/result-nonterminal",
+      "behavior": "Typed local constructor fail-closed/scope rules precede compiled declaration joins; exact ordered Python leaf/history findings, explicit failure mapping and boundary authorization. Individual valid input fragments are not treated as compiled conformance."
+    },
+    {
+      "python_file": "implementations/python/tests/test_sem_211_participant_action_semantics.py",
+      "python_test": "test_terminal_observation_requires_sem_211_action_result_when_contract_available",
+      "python_line": 557,
+      "status": "covered",
+      "go_test": "TestParticipantBehaviorHistoriesMatchPureReference/missing-result",
+      "behavior": "Typed local constructor fail-closed/scope rules precede compiled declaration joins; exact ordered Python leaf/history findings, explicit failure mapping and boundary authorization. Individual valid input fragments are not treated as compiled conformance."
+    },
+    {
+      "python_file": "implementations/python/tests/test_sem_211_participant_action_semantics.py",
+      "python_test": "test_action_result_must_report_every_declared_precondition",
+      "python_line": 614,
+      "status": "covered",
+      "go_test": "TestParticipantActionResultsMatchPureReference/missing-precondition",
+      "behavior": "Typed local constructor fail-closed/scope rules precede compiled declaration joins; exact ordered Python leaf/history findings, explicit failure mapping and boundary authorization. Individual valid input fragments are not treated as compiled conformance."
+    },
+    {
+      "python_file": "implementations/python/tests/test_sem_211_participant_action_semantics.py",
+      "python_test": "test_action_result_precondition_refs_must_be_declared_by_contract",
+      "python_line": 681,
+      "status": "covered",
+      "go_test": "TestParticipantActionResultsMatchPureReference/undeclared-support,undeclared-precondition-evidence",
+      "behavior": "Typed local constructor fail-closed/scope rules precede compiled declaration joins; exact ordered Python leaf/history findings, explicit failure mapping and boundary authorization. Individual valid input fragments are not treated as compiled conformance."
+    },
+    {
+      "python_file": "implementations/python/tests/test_sem_211_participant_action_semantics.py",
+      "python_test": "test_action_result_effects_must_be_declared_by_compiled_contract",
+      "python_line": 768,
+      "status": "covered",
+      "go_test": "TestParticipantActionResultsMatchPureReference/undeclared-effect,undeclared-effect-class",
+      "behavior": "Typed local constructor fail-closed/scope rules precede compiled declaration joins; exact ordered Python leaf/history findings, explicit failure mapping and boundary authorization. Individual valid input fragments are not treated as compiled conformance."
+    },
+    {
+      "python_file": "implementations/python/tests/test_sem_211_participant_action_semantics.py",
+      "python_test": "test_action_result_effect_refs_must_be_declared_by_contract",
+      "python_line": 847,
+      "status": "covered",
+      "go_test": "TestParticipantActionResultsMatchPureReference/undeclared-target,undeclared-effect-evidence",
+      "behavior": "Typed local constructor fail-closed/scope rules precede compiled declaration joins; exact ordered Python leaf/history findings, explicit failure mapping and boundary authorization. Individual valid input fragments are not treated as compiled conformance."
+    },
+    {
+      "python_file": "implementations/python/tests/test_sem_211_participant_action_semantics.py",
+      "python_test": "test_action_result_summary_evidence_refs_must_be_declared_by_contract",
+      "python_line": 928,
+      "status": "covered",
+      "go_test": "TestParticipantActionResultsMatchPureReference/undeclared-summary-evidence",
+      "behavior": "Typed local constructor fail-closed/scope rules precede compiled declaration joins; exact ordered Python leaf/history findings, explicit failure mapping and boundary authorization. Individual valid input fragments are not treated as compiled conformance."
+    },
+    {
+      "python_file": "implementations/python/tests/test_sem_211_participant_action_semantics.py",
+      "python_test": "test_action_result_summary_evidence_refs_must_be_grounded_in_reported_results",
+      "python_line": 996,
+      "status": "covered",
+      "go_test": "TestParticipantActionResultsMatchPureReference/ungrounded-summary-evidence",
+      "behavior": "Typed local constructor fail-closed/scope rules precede compiled declaration joins; exact ordered Python leaf/history findings, explicit failure mapping and boundary authorization. Individual valid input fragments are not treated as compiled conformance."
+    },
+    {
+      "python_file": "implementations/python/tests/test_sem_211_participant_action_semantics.py",
+      "python_test": "test_action_result_refs_must_be_authorized_by_observation_boundary",
+      "python_line": 1037,
+      "status": "covered",
+      "go_test": "TestParticipantBehaviorHistoriesMatchPureReference/alias-result-hidden-*",
+      "behavior": "Typed local constructor fail-closed/scope rules precede compiled declaration joins; exact ordered Python leaf/history findings, explicit failure mapping and boundary authorization. Individual valid input fragments are not treated as compiled conformance."
+    },
+    {
+      "python_file": "implementations/python/tests/test_sem_211_participant_action_semantics.py",
+      "python_test": "test_action_result_effect_targets_must_be_authorized_by_observation_boundary",
+      "python_line": 1088,
+      "status": "covered",
+      "go_test": "TestParticipantBehaviorHistoriesMatchPureReference/alias-result-hidden-*,alias-result-ambiguous-web,concealment-result",
+      "behavior": "Typed local constructor fail-closed/scope rules precede compiled declaration joins; exact ordered Python leaf/history findings, explicit failure mapping and boundary authorization. Individual valid input fragments are not treated as compiled conformance."
+    },
+    {
+      "python_file": "implementations/python/tests/test_sem_211_participant_action_semantics.py",
+      "python_test": "test_action_result_evidence_refs_must_be_authorized_by_observation_boundary",
+      "python_line": 1134,
+      "status": "covered",
+      "go_test": "TestParticipantBehaviorHistoriesMatchPureReference/unknown-evidence,outcome-grounding; TestParticipantActionResultsMatchPureReference/undeclared-effect-evidence",
+      "behavior": "Typed local constructor fail-closed/scope rules precede compiled declaration joins; exact ordered Python leaf/history findings, explicit failure mapping and boundary authorization. Individual valid input fragments are not treated as compiled conformance."
+    },
+    {
+      "python_file": "implementations/python/tests/test_sem_211_participant_action_semantics.py",
+      "python_test": "test_action_result_failure_class_must_be_declared_by_compiled_contract",
+      "python_line": 1180,
+      "status": "covered",
+      "go_test": "TestParticipantActionResultsMatchPureReference/undeclared-failure",
+      "behavior": "Typed local constructor fail-closed/scope rules precede compiled declaration joins; exact ordered Python leaf/history findings, explicit failure mapping and boundary authorization. Individual valid input fragments are not treated as compiled conformance."
+    },
+    {
+      "python_file": "implementations/python/tests/test_sem_211_participant_action_semantics.py",
+      "python_test": "test_backend_diagnostic_mapping_returns_portable_failure_class",
+      "python_line": 1247,
+      "status": "covered",
+      "go_test": "TestParticipantActionResultsMatchPureReference (backend.timeout/unmapped/empty-code mapping)",
+      "behavior": "Typed local constructor fail-closed/scope rules precede compiled declaration joins; exact ordered Python leaf/history findings, explicit failure mapping and boundary authorization. Individual valid input fragments are not treated as compiled conformance."
+    },
+    {
+      "python_file": "implementations/python/tests/test_sem_211_participant_action_semantics.py",
+      "python_test": "test_local_control_plane_store_preserves_participant_behavior_history",
+      "python_line": 1277,
+      "status": "excluded-runtime",
+      "go_test": "",
+      "behavior": "Actual runtime store persistence belongs split runtime; pure history payload/joins remain scoped and mapped separately."
+    },
+    {
+      "python_file": "implementations/python/tests/test_sem_212_participant_attribution_semantics.py",
+      "python_test": "test_attribution_edge_round_trips_on_terminal_observation",
+      "python_line": 202,
+      "status": "covered",
+      "go_test": "TestParticipantBehaviorHistoriesMatchPureReference/attribution-valid",
+      "behavior": "Private typed history entry normalizer preserves attribution scope, event/action grounding, causal support restrictions, required interpretation rules and authorized evidence. Exact ordered Python findings."
+    },
+    {
+      "python_file": "implementations/python/tests/test_sem_212_participant_attribution_semantics.py",
+      "python_test": "test_timestamp_adjacency_cannot_be_reported_as_strong_causality",
+      "python_line": 212,
+      "status": "covered",
+      "go_test": "TestParticipantBehaviorHistoriesMatchPureReference/attribution-strong-* (all5support classes)",
+      "behavior": "Private typed history entry normalizer preserves attribution scope, event/action grounding, causal support restrictions, required interpretation rules and authorized evidence. Exact ordered Python findings."
+    },
+    {
+      "python_file": "implementations/python/tests/test_sem_212_participant_attribution_semantics.py",
+      "python_test": "test_attribution_payload_requires_ordering_and_evidence_basis",
+      "python_line": 222,
+      "status": "covered",
+      "go_test": "TestParticipantBehaviorHistoriesMatchPureReference/attribution-order-required,attribution-evidence-required",
+      "behavior": "Private typed history entry normalizer preserves attribution scope, event/action grounding, causal support restrictions, required interpretation rules and authorized evidence. Exact ordered Python findings."
+    },
+    {
+      "python_file": "implementations/python/tests/test_sem_212_participant_attribution_semantics.py",
+      "python_test": "test_attribution_edge_scope_must_match_observation_event",
+      "python_line": 236,
+      "status": "covered",
+      "go_test": "TestParticipantBehaviorHistoriesMatchPureReference/attribution-participant,attribution-episode,attribution-point",
+      "behavior": "Private typed history entry normalizer preserves attribution scope, event/action grounding, causal support restrictions, required interpretation rules and authorized evidence. Exact ordered Python findings."
+    },
+    {
+      "python_file": "implementations/python/tests/test_sem_212_participant_attribution_semantics.py",
+      "python_test": "test_attribution_evidence_refs_must_be_authorized_by_participant_boundary",
+      "python_line": 243,
+      "status": "covered",
+      "go_test": "TestParticipantBehaviorHistoriesMatchPureReference/attribution-evidence-unbound",
+      "behavior": "Private typed history entry normalizer preserves attribution scope, event/action grounding, causal support restrictions, required interpretation rules and authorized evidence. Exact ordered Python findings."
+    },
+    {
+      "python_file": "implementations/python/tests/test_sem_212_participant_attribution_semantics.py",
+      "python_test": "test_effect_candidate_must_be_grounded_in_observation_or_action_result",
+      "python_line": 279,
+      "status": "covered",
+      "go_test": "TestParticipantBehaviorHistoriesMatchPureReference/attribution-effect-grounding,attribution-cause",
+      "behavior": "Private typed history entry normalizer preserves attribution scope, event/action grounding, causal support restrictions, required interpretation rules and authorized evidence. Exact ordered Python findings."
+    },
+    {
+      "python_file": "implementations/python/tests/test_sem_212_participant_attribution_semantics.py",
+      "python_test": "test_downstream_outcome_attribution_requires_interpretation_rule",
+      "python_line": 287,
+      "status": "covered",
+      "go_test": "TestParticipantBehaviorHistoriesMatchPureReference/attribution-outcome-rule-* (all3outcome kinds)",
+      "behavior": "Private typed history entry normalizer preserves attribution scope, event/action grounding, causal support restrictions, required interpretation rules and authorized evidence. Exact ordered Python findings."
+    },
+    {
+      "python_file": "implementations/python/tests/test_sem_212_participant_attribution_semantics.py",
+      "python_test": "test_contract_schema_publishes_attribution_edge_payload",
+      "python_line": 305,
+      "status": "covered-scoped",
+      "go_test": "TestParticipantHistoryTransportPreservesPublishedNestedRecords/attribution-valid",
+      "behavior": "Published native history model admits and typed transport preserves attribution_edges. Python class-name/reflection assertion is representation-specific; no Go class-name claim."
+    },
+    {
+      "python_file": "implementations/python/tests/test_sem_213_temporal_participant_semantics.py",
+      "python_test": "test_temporal_claims_require_time_domain_and_clock_authority",
+      "python_line": 225,
+      "status": "covered",
+      "go_test": "TestParticipantSourceGuardsMatchDirectReferenceTests/test_temporal_claims_require_time_domain_and_clock_authority-0",
+      "behavior": "Exact authored source inputs captured by invoking this Python test method and recording actual source admission; native source/model owner must match the same refusal.13directcases cover SEM211/213/215 local shape/security guards."
+    },
+    {
+      "python_file": "implementations/python/tests/test_sem_213_temporal_participant_semantics.py",
+      "python_test": "test_temporal_backend_disclosure_refs_fail_closed",
+      "python_line": 236,
+      "status": "covered",
+      "go_test": "TestParticipantSourceGuardsMatchDirectReferenceTests/test_temporal_backend_disclosure_refs_fail_closed-0",
+      "behavior": "Exact authored source inputs captured by invoking this Python test method and recording actual source admission; native source/model owner must match the same refusal.13directcases cover SEM211/213/215 local shape/security guards."
+    },
+    {
+      "python_file": "implementations/python/tests/test_sem_213_temporal_participant_semantics.py",
+      "python_test": "test_temporal_contract_shapes_fail_closed",
+      "python_line": 247,
+      "status": "covered",
+      "go_test": "TestParticipantSourceGuardsMatchDirectReferenceTests/test_temporal_contract_shapes_fail_closed-0,test_temporal_contract_shapes_fail_closed-1,test_temporal_contract_shapes_fail_closed-2,test_temporal_contract_shapes_fail_closed-3,test_temporal_contract_shapes_fail_closed-4",
+      "behavior": "Exact authored source inputs captured by invoking this Python test method and recording actual source admission; native source/model owner must match the same refusal.13directcases cover SEM211/213/215 local shape/security guards."
+    },
+    {
+      "python_file": "implementations/python/tests/test_sem_213_temporal_participant_semantics.py",
+      "python_test": "test_runtime_temporal_context_must_match_compiled_contract",
+      "python_line": 374,
+      "status": "covered",
+      "go_test": "TestParticipantBehaviorHistoriesMatchPureReference/temporal-*",
+      "behavior": "Once-compiled temporal declarations compared against typed contexts: ID/domain/authority/ordered event points/disclosure refs/reset/replay; duplicate event points refused."
+    },
+    {
+      "python_file": "implementations/python/tests/test_sem_213_temporal_participant_semantics.py",
+      "python_test": "test_temporal_state_machine_rejects_invalid_deadline_dwell_timeout_sequences",
+      "python_line": 422,
+      "status": "covered",
+      "go_test": "TestParticipantTemporalStateMachinesMatchPureReference",
+      "behavior": "13independent abstract transition sequences: cadence/dwell/deadline, prior-state/domain authority, terminal reset/replay and fixed value-free malformed-item diagnostic with recovery."
+    },
+    {
+      "python_file": "implementations/python/tests/test_sem_213_temporal_participant_semantics.py",
+      "python_test": "test_contract_schema_publishes_temporal_context_payload",
+      "python_line": 558,
+      "status": "covered-scoped",
+      "go_test": "TestParticipantHistoryTransportPreservesPublishedNestedRecords/temporal-valid",
+      "behavior": "Published native history model admits and typed transport preserves temporal_contexts. Python class-name/reflection assertion is representation-specific."
+    },
+    {
+      "python_file": "implementations/python/tests/test_sem_213_temporal_participant_semantics.py",
+      "python_test": "test_temporal_transition_violation_omits_the_parser_exception_text",
+      "python_line": 566,
+      "status": "covered",
+      "go_test": "TestParticipantTemporalStateMachinesMatchPureReference",
+      "behavior": "13independent abstract transition sequences: cadence/dwell/deadline, prior-state/domain authority, terminal reset/replay and fixed value-free malformed-item diagnostic with recovery."
+    },
+    {
+      "python_file": "implementations/python/tests/test_sem_215_participant_outcome_interpretation.py",
+      "python_test": "test_local_action_success_does_not_imply_objective_success_without_rule_record",
+      "python_line": 455,
+      "status": "covered-scoped",
+      "go_test": "TestParticipantBehaviorHistoriesMatchPureReference/local-success-without-interpretation",
+      "behavior": "Exact ordered pure-helper findings from participant-history-reference.json; native compiled source/boundary ownership. Runtime recording/apply/store behavior is excluded."
+    },
+    {
+      "python_file": "implementations/python/tests/test_sem_215_participant_outcome_interpretation.py",
+      "python_test": "test_failed_local_action_can_emit_evidence_interpretation_under_explicit_rule",
+      "python_line": 472,
+      "status": "covered-scoped",
+      "go_test": "TestParticipantBehaviorHistoriesMatchPureReference/outcome-valid",
+      "behavior": "Exact ordered pure-helper findings from participant-history-reference.json; native compiled source/boundary ownership. Runtime recording/apply/store behavior is excluded."
+    },
+    {
+      "python_file": "implementations/python/tests/test_sem_215_participant_outcome_interpretation.py",
+      "python_test": "test_outcome_interpretation_record_round_trips_on_participant_observation",
+      "python_line": 487,
+      "status": "covered-scoped",
+      "go_test": "TestParticipantHistoryTransportPreservesPublishedNestedRecords/outcome-valid",
+      "behavior": "Nested outcome payload survives native published Value\u2192generated transport\u2192JSON without field loss; pure history joins are independently tested."
+    },
+    {
+      "python_file": "implementations/python/tests/test_sem_215_participant_outcome_interpretation.py",
+      "python_test": "test_outcome_interpretation_scope_must_match_observation_event",
+      "python_line": 499,
+      "status": "covered-scoped",
+      "go_test": "TestParticipantBehaviorHistoriesMatchPureReference/outcome-participant-scope",
+      "behavior": "Exact ordered pure-helper findings from participant-history-reference.json; native compiled source/boundary ownership. Runtime recording/apply/store behavior is excluded."
+    },
+    {
+      "python_file": "implementations/python/tests/test_sem_215_participant_outcome_interpretation.py",
+      "python_test": "test_outcome_interpretation_evidence_refs_must_be_authorized_by_participant_boundary",
+      "python_line": 516,
+      "status": "covered-scoped",
+      "go_test": "TestParticipantBehaviorHistoriesMatchPureReference/outcome-evidence-hidden",
+      "behavior": "Exact ordered pure-helper findings from participant-history-reference.json; native compiled source/boundary ownership. Runtime recording/apply/store behavior is excluded."
+    },
+    {
+      "python_file": "implementations/python/tests/test_sem_215_participant_outcome_interpretation.py",
+      "python_test": "test_outcome_interpretation_targets_require_declared_rule_and_binding",
+      "python_line": 535,
+      "status": "covered-scoped",
+      "go_test": "TestParticipantOutcomesMatchPureReference/target-id; TestParticipantOutcomesMatchPureReference/target-ref; TestParticipantBehaviorHistoriesMatchPureReference/outcome-unknown-rule",
+      "behavior": "Exact pure compiled outcome relation/local constructor verdicts from participant-relations-reference.json; named history vectors cover event joins. Runtime recording/apply/store behavior is excluded."
+    },
+    {
+      "python_file": "implementations/python/tests/test_sem_215_participant_outcome_interpretation.py",
+      "python_test": "test_outcome_interpretation_records_must_match_declared_binding_refs",
+      "python_line": 557,
+      "status": "covered-scoped",
+      "go_test": "TestParticipantOutcomesMatchPureReference/source-ref; target-ref",
+      "behavior": "Exact pure compiled outcome relation/local constructor verdicts from participant-relations-reference.json; named history vectors cover event joins. Runtime recording/apply/store behavior is excluded."
+    },
+    {
+      "python_file": "implementations/python/tests/test_sem_215_participant_outcome_interpretation.py",
+      "python_test": "test_outcome_interpretation_validation_is_independent_of_action_status",
+      "python_line": 588,
+      "status": "covered-scoped",
+      "go_test": "TestParticipantOutcomesMatchPureReference/valid; TestParticipantBehaviorHistoriesMatchPureReference/outcome-valid",
+      "behavior": "Exact pure compiled outcome relation/local constructor verdicts from participant-relations-reference.json; named history vectors cover event joins. Runtime recording/apply/store behavior is excluded."
+    },
+    {
+      "python_file": "implementations/python/tests/test_sem_215_participant_outcome_interpretation.py",
+      "python_test": "test_participant_action_outcome_source_must_match_event_action_status",
+      "python_line": 611,
+      "status": "covered-scoped",
+      "go_test": "TestParticipantBehaviorHistoriesMatchPureReference/outcome-status",
+      "behavior": "Exact ordered pure-helper findings from participant-history-reference.json; native compiled source/boundary ownership. Runtime recording/apply/store behavior is excluded."
+    },
+    {
+      "python_file": "implementations/python/tests/test_sem_215_participant_outcome_interpretation.py",
+      "python_test": "test_outcome_evidence_refs_must_be_grounded_in_event_payload",
+      "python_line": 633,
+      "status": "covered-scoped",
+      "go_test": "TestParticipantBehaviorHistoriesMatchPureReference/outcome-grounding; outcome-source-evidence-grounding",
+      "behavior": "Exact ordered pure-helper findings from participant-history-reference.json; native compiled source/boundary ownership. Runtime recording/apply/store behavior is excluded."
+    },
+    {
+      "python_file": "implementations/python/tests/test_sem_215_participant_outcome_interpretation.py",
+      "python_test": "test_reward_interpretation_requires_governed_assessment_rule",
+      "python_line": 670,
+      "status": "covered",
+      "go_test": "TestParticipantSourceGuardsMatchDirectReferenceTests/test_reward_interpretation_requires_governed_assessment_rule-0",
+      "behavior": "Exact authored source inputs captured by invoking this Python test method and recording actual source admission; native source/model owner must match the same refusal.13directcases cover SEM211/213/215 local shape/security guards."
+    },
+    {
+      "python_file": "implementations/python/tests/test_sem_215_participant_outcome_interpretation.py",
+      "python_test": "test_outcome_interpretation_scope_is_participant_local_only",
+      "python_line": 681,
+      "status": "covered",
+      "go_test": "TestParticipantSourceGuardsMatchDirectReferenceTests/test_outcome_interpretation_scope_is_participant_local_only-0",
+      "behavior": "Exact authored source inputs captured by invoking this Python test method and recording actual source admission; native source/model owner must match the same refusal.13directcases cover SEM211/213/215 local shape/security guards."
+    },
+    {
+      "python_file": "implementations/python/tests/test_sem_215_participant_outcome_interpretation.py",
+      "python_test": "test_reward_interpretation_records_must_match_declared_governance_ref",
+      "python_line": 692,
+      "status": "covered-scoped",
+      "go_test": "TestParticipantOutcomesMatchPureReference/reward-target-valid; reward-target-governance; reward-target-missing-governance",
+      "behavior": "Exact pure compiled outcome relation/local constructor verdicts from participant-relations-reference.json; named history vectors cover event joins. Runtime recording/apply/store behavior is excluded."
+    },
+    {
+      "python_file": "implementations/python/tests/test_sem_215_participant_outcome_interpretation.py",
+      "python_test": "test_benchmark_outcome_inputs_require_explicit_provenance",
+      "python_line": 724,
+      "status": "covered",
+      "go_test": "TestParticipantSourceGuardsMatchDirectReferenceTests/test_benchmark_outcome_inputs_require_explicit_provenance-0",
+      "behavior": "Exact authored source inputs captured by invoking this Python test method and recording actual source admission; native source/model owner must match the same refusal.13directcases cover SEM211/213/215 local shape/security guards."
+    },
+    {
+      "python_file": "implementations/python/tests/test_sem_215_participant_outcome_interpretation.py",
+      "python_test": "test_episode_status_outcome_inputs_require_explicit_provenance",
+      "python_line": 735,
+      "status": "covered",
+      "go_test": "TestParticipantSourceGuardsMatchDirectReferenceTests/test_episode_status_outcome_inputs_require_explicit_provenance-0",
+      "behavior": "Exact authored source inputs captured by invoking this Python test method and recording actual source admission; native source/model owner must match the same refusal.13directcases cover SEM211/213/215 local shape/security guards."
+    },
+    {
+      "python_file": "implementations/python/tests/test_sem_215_participant_outcome_interpretation.py",
+      "python_test": "test_episode_status_outcome_sources_must_be_grounded_in_episode_history",
+      "python_line": 753,
+      "status": "covered-scoped",
+      "go_test": "TestParticipantBehaviorHistoriesMatchPureReference/episode-status-unreported",
+      "behavior": "Exact ordered pure-helper findings from participant-history-reference.json; native compiled source/boundary ownership. Runtime recording/apply/store behavior is excluded."
+    },
+    {
+      "python_file": "implementations/python/tests/test_sem_215_participant_outcome_interpretation.py",
+      "python_test": "test_episode_status_outcome_source_must_match_episode_history_terminal_status",
+      "python_line": 776,
+      "status": "covered-scoped",
+      "go_test": "TestParticipantBehaviorHistoriesMatchPureReference/episode-status-mismatch",
+      "behavior": "Exact ordered pure-helper findings from participant-history-reference.json; native compiled source/boundary ownership. Runtime recording/apply/store behavior is excluded."
+    },
+    {
+      "python_file": "implementations/python/tests/test_sem_215_participant_outcome_interpretation.py",
+      "python_test": "test_episode_status_outcome_source_accepts_matching_terminal_episode_history",
+      "python_line": 802,
+      "status": "covered-scoped",
+      "go_test": "TestParticipantBehaviorHistoriesMatchPureReference/episode-status-matching",
+      "behavior": "Exact ordered pure-helper findings from participant-history-reference.json; native compiled source/boundary ownership. Runtime recording/apply/store behavior is excluded."
+    },
+    {
+      "python_file": "implementations/python/tests/test_sem_215_participant_outcome_interpretation.py",
+      "python_test": "test_provenance_required_outcome_sources_must_be_reported_at_runtime",
+      "python_line": 820,
+      "status": "covered-scoped",
+      "go_test": "TestParticipantOutcomesMatchPureReference/unreported-provenance-source",
+      "behavior": "Exact pure compiled outcome relation/local constructor verdicts from participant-relations-reference.json; named history vectors cover event joins. Runtime recording/apply/store behavior is excluded."
+    },
+    {
+      "python_file": "implementations/python/tests/test_sem_215_participant_outcome_interpretation.py",
+      "python_test": "test_declared_outcome_source_provenance_must_be_preserved_at_runtime",
+      "python_line": 844,
+      "status": "covered-scoped",
+      "go_test": "TestParticipantOutcomesMatchPureReference/source-provenance; missing-provenance",
+      "behavior": "Exact pure compiled outcome relation/local constructor verdicts from participant-relations-reference.json; named history vectors cover event joins. Runtime recording/apply/store behavior is excluded."
+    },
+    {
+      "python_file": "implementations/python/tests/test_sem_215_participant_outcome_interpretation.py",
+      "python_test": "test_outcome_source_provenance_cannot_expose_hidden_boundary_refs",
+      "python_line": 866,
+      "status": "covered-scoped",
+      "go_test": "TestParticipantBehaviorHistoriesMatchPureReference/alias-provenance-hidden-web; concealment-provenance",
+      "behavior": "Exact ordered pure-helper findings from participant-history-reference.json; native compiled source/boundary ownership. Runtime recording/apply/store behavior is excluded."
+    },
+    {
+      "python_file": "implementations/python/tests/test_sem_215_participant_outcome_interpretation.py",
+      "python_test": "test_outcome_interpretation_rule_refs_fail_closed",
+      "python_line": 893,
+      "status": "covered",
+      "go_test": "TestParticipantSourceGuardsMatchDirectReferenceTests/test_outcome_interpretation_rule_refs_fail_closed-0",
+      "behavior": "Exact authored source inputs captured by invoking this Python test method and recording actual source admission; native source/model owner must match the same refusal.13directcases cover SEM211/213/215 local shape/security guards."
+    },
+    {
+      "python_file": "implementations/python/tests/test_sem_215_participant_outcome_interpretation.py",
+      "python_test": "test_contract_schema_publishes_outcome_interpretation_payload",
+      "python_line": 902,
+      "status": "covered-scoped",
+      "go_test": "TestParticipantHistoryTransportPreservesPublishedNestedRecords/outcome-valid",
+      "behavior": "Published native history model admits and typed transport preserves outcome_interpretations. Python class-name/reflection assertion is representation-specific."
+    },
+    {
+      "python_file": "implementations/python/tests/test_issue_301_history_alias_visibility.py",
+      "python_test": "test_every_history_channel_rejects_hidden_declaration_aliases",
+      "python_line": 85,
+      "status": "covered",
+      "go_test": "TestParticipantBehaviorHistoriesMatchPureReference/alias-*-hidden-*",
+      "behavior": "Native compiled model carries exact authored/canonical/bare alias relation, time-indexed concealment and declared evidence. All4history channels tested; alias bypass mutant is killed by hidden-result test. No manually minted boundary model can cross native Model owner."
+    },
+    {
+      "python_file": "implementations/python/tests/test_issue_301_history_alias_visibility.py",
+      "python_test": "test_every_history_channel_accepts_visible_declaration_aliases",
+      "python_line": 91,
+      "status": "covered",
+      "go_test": "TestParticipantBehaviorHistoriesMatchPureReference/alias-*-observable-*",
+      "behavior": "Native compiled model carries exact authored/canonical/bare alias relation, time-indexed concealment and declared evidence. All4history channels tested; alias bypass mutant is killed by hidden-result test. No manually minted boundary model can cross native Model owner."
+    },
+    {
+      "python_file": "implementations/python/tests/test_issue_301_history_alias_visibility.py",
+      "python_test": "test_ambiguous_history_aliases_fail_closed",
+      "python_line": 96,
+      "status": "covered",
+      "go_test": "TestParticipantBehaviorHistoriesMatchPureReference/alias-*-ambiguous-web",
+      "behavior": "Native compiled model carries exact authored/canonical/bare alias relation, time-indexed concealment and declared evidence. All4history channels tested; alias bypass mutant is killed by hidden-result test. No manually minted boundary model can cross native Model owner."
+    },
+    {
+      "python_file": "implementations/python/tests/test_issue_301_history_alias_visibility.py",
+      "python_test": "test_a_concealment_blocks_a_previously_visible_alias",
+      "python_line": 101,
+      "status": "covered",
+      "go_test": "TestParticipantBehaviorHistoriesMatchPureReference/concealment-*",
+      "behavior": "Native compiled model carries exact authored/canonical/bare alias relation, time-indexed concealment and declared evidence. All4history channels tested; alias bypass mutant is killed by hidden-result test. No manually minted boundary model can cross native Model owner."
+    },
+    {
+      "python_file": "implementations/python/tests/test_issue_301_history_alias_visibility.py",
+      "python_test": "test_declared_evidence_aliases_remain_authorized",
+      "python_line": 110,
+      "status": "covered",
+      "go_test": "TestParticipantBehaviorHistoriesMatchPureReference/evidence-alias-*",
+      "behavior": "Native compiled model carries exact authored/canonical/bare alias relation, time-indexed concealment and declared evidence. All4history channels tested; alias bypass mutant is killed by hidden-result test. No manually minted boundary model can cross native Model owner."
+    },
+    {
+      "python_file": "implementations/python/tests/test_issue_301_history_alias_visibility.py",
+      "python_test": "test_hidden_authored_effect_targets_and_support_refs_fail_full_history_validation",
+      "python_line": 129,
+      "status": "covered",
+      "go_test": "TestParticipantBehaviorHistoriesMatchPureReference/alias-result-hidden-*",
+      "behavior": "Native compiled model carries exact authored/canonical/bare alias relation, time-indexed concealment and declared evidence. All4history channels tested; alias bypass mutant is killed by hidden-result test. No manually minted boundary model can cross native Model owner."
+    },
+    {
+      "python_file": "implementations/python/tests/test_issue_301_history_alias_visibility.py",
+      "python_test": "test_hidden_authored_provenance_fails_full_history_validation",
+      "python_line": 154,
+      "status": "covered",
+      "go_test": "TestParticipantBehaviorHistoriesMatchPureReference/alias-provenance-hidden-*",
+      "behavior": "Native compiled model carries exact authored/canonical/bare alias relation, time-indexed concealment and declared evidence. All4history channels tested; alias bypass mutant is killed by hidden-result test. No manually minted boundary model can cross native Model owner."
+    },
+    {
+      "python_file": "implementations/python/tests/test_issue_304_tool_support.py",
+      "python_test": "test_reference_processor_declares_tool_profile_semantics",
+      "python_line": 9,
+      "status": "covered",
+      "go_test": "TestProcessorManifestMatchesPublishedReference",
+      "behavior": "Entire public manifest JSON compared with independently generated Python reference, including tool semantics versions/features."
+    },
+    {
+      "python_file": "implementations/python/tests/test_issue_304_tool_support.py",
+      "python_test": "test_planning_rejects_undeclared_tool_support_without_authored_feature_refs",
+      "python_line": 20,
+      "status": "covered-scoped",
+      "go_test": "TestParticipantToolSupportMatchesPureReference; TestParticipantToolSupportRefusesCorruptedClaimsWithoutEcho",
+      "behavior": "Exact/bounded/scoped/role/imported/processor support and native malformed-claim refusal; Python private mutation diagnostics replaced by sealed-boundary refusal."
+    },
+    {
+      "python_file": "implementations/python/tests/test_issue_304_tool_support.py",
+      "python_test": "test_supported_profile_is_admitted",
+      "python_line": 61,
+      "status": "covered",
+      "go_test": "TestParticipantToolSupportMatchesPureReference/exact",
+      "behavior": "Same pure compiled tool support diagnostics as Python; exact+bounded capacity, selected role/profile ownership, scoped-feature and independent processor/backend authority. New reference vectors added and passed by realization agent."
+    },
+    {
+      "python_file": "implementations/python/tests/test_issue_304_tool_support.py",
+      "python_test": "test_capacity_is_evaluated_for_honest_bounded_support",
+      "python_line": 66,
+      "status": "covered",
+      "go_test": "TestParticipantToolSupportMatchesPureReference/bounded-inside,bounded-outside",
+      "behavior": "Same pure compiled tool support diagnostics as Python; exact+bounded capacity, selected role/profile ownership, scoped-feature and independent processor/backend authority. New reference vectors added and passed by realization agent."
+    },
+    {
+      "python_file": "implementations/python/tests/test_issue_304_tool_support.py",
+      "python_test": "test_scoped_profile_requires_independent_scoped_support",
+      "python_line": 74,
+      "status": "covered",
+      "go_test": "TestParticipantToolSupportMatchesPureReference/scoped-feature-independent",
+      "behavior": "Same pure compiled tool support diagnostics as Python; exact+bounded capacity, selected role/profile ownership, scoped-feature and independent processor/backend authority. New reference vectors added and passed by realization agent."
+    },
+    {
+      "python_file": "implementations/python/tests/test_issue_304_tool_support.py",
+      "python_test": "test_selected_processor_cannot_borrow_backend_claims",
+      "python_line": 80,
+      "status": "covered",
+      "go_test": "TestParticipantToolSupportMatchesPureReference/processor-independent",
+      "behavior": "Same pure compiled tool support diagnostics as Python; exact+bounded capacity, selected role/profile ownership, scoped-feature and independent processor/backend authority. New reference vectors added and passed by realization agent."
+    },
+    {
+      "python_file": "implementations/python/tests/test_issue_304_tool_support.py",
+      "python_test": "test_tool_free_scenario_retains_legacy_support",
+      "python_line": 91,
+      "status": "covered",
+      "go_test": "TestParticipantToolSupportMatchesPureReference/empty",
+      "behavior": "Same pure compiled tool support diagnostics as Python; exact+bounded capacity, selected role/profile ownership, scoped-feature and independent processor/backend authority. New reference vectors added and passed by realization agent."
+    },
+    {
+      "python_file": "implementations/python/tests/test_issue_304_tool_support.py",
+      "python_test": "test_static_conformance_does_not_promote_declaration_to_execution",
+      "python_line": 99,
+      "status": "excluded-runtime",
+      "go_test": "",
+      "behavior": "Actual runtime apply or backend conformance execution/probe/reporting belongs split runtime, not processor pure support relation."
+    },
+    {
+      "python_file": "implementations/python/tests/test_issue_304_tool_support.py",
+      "python_test": "test_unknown_constraint_cannot_be_accepted_as_exact_support",
+      "python_line": 121,
+      "status": "covered-scoped",
+      "go_test": "TestParticipantToolSupportRefusesCorruptedClaimsWithoutEcho/unknown-constraint",
+      "behavior": "Current native Go boundary refuses corrupted mutable DTO before support, with empty partial result and value-free fault/cause/diagnostics. Python mutation-after-construction helper instead emits insufficient-support diagnostic; intentional typed boundary disposition differs while refusal/security relation is preserved."
+    },
+    {
+      "python_file": "implementations/python/tests/test_issue_304_tool_support.py",
+      "python_test": "test_trial_compilation_checks_selected_processor_and_backend_before_sealing",
+      "python_line": 134,
+      "status": "excluded-1788",
+      "go_test": "",
+      "behavior": "Selected trial admission wrapper belongs issue1788; shared pure ParticipantSupport relation is scoped separately."
+    },
+    {
+      "python_file": "implementations/python/tests/test_issue_304_tool_support.py",
+      "python_test": "test_runtime_rechecks_backend_support_after_plan_diagnostics_are_removed",
+      "python_line": 165,
+      "status": "excluded-runtime",
+      "go_test": "",
+      "behavior": "Actual runtime apply or backend conformance execution/probe/reporting belongs split runtime, not processor pure support relation."
+    },
+    {
+      "python_file": "implementations/python/tests/test_issue_304_tool_support.py",
+      "python_test": "test_disclosed_weak_support_is_not_an_implicit_downgrade",
+      "python_line": 181,
+      "status": "covered",
+      "go_test": "TestParticipantToolSupportMatchesPureReference/weak",
+      "behavior": "Same pure compiled tool support diagnostics as Python; exact+bounded capacity, selected role/profile ownership, scoped-feature and independent processor/backend authority. New reference vectors added and passed by realization agent."
+    },
+    {
+      "python_file": "implementations/python/tests/test_issue_304_tool_support.py",
+      "python_test": "test_version_claim_and_mutated_capacity_fail_closed",
+      "python_line": 187,
+      "status": "covered-scoped",
+      "go_test": "TestParticipantToolSupportRefusesCorruptedClaimsWithoutEcho/private-version,negative-capacity",
+      "behavior": "Current native Go boundary refuses corrupted mutable DTO before support, with empty partial result and value-free fault/cause/diagnostics. Python mutation-after-construction helper instead emits insufficient-support diagnostic; intentional typed boundary disposition differs while refusal/security relation is preserved."
+    },
+    {
+      "python_file": "implementations/python/tests/test_issue_304_tool_support.py",
+      "python_test": "test_positive_support_requires_versions_presence_evidence_and_contracts",
+      "python_line": 205,
+      "status": "covered-scoped",
+      "go_test": "TestParticipantToolSupportRefusesCorruptedClaimsWithoutEcho/missing-versions,missing-presence,missing-evidence,missing-contract",
+      "behavior": "Current native Go boundary refuses corrupted mutable DTO before support, with empty partial result and value-free fault/cause/diagnostics. Python mutation-after-construction helper instead emits insufficient-support diagnostic; intentional typed boundary disposition differs while refusal/security relation is preserved."
+    },
+    {
+      "python_file": "implementations/python/tests/test_issue_304_tool_support.py",
+      "python_test": "test_portable_diagnostic_does_not_echo_private_claim_values",
+      "python_line": 229,
+      "status": "covered-scoped",
+      "go_test": "TestParticipantToolSupportRefusesCorruptedClaimsWithoutEcho/private-version",
+      "behavior": "Current native Go boundary refuses corrupted mutable DTO before support, with empty partial result and value-free fault/cause/diagnostics. Python mutation-after-construction helper instead emits insufficient-support diagnostic; intentional typed boundary disposition differs while refusal/security relation is preserved."
+    },
+    {
+      "python_file": "implementations/python/tests/test_issue_304_tool_support.py",
+      "python_test": "test_tool_support_rejects_blank_evidence_reference",
+      "python_line": 242,
+      "status": "covered-scoped",
+      "go_test": "TestParticipantToolSupportRefusesCorruptedClaimsWithoutEcho/blank-evidence",
+      "behavior": "Current native Go boundary refuses corrupted mutable DTO before support, with empty partial result and value-free fault/cause/diagnostics. Python mutation-after-construction helper instead emits insufficient-support diagnostic; intentional typed boundary disposition differs while refusal/security relation is preserved."
+    },
+    {
+      "python_file": "implementations/python/tests/test_issue_304_tool_support.py",
+      "python_test": "test_false_declaration_is_kept_separate_from_failed_observed_probe",
+      "python_line": 258,
+      "status": "excluded-runtime",
+      "go_test": "",
+      "behavior": "Actual runtime apply or backend conformance execution/probe/reporting belongs split runtime, not processor pure support relation."
+    },
+    {
+      "python_file": "implementations/python/tests/test_issue_304_tool_support.py",
+      "python_test": "test_tool_profile_requires_each_selected_participant_role",
+      "python_line": 307,
+      "status": "covered",
+      "go_test": "TestParticipantToolSupportMatchesPureReference/each-selected-role",
+      "behavior": "Same pure compiled tool support diagnostics as Python; exact+bounded capacity, selected role/profile ownership, scoped-feature and independent processor/backend authority. New reference vectors added and passed by realization agent."
+    },
+    {
+      "python_file": "implementations/python/tests/test_issue_304_tool_support.py",
+      "python_test": "test_imported_profiles_keep_independent_capacity",
+      "python_line": 321,
+      "status": "covered",
+      "go_test": "TestParticipantToolSupportMatchesPureReference/imported-capacities-independent",
+      "behavior": "Same pure compiled tool support diagnostics as Python; exact+bounded capacity, selected role/profile ownership, scoped-feature and independent processor/backend authority. New reference vectors added and passed by realization agent."
+    },
+    {
+      "python_file": "implementations/python/tests/test_issue_304_tool_support.py",
+      "python_test": "test_new_wire_coordinates_have_schema_and_model_shape_parity",
+      "python_line": 332,
+      "status": "covered-scoped",
+      "go_test": "TestParticipantToolSupportRefusesCorruptedClaimsWithoutEcho/unsupported-version; /empty-versions; /zero-capacity; /boolean-capacity",
+      "behavior": "Exact four source mutations are refused at native wire re-admission before support joins; source provenance is recorded in tool-support-reference.json."
+    },
+    {
+      "python_file": "implementations/python/tests/test_issue_304_tool_support.py",
+      "python_test": "test_public_manifest_emitter_revalidates_mutated_tool_coordinates",
+      "python_line": 353,
+      "status": "covered-scoped",
+      "go_test": "TestParticipantToolSupportRefusesCorruptedClaimsWithoutEcho/negative-capacity",
+      "behavior": "The native support API re-admits the mutable generated manifest DTO and rejects mutated negative capacity. Python backend protocol emitter itself is an adjacent owner, outside processor scope."
+    },
+    {
+      "python_file": "implementations/python/tests/test_issue_304_tool_support.py",
+      "python_test": "test_processor_capacity_is_independent_of_unbounded_backend_support",
+      "python_line": 363,
+      "status": "covered",
+      "go_test": "TestParticipantToolSupportMatchesPureReference/processor-capacity-independent",
+      "behavior": "Same pure compiled tool support diagnostics as Python; exact+bounded capacity, selected role/profile ownership, scoped-feature and independent processor/backend authority. New reference vectors added and passed by realization agent."
+    },
+    {
+      "python_file": "implementations/python/tests/test_issue_304_tool_support.py",
+      "python_test": "test_unsupported_claims_still_validate_their_references",
+      "python_line": 375,
+      "status": "covered-scoped",
+      "go_test": "TestParticipantToolSupportRefusesCorruptedClaimsWithoutEcho/unsupported-blank-disclosure",
+      "behavior": "Current native Go boundary refuses corrupted mutable DTO before support, with empty partial result and value-free fault/cause/diagnostics. Python mutation-after-construction helper instead emits insufficient-support diagnostic; intentional typed boundary disposition differs while refusal/security relation is preserved."
+    },
+    {
+      "python_file": "implementations/python/tests/test_sem_208_participant_behavior.py",
+      "python_test": "test_behavior_history_events_round_trip_with_compiled_addresses",
+      "python_line": 2148,
+      "status": "covered-scoped",
+      "go_test": "TestParticipantHistoryTransportPreservesPublishedNestedRecords/valid-shared-state; TestParticipantBehaviorHistoriesMatchPureReference/bare-action-address",
+      "behavior": "Native generated transport preserves compiled action addresses and shared/joint interaction fields; uncompiled local action address is rejected by pure event parser."
+    },
+    {
+      "python_file": "implementations/python/tests/test_sem_208_participant_behavior.py",
+      "python_test": "test_behavior_history_requires_realized_order_for_joint_action_sets",
+      "python_line": 2177,
+      "status": "covered-scoped",
+      "go_test": "TestParticipantBehaviorHistoriesMatchPureReference/joint-id-without-order",
+      "behavior": "Exact ordered pure-helper findings from participant-history-reference.json; native compiled source/boundary ownership. Runtime recording/apply/store behavior is excluded."
+    },
+    {
+      "python_file": "implementations/python/tests/test_sem_208_participant_behavior.py",
+      "python_test": "test_behavior_history_requires_shared_state_refs_for_shared_state_interactions",
+      "python_line": 2191,
+      "status": "covered-scoped",
+      "go_test": "TestParticipantBehaviorHistoriesMatchPureReference/shared-state-empty; TestParticipantHistoryTransportPreservesPublishedNestedRecords/valid-shared-state",
+      "behavior": "Empty shared_state_refs fails local history construction; valid shared-state payload is preserved."
+    },
+    {
+      "python_file": "implementations/python/tests/test_sem_208_participant_behavior.py",
+      "python_test": "test_behavior_history_payload_rejects_string_shared_state_refs",
+      "python_line": 2207,
+      "status": "covered-scoped",
+      "go_test": "TestParticipantBehaviorHistoriesMatchPureReference/shared-state-string",
+      "behavior": "Exact ordered pure-helper findings from participant-history-reference.json; native compiled source/boundary ownership. Runtime recording/apply/store behavior is excluded."
+    },
+    {
+      "python_file": "implementations/python/tests/test_sem_208_participant_behavior.py",
+      "python_test": "test_behavior_history_requires_terminal_observation_for_action_instance",
+      "python_line": 2226,
+      "status": "covered-scoped",
+      "go_test": "TestParticipantBehaviorHistoriesMatchPureReference/missing-terminal",
+      "behavior": "Exact ordered pure-helper findings from participant-history-reference.json; native compiled source/boundary ownership. Runtime recording/apply/store behavior is excluded."
+    },
+    {
+      "python_file": "implementations/python/tests/test_sem_208_participant_behavior.py",
+      "python_test": "test_behavior_history_pairs_state_transition_and_terminal_observation",
+      "python_line": 2255,
+      "status": "covered-scoped",
+      "go_test": "TestParticipantBehaviorHistoriesMatchPureReference/missing-transition; missing-attempt; duplicate-attempt",
+      "behavior": "Exact ordered pure-helper findings from participant-history-reference.json; native compiled source/boundary ownership. Runtime recording/apply/store behavior is excluded."
+    },
+    {
+      "python_file": "implementations/python/tests/test_sem_208_participant_behavior.py",
+      "python_test": "test_behavior_history_rejects_observation_details_that_expose_hidden_truth",
+      "python_line": 2301,
+      "status": "covered-scoped",
+      "go_test": "TestParticipantBehaviorHistoriesMatchPureReference/concealment-details",
+      "behavior": "Exact ordered pure-helper findings from participant-history-reference.json; native compiled source/boundary ownership. Runtime recording/apply/store behavior is excluded."
+    },
+    {
+      "python_file": "implementations/python/tests/test_sem_208_participant_behavior.py",
+      "python_test": "test_behavior_history_rejects_future_episode_close_disclosure_in_observation_details",
+      "python_line": 2332,
+      "status": "covered-scoped",
+      "go_test": "TestParticipantBehaviorHistoriesMatchPureReference/future-anchor-hidden-visible; future-anchor-hidden-disclosed",
+      "behavior": "Exact ordered pure-helper findings from participant-history-reference.json; native compiled source/boundary ownership. Runtime recording/apply/store behavior is excluded."
+    },
+    {
+      "python_file": "implementations/python/tests/test_sem_208_participant_behavior.py",
+      "python_test": "test_behavior_history_rejects_unresolved_episode_close_transition_anchor",
+      "python_line": 2381,
+      "status": "covered-scoped",
+      "go_test": "TestParticipantBehaviorHistoriesMatchPureReference/episode-close-unresolved; episode-close-resolved; episode-close-mapping-remains-unresolved",
+      "behavior": "Exact ordered pure-helper findings from participant-history-reference.json; native compiled source/boundary ownership. Runtime recording/apply/store behavior is excluded."
+    },
+    {
+      "python_file": "implementations/python/tests/test_sem_208_participant_behavior.py",
+      "python_test": "test_behavior_history_does_not_import_unanchored_lower_order_transition_snapshot",
+      "python_line": 2425,
+      "status": "covered-scoped",
+      "go_test": "TestParticipantBehaviorHistoriesMatchPureReference/unanchored-lower-order-snapshot",
+      "behavior": "Exact ordered pure-helper findings from participant-history-reference.json; native compiled source/boundary ownership. Runtime recording/apply/store behavior is excluded."
+    },
+    {
+      "python_file": "implementations/python/tests/test_sem_208_participant_behavior.py",
+      "python_test": "test_behavior_history_rejects_nested_observation_details_payload_side_channel",
+      "python_line": 2509,
+      "status": "covered-scoped",
+      "go_test": "TestParticipantBehaviorHistoriesMatchPureReference/nested-detail-side-channel",
+      "behavior": "Exact ordered pure-helper findings from participant-history-reference.json; native compiled source/boundary ownership. Runtime recording/apply/store behavior is excluded."
+    },
+    {
+      "python_file": "implementations/python/tests/test_sem_208_participant_behavior.py",
+      "python_test": "test_behavior_history_rejects_caller_supplied_observation_effective_order",
+      "python_line": 2533,
+      "status": "covered-scoped",
+      "go_test": "TestParticipantBehaviorHistoriesMatchPureReference/unsupported-details",
+      "behavior": "Exact ordered pure-helper findings from participant-history-reference.json; native compiled source/boundary ownership. Runtime recording/apply/store behavior is excluded."
+    },
+    {
+      "python_file": "implementations/python/tests/test_sem_208_participant_behavior.py",
+      "python_test": "test_behavior_history_rejects_details_on_non_observation_events",
+      "python_line": 2563,
+      "status": "covered-scoped",
+      "go_test": "TestParticipantBehaviorHistoriesMatchPureReference/details-on-attempt",
+      "behavior": "Exact ordered pure-helper findings from participant-history-reference.json; native compiled source/boundary ownership. Runtime recording/apply/store behavior is excluded."
+    },
+    {
+      "python_file": "implementations/python/tests/test_sem_208_participant_behavior.py",
+      "python_test": "test_behavior_history_rejects_unresolved_visibility_transition_anchor",
+      "python_line": 2585,
+      "status": "covered-scoped",
+      "go_test": "TestParticipantBehaviorHistoriesMatchPureReference/future-anchor-hidden-visible",
+      "behavior": "Exact ordered pure-helper findings from participant-history-reference.json; native compiled source/boundary ownership. Runtime recording/apply/store behavior is excluded."
+    },
+    {
+      "python_file": "implementations/python/tests/test_sem_208_participant_behavior.py",
+      "python_test": "test_behavior_history_rejects_duplicate_realized_order_in_joint_action_set",
+      "python_line": 2608,
+      "status": "covered-scoped",
+      "go_test": "TestParticipantJointActionsMatchPureReference/duplicate; TestParticipantJointActionsMatchPureReference/large-order-duplicate; TestParticipantJointActionsMatchPureReference/large-order-unique",
+      "behavior": "Exact ordered pure-helper findings from participant-history-reference.json; native compiled source/boundary ownership. Runtime recording/apply/store behavior is excluded."
+    },
+    {
+      "python_file": "implementations/python/tests/test_sem_208_participant_behavior.py",
+      "python_test": "test_behavior_history_rejects_state_transition_observation_digest_mismatch",
+      "python_line": 2635,
+      "status": "covered-scoped",
+      "go_test": "TestParticipantBehaviorHistoriesMatchPureReference/digest-pair",
+      "behavior": "Exact ordered pure-helper findings from participant-history-reference.json; native compiled source/boundary ownership. Runtime recording/apply/store behavior is excluded."
+    },
+    {
+      "python_file": "implementations/python/tests/test_sem_208_participant_behavior.py",
+      "python_test": "test_behavior_history_allows_orphaned_action_observation_without_state_digest",
+      "python_line": 2685,
+      "status": "covered-scoped",
+      "go_test": "TestParticipantBehaviorHistoriesMatchPureReference/orphaned-no-state",
+      "behavior": "Exact ordered pure-helper findings from participant-history-reference.json; native compiled source/boundary ownership. Runtime recording/apply/store behavior is excluded."
+    },
+    {
+      "python_file": "implementations/python/tests/test_sem_208_participant_behavior.py",
+      "python_test": "test_behavior_history_schema_is_published_as_closed_world_contract",
+      "python_line": 2720,
+      "status": "covered-scoped",
+      "go_test": "TestParticipantHistoryPublishedShapeRefusesUnknownFields; TestParticipantHistoryTransportPreservesPublishedNestedRecords",
+      "behavior": "Native published owner rejects unknown outer/detail fields and preserves all typed nested payload families. Python schema-dictionary title/reflection representation is not a Go API."
+    },
+    {
+      "python_file": "implementations/python/tests/test_sem_208_participant_behavior.py",
+      "python_test": "test_behavior_history_violation_omits_the_event_parser_exception_text",
+      "python_line": 2738,
+      "status": "covered-scoped",
+      "go_test": "TestParticipantBehaviorHistoriesMatchPureReference/malformed-entry; multiple-malformed",
+      "behavior": "Exact ordered pure-helper findings from participant-history-reference.json; native compiled source/boundary ownership. Runtime recording/apply/store behavior is excluded."
+    },
+    {
+      "python_file": "implementations/python/tests/test_issue_301_projection_boundaries.py",
+      "python_test": "test_projection_rejects_missing_participant_declarations",
+      "python_line": 87,
+      "status": "excluded-1794",
+      "go_test": "",
+      "behavior": "Explicit decision-surface v1/v2 projection/exposure module; issue1794 owns those declared exclusions."
+    },
+    {
+      "python_file": "implementations/python/tests/test_issue_301_projection_boundaries.py",
+      "python_test": "test_projection_preserves_declared_participant_actions",
+      "python_line": 101,
+      "status": "excluded-1794",
+      "go_test": "",
+      "behavior": "Explicit decision-surface v1/v2 projection/exposure module; issue1794 owns those declared exclusions."
+    },
+    {
+      "python_file": "implementations/python/tests/test_issue_301_projection_boundaries.py",
+      "python_test": "test_binding_is_only_offered_at_its_declared_boundaries",
+      "python_line": 108,
+      "status": "excluded-1794",
+      "go_test": "",
+      "behavior": "Explicit decision-surface v1/v2 projection/exposure module; issue1794 owns those declared exclusions."
+    }
+  ]
+}

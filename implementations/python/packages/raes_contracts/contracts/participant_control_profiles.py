@@ -34,6 +34,13 @@ class ParticipantControlTeachingProfileModel(ContractModel):
 
 
 def load_teaching_influence_profile() -> ParticipantControlTeachingProfileModel:
+    """Read and validate the packaged teaching-influence profile within 16,384 bytes.
+
+    The path is fixed by the contract corpus rather than a caller or provider.
+    Damaged, oversized or invalid profile data raises ``ValueError``.
+    This function performs no network access and grants no control authority.
+    """
+
     # Constant packaged path, bounded read before decode; no provider-selected I/O.
     path = corpus_family_root(PROFILES) / "participant-control" / "teaching-influence-rev1.json"
     try:

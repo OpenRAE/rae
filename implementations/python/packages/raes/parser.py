@@ -341,21 +341,26 @@ def parse_sdl(
 
     Args:
         content: Raw YAML string.
-        path: Optional file path for error messages.
-        skip_semantic_validation: If True, only run Pydantic structural
-            validation (useful for partial scenarios during development).
+        path: Source path for diagnostics and file-backed import resolution.
+            Imports can read trust settings and acquire modules.
+        skip_semantic_validation: Skip semantic checks for authoring input.
+            Materialized roots always undergo semantic admission.
         source_format: Versioned concrete-syntax profile identifier.
         migration_policy: Strict rejection or explicit acceptance of recognized
             legacy field/merge syntax with retained diagnostics.
         limits: Source and alias-processing resource limits.
 
     Returns:
-        A ``Scenario``, or ``ExpandedScenario`` when file-backed module imports
-        are present. Unless explicitly skipped, semantic validation has run.
+        A ``Scenario``, ``ExpandedScenario`` or ``MaterializedScenario``.
+        Imports produce an expanded authoring object.
+        A materialized root remains a description, not an executable snapshot.
+        Authoring semantic validation runs unless explicitly skipped.
+        Materialized roots always undergo semantic admission.
 
     Raises:
         SDLParseError: If YAML parsing fails or the data isn't a dict.
         SDLValidationError: If semantic validation finds errors.
+        SDLImportError: If import admission or resolution fails.
     """
     source_diagnostics: list[SDLParseDiagnostic] = []
     source_ranges: dict[str, SDLSourceRange] = {}
@@ -488,9 +493,14 @@ def parse_sdl_sources(
 
 
 def parse_sdl_file(path: Path, **kwargs: Any) -> Scenario | ExpandedScenario | MaterializedScenario:
-    """Parse an SDL file into a normalized or expanded authoring object.
+    """Read bounded UTF-8 SDL bytes and parse the resulting source text.
 
-    Convenience wrapper around ``parse_sdl()`` that reads from a file.
+    ``kwargs`` forwards the keyword options of :func:`parse_sdl`, including
+    ``limits``, ``migration_policy`` and ``skip_semantic_validation``.
+    The result and SDL exceptions match that function.
+    Missing files raise ``FileNotFoundError``; other file failures can raise ``OSError``.
+    File-backed imports can read trust settings and acquire modules.
+    Use :func:`parse_sdl_sources` for caller-supplied, filesystem-independent input.
     """
     limits = kwargs.get("limits", DEFAULT_PARSER_LIMITS)
     document = read_sdl_source(path, limits=limits)

@@ -1,0 +1,113 @@
+{
+  "reference": "Python model validation of timing_limits.value",
+  "cases": [
+    {
+      "contract": "realized-time-model-v1",
+      "numerator": 1,
+      "denominator": 2,
+      "admitted": true
+    },
+    {
+      "contract": "experiment-run-v1",
+      "numerator": 1,
+      "denominator": 2,
+      "admitted": true
+    },
+    {
+      "contract": "realized-time-model-v1",
+      "numerator": 2,
+      "denominator": 4,
+      "admitted": false
+    },
+    {
+      "contract": "experiment-run-v1",
+      "numerator": 2,
+      "denominator": 4,
+      "admitted": false
+    },
+    {
+      "contract": "realized-time-model-v1",
+      "numerator": 1,
+      "denominator": 1,
+      "admitted": true
+    },
+    {
+      "contract": "experiment-run-v1",
+      "numerator": 1,
+      "denominator": 1,
+      "admitted": true
+    },
+    {
+      "contract": "realized-time-model-v1",
+      "numerator": 2,
+      "denominator": 1,
+      "admitted": true
+    },
+    {
+      "contract": "experiment-run-v1",
+      "numerator": 2,
+      "denominator": 1,
+      "admitted": true
+    },
+    {
+      "contract": "realized-time-model-v1",
+      "numerator": 3,
+      "denominator": 9,
+      "admitted": false
+    },
+    {
+      "contract": "experiment-run-v1",
+      "numerator": 3,
+      "denominator": 9,
+      "admitted": false
+    },
+    {
+      "contract": "realized-time-model-v1",
+      "numerator": 3,
+      "denominator": 7,
+      "admitted": true
+    },
+    {
+      "contract": "experiment-run-v1",
+      "numerator": 3,
+      "denominator": 7,
+      "admitted": true
+    },
+    {
+      "contract": "realized-time-model-v1",
+      "numerator": 0,
+      "denominator": 1,
+      "admitted": false
+    },
+    {
+      "contract": "experiment-run-v1",
+      "numerator": 0,
+      "denominator": 1,
+      "admitted": false
+    },
+    {
+      "contract": "realized-time-model-v1",
+      "numerator": 1,
+      "denominator": 0,
+      "admitted": false
+    },
+    {
+      "contract": "experiment-run-v1",
+      "numerator": 1,
+      "denominator": 0,
+      "admitted": false
+    },
+    {
+      "contract": "realized-time-model-v1",
+      "numerator": -1,
+      "denominator": 2,
+      "admitted": false
+    },
+    {
+      "contract": "experiment-run-v1",
+      "numerator": -1,
+      "denominator": 2,
+      "admitted": false
+    }
+  ]
+}

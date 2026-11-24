@@ -1,0 +1,14 @@
+{
+  "args": [
+    "semantic-comparison-request-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:fda914331c743289b7d87675fd132bda23dd822973c99af9d0386a165002e47f"
+  },
+  "name": "semantic-comparison-request-v1/routed/contracts/fixtures/semantic-comparison/semantic-comparison-request-v1/valid/scenario.json",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

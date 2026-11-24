@@ -360,6 +360,7 @@ def test_canonical_verifier_preserves_proof_install_and_full_verify_graph() -> N
     # The monolithic verify job is now distributed across deterministic shards and
     # parallel lanes (#935); the reusable graph remains the single full-gate owner.
     assert set(workflow["jobs"]) == {
+        "trust-ref",
         "proof-archive",
         "generic-tool-local-inputs",
         "test-shard",
@@ -368,8 +369,10 @@ def test_canonical_verifier_preserves_proof_install_and_full_verify_graph() -> N
         "proof",
         "model-check",
         "coverage-reduce",
+        "go-test",
         "go",
         "go-architecture",
+        "governance-parity",
         "parity-corpus",
         "parity-inputs",
         "sonar",
@@ -467,8 +470,10 @@ def test_canonical_verifier_preserves_proof_install_and_full_verify_graph() -> N
         "proof",
         "model-check",
         "coverage-reduce",
+        "go-test",
         "go",
         "go-architecture",
+        "governance-parity",
         "parity-corpus",
     }
 
@@ -1046,33 +1051,94 @@ def test_every_workflow_pins_every_third_party_action_to_a_full_sha() -> None:
             assert FULL_SHA_USE.fullmatch(action_ref), f"{path.name}: unpinned action {action_ref!r}"
 
 
+_EXPRESSION_TOKEN = re.compile(
+    r"\s*(?:(?P<string>'(?:[^']|'')*')|(?P<name>[A-Za-z_][\w.-]*)|(?P<op>==|!=|&&|\|\||[()]))"
+)
+
+
+def _expression_tokens(expression: str) -> list[tuple[str, str]]:
+    tokens: list[tuple[str, str]] = []
+    position = 0
+    while position < len(expression.rstrip()):
+        match = _EXPRESSION_TOKEN.match(expression, position)
+        assert match is not None, f"unsupported expression syntax at {expression[position:]!r}"
+        kind = match.lastgroup
+        assert kind is not None
+        tokens.append((kind, match.group(kind)))
+        position = match.end()
+    return tokens
+
+
 def _codeql_value(expression: str, base: str, ref: str, enabled: str = "true") -> Any:
-    """Evaluate this workflow's string/boolean/JSON expression subset."""
-    node = shutil.which("node")
-    assert node is not None, "The workflow tests require the existing Node runtime"
-    expression = expression.removeprefix("${{").removesuffix("}}").strip()
-    script = """
-const [expression, base, ref, enabled] = process.argv.slice(1);
-const evaluate = new Function('github', 'vars', 'fromJSON', 'return (' + expression + ')');
-console.log(JSON.stringify(evaluate(
-  {base_ref: base, ref_name: ref}, {CODEQL_ADVANCED_ENABLED: enabled}, JSON.parse)));
-"""
-    return json.loads(
-        subprocess.check_output([node, "-e", script, expression, base, ref, enabled], text=True, timeout=10)
-    )
+    """Evaluate the GitHub expression subset that the CodeQL workflow uses.
+
+    The subset is string literals, context names, ==, !=, && and || with parentheses.
+    String equality ignores case, and && and || return an operand, as in GitHub Actions.
+    """
+    context = {"github.base_ref": base, "github.ref_name": ref, "vars.CODEQL_ADVANCED_ENABLED": enabled}
+    tokens = _expression_tokens(expression.removeprefix("${{").removesuffix("}}").strip())
+    position = 0
+
+    def take(expected: str | None = None) -> tuple[str, str]:
+        nonlocal position
+        assert position < len(tokens), f"incomplete expression {expression!r}"
+        token = tokens[position]
+        assert expected is None or token[1] == expected, f"expected {expected!r} in {expression!r}"
+        position += 1
+        return token
+
+    def peek() -> str | None:
+        return tokens[position][1] if position < len(tokens) else None
+
+    def primary() -> Any:
+        kind, text = take()
+        if text == "(":
+            value = disjunction()
+            take(")")
+            return value
+        if kind == "string":
+            return text[1:-1].replace("''", "'")
+        assert kind == "name", f"unexpected {text!r} in {expression!r}"
+        if text in {"true", "false"}:
+            return text == "true"
+        assert text in context, f"unknown context {text!r} in {expression!r}"
+        return context[text]
+
+    def comparison() -> Any:
+        value = primary()
+        while peek() in {"==", "!="}:
+            operator = take()[1]
+            right = primary()
+            assert isinstance(value, str), f"non-string comparison in {expression!r}"
+            assert isinstance(right, str), f"non-string comparison in {expression!r}"
+            value = (value.casefold() == right.casefold()) is (operator == "==")
+        return value
+
+    def conjunction() -> Any:
+        value = comparison()
+        while peek() == "&&":
+            take()
+            right = comparison()
+            value = right if value not in ("", False) else value
+        return value
+
+    def disjunction() -> Any:
+        value = conjunction()
+        while peek() == "||":
+            take()
+            right = conjunction()
+            value = value if value not in ("", False) else right
+        return value
+
+    value = disjunction()
+    assert position == len(tokens), f"trailing tokens in {expression!r}"
+    return value
 
 
-@pytest.mark.parametrize("branch", ["main", "dev", "go-cutover"])
-@pytest.mark.parametrize("event", ["push", "pull_request"])
-def test_codeql_selects_languages_for_the_target_branch(branch: str, event: str) -> None:
+def test_codeql_scans_every_language_on_every_target_branch() -> None:
     job = _load(WORKFLOWS / "codeql.yml")["jobs"]["analyze"]
-    base, ref = (branch, "1874-feature") if event == "pull_request" else ("", branch)
-    languages = _codeql_value(job["strategy"]["matrix"]["language"], base, ref)
-    expected = {"actions", "python"}
-    if branch != "go-cutover":
-        expected.add("javascript-typescript")
-    assert set(languages) == expected
-    assert len(languages) == len(expected)
+    # Every target branch contains the release helper's CJS source.
+    assert job["strategy"]["matrix"]["language"] == ["actions", "python", "javascript-typescript"]
 
 
 @pytest.mark.parametrize("enabled", ["", "false", "true"])
@@ -1755,13 +1821,16 @@ def test_github_attachment_refuses_preexisting_conflicting_evidence(tmp_path: Pa
 def test_go_lanes_enforce_each_go_engineering_standard() -> None:
     """The ADR-121 gates stay in the canonical graph for each Go module."""
 
-    go = _load(CANONICAL_PATH)["jobs"]["go"]
+    jobs = _load(CANONICAL_PATH)["jobs"]
+    go = jobs["go"]
+    tests = jobs["go-test"]
     assert go["env"] == {"GOTOOLCHAIN": "local", "GOFLAGS": "-mod=readonly", "GOWORK": "off"}
+    assert tests["env"] == {"GOTOOLCHAIN": "local", "GOFLAGS": "-mod=readonly", "GOWORK": "off"}
     assert [entry["path"] for entry in go["strategy"]["matrix"]["include"]] == [
         "implementations/go",
         "implementations/tooling/go",
     ]
-    scripts = "\n".join(step.get("run", "") for step in go["steps"])
+    scripts = "\n".join(step.get("run", "") for job in (go, tests) for step in job["steps"])
     for command in (
         "install-go public-ubuntu-24.04-x86_64",
         "go mod tidy -diff",
@@ -1769,7 +1838,10 @@ def test_go_lanes_enforce_each_go_engineering_standard() -> None:
         'golangci-lint run --config "${GITHUB_WORKSPACE}/implementations/.golangci.yml" ./...',
         "go build ./...",
         'go vet -vettool="$(command -v raesvet)" ./...',
-        "go test -v -race -covermode=atomic -coverprofile=cover.out ./...",
+        "go test -v",
+        "test_flags=(-race)",
+        "test_flags=(-covermode=atomic -coverpkg=./... -coverprofile=cover.out)",
+        "-p 1 -timeout 20m",
         "exit !(total >= 90)",
         "go test -list '^Fuzz' ./...",
         '-fuzztime 20s "${package}" || exit 1',
@@ -1782,9 +1854,131 @@ def test_go_lanes_enforce_each_go_engineering_standard() -> None:
     assert mutation["env"]["GIT_CONFIG_VALUE_0"] == "true"
     # The job runs pull request code, so it must not receive a secret.
     assert "secrets." not in json.dumps(go)
+    assert "secrets." not in json.dumps(tests)
+    prepare = _named_step(go, "Prepare pinned product dependencies for offline consumer API tests")
+    assert prepare["if"] == "matrix.name == 'tooling'"
+    assert prepare["run"] == "go -C implementations/go mod download"
+    assert go["steps"].index(prepare) < go["steps"].index(
+        _named_step(go, "Merge complete module coverage and enforce the floor")
+    )
     # Gremlins ignores a threshold flag, so the thresholds are numbers in its configuration file.
     gremlins = yaml.safe_load((REPO_ROOT / "implementations" / ".gremlins.yaml").read_text(encoding="utf-8"))
     assert gremlins == {"unleash": {"threshold": {"efficacy": 99.99, "mutant-coverage": 99.99}}}
+
+
+def test_go_test_groups_collect_and_merge_complete_module_execution() -> None:
+    """Module coverage includes SDK calls, and missing or duplicate packages cannot pass."""
+
+    jobs = _load(CANONICAL_PATH)["jobs"]
+    tests = jobs["go-test"]
+    go = jobs["go"]
+    assert tests["needs"] == "trust-ref"
+    assert "go-test" in go["needs"]
+    assert tests["timeout-minutes"] == 25
+    assert go["timeout-minutes"] == "${{ inputs.exhaustive-mutations && 360 || 25 }}"
+    groups = tests["strategy"]["matrix"]["include"]
+    assert tests["strategy"]["matrix"]["mode"] == ["race", "coverage"]
+    assert set(tests["strategy"]["matrix"]["group"]) == {group["group"] for group in groups}
+    modules = go["strategy"]["matrix"]["include"]
+    assert len({(group["module"], group["group"]) for group in groups}) == len(groups)
+    for module in modules:
+        selected = [group for group in groups if group["module"] == module["name"]]
+        assert len(selected) == module["shards"]
+        assert {group["path"] for group in selected} == {module["path"]}
+        assert all(group["packages"].startswith("./") for group in selected)
+    collection = _named_step(tests, "Run the package group")
+    assert collection["env"]["TEST_MODE"] == "${{ matrix.mode }}"
+    collector = collection["run"]
+    assert "case" in collector
+    assert "test_flags=(-race)" in collector
+    assert "test_flags=(-covermode=atomic -coverpkg=./... -coverprofile=cover.out)" in collector
+    assert "-coverpkg=./..." in collector
+    assert "-test.gocoverdir=" in collector
+    assert 'go list "${test_packages[@]}"' in collector
+    assert 'cp cover.out "${coverage_dir}/package-profile.out"' in collector
+    carry = _named_step(tests, "Carry the complete package-group execution data")
+    assert carry["if"] == "matrix.mode == 'coverage'"
+    reducer = _named_step(go, "Merge complete module coverage and enforce the floor")["run"]
+    for command in (
+        "go list ./...",
+        "diff -u",
+        "go tool covdata merge",
+        "go tool covdata textfmt",
+        "exit !(total >= 90)",
+    ):
+        assert command in reducer
+    assert "covmeta.*" in reducer
+    assert "covcounters.*" in reducer
+    assert "expected-go-statements.txt" in reducer
+    assert "actual-go-statements.txt" in reducer
+    assert "go-test" in jobs["gate"]["needs"]
+    gate = _named_step(jobs["gate"], "Aggregate required job results")
+    assert gate["env"]["GO_TEST_RESULT"] == "${{ needs.go-test.result }}"
+    assert '"go-test:${GO_TEST_RESULT}"' in gate["run"]
+
+
+@pytest.mark.parametrize("layout", ["single-root", "single-named", "multiple-named"])
+@pytest.mark.parametrize(
+    "defect", ["none", "extra-group", "duplicate-package", "missing-counters", "missing-statement", "below-floor"]
+)
+def test_go_coverage_reducer_handles_download_layouts_and_refuses_incomplete_data(
+    tmp_path: Path, layout: str, defect: str
+) -> None:
+    """Exercise the real reducer shell; the Go stub supplies fixed native-tool outputs."""
+
+    reducer = _named_step(_load(CANONICAL_PATH)["jobs"]["go"], "Merge complete module coverage and enforce the floor")[
+        "run"
+    ]
+    groups = 2 if layout == "multiple-named" else 1
+    root = tmp_path / "go-shards"
+    profiles = []
+    packages = []
+    for index in range(groups):
+        directory = root if layout == "single-root" else root / f"group-{index}"
+        data = directory / "data"
+        data.mkdir(parents=True)
+        (data / "covmeta.test").write_text("metadata", encoding="utf-8")
+        if defect != "missing-counters":
+            (data / "covcounters.test").write_text("counters", encoding="utf-8")
+        package = f"example/package{index}"
+        packages.append(package)
+        inventory = [package, package] if defect == "duplicate-package" else [package]
+        (directory / "packages.txt").write_text("\n".join(inventory) + "\n", encoding="utf-8")
+        profile = f"{package}/source.go:1.1,2.2 1 1\n"
+        profiles.append(profile)
+        (directory / "package-profile.out").write_text("mode: atomic\n" + profile, encoding="utf-8")
+    if defect == "extra-group":
+        extra = root / "unexpected" / "data" if layout == "single-root" else root / "data"
+        extra.mkdir(parents=True)
+    merged = profiles[:-1] if defect == "missing-statement" else profiles
+    (tmp_path / "merged.out").write_text("mode: atomic\n" + "".join(merged), encoding="utf-8")
+    (tmp_path / "packages.list").write_text("\n".join(packages) + "\n", encoding="utf-8")
+    binary = tmp_path / "bin"
+    binary.mkdir()
+    go = binary / "go"
+    go.write_text(
+        '#!/bin/sh\nset -eu\ncase "$*" in\n'
+        '"list ./...") cat "$RUNNER_TEMP/packages.list" ;;\n'
+        '"tool covdata merge "*) : ;;\n'
+        '"tool covdata textfmt "*) cp "$RUNNER_TEMP/merged.out" cover.out ;;\n'
+        '"tool cover -func=cover.out") printf "total: (statements) %s%%\\n" "$TEST_COVERAGE" ;;\n'
+        "*) exit 99 ;;\nesac\n",
+        encoding="utf-8",
+    )
+    go.chmod(0o700)
+    environment = dict(
+        os.environ,
+        RUNNER_TEMP=str(tmp_path),
+        EXPECTED_GROUPS=str(groups),
+        TEST_COVERAGE="89.9" if defect == "below-floor" else "91.0",
+    )
+    environment["PATH"] = str(binary) + os.pathsep + environment["PATH"]
+    result = subprocess.run(
+        ["bash", "-c", reducer], cwd=tmp_path, env=environment, capture_output=True, text=True, check=False
+    )
+    assert (result.returncode == 0) == (defect == "none"), result.stdout + result.stderr
+    if defect == "none":
+        assert "Go module statement coverage 91.0%" in result.stdout
 
 
 def test_go_architecture_check_runs_once_from_the_repository_root() -> None:
@@ -1796,6 +1990,7 @@ def test_go_architecture_check_runs_once_from_the_repository_root() -> None:
     assert "strategy" not in job
     prepare = _named_step(job, "Prepare pinned dependencies for offline API inspection")
     assert "go -C implementations/go mod download" in prepare["run"]
+    assert "go -C implementations/tooling/go mod download" in prepare["run"]
     assert job["steps"].index(prepare) < job["steps"].index(
         _named_step(job, "Check the Go code against the architecture model")
     )
@@ -1840,3 +2035,99 @@ def test_parity_corpus_check_runs_in_the_gate_and_uploads_a_fresh_corpus() -> No
     assert enforce["if"] == "steps.corpus.outcome != 'success'"
     assert enforce["run"] == "exit 1"
     assert "parity-corpus" in workflow["jobs"]["gate"]["needs"]
+
+
+def test_phase_e_finalizes_go_integration_deliveries() -> None:
+    workflow = _load(WORKFLOWS / "ground-control-phase-e.yml")
+    assert "go-cutover" in workflow["on"]["pull_request"]["branches"]
+    assert workflow["on"]["pull_request"]["types"] == ["closed"]
+    assert "github.event.pull_request.merged == true" in workflow["jobs"]["finalize"]["if"]
+
+
+def test_every_canonical_job_waits_for_the_trusted_ref_gate() -> None:
+    """Each job that checks out inputs.ref runs only after trust-ref admits it (CWE-349)."""
+
+    jobs = _load(CANONICAL_PATH)["jobs"]
+
+    def needs(name: str) -> list[str]:
+        value = jobs[name].get("needs") or []
+        return [value] if isinstance(value, str) else list(value)
+
+    def reaches_gate(name: str, seen: frozenset[str] = frozenset()) -> bool:
+        return any(
+            dependency == "trust-ref" or (dependency not in seen and reaches_gate(dependency, seen | {name}))
+            for dependency in needs(name)
+        )
+
+    assert "ref" not in str(jobs["trust-ref"]["steps"][0].get("with", {}))
+    assert [name for name in jobs if name != "trust-ref" and not reaches_gate(name)] == []
+
+
+def _git(repository: Path, *arguments: str) -> str:
+    return subprocess.run(
+        ["git", *arguments], cwd=repository, check=True, capture_output=True, text=True
+    ).stdout.strip()
+
+
+@pytest.mark.integration
+@pytest.mark.parametrize(
+    ("requested", "exit_code", "message"),
+    [
+        ("trigger", 0, "is the triggering commit"),
+        ("ancestor", 0, "is in the history of"),
+        ("sibling", 1, "Refusing"),
+        ("absent", 1, "Refusing"),
+        ("uppercase", 1, "full lowercase commit SHA"),
+    ],
+)
+def test_trusted_ref_gate_admits_only_the_triggering_history(
+    tmp_path: Path, requested: str, exit_code: int, message: str
+) -> None:
+    if shutil.which("bash") is None or shutil.which("git") is None:
+        pytest.skip("the trusted-ref gate requires bash and git")
+    repository = tmp_path / "repository"
+    repository.mkdir()
+    environment = {
+        **os.environ,
+        "GIT_AUTHOR_NAME": "t",
+        "GIT_AUTHOR_EMAIL": "t@example.com",
+        "GIT_COMMITTER_NAME": "t",
+        "GIT_COMMITTER_EMAIL": "t@example.com",
+    }
+    subprocess.run(["git", "init", "-q", "-b", "main"], cwd=repository, check=True, env=environment)
+    for message_text in ("ancestor", "trigger"):
+        subprocess.run(
+            ["git", "commit", "-q", "--allow-empty", "--no-gpg-sign", "-m", message_text],
+            cwd=repository,
+            check=True,
+            env=environment,
+        )
+    trigger, ancestor = _git(repository, "rev-parse", "HEAD"), _git(repository, "rev-parse", "HEAD^")
+    subprocess.run(["git", "checkout", "-q", "-b", "other", ancestor], cwd=repository, check=True, env=environment)
+    subprocess.run(
+        ["git", "commit", "-q", "--allow-empty", "--no-gpg-sign", "-m", "sibling"],
+        cwd=repository,
+        check=True,
+        env=environment,
+    )
+    sibling = _git(repository, "rev-parse", "HEAD")
+    refs = {
+        "trigger": trigger,
+        "ancestor": ancestor,
+        "sibling": sibling,
+        "absent": "f" * 40,
+        "uppercase": trigger.upper(),
+    }
+    script = _named_step(_load(CANONICAL_PATH)["jobs"]["trust-ref"], "Admit only the triggering commit or its history")[
+        "run"
+    ]
+    completed = subprocess.run(
+        ["bash", "-c", script],
+        cwd=repository,
+        check=False,
+        capture_output=True,
+        text=True,
+        env={**environment, "REQUESTED_REF": refs[requested], "TRIGGER_SHA": trigger},
+    )
+    assert completed.returncode == exit_code, completed.stderr
+    assert message in completed.stdout + completed.stderr
