@@ -472,9 +472,9 @@ No dictionary-conformance claim follows from this review.
 
 <!-- go-api implementations/go/processor 9bd8c6890f8c31214989b139640ca5df69a174fdfbce08525e402068f39b0586 -->
 
-<!-- go-api implementations/go/processor/realization 07b25f15ef096ef5313b3262bd6db41e4f1a1ed89b41f2098632adf9f44883e4 -->
+<!-- go-api implementations/go/processor/realization 592579da411e90b145516bfe0c1451c7793c5c75b29bd161c6d3de41ca3c8a23 -->
 
-<!-- go-api implementations/go/processor/planning b4b92048019f51083190b9f239a868f9e93fc0e35bfb96fab08ea20332459472 -->
+<!-- go-api implementations/go/processor/planning 2a0251dbb1dcef6e66b53f010539984b0669851bd2d07df3dc8cfb53b3a6e89f -->
 
 ### Participant resource measures
 

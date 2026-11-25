@@ -226,8 +226,8 @@ The delivery still runs the commit checks and CI.
 
 The verification record is [issue-1790-backend-verification.md](issue-1790-backend-verification.md).
 
-<!-- go-api implementations/go/backend 9dcaa2f55530b058f06cbfec3c16e0bdd1ed44925a79177cab078fc04e88c019 -->
+<!-- go-api implementations/go/backend 5bf1160f3fa9822dc2df29036467678c91f7b59f80ec4d68eb735bd87baf725c -->
 
-<!-- go-api implementations/go/backend/stub 132469e022bbc25f648a914864e125c568871b0163d392d935d2f1c80d5b77e4 -->
+<!-- go-api implementations/go/backend/stub 64939ba974715f772e512268a06210288e50cb67680442dac52c2ae7814d9699 -->
 
-<!-- go-api implementations/go/contract/runtime f5dff81fbbee0bddd56893f8a82d0d520cb171bf2eb19ec852c91bb495ff7c1c -->
+<!-- go-api implementations/go/contract/runtime 117944ab93b8d162bf775707fec6f0d38fcd46e0db421cb5c0822dbb5ef3b1c8 -->

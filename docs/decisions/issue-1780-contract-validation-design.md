@@ -356,7 +356,7 @@ The model may declare `api_files` instead of an inline `api` for a package.
 The existing `arch.Load` interface expands those files before design and API checks.
 The files live under `implementations/architecture-api/` and contain string arrays.
 Each file is bounded to 500 KiB; at most 64 files are allowed per package.
-All expanded files share a 16 MiB read budget.
+All expanded files share a 32 MiB read budget.
 The model keeps its current 4 MiB bound.
 Inline and file-backed snapshots cannot be combined for one package.
 Unsafe paths, missing or malformed files and exhausted bounds fail loading.
@@ -367,9 +367,9 @@ Targeted tests cover changed declarations, path refusals and read budgets.
 
 <!-- go-api implementations/go/internal/contract/corpus a354155ee7280ffe18807e1e647515621c7625ac683a5090e01864afc94ac274 -->
 
-<!-- go-api implementations/go/contract/binding 5b19be099a1427702f3603820cada98e8a2bd4171f71ccabdb411d4a78fd5f53 -->
+<!-- go-api implementations/go/contract/binding 2d8a35b64dd1fc296047088b4347ee3ff22ef4368240766245e2aa3930a0875a -->
 
-<!-- go-api implementations/go/contract/validation 517e782102a811bef71af8d660194d882c78b4da19dbab3e1c298084add9e5dd -->
+<!-- go-api implementations/go/contract/validation 89639104e1afefd8bd19513f686e02f916fe771e1fb1914f72db1b0ced3ae875 -->
 
 <!-- go-api implementations/tooling/go/contractgen 87666ceb97f022789f40a56348e27f85ee3d5d861f37920162f2ad7e027ebabe -->
 

@@ -57,7 +57,7 @@ external path permits the import paths below it.
 Large typed snapshots may use ordered `api_files` under `implementations/architecture-api/`.
 Each file contains declarations for its build configuration.
 Loading expands these bounded files before the same exact API comparison and design commitment.
-The model retains its 4 MiB limit; files have a 500 KiB limit and share a 16 MiB read budget.
+The model retains its 4 MiB limit; files have a 500 KiB limit and share a 32 MiB read budget.
 A package can reference at most 64 files and cannot also declare an inline API.
 
 ### 2. Layers
@@ -273,3 +273,4 @@ An external consumer fixture in `implementations/go/testdata/consumer` resolves 
 | 2026-11-05 | #1825 | Declared planned public consumer imports and command publishers in the existing model; added ARCH-015 and generated consumer views. |
 | 2026-11-06 | #1892 | Moved the existing consumer packages to their public paths; ARCH-003 places them in their layers, ARCH-015 checks implemented boundaries and extensions, and ARCH-001 refuses `replace` directives. |
 | 2026-11-24 | #2020 | Renumbered from ADR-122 to ADR-124 when the dev sync brought the released ADR-122; the decision is unchanged. |
+| 2026-11-25 | #2020 | The shared API snapshot read budget is 32 MiB, because the generated binding declarations grew past 16 MiB. |

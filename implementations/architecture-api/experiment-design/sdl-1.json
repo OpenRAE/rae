@@ -1,7 +1,0 @@
-[
-  "func github.com/OpenRAE/rae/implementations/go/sdl.ResolveBindingTarget(family github.com/OpenRAE/rae/implementations/go/sdl.Scenario, scenarioFamilyID string, pointID string, suppliedTargetID string) (github.com/OpenRAE/rae/implementations/go/contract/admission.ScenarioBindingResolution, error)",
-  "func github.com/OpenRAE/rae/implementations/go/sdl.Select(family github.com/OpenRAE/rae/implementations/go/sdl.Scenario, outcomes github.com/OpenRAE/rae/implementations/go/contract/admission.Fragment, trialProvenance github.com/OpenRAE/rae/implementations/go/contract/admission.Fragment) (github.com/OpenRAE/rae/implementations/go/sdl.InstantiatedScenario, error)",
-  "func github.com/OpenRAE/rae/implementations/go/sdl.ValidateTreatment(family github.com/OpenRAE/rae/implementations/go/sdl.Scenario, treatment github.com/OpenRAE/rae/implementations/go/contract/admission.Fragment) error",
-  "func github.com/OpenRAE/rae/implementations/go/sdl.VariationOutcomes(family github.com/OpenRAE/rae/implementations/go/sdl.Scenario, pointID string, maximum int) ([]github.com/OpenRAE/rae/implementations/go/contract/admission.Fragment, error)",
-  "type github.com/OpenRAE/rae/implementations/go/contract/admission.ScenarioBindingResolution constraints[] struct{CanonicalTargetID string \"\" embedded=false; ValueType string \"\" embedded=false; Sensitivity string \"\" embedded=false; AllowedValueKinds []string \"\" embedded=false; Owner github.com/OpenRAE/rae/implementations/go/contract/admission.BindingOwner \"\" embedded=false} unexported-fields=false comparable=false"
-]

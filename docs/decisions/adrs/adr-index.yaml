@@ -725,3 +725,6 @@ adrs:
       - date: 2026-11-24
         ref: "#2020"
         summary: "Renumbered from ADR-122 to ADR-124 when the dev sync brought the released ADR-122; the decision is unchanged."
+      - date: 2026-11-25
+        ref: "#2020"
+        summary: "The shared API snapshot read budget is 32 MiB, because the generated binding declarations grew past 16 MiB."

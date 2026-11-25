@@ -351,7 +351,7 @@ import (
 func use(plan b.AdmittedTrialPlanV1) {
  schedule, _ := t.PlanBatchSchedule(plan)
  _ = []string{schedule.PlanID,schedule.PlanDigest,schedule.SchedulingPolicyID}
- _ = schedule.IsolationProofRef
+ _ = schedule.AdmittedParallelismFloor
  _ = schedule.AdmittedParallelismCeiling
  for _,entry := range schedule.Entries { _ = []string{entry.PlanEntryID,entry.RunID}; _ = entry.DispatchOrdinal }
 }`},

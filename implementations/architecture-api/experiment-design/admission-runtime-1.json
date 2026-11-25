@@ -1,3 +1,0 @@
-[
-  "type github.com/OpenRAE/rae/implementations/go/contract/admission.ExperimentEvidenceInputs constraints[] struct{CaptureSpecs map[string]github.com/OpenRAE/rae/implementations/go/contract/validation.Value \"\" embedded=false; EvidenceRecords map[string]github.com/OpenRAE/rae/implementations/go/contract/validation.Value \"\" embedded=false; ArtifactReaders map[string]io.Reader \"\" embedded=false; Scenarios []github.com/OpenRAE/rae/implementations/go/contract/admission.EvidenceScenario \"\" embedded=false} unexported-fields=false comparable=false"
-]

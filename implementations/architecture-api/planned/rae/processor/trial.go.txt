@@ -59,10 +59,9 @@ type ScheduledEntry struct {
 	DispatchOrdinal    int
 }
 type BatchSchedule struct {
-	PlanID, PlanDigest, SchedulingPolicyID string
-	AdmittedParallelismCeiling             int
-	IsolationProofRef                      *string
-	Entries                                []ScheduledEntry
+	PlanID, PlanDigest, SchedulingPolicyID               string
+	AdmittedParallelismFloor, AdmittedParallelismCeiling int
+	Entries                                              []ScheduledEntry
 }
 
 func Compile(request Request) (Result, error)
