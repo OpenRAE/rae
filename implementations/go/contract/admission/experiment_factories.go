@@ -19,6 +19,10 @@ var experimentFactoryJSON = map[string]string{ //nolint:gochecknoglobals // Fixe
 	"DifficultyRunProvenanceModel":                 `{"decisions":[],"interventions":[]}`,
 	"DifficultyVariantModel":                       `{"action_refs":[],"scaffold_refs":[],"selection_policy_refs":[]}`,
 	"ExecutionRetryPolicyModel":                    `{"compensation_refs":[],"reset_obligation_refs":[]}`,
+	"ExecutionPolicy":                              `{"retry":{"after_effect_policy":"disallow","compensation_refs":[],"max_attempts":1,"reset_obligation_refs":[]}}`,
+	"EffectiveExecutionPolicy":                     `{"evidence_requirements":{}}`,
+	"EvidenceRequirement":                          `{"channel_refs":[],"field_selectors":[],"media_types":[],"notes":[],"scope_refs":[],"source_refs":[]}`,
+	"WorkflowStepDispatch":                         `{"observation_digests":{}}`,
 	"ExperimentApparatusComponentModel":            `{"compatibility_refs":[],"limitations":[]}`,
 	"ExperimentApparatusConstraintModel":           `{"allowed_backend_refs":[],"allowed_processor_refs":[],"notes":[],"required_capabilities":[],"required_manifest_refs":[]}`,
 	termExperimentArtifactRefModel:                 `{"satisfies_refs":[]}`,
@@ -109,6 +113,8 @@ func experimentRootModel(id string) string {
 		return "ParticipantConfigurationResultModel"
 	case "trial-cleanup-plan-v1":
 		return "TrialCleanupPlanModel"
+	case contractWorkflowStepDispatch:
+		return "WorkflowStepDispatch"
 	case termTrialCleanupReceiptV1:
 		return "TrialCleanupReceiptModel"
 	}

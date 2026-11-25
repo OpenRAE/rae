@@ -86,7 +86,7 @@ func admitProvisioning(plan binding.ProvisioningPlanV1) error {
 	return admission.CheckPreparationOperations(plan)
 }
 func envelopeIdentity(envelope map[string]any) map[string]any {
-	return map[string]any{"contract_id": envelope["contract_id"], "schema_version": envelope["schema_version"], "envelope_id": envelope["id"], "digest": envelope["digest"], termConfigurationDigest: object(envelope, "configuration")[termConfigurationDigest]}
+	return map[string]any{"contract_id": envelope["contract_id"], termSchemaVersion: envelope[termSchemaVersion], "envelope_id": envelope["id"], "digest": envelope["digest"], termConfigurationDigest: object(envelope, "configuration")[termConfigurationDigest]}
 }
 func operationEntry(operation map[string]any, domain, status string) map[string]any {
 	ordering, refresh := operation["ordering_dependencies"], operation["refresh_dependencies"]

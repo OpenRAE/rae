@@ -28,7 +28,10 @@ func materializationRefusal(kind string) diagnostic.Diagnostic {
 	return planDiagnostic(code, "materialization", "materialization.source", message)
 }
 
-func plannedMaterializationSource(model processor.CompiledScenario, manifest binding.BackendManifestV2, scope *Scope) (json.RawMessage, []diagnostic.Diagnostic, error) {
+// materializationAllPhases is the default reporting scope, which the source omits.
+const materializationAllPhases = "all-phases"
+
+func plannedMaterializationSource(model processor.CompiledScenario, manifest binding.BackendManifestV2, scope *Scope, reportingScope string) (json.RawMessage, []diagnostic.Diagnostic, error) {
 	versions := fieldValue(manifest.SupportedContractVersions)
 	required := model.AugmentationScopeRequired
 	reporting := slices.Contains(versions, materializationContract)
@@ -50,7 +53,7 @@ func plannedMaterializationSource(model processor.CompiledScenario, manifest bin
 	if !materializationSnapshotWithinLimits(snapshot) {
 		return nil, append(findings, materializationRefusal("limit")), nil
 	}
-	source, refusal, err := sealMaterializationSource(snapshot, scope, descendants)
+	source, refusal, err := sealMaterializationSource(snapshot, scope, descendants, reportingScope)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -80,7 +83,7 @@ type materializationSnapshotScenario struct {
 	Provenance materializationInstantiationHeader `json:"instantiation_provenance"`
 }
 
-func sealMaterializationSource(snapshot []byte, scope *Scope, descendants bool) (json.RawMessage, string, error) {
+func sealMaterializationSource(snapshot []byte, scope *Scope, descendants bool, reporting string) (json.RawMessage, string, error) {
 	var header struct {
 		Scenario materializationSnapshotScenario `json:"scenario"`
 	}
@@ -97,6 +100,9 @@ func sealMaterializationSource(snapshot []byte, scope *Scope, descendants bool) 
 	}
 	if descendants {
 		input["target_scope"] = "target:" + *scope.TargetName
+	}
+	if reporting != materializationAllPhases {
+		input["reporting_scope"] = reporting
 	}
 	limits := ingress.Limits{MaxBytes: 8 << 20, MaxDepth: 64}
 	fragment, err := admission.AdmitFragment(owner, admission.MaterializationSourceContext, input, limits)

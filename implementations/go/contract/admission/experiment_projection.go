@@ -172,7 +172,7 @@ func ExperimentModelProjection(v *Validator, contractID string, data []byte) ([]
 }
 
 func experimentLocalModelID(id string) bool {
-	return strings.HasPrefix(id, "experiment-") || id == termParticipantConfigurationResultV1 || id == "trial-cleanup-plan-v1" || id == termTrialCleanupReceiptV1
+	return strings.HasPrefix(id, "experiment-") || id == termParticipantConfigurationResultV1 || id == "trial-cleanup-plan-v1" || id == termTrialCleanupReceiptV1 || id == contractWorkflowStepDispatch
 }
 
 // ManifestModelProjection reconstructs local manifest defaults without reordering claims.
@@ -187,4 +187,21 @@ func ManifestModelProjection(v *Validator, contractID string, data []byte) ([]by
 	default:
 		return nil, invalid()
 	}
+}
+
+// WorkflowStepDispatchDigest returns the commitment of one admitted workflow
+// step dispatch: the digest of its complete model with constructor defaults.
+func WorkflowStepDispatchDigest(v *Validator, data []byte) (string, error) {
+	if v == nil {
+		return "", invalid()
+	}
+	projected, err := v.experimentProjection(contractWorkflowStepDispatch, data)
+	if err != nil {
+		return "", err
+	}
+	var document any
+	if err = decodeExact(projected, &document); err != nil {
+		return "", invalid()
+	}
+	return jsonDigest(document)
 }

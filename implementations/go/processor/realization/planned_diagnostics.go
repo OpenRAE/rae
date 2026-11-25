@@ -258,21 +258,30 @@ func plannedBoundsAdmit(authority plannedAuthority, selected any) (bool, error) 
 	return true, nil
 }
 
-func (s *evaluationState) plannedManifestFinding() (*diagnostic.Diagnostic, error) {
+// plannedEnvelopeMismatch requires a plan that names an envelope, or carries
+// open or constrained authority, to match the selected envelope.
+func (s *evaluationState) plannedEnvelopeMismatch() (bool, error) {
 	needsEnvelope := false
 	for _, authority := range s.plan.Authority {
 		needsEnvelope = needsEnvelope || authority.Mode == termOpen || authority.Mode == termConstrained
 	}
 	planned, err := plannedOptionalValue(s.plan.Envelope)
 	if err != nil {
-		return nil, err
+		return false, err
 	}
 	selected, err := plannedOptionalValue(sourceValue(s.options.Manifest.RealizationEnvelope))
 	if err != nil {
+		return false, err
+	}
+	return (planned != nil || needsEnvelope) && (planned == nil || selected == nil || !payloadEqual(planned, selected)), nil
+}
+
+func (s *evaluationState) plannedManifestFinding() (*diagnostic.Diagnostic, error) {
+	mismatch, err := s.plannedEnvelopeMismatch()
+	if err != nil {
 		return nil, err
 	}
-	// A plan that names an envelope must match the selected one, even without open or constrained authority.
-	if (planned != nil || needsEnvelope) && (planned == nil || selected == nil || !payloadEqual(planned, selected)) {
+	if mismatch {
 		return &diagnostic.Diagnostic{Code: "realization.authority-envelope-mismatch", Domain: termRuntimeRealization, Address: "runtime.realization-envelope", Message: "Provisioning plan authority was not admitted against the selected realization envelope.", Severity: termError}, nil
 	}
 	requirements, err := s.plannedRequirements()

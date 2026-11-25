@@ -55,6 +55,8 @@ func (c *compiledConcern) lower(requirement *Requirement, apparatus string) (boo
 // recursiveProjection projects the authored value and requires it to fit the
 // plan authority budget before its source metadata is read. A refused value
 // marks the requirement; exhausted work keeps its limit message.
+//
+//nolint:ireturn // The shared owner returns a sealed admitted fragment.
 func (c *compiledConcern) recursiveProjection(requirement *Requirement) (admission.Fragment, bool, error) {
 	refused := func(err error) (admission.Fragment, bool, error) {
 		if category, ok := fault.CategoryOf(err); ok && category == fault.InvalidInput {

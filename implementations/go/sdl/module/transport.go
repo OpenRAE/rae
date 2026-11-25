@@ -12,6 +12,9 @@ import (
 	"github.com/OpenRAE/rae/implementations/go/base/digest"
 )
 
+// schemeHTTPS is the registry and token-realm scheme.
+const schemeHTTPS = "https"
+
 // Resolve selects and verifies an OCI module using only configured registries.
 func (r *Registry) Resolve(ctx context.Context, source, version, pin string) (*Bundle, error) {
 	return r.resolve(ctx, source, version, pin, nil)
@@ -29,7 +32,7 @@ func (r *Registry) resolve(ctx context.Context, source, version, pin string, loc
 	if err != nil {
 		return nil, err
 	}
-	scheme := "https"
+	scheme := schemeHTTPS
 	if rule.AllowInsecureHTTP || strings.HasPrefix(registry, "localhost:") || strings.HasPrefix(registry, "127.0.0.1:") {
 		scheme = "http"
 	}
@@ -41,11 +44,12 @@ func (r *Registry) resolve(ctx context.Context, source, version, pin string, loc
 		return nil, err
 	}
 	defer transport.CloseIdleConnections()
-	manifestReference, err := r.resolveManifestReference(bounded, client, base, requirement, locked)
+	fetcher := &registryFetcher{client: client, tokens: map[bearerChallenge]string{}, metadataBytes: r.limits.metadataBytes}
+	manifestReference, err := r.resolveManifestReference(bounded, fetcher, base, requirement, locked)
 	if err != nil {
 		return nil, err
 	}
-	artifact, err := r.fetchArtifact(bounded, client, base, manifestReference, locked)
+	artifact, err := r.fetchArtifact(bounded, fetcher, base, manifestReference, locked)
 	if err != nil {
 		return nil, err
 	}
@@ -75,8 +79,8 @@ func moduleRequest(version, pin string) (versionRequirement, string, error) {
 	requirement, err := versionSpec(version)
 	return requirement, pin, err
 }
-func (r *Registry) fetchArtifact(ctx context.Context, client *http.Client, base, manifestReference string, locked *LockRecord) (Artifact, error) {
-	manifestBytes, err := fetch(ctx, client, base+"/manifests/"+url.PathEscape(manifestReference), r.limits.metadataBytes)
+func (r *Registry) fetchArtifact(ctx context.Context, fetcher *registryFetcher, base, manifestReference string, locked *LockRecord) (Artifact, error) {
+	manifestBytes, err := fetcher.fetch(ctx, base+"/manifests/"+url.PathEscape(manifestReference), r.limits.metadataBytes)
 	if err != nil {
 		return Artifact{}, err
 	}
@@ -87,27 +91,27 @@ func (r *Registry) fetchArtifact(ctx context.Context, client *http.Client, base,
 	if err != nil {
 		return Artifact{}, err
 	}
-	configBytes, err := fetch(ctx, client, base+"/blobs/"+url.PathEscape(manifest.Config.Digest), r.limits.metadataBytes)
+	configBytes, err := fetcher.fetch(ctx, base+"/blobs/"+url.PathEscape(manifest.Config.Digest), r.limits.metadataBytes)
 	if err != nil {
 		return Artifact{}, err
 	}
 	if digest.SHA256(configBytes) != manifest.Config.Digest {
 		return Artifact{}, invalid()
 	}
-	bundleBytes, err := fetch(ctx, client, base+"/blobs/"+url.PathEscape(layer.Digest), r.limits.bundleBytes)
+	bundleBytes, err := fetcher.fetch(ctx, base+"/blobs/"+url.PathEscape(layer.Digest), r.limits.bundleBytes)
 	if err != nil {
 		return Artifact{}, err
 	}
 	return Artifact{Manifest: manifestBytes, Config: configBytes, Bundle: bundleBytes}, nil
 }
-func (r *Registry) resolveManifestReference(ctx context.Context, client *http.Client, base string, requirement versionRequirement, locked *LockRecord) (string, error) {
+func (r *Registry) resolveManifestReference(ctx context.Context, fetcher *registryFetcher, base string, requirement versionRequirement, locked *LockRecord) (string, error) {
 	if locked != nil {
 		if !digest.Valid(locked.ManifestDigest) {
 			return "", invalid()
 		}
 		return locked.ManifestDigest, nil
 	}
-	raw, err := fetch(ctx, client, base+"/tags/list", r.limits.metadataBytes)
+	raw, err := fetcher.fetch(ctx, base+"/tags/list", r.limits.metadataBytes)
 	if err != nil {
 		return "", err
 	}
@@ -131,6 +135,8 @@ func registryClient(scheme, registry string) (*http.Client, *http.Transport, err
 		if len(via) >= 10 || request.URL.Scheme != scheme || request.URL.Host != registry {
 			return invalid()
 		}
+		// A challenge token rides only on the challenged request, never on a redirect.
+		request.Header.Del("Authorization")
 		return nil
 	}}
 	return client, transport, nil
@@ -141,7 +147,7 @@ func ociSource(source string) (string, string, error) {
 		return "", "", invalid()
 	}
 	if before, after, qualified := strings.Cut(value, "://"); qualified {
-		if before != "http" && before != "https" {
+		if before != "http" && before != schemeHTTPS {
 			return "", "", invalid()
 		}
 		value = after
@@ -150,7 +156,7 @@ func ociSource(source string) (string, string, error) {
 	if !present || registry == "" || repository == "" || strings.ContainsAny(value, "?#@\\\x00%") {
 		return "", "", invalid()
 	}
-	parsed, err := url.Parse("https://" + registry)
+	parsed, err := url.Parse(schemeHTTPS + "://" + registry)
 	if err != nil || parsed.Host != registry || parsed.User != nil || parsed.Hostname() == "" {
 		return "", "", invalid()
 	}
@@ -168,17 +174,52 @@ func escapeRepository(repository string) string {
 	}
 	return strings.Join(parts, "/")
 }
-func fetch(ctx context.Context, client *http.Client, address string, limit int64) ([]byte, error) {
+
+// fetch GETs one registry address anonymously. It answers one Bearer
+// challenge with one token-bearing retry.
+func (f *registryFetcher) fetch(ctx context.Context, address string, limit int64) ([]byte, error) {
+	response, err := f.get(ctx, address, "")
+	if err != nil {
+		return nil, err
+	}
+	if response.StatusCode == http.StatusUnauthorized {
+		challenge, challenged, challengeErr := challengeFor(response, address)
+		_ = response.Body.Close()
+		if challengeErr != nil {
+			return nil, challengeErr
+		}
+		if !challenged {
+			return nil, invalid()
+		}
+		token, tokenErr := f.token(ctx, challenge)
+		if tokenErr != nil {
+			return nil, tokenErr
+		}
+		if response, err = f.get(ctx, address, token); err != nil {
+			return nil, err
+		}
+	}
+	defer func() { _ = response.Body.Close() }()
+	return readBounded(response, limit)
+}
+
+func (f *registryFetcher) get(ctx context.Context, address, token string) (*http.Response, error) {
 	request, err := http.NewRequestWithContext(ctx, http.MethodGet, address, nil)
 	if err != nil {
 		return nil, invalid()
 	}
 	request.Header.Set("Accept", manifestMediaType)
-	response, err := client.Do(request)
+	if token != "" {
+		request.Header.Set("Authorization", "Bearer "+token)
+	}
+	response, err := f.client.Do(request)
 	if err != nil {
 		return nil, operational(err)
 	}
-	defer func() { _ = response.Body.Close() }()
+	return response, nil
+}
+
+func readBounded(response *http.Response, limit int64) ([]byte, error) {
 	if response.StatusCode < 200 || response.StatusCode >= 300 || response.ContentLength > limit {
 		return nil, invalid()
 	}

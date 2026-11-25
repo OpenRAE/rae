@@ -5,26 +5,6 @@ import (
 	"math/big"
 )
 
-func workflowState(operation map[string]any, now string) (map[string]any, []map[string]any) {
-	payload := object(operation, "payload")
-	contract := object(payload, "result_contract")
-	steps := map[string]any{}
-	for name, item := range object(contract, "observable_steps") {
-		if _, ok := item.(map[string]any); ok {
-			steps[name] = map[string]any{"lifecycle": "pending", "outcome": nil, "attempts": 0}
-		}
-	}
-	schema := contract[termStateSchemaVersion]
-	if schema == nil {
-		schema = payload[termStateSchemaVersion]
-	}
-	if schema == nil {
-		schema = "workflow-step-state/v1"
-	}
-	result := map[string]any{termStateSchemaVersion: schema, "workflow_status": termRunning, "run_id": text(operation, "address") + "-run", "started_at": now, termUpdatedAt: now, termTerminalReason: nil, "compensation_status": "not_required", "compensation_started_at": nil, "compensation_updated_at": nil, "compensation_failures": []any{}, "steps": steps}
-	history := []map[string]any{{termEventType: "workflow_started", termTimestamp: now, "step_name": object(payload, "execution_contract")["start_step"], "branch_name": nil, "join_step": nil, "outcome": nil, termDetails: map[string]any{}}}
-	return result, history
-}
 func evaluationState(operation map[string]any, now string) (map[string]any, []map[string]any) {
 	contract := object(object(operation, "payload"), "result_contract")
 	schema := contract[termStateSchemaVersion]

@@ -10,7 +10,7 @@ func TestEveryDeclaredExperimentFactoryMatchesIndependentSourceDefaults(t *testi
 		Factories map[string]json.RawMessage `json:"factories"`
 	}
 	readFullReferenceJSON(t, "testdata/experiment-factories-reference.json", &reference)
-	if len(reference.Factories) != 59 {
+	if len(reference.Factories) != 63 {
 		t.Fatal("factory inventory changed")
 	}
 	for model, expected := range reference.Factories {

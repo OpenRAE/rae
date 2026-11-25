@@ -22,7 +22,7 @@ func RealizationConstraintBindingWithLimits(constraint, source Fragment, limits 
 	var document constraintDocument
 	decoder := json.NewDecoder(bytes.NewReader(owned.data))
 	decoder.UseNumber()
-	if err := decoder.Decode(&document); err != nil {
+	if decoder.Decode(&document) != nil {
 		return "", fragmentInvalid()
 	}
 	if !admitConstraintWork(document, object(owned.Document()), limits) {

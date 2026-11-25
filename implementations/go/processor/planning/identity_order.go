@@ -108,15 +108,9 @@ func (o identityOrdering) keyed(value any, structure map[string]any, depth int) 
 		return value, nil
 	}
 	fields, _ := structure["identity_fields"].([]any)
-	members := map[string]map[string]any{}
-	declared, _ := structure["members"].([]any)
-	for _, raw := range declared {
-		member, _ := raw.(map[string]any)
-		identity, err := canonicalDigest(member["identity"])
-		if err != nil {
-			return nil, err
-		}
-		members[identity], _ = member["constraint"].(map[string]any)
+	members, err := keyedMemberConstraints(structure)
+	if err != nil {
+		return nil, err
 	}
 	keyed := make([]keyedMember, len(values))
 	for index, raw := range values {
@@ -148,6 +142,21 @@ func (o identityOrdering) keyed(value any, structure map[string]any, depth int) 
 		}
 	}
 	return result, nil
+}
+
+// keyedMemberConstraints indexes each declared member constraint by its identity digest.
+func keyedMemberConstraints(structure map[string]any) (map[string]map[string]any, error) {
+	members := map[string]map[string]any{}
+	declared, _ := structure["members"].([]any)
+	for _, raw := range declared {
+		member, _ := raw.(map[string]any)
+		identity, err := canonicalDigest(member["identity"])
+		if err != nil {
+			return nil, err
+		}
+		members[identity], _ = member["constraint"].(map[string]any)
+	}
+	return members, nil
 }
 
 // canonicalDigest is the reference sort key: the digest of the canonical JSON value.

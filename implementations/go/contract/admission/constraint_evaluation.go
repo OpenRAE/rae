@@ -39,6 +39,8 @@ func PlanAuthorityConstraintLimits() ConstraintLimits {
 
 // ValidateRealizationValue checks one admitted value against a relation
 // caller's work limits. The result is a value-free relation result.
+//
+//nolint:ireturn // The planned interface keeps each admitted fragment opaque and sealed.
 func ValidateRealizationValue(actual Fragment, limits ConstraintLimits) (Fragment, error) {
 	observed, ok := actual.(fragment)
 	if !ok || observed.profile != RealizationValue {
@@ -50,6 +52,8 @@ func ValidateRealizationValue(actual Fragment, limits ConstraintLimits) (Fragmen
 // ValidateRealizationDocument checks one native JSON document against a
 // relation caller's work limits before any fragment holds it. It refuses an
 // unsupported carrier and grants no admission or execution authority.
+//
+//nolint:ireturn // The planned interface keeps each admitted fragment opaque and sealed.
 func ValidateRealizationDocument(document any, limits ConstraintLimits) (Fragment, error) {
 	if err := limits.Validate(); err != nil {
 		return nil, err

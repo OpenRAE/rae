@@ -61,6 +61,25 @@
       "scaffold_refs": [],
       "selection_policy_refs": []
     },
+    "EffectiveExecutionPolicy": {
+      "evidence_requirements": {}
+    },
+    "EvidenceRequirement": {
+      "channel_refs": [],
+      "field_selectors": [],
+      "media_types": [],
+      "notes": [],
+      "scope_refs": [],
+      "source_refs": []
+    },
+    "ExecutionPolicy": {
+      "retry": {
+        "after_effect_policy": "disallow",
+        "compensation_refs": [],
+        "max_attempts": 1,
+        "reset_obligation_refs": []
+      }
+    },
     "ExecutionRetryPolicyModel": {
       "compensation_refs": [],
       "reset_obligation_refs": []
@@ -262,6 +281,9 @@
     "ValidationGateResultModel": {
       "diagnostic_refs": [],
       "evidence_refs": []
+    },
+    "WorkflowStepDispatch": {
+      "observation_digests": {}
     }
   },
   "sources": {
@@ -291,6 +313,9 @@
     "implementations/python/packages/raes_contracts/contracts/trial_provenance.py": "23996a0328098d9a44cf7cc1abd059206f464c720b67c37450dd90c08eaf0494",
     "implementations/python/packages/raes_contracts/contracts/validation_disclosure.py": "1a712d3724d7d327dceb12edd2e4197c9561d5cb6a81794e246e0c25c3a165e9",
     "implementations/python/packages/raes_contracts/contracts/validation_disclosure_gates.py": "1c8a91a9350b2476d40fa781e8c002da40d21061337f934699efc21b8d21e9f9",
+    "implementations/python/packages/raes_contracts/contracts/workflow_dispatch.py": "8aa86976cb501961f66ac8eaec7f6e8264ca5d8e45cb7ce347ad2c2e7fab410c",
+    "implementations/python/packages/raes_contracts/evidence_requirements.py": "4ca2200d7dc70ffdc73ca15f191ec4ed23f3325de4bf4c1a2039afabd725e3ff",
+    "implementations/python/packages/raes_contracts/execution_policy.py": "71a10075dec956e90923efc6946cdf521649abc45d8c0b7bbbd69cb0c777371a",
     "implementations/python/packages/raes_contracts/execution_retry.py": "04082df9f27db888230c196caae727c1c08be04102e226396384af3b9e769d1e"
   }
 }

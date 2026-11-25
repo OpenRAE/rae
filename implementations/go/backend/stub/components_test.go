@@ -52,36 +52,64 @@ func TestProvisionerPreservesDomainsAndUnchangedWrites(t *testing.T) {
 	}
 }
 
-func TestOrchestratorFixedClockAndReadbackIsolation(t *testing.T) {
+func TestOrchestratorRefusesWorkflowsAndKeepsNonWorkflowState(t *testing.T) {
 	fixed := time.Date(2026, 1, 2, 3, 4, 5, 123000000, time.UTC)
 	producer, err := stub.NewOrchestratorWithConfiguration(stub.Configuration{Clock: func() time.Time { return fixed }})
 	if err != nil {
 		t.Fatal(err)
 	}
-	var plan binding.OrchestrationPlanV1
+	var workflow, script binding.OrchestrationPlanV1
 	var snapshot binding.RuntimeSnapshotV1
-	if json.Unmarshal([]byte(`{"operations":[{"action":"create","address":"orchestration.workflow.demo","resource_type":"workflow","payload":{"result_contract":{"observable_steps":{"one":{}}},"execution_contract":{"start_step":"one"}}}],"diagnostics":[],"startup_order":["orchestration.workflow.demo"]}`), &plan) != nil || json.Unmarshal([]byte(`{"entries":{}}`), &snapshot) != nil {
+	if json.Unmarshal([]byte(`{"operations":[{"action":"create","address":"orchestration.workflow.demo","resource_type":"workflow","payload":{}}],"diagnostics":[],"startup_order":["orchestration.workflow.demo"]}`), &workflow) != nil ||
+		json.Unmarshal([]byte(`{"operations":[{"action":"create","address":"orchestration.script.demo","resource_type":"script","payload":{}}],"diagnostics":[],"startup_order":["orchestration.script.demo"]}`), &script) != nil ||
+		json.Unmarshal([]byte(`{"entries":{}}`), &snapshot) != nil {
 		t.Fatal("fixture")
 	}
-	result, err := producer.Start(context.Background(), plan, snapshot)
+	// Workflow steps run only through runtime dispatch.
+	if _, refused := producer.Start(context.Background(), workflow, snapshot); refused == nil {
+		t.Fatal("workflow plan started outside runtime dispatch")
+	}
+	result, err := producer.Start(context.Background(), script, snapshot)
 	if err != nil || !result.Success {
 		t.Fatal(err)
 	}
-	results, err := producer.Results(context.Background())
-	if err != nil {
-		t.Fatal(err)
+	entries, _ := result.Snapshot.Entries.Value()
+	var entry struct {
+		Status string `json:"status"`
 	}
-	if results["orchestration.workflow.demo"]["started_at"] != "2026-01-02T03:04:05.123000Z" {
-		t.Fatal(results)
-	}
-	results["orchestration.workflow.demo"]["workflow_status"] = "corrupt"
-	again, err := producer.Results(context.Background())
-	if err != nil || again["orchestration.workflow.demo"]["workflow_status"] != "running" {
-		t.Fatal("retained state alias")
+	if json.Unmarshal(entries["orchestration.script.demo"], &entry) != nil || entry.Status != "queued" {
+		t.Fatal("non-workflow orchestration resource was not installed")
 	}
 	stopped, err := producer.Stop(context.Background(), result.Snapshot)
 	if err != nil || len(stopped.ChangedAddresses) != 1 {
 		t.Fatal(stopped, err)
+	}
+}
+
+// The expected responses come from the reference stub for the same dispatches.
+func TestOrchestratorDispatchSimulatesOnlyTheDispatchedStep(t *testing.T) {
+	producer, err := stub.NewOrchestrator()
+	if err != nil {
+		t.Fatal(err)
+	}
+	base := `"dispatch_id":"dispatch-1","program_digest":"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","root_operation_id":"operation:root","invocation_id":"invocation-1","workflow_address":"orchestration.workflow.demo","branch_id":"main","step_name":"one","attempt":1,"predecessor_revision":0`
+	for _, test := range []struct{ request, response string }{
+		{`{` + base + `,"step_type":"objective"}`, `{"attempt_provenance":null,"dispatch_digest":"sha256:821e99508bb10c855dd4f5189f11825a85e32a7a9a5bd71876f3f074e426da41","dispatch_id":"dispatch-1","observations":{},"outcome":"succeeded","schema_version":"workflow-step-response/v1"}`},
+		{`{` + base + `,"step_type":"objective","execution_mode":"objective","objective_address":"objectives.goal","scaffold_refs":["s"],"allowed_action_families":["a"]}`, `{"attempt_provenance":{"allowed_action_families":["a"],"attempt_id":"dispatch-1","execution_mode":"objective","exposed_scaffold_refs":["s"],"objective_address":"objectives.goal","outcome":"failed","procedure_ref":"","step_name":"one"},"dispatch_digest":"sha256:e6e91a4481734710ba237dbb9ce80ac939daa997331230e168f1c7672d9fea89","dispatch_id":"dispatch-1","observations":{},"outcome":"failed","schema_version":"workflow-step-response/v1"}`},
+		{`{` + base + `,"step_type":"decision"}`, `{"attempt_provenance":null,"dispatch_digest":"sha256:cf4aa2530a224ec1fd29b676e328e7a46fa74db5fa7596a4e114c99c3aa30e06","dispatch_id":"dispatch-1","observations":{},"outcome":null,"schema_version":"workflow-step-response/v1"}`},
+	} {
+		var request binding.WorkflowStepDispatchV1
+		if json.Unmarshal([]byte(test.request), &request) != nil {
+			t.Fatal("dispatch fixture")
+		}
+		response, err := producer.DispatchStep(context.Background(), request)
+		if err != nil {
+			t.Fatal(err)
+		}
+		var got, want any
+		if json.Unmarshal(marshalTest(t, response), &got) != nil || json.Unmarshal([]byte(test.response), &want) != nil || !cmp.Equal(got, want) {
+			t.Fatalf("dispatch response = %s; want %s", marshalTest(t, response), test.response)
+		}
 	}
 }
 

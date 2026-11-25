@@ -32,9 +32,12 @@ type ProfilePreparingProvisioner interface {
 	ValidateProfiles(ctx context.Context, plan binding.ProvisioningPlanV1) ([]diagnostic.Diagnostic, error)
 }
 
-// Orchestrator manages portable orchestration state.
+// Orchestrator installs non-workflow orchestration resources and executes one
+// runtime-dispatched workflow step. The runtime owns every control transition.
 type Orchestrator interface {
 	Start(ctx context.Context, plan binding.OrchestrationPlanV1, snapshot binding.RuntimeSnapshotV1) (runtimecontract.ApplyResult, error)
+	// DispatchStep runs only this step; it never selects a successor or another retry attempt.
+	DispatchStep(ctx context.Context, request binding.WorkflowStepDispatchV1) (binding.WorkflowStepResponseV1, error)
 	Status(ctx context.Context) (map[string]any, error)
 	Results(ctx context.Context) (map[string]map[string]any, error)
 	History(ctx context.Context) (map[string][]map[string]any, error)

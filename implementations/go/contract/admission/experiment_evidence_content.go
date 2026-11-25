@@ -40,7 +40,7 @@ func (s *experimentEvidence) validateContent(requirement, record, artifact any) 
 		return invalid()
 	}
 	for _, integrity := range stringsOf(at(requirement, "integrity_requirements")) {
-		if integrity != "checksum" && (integrity != "sha256-digest" || stringAt(artifact, "checksum", "algorithm") != "sha256") {
+		if !evidenceIntegrityProved(integrity, stringAt(artifact, "checksum", "algorithm")) {
 			return invalid()
 		}
 	}
@@ -248,4 +248,24 @@ func evidenceSplitLines(data []byte) [][]byte {
 		data = data[index+width:]
 	}
 	return lines
+}
+
+// evidenceIntegrityChecksums names the integrity modes that the evidence
+// response contract can prove, with the checksum algorithm each requires.
+// An empty algorithm accepts the artifact contract's own checksum.
+var evidenceIntegrityChecksums = map[string]string{postureNone: "", "checksum": "", "sha256-digest": "sha256"} //nolint:gochecknoglobals // Fixed reference vocabulary.
+
+// EvidenceIntegrityModes reports whether every mode has an implemented emitted-content proof path.
+func EvidenceIntegrityModes(modes []string) bool {
+	for _, mode := range modes {
+		if _, known := evidenceIntegrityChecksums[mode]; !known {
+			return false
+		}
+	}
+	return true
+}
+
+func evidenceIntegrityProved(mode, algorithm string) bool {
+	required, known := evidenceIntegrityChecksums[mode]
+	return known && (required == "" || algorithm == required)
 }

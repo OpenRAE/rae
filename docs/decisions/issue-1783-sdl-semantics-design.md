@@ -293,4 +293,4 @@ The architecture model records the exact intended API below.
 
 <!-- go-api implementations/go/internal/contract/sdlrules 203d0fa66bb8929cda39310b9eab118147c9f94eb47db0111ea09874d4663a80 -->
 
-<!-- go-api implementations/go/internal/base/value 2072bd6fbc3db74189760642ca1f5bb0c32846bc250355d5251cf96e295f23b0 -->
+<!-- go-api implementations/go/internal/base/value 59ae972c407edb3efa8c9f0e3675949261952f8863c3998ee634342832c29220 -->

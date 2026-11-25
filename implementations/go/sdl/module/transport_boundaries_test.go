@@ -29,7 +29,7 @@ func TestHTTPResponseBoundsAndCancellation(t *testing.T) {
 				writeHTTPResponseForTest(t, w, row.length, row.body, row.status)
 			}))
 			defer server.Close()
-			raw, err := fetch(t.Context(), server.Client(), server.URL, 2)
+			raw, err := testFetcher(server.Client()).fetch(t.Context(), server.URL, 2)
 			if (err == nil) != row.valid || row.valid && string(raw) != row.body {
 				t.Fatalf("response=%q, %v; valid=%v", raw, err, row.valid)
 			}
@@ -37,7 +37,7 @@ func TestHTTPResponseBoundsAndCancellation(t *testing.T) {
 	}
 	ctx, cancel := context.WithCancel(t.Context())
 	cancel()
-	if _, err := fetch(ctx, http.DefaultClient, "http://127.0.0.1:1", 2); !errors.Is(err, context.Canceled) {
+	if _, err := testFetcher(http.DefaultClient).fetch(ctx, "http://127.0.0.1:1", 2); !errors.Is(err, context.Canceled) {
 		t.Fatalf("canceled transport=%v", err)
 	}
 }
@@ -62,10 +62,10 @@ func TestRegistryRedirectCannotChangeAuthority(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer transport.CloseIdleConnections()
-	if raw, fetchErr := fetch(t.Context(), client, server.URL+"/local", 10); fetchErr != nil || string(raw) != "x" {
+	if raw, fetchErr := testFetcher(client).fetch(t.Context(), server.URL+"/local", 10); fetchErr != nil || string(raw) != "x" {
 		t.Fatalf("same-authority redirect=%q, %v", raw, fetchErr)
 	}
-	if _, err = fetch(t.Context(), client, server.URL+"/remote", 10); err == nil || calls.Load() != 0 {
+	if _, err = testFetcher(client).fetch(t.Context(), server.URL+"/remote", 10); err == nil || calls.Load() != 0 {
 		t.Fatal("redirect acquired a different registry authority")
 	}
 	if client.Timeout != 30*time.Second {
@@ -197,4 +197,8 @@ func writeHTTPResponseForTest(t *testing.T, w http.ResponseWriter, length, body 
 	}
 	w.WriteHeader(status)
 	_, _ = w.Write([]byte(body))
+}
+
+func testFetcher(client *http.Client) *registryFetcher {
+	return &registryFetcher{client: client, tokens: map[bearerChallenge]string{}, metadataBytes: 1 << 20}
 }

@@ -156,12 +156,10 @@ func AdmitFragment(v *Validator, profile FragmentProfile, document any, limits i
 // values carry the plan authority budget, the largest that any relation
 // caller applies; each caller still applies its own work limits.
 func fragmentValueLimits(profile FragmentProfile) value.Limits {
-	switch profile {
-	case RealizationValue, RealizationConstraint, RealizationConstraintEvaluation:
+	if profile == RealizationValue || profile == RealizationConstraint || profile == RealizationConstraintEvaluation {
 		return PlanAuthorityConstraintLimits().native()
-	default:
-		return value.Runtime()
 	}
+	return value.Runtime()
 }
 
 func boundedDocument(profile FragmentProfile, data []byte, limits ingress.Limits) error {
