@@ -209,7 +209,7 @@ func (state *compilerState) compileComputeNode(resource *Resource, wire nodeWire
 
 // suppliedIdentity keeps an absent or null optional node identity null in the operation payload.
 func (state *compilerState) suppliedIdentity(name, field string, raw json.RawMessage) *string {
-	if !state.input.supplied[termNodesPrefix+name+"."+field] || len(raw) == 0 || string(raw) == "null" {
+	if !state.input.supplied[termNodesPrefix+name+"."+field] || len(raw) == 0 || string(raw) == termNull {
 		return nil
 	}
 	value := rawString(raw)

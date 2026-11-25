@@ -1,6 +1,8 @@
 package admission
 
 import (
+	"bytes"
+	"encoding/json"
 	"maps"
 	"math/big"
 	"slices"
@@ -256,7 +258,7 @@ func definitionRules() map[string]func(any) error {
 		"RealizationSequenceConstraint":                    func(v any) error { return require(itemBounds(v)) },
 		"RealizationSupportDeclarationModel":               realizationSupportDeclaration,
 		"ResolvedImportProvenance":                         resolvedImportProvenance,
-		"ResolvedRealizationAuthorityModel":                func(v any) error { return require(uniqueRows(at(v, "bounds"), "identity_digest", "value_pointer")) },
+		"ResolvedRealizationAuthorityModel":                resolvedRealizationAuthority,
 		"TrialProcessorPlanReferenceModel":                 processorPlanReference,
 		"VersionDomain":                                    versionDomainModel,
 	}
@@ -575,4 +577,27 @@ func modelVersionDomain(v any) (softwareversion.Domain, error) {
 	}
 	identity := softwareversion.Relation{Authority: stringAt(relation, termAuthority), ID: stringAt(relation, "contract_id"), Revision: stringAt(relation, termRevision), Digest: stringAt(relation, "digest")}
 	return softwareversion.NewDomain(identity, bound("lower"), bound("upper"), boolean(defaultMember(v, "lower_closed", true)), boolean(defaultMember(v, "upper_closed", true)))
+}
+
+// resolvedRealizationAuthority requires unique bounds and admits recursive
+// authority under the plan authority budget.
+func resolvedRealizationAuthority(v any) error {
+	if !uniqueRows(at(v, "bounds"), "identity_digest", "value_pointer") {
+		return invalid()
+	}
+	source := object(at(v, "constraint_document"))
+	if source == nil {
+		return nil
+	}
+	raw, err := json.Marshal(source)
+	if err != nil {
+		return invalid()
+	}
+	var document constraintDocument
+	decoder := json.NewDecoder(bytes.NewReader(raw))
+	decoder.UseNumber()
+	if decoder.Decode(&document) != nil {
+		return invalid()
+	}
+	return require(admitConstraintWork(document, source, PlanAuthorityConstraintLimits()))
 }

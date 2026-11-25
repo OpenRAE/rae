@@ -1,5 +1,5 @@
 {
-  "reference": "91396137452c00a5ea8e8e84f5bf1a19d135a4b8",
+  "reference": "189ee4321b62dc54510b879f1c2b3aa1a07cf6d5",
   "cases": [
     {"name":"RuntimeIdentityAccessObservation.runtime-baseline","pointer":"#/$defs/RuntimeIdentityAccessObservation","accepted":true},
     {"name":"RuntimeIdentityAccessObservation.observation_id-null","pointer":"#/$defs/RuntimeIdentityAccessObservation","accepted":false,"changes":[{"path":["observation_id"],"value":null}]},

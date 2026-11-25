@@ -57,10 +57,19 @@ func Runtime() Limits {
 	return limits
 }
 
-// Plan returns the larger node/operation budget for compiled authority plans.
+// Plan returns the aggregate budget of planner-produced plans, which carry
+// the document and its compiled authority.
 func Plan() Limits {
 	limits := Runtime()
-	limits.MaxNodes, limits.MaxOperations = 262144, 4*262144
+	limits.MaxNodes, limits.MaxOperations, limits.MaxTotalScalarBytes = 524288, 4*524288, 16*1048576
+	return limits
+}
+
+// Materialization returns the document budget of full SDL source and report
+// admission, independent of runtime snapshots. Scalar and depth limits stay.
+func Materialization() Limits {
+	limits := Runtime()
+	limits.MaxNodes, limits.MaxOperations, limits.MaxMembers = 262144, 4*262144, 65536
 	return limits
 }
 

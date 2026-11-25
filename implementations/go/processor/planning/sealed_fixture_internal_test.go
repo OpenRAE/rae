@@ -1,6 +1,7 @@
 package planning
 
 import (
+	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
@@ -15,7 +16,12 @@ var sealedInternalFixtureOwner = sync.OnceValues(admission.New) //nolint:gocheck
 // readSealedInternalFixture reads a repository contract fixture and fills its absent
 // derived fields, as every fixture reader does for valid and context-invalid kinds.
 func readSealedInternalFixture(path string) ([]byte, error) {
-	raw, err := os.ReadFile(path)
+	// The fixture reader is confined to the fixture directory.
+	directory, name := filepath.Split(path)
+	if directory == "" {
+		directory = "."
+	}
+	raw, err := fs.ReadFile(os.DirFS(directory), name)
 	if err != nil {
 		return nil, err
 	}

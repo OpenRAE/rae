@@ -27,6 +27,15 @@ func invalidRealization() error {
 //
 //nolint:ireturn // The declared consumer API returns an opaque handle from its native owner.
 func ProjectConcern(kind string, value admission.Fragment, observed, recursive bool) (admission.Fragment, error) {
+	output, err := projectConcernDocument(kind, value, observed, recursive)
+	if err != nil {
+		return nil, err
+	}
+	return admitConcernProjection(output)
+}
+
+// projectConcernDocument returns the native comparison view before a fragment holds it.
+func projectConcernDocument(kind string, value admission.Fragment, observed, recursive bool) (any, error) {
 	if admission.CheckFragment(value, admission.RealizationValue) != nil {
 		return nil, invalidRealization()
 	}
@@ -40,10 +49,11 @@ func ProjectConcern(kind string, value admission.Fragment, observed, recursive b
 			return nil, err
 		}
 	}
-	output, err := projectConcernValue(definition, input, observed, recursive)
-	if err != nil {
-		return nil, err
-	}
+	return projectConcernValue(definition, input, observed, recursive)
+}
+
+//nolint:ireturn // The shared owner returns a sealed admitted fragment.
+func admitConcernProjection(output any) (admission.Fragment, error) {
 	owner, err := realizationOwner()
 	if err != nil {
 		return nil, err

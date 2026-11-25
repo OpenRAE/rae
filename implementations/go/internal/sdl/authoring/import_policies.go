@@ -159,16 +159,16 @@ func rewriteSafeState(document map[string]any, symbols importSymbols, namespace 
 	result := map[string]any{scopesField: []any{}, defaultField: nil}
 	if state := object(document[defaultField]); state != nil {
 		if namespace != "" {
-			rules = append(rules, map[string]any{namespaceField: []any{}, scopeField: "", "state": state})
+			rules = append(rules, map[string]any{namespaceField: []any{}, scopeField: "", stateField: state})
 		} else {
 			result[defaultField] = rewriteSafeStateValue(state, symbols)
 		}
 	}
 	scopes := []any{}
 	for _, rule := range rules {
-		state := rewriteSafeStateValue(object(rule["state"]), symbols)
+		state := rewriteSafeStateValue(object(rule[stateField]), symbols)
 		for _, owner := range lexicalNamespaces(rule, symbols, namespace, []string{nodesSection}) {
-			scopes = append(scopes, map[string]any{namespaceField: owner, scopeField: symbols.pointer(text(rule[scopeField])), "state": state})
+			scopes = append(scopes, map[string]any{namespaceField: owner, scopeField: symbols.pointer(text(rule[scopeField])), stateField: state})
 		}
 	}
 	result[scopesField] = scopes

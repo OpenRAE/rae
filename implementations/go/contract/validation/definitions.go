@@ -3,11 +3,11 @@ package validation
 import (
 	"maps"
 	"net/url"
-	"reflect"
 	"slices"
 	"strconv"
 	"strings"
 
+	"github.com/google/go-cmp/cmp"
 	"github.com/santhosh-tekuri/jsonschema/v6"
 
 	"github.com/OpenRAE/rae/implementations/go/base/fault"
@@ -76,29 +76,39 @@ func (w *definitionWalk) value(schema *jsonschema.Schema, value any, path string
 	case []any:
 		return w.items(leaves, typed, path, depth)
 	case map[string]any:
-		for _, leaf := range leaves {
-			if members, ok := leaf.AdditionalProperties.(*jsonschema.Schema); ok && len(leaf.Properties) == 0 && w.definition(leaf) == "" {
-				for _, name := range slices.Sorted(maps.Keys(typed)) {
-					if err := w.value(members, typed[name], path+"/"+escape(name), depth+1); err != nil {
-						return err
-					}
-				}
-				return nil
+		return w.object(leaves, typed, path, depth)
+	}
+	return nil
+}
+
+func (w *definitionWalk) object(leaves []*jsonschema.Schema, value map[string]any, path string, depth int) error {
+	for _, leaf := range leaves {
+		if members, ok := leaf.AdditionalProperties.(*jsonschema.Schema); ok && len(leaf.Properties) == 0 && w.definition(leaf) == "" {
+			return w.members(members, value, path, depth)
+		}
+	}
+	model := w.selectModel(leaves, value)
+	if model == nil {
+		return nil
+	}
+	for _, name := range slices.Sorted(maps.Keys(model.Properties)) {
+		if child, ok := value[name]; ok {
+			if err := w.value(model.Properties[name], child, path+"/"+escape(name), depth+1); err != nil {
+				return err
 			}
 		}
-		model := w.selectModel(leaves, typed)
-		if model == nil {
-			return nil
-		}
-		for _, name := range slices.Sorted(maps.Keys(model.Properties)) {
-			if child, ok := typed[name]; ok {
-				if err := w.value(model.Properties[name], child, path+"/"+escape(name), depth+1); err != nil {
-					return err
-				}
-			}
-		}
-		if err := w.visit(DefinitionVisit{Definition: w.definition(model), Path: path, Value: typed}); err != nil {
-			return failure(fault.InvalidInput, "contract-model-mismatch")
+	}
+	if err := w.visit(DefinitionVisit{Definition: w.definition(model), Path: path, Value: value}); err != nil {
+		return failure(fault.InvalidInput, "contract-model-mismatch")
+	}
+	return nil
+}
+
+// members walks a map whose members all share one schema.
+func (w *definitionWalk) members(schema *jsonschema.Schema, value map[string]any, path string, depth int) error {
+	for _, name := range slices.Sorted(maps.Keys(value)) {
+		if err := w.value(schema, value[name], path+"/"+escape(name), depth+1); err != nil {
+			return err
 		}
 	}
 	return nil
@@ -204,7 +214,7 @@ func literalEqual(left, right any) bool {
 		rightText, ok := right.(string)
 		return ok && leftText == rightText
 	}
-	return reflect.DeepEqual(left, right)
+	return cmp.Equal(left, right)
 }
 
 // schemaLeaves flattens references and combinators into the schemas that

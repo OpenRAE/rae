@@ -142,7 +142,7 @@ func materializationSource(source any) (any, error) {
 	if err != nil {
 		return nil, err
 	}
-	if err = value.Validate(v, value.Runtime()); err != nil {
+	if err = value.Validate(v, value.Materialization()); err != nil {
 		return nil, invalid()
 	}
 	if len(object(v)) != 2 || stringAt(v, "profile") != "raes-sdl-instantiated-snapshot/v2" || object(at(v, kindScenario)) == nil {

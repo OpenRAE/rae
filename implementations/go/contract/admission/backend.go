@@ -49,7 +49,7 @@ func backendLocal(i validation.Invocation) error {
 // is a workflow step dispatch, bound to its orchestration parent operation.
 func workflowStepBinding(v any) bool {
 	step := at(v, "workflow_step")
-	if stringAt(v, "command", "contract_id") != "workflow-step-dispatch-v1" {
+	if stringAt(v, "command", "contract_id") != contractWorkflowStepDispatch {
 		return step == nil
 	}
 	context := at(v, "binding", "context")

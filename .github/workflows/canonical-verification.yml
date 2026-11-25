@@ -863,6 +863,8 @@ jobs:
           uv run --project implementations/python --frozen --no-default-groups python \
             tools/parity_safe_state.py --check
           uv run --project implementations/python --frozen --no-default-groups python \
+            tools/parity_realization_references.py --check
+          uv run --project implementations/python --frozen --no-default-groups python \
             tools/parity_full_admission.py --check
           uv run --project implementations/python --frozen --no-default-groups python \
             tools/parity_authoring_vectors.py --check

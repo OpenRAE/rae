@@ -36,7 +36,7 @@ func (e *Validator) localModels(id string, root any) error {
 		return propositionTruth(root)
 	case termRuntimeSnapshotV1:
 		return e.snapshotLocalModels(root)
-	case "experiment-study-v1":
+	case contractExperimentStudy:
 		return studyFactorDeclarations(root)
 	case "semantic-profile-v1":
 		return e.semanticProfile(root)

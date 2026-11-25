@@ -193,7 +193,7 @@ func (s *evaluationState) plannedSourceBindingValid(authority plannedAuthority) 
 	if err != nil {
 		return false, err
 	}
-	binding, err := admission.RealizationConstraintBinding(requirement.Constraint, fragment)
+	binding, err := admission.RealizationConstraintBindingWithLimits(requirement.Constraint, fragment, admission.PlanAuthorityConstraintLimits())
 	if err != nil {
 		return false, plannedUnexpected(err)
 	}
@@ -271,7 +271,8 @@ func (s *evaluationState) plannedManifestFinding() (*diagnostic.Diagnostic, erro
 	if err != nil {
 		return nil, err
 	}
-	if needsEnvelope && (planned == nil || selected == nil || !payloadEqual(planned, selected)) {
+	// A plan that names an envelope must match the selected one, even without open or constrained authority.
+	if (planned != nil || needsEnvelope) && (planned == nil || selected == nil || !payloadEqual(planned, selected)) {
 		return &diagnostic.Diagnostic{Code: "realization.authority-envelope-mismatch", Domain: termRuntimeRealization, Address: "runtime.realization-envelope", Message: "Provisioning plan authority was not admitted against the selected realization envelope.", Severity: termError}, nil
 	}
 	requirements, err := s.plannedRequirements()

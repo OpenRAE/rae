@@ -10,7 +10,7 @@ var experimentBinaryPaths = map[string]string{ //nolint:gochecknoglobals // Immu
 	"DifficultyAffectedReferenceModel":             "/ref_id",
 	"DifficultyDimensionModel":                     "/dimension_id /ordered_variant_ids/* /ordering_rationale",
 	"DifficultyObservationSourceModel":             "/source_id",
-	"DifficultyPolicyModel":                        "/baseline_variant_id /guardrails/* /policy_digest /policy_id /policy_version /validity_effect",
+	modelDifficultyPolicy:                          "/baseline_variant_id /guardrails/* /policy_digest /policy_id /policy_version /validity_effect",
 	"DifficultyPolicyRegistryModel":                "/default_policy_id",
 	"DifficultySourceDefinitionReferenceModel":     binaryReferencePaths,
 	"DifficultyThresholdRuleModel":                 "/action_id /observation_source_id /rule_id",

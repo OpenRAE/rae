@@ -14,7 +14,7 @@ import (
 // ParticipantFeatureSupportGaps checks evidence and strength against the shared
 // manifest catalog. Gaps describe capability only; they grant no execution.
 func ParticipantFeatureSupportGaps(v *Validator, manifest binding.BackendManifestV2, features []string, requiredLevel string) ([]string, error) {
-	ranks := map[string]int{statusUnsupported: 0, termDisclosedWeak: 1, assuranceBounded: 2, "exact": 3}
+	ranks := map[string]int{statusUnsupported: 0, termDisclosedWeak: 1, assuranceBounded: 2, postureExact: 3}
 	_, known := ranks[requiredLevel]
 	if v == nil || !known {
 		return nil, invalid()

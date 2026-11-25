@@ -96,7 +96,7 @@ func trialParallelismBounds(intent map[string]any, entries int) (int, int, error
 	}
 	lower, upper := 1, min(entries, maxTrialParallelism)
 	switch stringAt(intent, "posture") {
-	case "exact":
+	case postureExact:
 		count, _ := integer(intent["count"])
 		lower, upper = count, count
 	case "constrained":
@@ -153,7 +153,7 @@ func trialOutcomeLocal(root any) error {
 		}
 		operations = append(operations, stringAt(receipt, "operation_id"))
 	}
-	completed := stringAt(root, "progress") != "completed" || slices.Contains(kinds, termExecution) && slices.Contains(kinds, "cleanup")
+	completed := stringAt(root, "progress") != statusCompleted || slices.Contains(kinds, termExecution) && slices.Contains(kinds, "cleanup")
 	return require(unique(kinds) && unique(operations) && completed)
 }
 

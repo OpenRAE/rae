@@ -27,8 +27,9 @@ func (n *literalNormalizer) admitMetadata(profile string, closure RealizationClo
 	if err := n.admitCollectionProfiles(&budget); err != nil {
 		return nil, err
 	}
+	// Each origin admits its address and value directly, without a record wrapper.
 	for pointer, origin := range m.Origins {
-		if !budget.metadata(map[string]any{termFieldPointer: pointer, termOrigin: origin}) {
+		if !budget.metadata(pointer) || !budget.metadata(origin) {
 			n.fail(termLimitExceeded, "", normalizationMetadataWorkLimit)
 			break
 		}

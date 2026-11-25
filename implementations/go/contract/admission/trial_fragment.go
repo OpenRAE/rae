@@ -73,7 +73,7 @@ func (e *Validator) trialAuthorityProjection(data []byte, limits ingress.Limits)
 		return nil, err
 	}
 	cleanup = object(constructed)
-	for _, key := range []string{fieldPlanID, fieldPlanEntryID, "run_id", "schema_version"} {
+	for _, key := range []string{fieldPlanID, fieldPlanEntryID, "run_id", termSchemaVersion} {
 		delete(cleanup, key)
 	}
 	root["cleanup"] = cleanup

@@ -97,7 +97,7 @@ func accountingAttempt(v, run any, partial bool) error {
 	return require(partial)
 }
 func accountingRunStatus(v, latest any) error {
-	expected := map[string]string{statusUnknown: outcomeIndeterminate, statusRunning: statusInProgress, outcomeSucceeded: "completed", outcomeFailed: outcomeFailed, "timed-out": outcomeFailed, outcomeCancelled: outcomeAborted, outcomeAborted: outcomeAborted}[stringAt(latest, "execution_status")]
+	expected := map[string]string{statusUnknown: outcomeIndeterminate, statusRunning: statusInProgress, outcomeSucceeded: statusCompleted, outcomeFailed: outcomeFailed, "timed-out": outcomeFailed, outcomeCancelled: outcomeAborted, outcomeAborted: outcomeAborted}[stringAt(latest, "execution_status")]
 	status := stringAt(v, "run_status")
 	if status != expected && status != "invalidated" && status != statusSuperseded && (stringAt(latest, "execution_status") != outcomeSucceeded || status != "sealed") {
 		return invalid()

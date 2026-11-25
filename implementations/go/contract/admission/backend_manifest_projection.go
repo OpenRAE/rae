@@ -95,7 +95,7 @@ func manifestClaimSortKey(input any) string {
 	}
 	coordinate := object(input)
 	var key strings.Builder
-	for index, name := range []string{termNamespace, termAuthority, termProfileID, termRevision, "definition_digest"} {
+	for index, name := range []string{termNamespace, termAuthority, termProfileID, termRevision, termDefinitionDigest} {
 		if index > 0 {
 			key.WriteByte(' ')
 		}

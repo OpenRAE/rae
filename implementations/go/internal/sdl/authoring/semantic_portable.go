@@ -85,7 +85,7 @@ func (m *semanticModel) portableMaterialized() error {
 	if m.document.contract != materializedContract {
 		return nil
 	}
-	projection := semanticValueProjection{queries: m.scopes, limits: value.Runtime()}
+	projection := semanticValueProjection{queries: m.scopes, limits: value.Materialization()}
 	root := semanticValueFrame{data: m.scopes.value, schema: m.parser.schemas[m.document.contract], pointer: "#", omitProvenance: true}
 	return value.ValidateProjected(root, projection.limits, projection.project)
 }

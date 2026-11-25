@@ -133,7 +133,7 @@ func AdmitFragment(v *Validator, profile FragmentProfile, document any, limits i
 	if v == nil || !known {
 		return nil, fragmentInvalid()
 	}
-	data, err := value.Encode(document, value.Runtime())
+	data, err := value.Encode(document, fragmentValueLimits(profile))
 	if err != nil {
 		return nil, fragmentInvalid()
 	}
@@ -152,6 +152,18 @@ func AdmitFragment(v *Validator, profile FragmentProfile, document any, limits i
 
 // boundedDocument applies the caller's byte and depth limits. Only a
 // realization value may have a root other than an object.
+// fragmentValueLimits bounds the carrier of one fragment. Recursive relation
+// values carry the plan authority budget, the largest that any relation
+// caller applies; each caller still applies its own work limits.
+func fragmentValueLimits(profile FragmentProfile) value.Limits {
+	switch profile {
+	case RealizationValue, RealizationConstraint, RealizationConstraintEvaluation:
+		return PlanAuthorityConstraintLimits().native()
+	default:
+		return value.Runtime()
+	}
+}
+
 func boundedDocument(profile FragmentProfile, data []byte, limits ingress.Limits) error {
 	if profile != RealizationValue {
 		_, err := ingress.Parse(data, limits, ingress.Object)

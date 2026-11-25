@@ -74,7 +74,7 @@ func associatedParent(manifest any, parent validation.Value, digest string) erro
 		termAuthoringInput:             {termExperimentAuthoringInputV1, "spec_id", "spec_version"},
 		"apparatus-context":            {"experiment-apparatus-context-v1", "apparatus_context_id", "context_version"},
 		kindRun:                        {termExperimentRunV1, termRunID, "run_version"},
-		"study":                        {"experiment-study-v1", "study_id", "study_version"},
+		"study":                        {contractExperimentStudy, "study_id", "study_version"},
 	}
 	ref := at(manifest, "parent_ref")
 	kind := stringAt(ref, "ref_kind")

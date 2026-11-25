@@ -124,7 +124,7 @@ func constraintAdmitsValue(constraint admission.Fragment, input any) (bool, erro
 	if err != nil {
 		return false, err
 	}
-	result, err := admission.EvaluateRealizationConstraint(constraint, fragment, admission.DefaultConstraintLimits())
+	result, err := admission.EvaluateRealizationConstraint(constraint, fragment, admission.PlanAuthorityConstraintLimits())
 	if err != nil {
 		return false, err
 	}
@@ -201,13 +201,10 @@ func (s *evaluationState) leftEmptyWithoutReadback(requirement Requirement, real
 	if requirement.Structure != nil || requirement.Constraint != nil || !missingValue(realized) && (!sequence || len(members) > 0) {
 		return false
 	}
-	if _, observed := s.observation(requirement); observed {
-		return false
-	}
-	return !slices.ContainsFunc(s.supportDeclarations(requirement), func(declaration supportDeclaration) bool {
-		_, readback := declaration.observations[observationKind(requirement.Kind)]
-		return readback
-	})
+	// Omission or an empty report earns no provenance regardless of capability.
+	// Reported members and matching observations still require corroboration.
+	_, observed := s.observation(requirement)
+	return !observed
 }
 func (s *evaluationState) manifestCorroborates(requirement Requirement, observation evaluatedObservation) bool {
 	for _, declaration := range s.supportDeclarations(requirement) {

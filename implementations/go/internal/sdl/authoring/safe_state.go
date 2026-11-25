@@ -82,50 +82,51 @@ func (m *semanticModel) checkSafeState(c *semanticCollector) {
 // safeStateDeferred keeps the language's source-time reference deferral.
 // Instantiation rejects every remaining token before compilation.
 func (m *semanticModel) safeStateDeferred(document map[string]any) bool {
-	rules := safeStateRules(document)
-	assertions, propositions, evidence := object(m.root[assertionsSection]), object(m.root[propositionsField]), object(m.root[evidenceRequirementsSection])
-	referenced := map[string]bool{}
-	for _, rule := range rules {
+	refs := map[string]bool{}
+	for _, rule := range safeStateRules(document) {
 		if containsVariable(rule.state) {
 			return true
 		}
 		for _, ref := range array(rule.state[assertionRefsField]) {
-			referenced[text(ref)] = true
+			refs[text(ref)] = true
 		}
 	}
-	claims := map[string]bool{}
-	for ref := range referenced {
-		if assertion, present := assertions[ref]; present {
-			if containsVariable(assertion) {
-				return true
-			}
-			claims[text(object(assertion)["proposition"])] = true
+	claims, deferred := deferredDefinitions(object(m.root[assertionsSection]), refs, func(definition map[string]any) []any { return []any{definition["proposition"]} })
+	if deferred {
+		return true
+	}
+	requirements, deferred := deferredDefinitions(object(m.root[propositionsField]), claims, func(definition map[string]any) []any { return array(definition[evidenceRequirementsSection]) })
+	if deferred {
+		return true
+	}
+	_, deferred = deferredDefinitions(object(m.root[evidenceRequirementsSection]), requirements, func(map[string]any) []any { return nil })
+	return deferred
+}
+
+// deferredDefinitions reports whether a referenced definition carries a
+// variable, and returns the names that the referenced definitions use next.
+func deferredDefinitions(definitions map[string]any, names map[string]bool, next func(map[string]any) []any) (map[string]bool, bool) {
+	result := map[string]bool{}
+	for name := range names {
+		definition, present := definitions[name]
+		if !present {
+			continue
+		}
+		if containsVariable(definition) {
+			return nil, true
+		}
+		for _, ref := range next(object(definition)) {
+			result[text(ref)] = true
 		}
 	}
-	requirements := map[string]bool{}
-	for ref := range claims {
-		if proposition, present := propositions[ref]; present {
-			if containsVariable(proposition) {
-				return true
-			}
-			for _, name := range array(object(proposition)[evidenceRequirementsSection]) {
-				requirements[text(name)] = true
-			}
-		}
-	}
-	for ref := range requirements {
-		if requirement, present := evidence[ref]; present && containsVariable(requirement) {
-			return true
-		}
-	}
-	return false
+	return result, false
 }
 
 func safeStateRules(document map[string]any) []safeStateRule {
 	rules := []safeStateRule{}
 	for _, raw := range array(document[scopesField]) {
 		rule := object(raw)
-		rules = append(rules, safeStateRule{namespace: stringItems(array(rule[namespaceField])), scope: text(rule[scopeField]), state: safeStateValue(object(rule["state"]))})
+		rules = append(rules, safeStateRule{namespace: stringItems(array(rule[namespaceField])), scope: text(rule[scopeField]), state: safeStateValue(object(rule[stateField]))})
 	}
 	if state := object(document[defaultField]); state != nil {
 		rules = append(rules, safeStateRule{namespace: []string{}, state: safeStateValue(state)})
@@ -171,16 +172,8 @@ func (m *semanticModel) resolveSafeStates() ([]ResolvedSafeState, error) {
 	if err != nil {
 		return nil, err
 	}
-	proofs := make(map[string]map[string]any, len(inputs))
-	for ref, input := range inputs {
-		if proofs[ref], err = m.safeStateProof(input); err != nil {
-			return nil, err
-		}
-	}
-	for i := range bindings {
-		for ref := range bindings[i].Proofs {
-			bindings[i].Proofs[ref] = proofs[ref]
-		}
+	if err = m.attachSafeStateProofs(bindings, inputs); err != nil {
+		return nil, err
 	}
 	if !safeStateWithinLimits(bindings) {
 		return nil, errSafeStateLimit
@@ -191,6 +184,24 @@ func (m *semanticModel) resolveSafeStates() ([]ResolvedSafeState, error) {
 		}
 	}
 	return bindings, nil
+}
+
+// attachSafeStateProofs builds each proof once and shares it across its bound targets.
+func (m *semanticModel) attachSafeStateProofs(bindings []ResolvedSafeState, inputs map[string]safeStateProofInput) error {
+	proofs := make(map[string]map[string]any, len(inputs))
+	for ref, input := range inputs {
+		proof, err := m.safeStateProof(input)
+		if err != nil {
+			return err
+		}
+		proofs[ref] = proof
+	}
+	for i := range bindings {
+		for ref := range bindings[i].Proofs {
+			bindings[i].Proofs[ref] = proofs[ref]
+		}
+	}
+	return nil
 }
 
 func (m *semanticModel) safeStateTargets() ([]safeStateTarget, error) {
@@ -254,41 +265,44 @@ func (m *semanticModel) safeStateProofInputs(rules []safeStateRule) (map[string]
 			refs[text(ref)] = true
 		}
 	}
-	assertions, propositions, evidence := object(m.root[assertionsSection]), object(m.root[propositionsField]), object(m.root[evidenceRequirementsSection])
 	inputs := make(map[string]safeStateProofInput, len(refs))
 	// Share one model per source definition; do not rebuild a proposition for each assertion.
 	models := map[string]map[string]any{}
 	for _, ref := range slices.Sorted(maps.Keys(refs)) {
-		raw, present := assertions[ref]
-		if !present {
-			return nil, errSafeStateInvalid
-		}
-		assertion, err := m.safeStateModel(models, "Assertion", assertionsSection+"."+ref, raw)
+		input, err := m.safeStateProofInput(models, ref)
 		if err != nil {
 			return nil, err
 		}
-		name := text(assertion["proposition"])
-		raw, present = propositions[name]
-		if !present {
-			return nil, errSafeStateInvalid
-		}
-		proposition, err := m.safeStateModel(models, "Proposition", propositionsField+"."+name, raw)
-		if err != nil {
-			return nil, err
-		}
-		requirements := map[string]any{}
-		for _, item := range array(proposition[evidenceRequirementsSection]) {
-			raw, present = evidence[text(item)]
-			if !present {
-				return nil, errSafeStateInvalid
-			}
-			if requirements[text(item)], err = m.safeStateModel(models, "EvidenceRequirement", evidenceRequirementsSection+"."+text(item), raw); err != nil {
-				return nil, err
-			}
-		}
-		inputs[ref] = safeStateProofInput{assertion: assertion, proposition: proposition, evidence: requirements}
+		inputs[ref] = input
 	}
 	return inputs, nil
+}
+
+func (m *semanticModel) safeStateProofInput(models map[string]map[string]any, ref string) (safeStateProofInput, error) {
+	assertion, err := m.safeStateDefinition(models, "Assertion", assertionsSection, ref)
+	if err != nil {
+		return safeStateProofInput{}, err
+	}
+	proposition, err := m.safeStateDefinition(models, "Proposition", propositionsField, text(assertion["proposition"]))
+	if err != nil {
+		return safeStateProofInput{}, err
+	}
+	requirements := map[string]any{}
+	for _, item := range array(proposition[evidenceRequirementsSection]) {
+		if requirements[text(item)], err = m.safeStateDefinition(models, "EvidenceRequirement", evidenceRequirementsSection, text(item)); err != nil {
+			return safeStateProofInput{}, err
+		}
+	}
+	return safeStateProofInput{assertion: assertion, proposition: proposition, evidence: requirements}, nil
+}
+
+// safeStateDefinition returns one referenced source definition, or refuses an unresolved reference.
+func (m *semanticModel) safeStateDefinition(models map[string]map[string]any, model, section, name string) (map[string]any, error) {
+	raw, present := object(m.root[section])[name]
+	if !present {
+		return nil, errSafeStateInvalid
+	}
+	return m.safeStateModel(models, model, section+"."+name, raw)
 }
 
 // safeStateModel returns the complete model of one source definition, as the
@@ -345,9 +359,9 @@ func safeStateSourceWithinLimits(inputs map[string]safeStateProofInput, bindings
 		for ref := range binding.Proofs {
 			proofs[ref] = definitions[ref]
 		}
-		targets[i] = map[string]any{"target_ref": binding.TargetRef, "scope": binding.Scope, "namespace": stringValues(binding.Namespace), "governing_scope": binding.GoverningScope, "state": binding.State, "proofs": proofs}
+		targets[i] = map[string]any{"target_ref": binding.TargetRef, "scope": binding.Scope, namespaceField: stringValues(binding.Namespace), "governing_scope": binding.GoverningScope, stateField: binding.State, "proofs": proofs}
 	}
-	return value.Validate(map[string]any{"definitions": definitions, "targets": targets}, planValueLimits()) == nil
+	return value.Validate(map[string]any{"definitions": definitions, "targets": targets}, value.Plan()) == nil
 }
 
 func safeStateWithinLimits(bindings []ResolvedSafeState) bool {
@@ -357,9 +371,9 @@ func safeStateWithinLimits(bindings []ResolvedSafeState) bool {
 		for ref, proof := range binding.Proofs {
 			proofs[ref] = proof
 		}
-		targets[i] = map[string]any{"target_ref": binding.TargetRef, "scope": binding.Scope, "governing_scope": binding.GoverningScope, "namespace": stringValues(binding.Namespace), "state": binding.State, "proofs": proofs}
+		targets[i] = map[string]any{"target_ref": binding.TargetRef, "scope": binding.Scope, "governing_scope": binding.GoverningScope, "namespace": stringValues(binding.Namespace), stateField: binding.State, "proofs": proofs}
 	}
-	return value.Validate(targets, planValueLimits()) == nil
+	return value.Validate(targets, value.Plan()) == nil
 }
 
 // document is the record view that the reference traverses before any proof
@@ -377,13 +391,6 @@ func (i safeStateProofInput) document() map[string]any {
 	return map[string]any{"assertion": i.assertion, "proposition": proposition, "evidence_requirements": i.evidence}
 }
 
-// planValueLimits is the aggregate budget of planner-produced plans.
-func planValueLimits() value.Limits {
-	limits := value.Runtime()
-	limits.MaxNodes, limits.MaxOperations, limits.MaxTotalScalarBytes = 524288, 4*524288, 16*1048576
-	return limits
-}
-
 // safeStateProof canonicalizes every proof reference and requires a positive
 // observed postcondition over every subject, with exactly the named evidence.
 func (m *semanticModel) safeStateProof(input safeStateProofInput) (map[string]any, error) {
@@ -393,39 +400,62 @@ func (m *semanticModel) safeStateProof(input safeStateProofInput) (map[string]an
 		return nil, err
 	}
 	proposition["subjects"] = subjects
-	// The reference serializer omits an absent generated-artifact expectation.
-	if predicate := object(proposition["predicate"]); predicate != nil && predicate["expected_from"] == nil {
-		if _, present := predicate["expected_from"]; present {
-			predicate = maps.Clone(predicate)
-			delete(predicate, "expected_from")
-			proposition["predicate"] = predicate
-		}
+	omitAbsentExpectation(proposition)
+	evidence, err := m.canonicalSafeStateEvidence(input.evidence)
+	if err != nil {
+		return nil, err
 	}
-	evidence := make(map[string]any, len(input.evidence))
-	for name, raw := range input.evidence {
+	if !safeStateProofValid(assertion, proposition, evidence) {
+		return nil, errSafeStateInvalid
+	}
+	return map[string]any{"assertion": assertion, "proposition": proposition, "evidence_requirements": evidence}, nil
+}
+
+// omitAbsentExpectation applies the reference serializer omission of an absent
+// generated-artifact expectation.
+func omitAbsentExpectation(proposition map[string]any) {
+	predicate := object(proposition["predicate"])
+	if raw, present := predicate["expected_from"]; present && raw == nil {
+		predicate = maps.Clone(predicate)
+		delete(predicate, "expected_from")
+		proposition["predicate"] = predicate
+	}
+}
+
+func (m *semanticModel) canonicalSafeStateEvidence(input map[string]any) (map[string]any, error) {
+	evidence := make(map[string]any, len(input))
+	for name, raw := range input {
 		requirement := maps.Clone(object(raw))
 		for _, field := range []string{"source_refs", "scope_refs"} {
-			if requirement[field], err = m.canonicalSafeStateRefs(array(requirement[field])); err != nil {
+			refs, err := m.canonicalSafeStateRefs(array(requirement[field]))
+			if err != nil {
 				return nil, err
 			}
+			requirement[field] = refs
 		}
 		evidence[name] = requirement
 	}
-	if !uniqueStrings(subjects) || text(assertion["role"]) != "postcondition" || defaultText(assertion, "polarity", "positive") != "positive" {
-		return nil, errSafeStateInvalid
+	return evidence, nil
+}
+
+// safeStateProofValid requires unique subjects and a positive observed
+// postcondition over every subject, with exactly the named evidence.
+func safeStateProofValid(assertion, proposition, evidence map[string]any) bool {
+	if !uniqueStrings(array(proposition["subjects"])) || text(assertion["role"]) != rolePostcondition || defaultText(assertion, "polarity", "positive") != "positive" {
+		return false
 	}
 	if text(proposition["basis"]) != "observed_state" || defaultText(proposition, "quantifier", "all") != "all" {
-		return nil, errSafeStateInvalid
+		return false
 	}
 	if len(evidence) == 0 || len(evidence) > 64 || len(evidence) != len(array(proposition[evidenceRequirementsSection])) {
-		return nil, errSafeStateInvalid
+		return false
 	}
 	for name := range evidence {
 		if !safeStateReference(name) {
-			return nil, errSafeStateInvalid
+			return false
 		}
 	}
-	return map[string]any{"assertion": assertion, "proposition": proposition, "evidence_requirements": evidence}, nil
+	return true
 }
 
 func (m *semanticModel) canonicalSafeStateRefs(refs []any) ([]any, error) {

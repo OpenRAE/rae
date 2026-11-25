@@ -15,7 +15,6 @@ const rootLocation = "<root>"
 
 const trueLiteral = "true"
 const titleField = "title"
-const sha256Algorithm = "sha256"
 
 // Callers use this only for JSON objects or model-validated string-key maps.
 func sortedMappingKeys(m *mapping) []string {

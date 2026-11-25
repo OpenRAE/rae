@@ -72,15 +72,25 @@ func resolvedSafeState(i validation.Invocation) error {
 			return invalid()
 		}
 	}
+	if !safeStateProvenance(v) {
+		return invalid()
+	}
+	return resolvedSafeStateProofs(proofs, stringAt(v, "target_ref"))
+}
+
+// safeStateProvenance binds the lexical provenance to the namespace and
+// requires the defining scope to contain the target scope.
+func safeStateProvenance(v any) bool {
 	namespace, defining, found := strings.Cut(stringAt(v, "governing_scope"), "#")
 	if defining == "/" {
 		defining = ""
 	}
 	scope := stringAt(v, "scope")
-	if !found || namespace != strings.Join(stringsOf(at(v, "namespace")), ".") || len(defining) > 4096 || !semanticPointer.MatchString(defining) || !semanticPointer.MatchString(scope) || !addressContains(defining, scope) {
-		return invalid()
-	}
-	target := stringAt(v, "target_ref")
+	return found && namespace == strings.Join(stringsOf(at(v, "namespace")), ".") && len(defining) <= 4096 && semanticPointer.MatchString(defining) && semanticPointer.MatchString(scope) && addressContains(defining, scope)
+}
+
+// resolvedSafeStateProofs binds every proof and evidence requirement to the exact target.
+func resolvedSafeStateProofs(proofs map[string]any, target string) error {
 	for _, proof := range proofs {
 		if err := safeStateProof(proof); err != nil {
 			return err

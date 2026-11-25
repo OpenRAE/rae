@@ -202,9 +202,9 @@ Official STE access returned HTTP 403; no full dictionary-conformance claim is m
 ## Typed interface commitments
 
 <!-- go-api implementations/go/base/clock 2582eb92f20e5edc6057de2fa7ca965af86a967711c8dcdf24d1c47ad3fcd187 -->
-<!-- go-api implementations/go/processor/analysis f8dd33c947a61ec4c5d00693dac9ebd477db4d7c6997b87d3953ba2a491545e7 -->
+<!-- go-api implementations/go/processor/analysis 6772e5e81c9b82bde9696722a60aeeb67f04cf4a327ca4867fc049cc849d4919 -->
 
-<!-- go-api implementations/go/sdl 6ba216e06e79957da1e0eca2c28d356356c8d31760c4f288b2db2e801e41bb35 -->
+<!-- go-api implementations/go/sdl 9e371d72e356c611df2d5e18eea579819d326f9f1a7b96bc535d94b351e66e6e -->
 
 ## Retained expanded model
 

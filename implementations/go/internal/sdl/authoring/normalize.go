@@ -99,28 +99,44 @@ func (w *normalizer) walk(schema map[string]any, pointer string, value any, path
 	if err != nil {
 		return nil, err
 	}
-	if schema["type"] == stringType {
-		if _, ok := value.(string); !ok {
-			return nil, invalid()
-		}
-	}
-	if expected, constant := schema["const"]; constant && expected != value {
-		return nil, invalid()
-	}
-	if labels := w.parser.unionLabels[pointer]; labels != nil && schema["properties"] == nil {
-		if _, mapping := value.(map[string]any); mapping {
-			if result, handled, unionErr := w.modelUnion(schema, labels, value, path, policy, view); handled {
-				return result, unionErr
-			}
-		}
+	if err = scalarShape(schema, value); err != nil {
+		return nil, err
 	}
 	if schema["properties"] == nil {
-		if chosen, selected := w.choose(alternatives(schema), value); chosen != nil {
-			policy.Convert = nil
-			return w.walk(chosen, selected, value, path, policy, view)
+		if result, handled, alternativeErr := w.alternative(schema, pointer, value, path, policy, view); handled {
+			return result, alternativeErr
 		}
 	}
 	return w.walkValue(schema, pointer, value, path, policy, view)
+}
+
+// scalarShape applies the string type and constant keywords before any branch selection.
+func scalarShape(schema map[string]any, value any) error {
+	if _, text := value.(string); schema["type"] == stringType && !text {
+		return invalid()
+	}
+	if expected, constant := schema["const"]; constant && expected != value {
+		return invalid()
+	}
+	return nil
+}
+
+// alternative walks the value through a model union or the selected branch of a combinator.
+func (w *normalizer) alternative(schema map[string]any, pointer string, value any, path []string, policy scalarPolicy, view source.View) (any, bool, error) {
+	if labels := w.parser.unionLabels[pointer]; labels != nil {
+		if _, mapping := value.(map[string]any); mapping {
+			if result, handled, err := w.modelUnion(schema, labels, value, path, policy, view); handled {
+				return result, true, err
+			}
+		}
+	}
+	chosen, selected := w.choose(alternatives(schema), value)
+	if chosen == nil {
+		return nil, false, nil
+	}
+	policy.Convert = nil
+	result, err := w.walk(chosen, selected, value, path, policy, view)
+	return result, true, err
 }
 func locatedModelError(err error, path []string) error {
 	if err == nil {
@@ -134,7 +150,7 @@ func locatedModelError(err error, path []string) error {
 func packageShorthand(pointer string, value any) any {
 	if pointer == "#/$defs/Source" {
 		if s, ok := value.(string); ok {
-			return map[string]any{nameField: s, "version": "*"}
+			return map[string]any{nameField: s, versionField: "*"}
 		}
 	}
 	return value
@@ -241,18 +257,7 @@ func (w *normalizer) mapping(schema map[string]any, pointer string, value map[st
 		delete(value, "schema_digest")
 	}
 	presentation := w.parser.layoutFor(w.id, pointer)
-	keys := w.keys(value, path, view)
-	missing := map[string]bool{}
-	for _, required := range array(schema["required"]) {
-		name := text(required)
-		if pointer == domainProfileSchemaPointer && name == "schema_digest" {
-			continue // The native output constructor computes a missing digest below.
-		}
-		if _, present := value[name]; !present {
-			missing[name] = true
-			keys = append(keys, name)
-		}
-	}
+	keys, missing := missingRequired(schema, pointer, value, w.keys(value, path, view))
 	result := make(ordered, 0, len(value))
 	failures := []error{}
 	// Fields fail in model order, as the reference reports them; undeclared keys follow.
@@ -280,6 +285,22 @@ func (w *normalizer) mapping(schema map[string]any, pointer string, value map[st
 		return nil, err
 	}
 	return result, nil
+}
+
+// missingRequired appends each absent required field to the presented keys.
+func missingRequired(schema map[string]any, pointer string, value map[string]any, keys []string) ([]string, map[string]bool) {
+	missing := map[string]bool{}
+	for _, required := range array(schema["required"]) {
+		name := text(required)
+		if pointer == domainProfileSchemaPointer && name == "schema_digest" {
+			continue // The native output constructor computes a missing digest.
+		}
+		if _, present := value[name]; !present {
+			missing[name] = true
+			keys = append(keys, name)
+		}
+	}
+	return keys, missing
 }
 
 type mappingPresentation struct {

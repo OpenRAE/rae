@@ -101,7 +101,7 @@ func trialTerminalOutcome(run, receipt any) error {
 	if status == experimentTermInvalidated || status == statusSuperseded {
 		return nil
 	}
-	allowed := map[string][]string{"succeeded": {"completed", experimentTermSealed}, outcomeFailed: {outcomeFailed}, "cancelled": {outcomeAborted}, experimentTermTimedOut: {outcomeFailed, outcomeAborted}, outcomeAborted: {outcomeAborted}}[stringAt(receipt, "trial_outcome")]
+	allowed := map[string][]string{"succeeded": {statusCompleted, experimentTermSealed}, outcomeFailed: {outcomeFailed}, "cancelled": {outcomeAborted}, experimentTermTimedOut: {outcomeFailed, outcomeAborted}, outcomeAborted: {outcomeAborted}}[stringAt(receipt, "trial_outcome")]
 	if slices.Contains(allowed, status) {
 		return nil
 	}

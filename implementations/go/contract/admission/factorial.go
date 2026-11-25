@@ -232,6 +232,18 @@ func factorialCondition(design any, shape factorialShape, levels map[string]any)
 	return map[string]any{"condition_id": id, "factor_levels": maps.Clone(levels), "difficulty_condition": conditionFixed, "difficulty_policy_id": nil, "required_refs": []any{}, "required_parameters": []any{}, termRequiredBindings: bindings, termRequiredSelections: selections, termDescription: nil}, nil
 }
 
+// factorialConditionChecks checks one condition's sources and, for a typed
+// design, keeps the selected points consistent across conditions.
+func factorialConditionChecks(condition any, shape factorialShape, points map[string]bool) (map[string]bool, error) {
+	if err := conditionSources(condition); err != nil {
+		return nil, err
+	}
+	if !shape.typed {
+		return points, nil
+	}
+	return factorialConsistentPoints(condition, shape.fixed, points)
+}
+
 func factorialChildren(design any, shape factorialShape) (any, any, error) {
 	assignments := map[string]any{}
 	descriptors := []any{}
@@ -254,15 +266,8 @@ func factorialChildren(design any, shape factorialShape) (any, any, error) {
 		if assignments[id] != nil {
 			return nil, nil, invalid()
 		}
-		if err := conditionSources(condition); err != nil {
+		if points, err = factorialConditionChecks(condition, shape, points); err != nil {
 			return nil, nil, err
-		}
-		if shape.typed {
-			current, err := factorialConsistentPoints(condition, shape.fixed, points)
-			if err != nil {
-				return nil, nil, err
-			}
-			points = current
 		}
 		assignments[id] = condition
 		descriptors = append(descriptors, array(at(condition, termRequiredBindings))...)

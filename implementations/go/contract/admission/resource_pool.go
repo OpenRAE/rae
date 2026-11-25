@@ -15,7 +15,7 @@ func resourcePoolIdentity(v any) (string, error) {
 	for index, value := range values {
 		if index == 3 && object(value) != nil {
 			// The incumbent ordered model serializer fixes this nested key order.
-			fields := []string{termNamespace, termAuthority, termProfileID, termRevision, "definition_digest"}
+			fields := []string{termNamespace, termAuthority, termProfileID, termRevision, termDefinitionDigest}
 			parts := make([]string, len(fields))
 			for position, field := range fields {
 				text, err := resourceIdentityJSON(at(value, field))

@@ -180,29 +180,35 @@ func (w *planCompilation) compileEntries(ctx context.Context) error {
 			}
 			continue
 		}
-		size, err := w.retainedBytes(entry, cleanup)
-		if err != nil {
-			return err
-		}
-		if retained += size; retained > w.request.Limits.MaxPlanBytes {
-			// Retain no oversized aggregate, but preserve the canonical refusal order.
-			clear(w.plan.Entries)
-			clear(w.plan.Cleanup)
-			clear(w.signatures)
-			failures.refuse(&compilationRefusalError{"plan-byte-limit-exceeded", "", "canonical admitted plan bytes exceed the compilation limit"})
-			continue
-		}
-		w.plan.Entries[entry.ID] = entry
-		w.plan.Cleanup[cleanupID] = cleanup
-		if entry.signature != "" {
-			w.signatures[entry.ID] = entry.signature
-		}
-		if err = w.retainDrawControls(w.rows[index].draws); err != nil {
+		if err = w.retainEntry(&retained, &failures, entry, cleanupID, cleanup, w.rows[index].draws); err != nil {
 			return err
 		}
 	}
 	return failures.result()
 }
+
+// retainEntry charges one compiled entry against the plan byte limit. Over
+// the limit, it retains no aggregate but keeps the canonical refusal order.
+func (w *planCompilation) retainEntry(retained *int, failures *entryFailures, entry trialEntry, cleanupID string, cleanup json.RawMessage, draws []json.RawMessage) error {
+	size, err := w.retainedBytes(entry, cleanup)
+	if err != nil {
+		return err
+	}
+	if *retained += size; *retained > w.request.Limits.MaxPlanBytes {
+		clear(w.plan.Entries)
+		clear(w.plan.Cleanup)
+		clear(w.signatures)
+		failures.refuse(&compilationRefusalError{"plan-byte-limit-exceeded", "", "canonical admitted plan bytes exceed the compilation limit"})
+		return nil
+	}
+	w.plan.Entries[entry.ID] = entry
+	w.plan.Cleanup[cleanupID] = cleanup
+	if entry.signature != "" {
+		w.signatures[entry.ID] = entry.signature
+	}
+	return w.retainDrawControls(draws)
+}
+
 // retainedBytes charges one compiled entry and its cleanup plan at their sealed canonical size.
 func (w *planCompilation) retainedBytes(entry trialEntry, cleanup json.RawMessage) (int, error) {
 	raw, err := encoded(entry)

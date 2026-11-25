@@ -7,9 +7,10 @@ import (
 	"testing"
 	"testing/fstest"
 
+	"github.com/google/go-cmp/cmp"
+
 	"github.com/OpenRAE/rae/implementations/go/contract/diagnostic"
 	"github.com/OpenRAE/rae/implementations/go/internal/sdl/source"
-	"github.com/google/go-cmp/cmp"
 )
 
 type safeStateVector struct {
@@ -56,17 +57,7 @@ func (vector safeStateVector) run(t *testing.T, parser *Parser) {
 	}
 	admitted, _, err := parser.Validate(document)
 	if !vector.Accepted {
-		var refusal diagnostic.Error
-		if !errors.As(err, &refusal) {
-			t.Fatalf("validation = %v; want refusal %v", err, vector.Errors)
-		}
-		messages := []string{}
-		for _, finding := range refusal.Diagnostics() {
-			messages = append(messages, finding.Message)
-		}
-		if diff := cmp.Diff(vector.Errors, messages); diff != "" {
-			t.Fatalf("refusal differs from reference (-want +got):\n%s", diff)
-		}
+		vector.checkRefusal(t, err)
 		return
 	}
 	if err != nil {
@@ -84,20 +75,40 @@ func (vector safeStateVector) run(t *testing.T, parser *Parser) {
 	}
 	assertJSONEqual(t, vector.SafeStates, states)
 	if vector.Rename != nil {
-		request, err := json.Marshal(map[string]any{"operation_profile": "rename-sdl-declaration/v1", "request": vector.Rename, "policy": map[string]any{"allowed_loss_kinds": []any{}}, "binding_documents": []any{}})
-		if err != nil {
-			t.Fatal(err)
-		}
-		renamed, _, err := parser.Transform(admitted, request)
-		if err != nil || renamed == nil {
-			t.Fatalf("rename = %v, %v; want the reference output", renamed, err)
-		}
-		var output map[string]any
-		if err = json.Unmarshal(renamed.JSON(), &output); err != nil {
-			t.Fatal(err)
-		}
-		assertJSONEqual(t, vector.Renamed, output[safeStateSection])
+		vector.checkRename(t, parser, admitted)
 	}
+}
+
+func (vector safeStateVector) checkRefusal(t *testing.T, err error) {
+	t.Helper()
+	var refusal diagnostic.Error
+	if !errors.As(err, &refusal) {
+		t.Fatalf("validation = %v; want refusal %v", err, vector.Errors)
+	}
+	messages := []string{}
+	for _, finding := range refusal.Diagnostics() {
+		messages = append(messages, finding.Message)
+	}
+	if diff := cmp.Diff(vector.Errors, messages); diff != "" {
+		t.Fatalf("refusal differs from reference (-want +got):\n%s", diff)
+	}
+}
+
+func (vector safeStateVector) checkRename(t *testing.T, parser *Parser, admitted *Document) {
+	t.Helper()
+	request, err := json.Marshal(map[string]any{"operation_profile": "rename-sdl-declaration/v1", "request": vector.Rename, "policy": map[string]any{"allowed_loss_kinds": []any{}}, "binding_documents": []any{}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	renamed, _, err := parser.Transform(admitted, request)
+	if err != nil || renamed == nil {
+		t.Fatalf("rename = %v, %v; want the reference output", renamed, err)
+	}
+	var output map[string]any
+	if err = json.Unmarshal(renamed.JSON(), &output); err != nil {
+		t.Fatal(err)
+	}
+	assertJSONEqual(t, vector.Renamed, output[safeStateSection])
 }
 
 func assertJSONEqual(t *testing.T, want json.RawMessage, value any) {

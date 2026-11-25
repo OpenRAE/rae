@@ -220,8 +220,8 @@
     "reference":"test_issue_1759_runtime_constraint_budget.py::test_scope_tree_construction_and_lookup_spend_budget",
     "constraint":{"semantic_profile":"test/v1","scopes":[{"field_pointer":"/a/b/c","closure":{"posture":"closed","universe":"test","profile":"test/v1"}}],"root":{"kind":"delegated"}},
     "actual":{"a":{"b":{"c":{}}}},
-    "status":"limit-exceeded",
-    "diagnostics":[{"code":"realization.limit-exceeded","domain":"realization","address":"/root/$header/origin/$key","message":"Constraint metadata admission exceeded max_operations.","severity":"error"}],
+    "status":"conformant",
+    "diagnostics":[],
     "limits":{"max_operations":32}
   },
   {

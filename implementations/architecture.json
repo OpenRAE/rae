@@ -14085,14 +14085,14 @@
     "docs/decisions/issue-1785-sdl-operations-design.md": "d33281d6905ef35161b8129a0aa2a217d25447a602d0fba73a7361fb2e537e22",
     "docs/decisions/issue-1784-runtime-inventory-design.md": "341ae090d298458bd2500afe22e94aa459c9a382970e7cb336ac3ea2d8c33dee",
     "docs/decisions/issue-2008-sdl-semantic-fixtures-design.md": "93ee0f27747f5adce6296d00f5190a7f5b7a917d9a6ad1afaa7d1ca2554c53b6",
-    "docs/decisions/issue-1787-processor-design.md": "3d783411ee5e623a708db807c9221499ab84206cbdd1e5e1ffeb37ddc2a2c045",
+    "docs/decisions/issue-1787-processor-design.md": "b64758636767e1e3e4976debc173f4c7b40a2213c9ab4b0114410722247f8827",
     "docs/decisions/issue-1787-processor-semantics-preflight.md": "1bfaf7c0094cb52087fbc84fc51a5d06f92deef99c6394953f68120789af125a",
     "docs/decisions/issue-1781-concept-profile-design.md": "ff2f1a74e02ed4af9a656da86801dd35e6f8036b73ab9009fe8b9e3739908a4c",
-    "docs/decisions/issue-1788-experiments-design.md": "ca383b993bcdd68d33e5eb9e6b3877588a6e659d873a0665ec112ef73ac9eab0",
+    "docs/decisions/issue-1788-experiments-design.md": "07749f6d67a93ef142aa55fab9ef4300831cdb0b9b702b3ba780880ecf36fca2",
     "docs/decisions/issue-1788-experiments-trials-preflight.md": "4012fc90b329e52491d52a48831c6efc8a79510a6838a061486e6eb2cceacb39",
     "docs/decisions/issue-1788-validator-key-decision.md": "c781e3ca480df4429459b7ef51fc932ddbf14ee500b8ed8e5cae5b4c15f271af",
     "docs/decisions/issue-1790-backend-design.md": "211ef43d0b409da006eec1a5b025ed594a73f2785dd759e55fbb2ad25eb5deed",
-    "docs/decisions/issue-1789-processor-analysis-design.md": "5d4b4f15f153ac3f2e1c11488cf5a57aca2d799615f3ac0bbbde0aad66f7fcea"
+    "docs/decisions/issue-1789-processor-analysis-design.md": "1578a962d055f0f35e2b8800c11fe58f9c37570e581411113c668c8713a3e1ee"
   },
   "consumer_api": {
     "design": "docs/decisions/issue-1825-public-go-api.md",
@@ -14441,7 +14441,7 @@
           "runtime"
         ],
         "existing": "implementations/go/contract/admission",
-        "existing_api_sha256": "0b04247f26cb4e32de1402bbe21c909f1e4326f4d972838e938c62793b46a961",
+        "existing_api_sha256": "1d618cb499187f923d2704e38bda5aaed14206e833e7b389f4fdfcea508323ca",
         "declarations": "implementations/architecture-api/planned/rae/contract/admission.go.txt",
         "declarations_sha256": "ae89cb3281b2a8644da9766a49882336a7e9229da96c1762f03dfd5f353a9a78"
       },
@@ -14790,7 +14790,7 @@
           "runtime"
         ],
         "declarations": "implementations/architecture-api/planned/rae/processor.go.txt",
-        "declarations_sha256": "427ed1f84373ac47ce1736ef5c6511f0d60c22ae97cee59aea69ae242619f5e8"
+        "declarations_sha256": "ca0248f6756794c552d8c90d72b34f29a2f2b318a2b4544c32afebd8ca99dfaf"
       },
       {
         "owner": "rae",

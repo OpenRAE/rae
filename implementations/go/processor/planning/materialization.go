@@ -65,7 +65,7 @@ func materializationSnapshotWithinLimits(snapshot []byte) bool {
 		return false
 	}
 	parsed, err := ingress.Parse(snapshot, ingress.Limits{MaxBytes: value.MaterializationBytes, MaxDepth: 64}, ingress.Object)
-	return err == nil && value.Validate(parsed, value.Runtime()) == nil
+	return err == nil && value.Validate(parsed, value.Materialization()) == nil
 }
 
 type materializationAuthoredDigest struct {

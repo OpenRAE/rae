@@ -89,16 +89,12 @@ func moduleModel(value map[string]any) error {
 func (w *normalizer) fieldInput(pointer, name string, value any) (any, error) {
 	model := strings.TrimPrefix(pointer, "#/$defs/")
 	if (model == "RuntimePublishedPort" || model == "RuntimePublishedPortRef") && name == protocolField && !variable(value) {
-		protocol, ok := value.(string)
-		if !ok || pythonTrim(protocol) == "" {
-			return nil, invalid()
-		}
-		return w.caseText(pythonTrim(protocol), false)
+		return w.publishedProtocol(value)
 	}
 	if bound, ok := integerBound(model, name); ok && value != nil && !variable(value) {
 		return boundedInteger(value, bound)
 	}
-	if (model == "ImportDecl" || model == "ModuleDescriptor") && name == "version" {
+	if (model == "ImportDecl" || model == "ModuleDescriptor") && name == versionField {
 		return value, versionText(value)
 	}
 	switch model {
@@ -116,6 +112,15 @@ func (w *normalizer) fieldInput(pointer, name string, value any) (any, error) {
 		return nodeInput(name, value)
 	}
 	return structuredInput(model, name, value)
+}
+
+// publishedProtocol trims and folds one published port protocol.
+func (w *normalizer) publishedProtocol(value any) (any, error) {
+	protocol, ok := value.(string)
+	if !ok || pythonTrim(protocol) == "" {
+		return nil, invalid()
+	}
+	return w.caseText(pythonTrim(protocol), false)
 }
 func scriptInput(name string, value any) (any, error) {
 	switch name {

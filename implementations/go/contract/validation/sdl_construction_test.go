@@ -13,37 +13,42 @@ func TestSDLConstructionStagePins(t *testing.T) {
 		t.Fatal(err)
 	}
 	for _, id := range []string{"sdl-authoring-input-v1", "materialized-scenario-v1"} {
-		t.Run(id, func(t *testing.T) {
-			published := owner.contracts[id]
-			altered := published
-			altered.raw = maps.Clone(published.raw)
-			defs := maps.Clone(constructionObject(t, published.raw["$defs"]))
-			node := maps.Clone(constructionObject(t, defs["Node"]))
-			node["allOf"] = []any{}
-			defs["Node"] = node
-			altered.raw["$defs"] = defs
-			if _, err := compileSDLConstruction(id, altered); err == nil {
-				t.Fatal("changed stage clauses were accepted")
-			}
-			if id == "materialized-scenario-v1" {
-				defs = maps.Clone(constructionObject(t, published.raw["$defs"]))
-				name, found := materializedDistributionClause(constructionObject(t, defs["Node"])["allOf"])
-				if !found {
-					t.Fatal("materialized Node has no factored distribution clause")
-				}
-				defs[name] = map[string]any{}
-				altered.raw["$defs"] = defs
-				if _, err := compileSDLConstruction(id, altered); err == nil {
-					t.Fatal("changed referenced clause was accepted")
-				}
-			}
-		})
+		t.Run(id, func(t *testing.T) { checkConstructionStagePins(t, owner, id) })
 	}
 	if owner.CheckSDLConstruction("sdl-authoring-input-v1", "#", []byte(`{"name":"a"}`), ingress.Limits{MaxBytes: 1024}, nil) == nil {
 		t.Fatal("model checks were optional")
 	}
 	if owner.CheckSchema("sdl-authoring-input-v1", []byte(`{"name":"a","nodes":{"n":{"type":"compute","os_version":"22"}}}`), ingress.Limits{MaxBytes: 1024}) == nil {
 		t.Fatal("published schema was mutated")
+	}
+}
+
+// checkConstructionStagePins refuses a changed stage clause or a changed referenced clause.
+func checkConstructionStagePins(t *testing.T, owner *Validator, id string) {
+	t.Helper()
+	published := owner.contracts[id]
+	altered := published
+	altered.raw = maps.Clone(published.raw)
+	defs := maps.Clone(constructionObject(t, published.raw["$defs"]))
+	node := maps.Clone(constructionObject(t, defs["Node"]))
+	node["allOf"] = []any{}
+	defs["Node"] = node
+	altered.raw["$defs"] = defs
+	if _, err := compileSDLConstruction(id, altered); err == nil {
+		t.Fatal("changed stage clauses were accepted")
+	}
+	if id != "materialized-scenario-v1" {
+		return
+	}
+	defs = maps.Clone(constructionObject(t, published.raw["$defs"]))
+	name, found := materializedDistributionClause(constructionObject(t, defs["Node"])["allOf"])
+	if !found {
+		t.Fatal("materialized Node has no factored distribution clause")
+	}
+	defs[name] = map[string]any{}
+	altered.raw["$defs"] = defs
+	if _, err := compileSDLConstruction(id, altered); err == nil {
+		t.Fatal("changed referenced clause was accepted")
 	}
 }
 

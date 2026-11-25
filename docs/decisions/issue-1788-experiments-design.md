@@ -251,11 +251,11 @@ A clean prose checker does not establish complete STE dictionary conformance.
 
 ## Typed API commitments
 
-<!-- go-api implementations/go/contract/admission 0b04247f26cb4e32de1402bbe21c909f1e4326f4d972838e938c62793b46a961 -->
-<!-- go-api implementations/go/internal/sdl/authoring d800801f0dd67354522ca62000cb3e74e884ba3b4a0cc4fe711be7d5d9bc8709 -->
+<!-- go-api implementations/go/contract/admission 1d618cb499187f923d2704e38bda5aaed14206e833e7b389f4fdfcea508323ca -->
+<!-- go-api implementations/go/internal/sdl/authoring e6991ca1212d70d636bcb59f4da299f482ccc7e81903fe61876082a17066ffd0 -->
 <!-- go-api implementations/go/sdl ec51c7e22544b4cf42006b37d12dce96f7769b0aca2bd1f939ac56949cd8ca4b -->
-<!-- go-api implementations/go/processor/trial 253774ef32b98da8e617c2971ea09145fff7574cce68778647f6472d14e337da -->
-<!-- go-api implementations/go/runtime/experiment 58ac416e6ff2630159f5f5d8fc99254d1c12d1d175ac089d1b8fe5fadd605e3e -->
+<!-- go-api implementations/go/processor/trial d28563d78e32be87ff34fcc9cc8135897cfb7f47a5774e61ae9f3b5ec454eea7 -->
+<!-- go-api implementations/go/runtime/experiment d51577f795bd6fadf76ec88440aabaa3052cec8fa92186a2894f073786a4e4b2 -->
 
 ### Archival model construction
 

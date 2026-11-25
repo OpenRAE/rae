@@ -40,7 +40,7 @@ func (state *compilerState) compileBehaviorSpecifications() {
 		for _, refs := range [][]string{actions, observations, outcomes, scope, mixed.dependencies} {
 			dependencies = append(dependencies, refs...)
 		}
-		if policy := fieldValue(source.EpisodePolicy); len(policy) > 0 && string(policy) != "null" {
+		if policy := fieldValue(source.EpisodePolicy); len(policy) > 0 && string(policy) != termNull {
 			output.EpisodePolicyAddress = state.address(termParticipant, "episode-policy", name)
 		}
 		state.specifications[address] = output

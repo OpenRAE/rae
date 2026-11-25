@@ -380,9 +380,7 @@ def test_rename_keeps_the_root_safe_state_default(scopes):
     value = payload()
     if scopes:
         value["safe_state"]["scopes"] = [{"scope": "/nodes/first", "state": value["safe_state"]["default"]}]
-    result = rename_sdl_declaration(
-        scenario(value), RenameSDLDeclarationRequest("assertions.safe", "verified")
-    )
+    result = rename_sdl_declaration(scenario(value), RenameSDLDeclarationRequest("assertions.safe", "verified"))
     assert result.succeeded
     renamed = result.output.safe_state
     assert renamed.default is not None

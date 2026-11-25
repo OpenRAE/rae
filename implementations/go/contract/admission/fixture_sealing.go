@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
+	"maps"
 	"slices"
 	"strconv"
 	"strings"
@@ -55,7 +56,7 @@ func SealFixture(v *Validator, contractID, kind string, data []byte, limits ingr
 func sealedContracts() []string {
 	return []string{
 		trialPlanContract, "assigned-trial-v1", "authoring-adapter-vector-v1", "domain-profile-definition-v1",
-		"experiment-authoring-input-v1", "experiment-run-v1", "experiment-study-v1", "materialization-archive-record-v1",
+		"experiment-authoring-input-v1", "experiment-run-v1", contractExperimentStudy, "materialization-archive-record-v1",
 		termMixedParticipantCompositionProfileV1, "participant-configuration-result-v1",
 		"participant-opacity-analysis-evidence-v1", "participant-opacity-model-check-evidence-v1",
 		"plan-realization-profiles-v1", termRealizationEnvelopeV1, termRealizedTimeModelV1,
@@ -121,17 +122,17 @@ func (e *Validator) sealOwner(contractID string, visit validation.DefinitionVisi
 	}
 	var work []pending
 	for _, field := range fields {
-		parent, pointer := visit.Value, visit.Path
+		parent, pointer := visit.Value, []string{visit.Path}
 		for _, key := range field.path[:len(field.path)-1] {
 			parent = object(parent[key])
-			pointer += "/" + jsonpointer.EscapeToken(key)
+			pointer = append(pointer, jsonpointer.EscapeToken(key))
 		}
 		key := field.path[len(field.path)-1]
 		if _, present := parent[key]; parent == nil || present {
 			continue
 		}
 		parent[key] = field.placeholder
-		work = append(work, pending{parent, pointer, field})
+		work = append(work, pending{parent, strings.Join(pointer, "/"), field})
 	}
 	context := &sealContext{e: e, contractID: contractID, root: visit.Path == "", definition: visit.Definition, node: visit.Value}
 	values := make([]any, 0, len(work))
@@ -195,14 +196,14 @@ func sealFields() map[string][]sealField {
 		"DomainProfileSchemaModel": {{path: []string{"schema_digest"}, placeholder: placeholder, compute: validated(func(s *sealContext, _ map[string]any) (any, error) {
 			return jsonDigest(at(s.node, "schema_document"))
 		})}},
-		"DomainProfileDefinitionModel": {{path: []string{"coordinate", "definition_digest"}, placeholder: placeholder, compute: validated(func(_ *sealContext, view map[string]any) (any, error) {
+		"DomainProfileDefinitionModel": {{path: []string{"coordinate", termDefinitionDigest}, placeholder: placeholder, compute: validated(func(_ *sealContext, view map[string]any) (any, error) {
 			return domainProfileDefinitionDigest(view)
 		})}},
 		"AdmittedDomainProfileDefinitionModel": {{path: []string{"provenance", "source_digest"}, placeholder: placeholder, compute: validated(func(s *sealContext, _ map[string]any) (any, error) {
 			return at(s.node, "definition", "coordinate", "definition_digest"), nil
 		})}},
 		"BackendRealizationEnvelopeModel": {
-			{path: []string{termConfiguration, "configuration_digest"}, placeholder: placeholder, compute: validated(func(_ *sealContext, view map[string]any) (any, error) {
+			{path: []string{termConfiguration, termConfigurationDigest}, placeholder: placeholder, compute: validated(func(_ *sealContext, view map[string]any) (any, error) {
 				return envelopeConfigurationDigest(envelopeDigestConfiguration(at(view, termConfiguration)))
 			})},
 			{path: []string{termDigest}, placeholder: placeholder, compute: validated(func(_ *sealContext, view map[string]any) (any, error) {
@@ -230,7 +231,7 @@ func sealFields() map[string][]sealField {
 		"SemanticComparisonResultModel": {{path: []string{"impact_scope_digest"}, placeholder: placeholder, compute: validated(func(s *sealContext, _ map[string]any) (any, error) {
 			return at(s.node, "impact_scope", "scope_digest"), nil
 		})}},
-		"DifficultyPolicyModel": {{path: []string{"policy_digest"}, placeholder: placeholder, compute: viewSelfDigest("policy_digest")}},
+		modelDifficultyPolicy: {{path: []string{"policy_digest"}, placeholder: placeholder, compute: viewSelfDigest("policy_digest")}},
 		"ParticipantConfigurationResultModel": {{path: []string{"configuration_digest"}, placeholder: placeholder, compute: validated(func(s *sealContext, _ map[string]any) (any, error) {
 			return expectedConfigurationDigest(s.node)
 		})}},
@@ -238,11 +239,11 @@ func sealFields() map[string][]sealField {
 			{path: []string{"adapter_digest"}, placeholder: placeholder, compute: validated(func(s *sealContext, _ map[string]any) (any, error) {
 				return projectionAdapterDigest(s.node)
 			})},
-			{path: []string{"profile_digest"}, placeholder: placeholder, compute: viewSelfDigest("profile_digest")},
+			{path: []string{termProfileDigest}, placeholder: placeholder, compute: viewSelfDigest("profile_digest")},
 		},
 		"SemanticProjectionReportModel": {
 			{path: []string{"frame_digest"}, placeholder: placeholder, compute: viewDigest("frame")},
-			{path: []string{"summary", "frame_digest"}, placeholder: placeholder, compute: viewDigest("frame")},
+			{path: []string{termSummary, "frame_digest"}, placeholder: placeholder, compute: viewDigest("frame")},
 			{path: []string{"summary", "predicate_profile_digest"}, placeholder: placeholder, compute: validated(func(_ *sealContext, view map[string]any) (any, error) {
 				return at(view, "frame", "predicate_profile", "profile_digest"), nil
 			})},
@@ -276,7 +277,7 @@ func sealFields() map[string][]sealField {
 func domainProfileDefinitionDigest(view map[string]any) (string, error) {
 	coordinate := at(view, "coordinate")
 	return jsonDigest(map[string]any{
-		"schema_version": "domain-profile-definition/v1",
+		termSchemaVersion: "domain-profile-definition/v1",
 		"identity": map[string]any{
 			termNamespace: at(coordinate, termNamespace), termAuthority: at(coordinate, termAuthority),
 			termProfileID: at(coordinate, termProfileID), termRevision: at(coordinate, termRevision),
@@ -290,16 +291,9 @@ func domainProfileDefinitionDigest(view map[string]any) (string, error) {
 // insertMembers appends members to the objects at their JSON pointers and
 // keeps every original byte, so member order and number spelling stay.
 func insertMembers(data []byte, fills map[string][]sealedMember) ([]byte, error) {
-	type frame struct {
-		object, expectKey bool
-		pointer           string
-		count             int
-	}
-	insertions := map[int][]byte{}
+	scanner := memberScanner{fills: fills, insertions: map[int][]byte{}}
 	decoder := json.NewDecoder(bytes.NewReader(data))
 	decoder.UseNumber()
-	var stack []frame
-	next := ""
 	for {
 		token, err := decoder.Token()
 		if errors.Is(err, io.EOF) {
@@ -308,58 +302,91 @@ func insertMembers(data []byte, fills map[string][]sealedMember) ([]byte, error)
 		if err != nil {
 			return nil, invalid()
 		}
-		pointer := next
-		if len(stack) > 0 {
-			top := &stack[len(stack)-1]
-			if top.expectKey && token != json.Delim('}') {
-				key, ok := token.(string)
-				if !ok {
-					return nil, invalid()
-				}
-				top.expectKey = false
-				next = top.pointer + "/" + jsonpointer.EscapeToken(key)
-				continue
-			}
-		}
-		switch token {
-		case json.Delim('{'), json.Delim('['):
-			object := token == json.Delim('{')
-			stack = append(stack, frame{object: object, expectKey: object, pointer: pointer})
-			if token == json.Delim('[') {
-				next = pointer + "/0"
-			}
-			continue
-		case json.Delim('}'):
-			top := stack[len(stack)-1]
-			if members := fills[top.pointer]; len(members) > 0 {
-				text, encodeErr := encodeMembers(members, top.count > 0)
-				if encodeErr != nil {
-					return nil, encodeErr
-				}
-				insertions[int(decoder.InputOffset())-1] = text
-				delete(fills, top.pointer)
-			}
-			stack = stack[:len(stack)-1]
-		case json.Delim(']'):
-			stack = stack[:len(stack)-1]
-		}
-		if len(stack) > 0 {
-			top := &stack[len(stack)-1]
-			top.count++
-			top.expectKey = top.object
-			if !top.object {
-				next = top.pointer + "/" + strconv.Itoa(top.count)
-			}
+		if err = scanner.token(token, int(decoder.InputOffset())); err != nil {
+			return nil, err
 		}
 	}
 	if len(fills) > 0 {
 		return nil, errSealInapplicable
 	}
-	offsets := make([]int, 0, len(insertions))
-	for offset := range insertions {
-		offsets = append(offsets, offset)
+	return spliceInsertions(data, scanner.insertions), nil
+}
+
+type memberFrame struct {
+	object, expectKey bool
+	pointer           string
+	count             int
+}
+
+// memberScanner tracks the JSON pointer of each token and the insertion
+// offset of each object that receives members.
+type memberScanner struct {
+	fills      map[string][]sealedMember
+	insertions map[int][]byte
+	stack      []memberFrame
+	next       string
+}
+
+func (s *memberScanner) token(token json.Token, offset int) error {
+	pointer := s.next
+	if len(s.stack) > 0 && s.stack[len(s.stack)-1].expectKey && token != json.Delim('}') {
+		key, ok := token.(string)
+		if !ok {
+			return invalid()
+		}
+		top := &s.stack[len(s.stack)-1]
+		top.expectKey = false
+		s.next = top.pointer + "/" + jsonpointer.EscapeToken(key)
+		return nil
 	}
-	slices.Sort(offsets)
+	switch token {
+	case json.Delim('{'), json.Delim('['):
+		object := token == json.Delim('{')
+		s.stack = append(s.stack, memberFrame{object: object, expectKey: object, pointer: pointer})
+		if !object {
+			s.next = pointer + "/0"
+		}
+		return nil
+	case json.Delim('}'):
+		if err := s.closeObject(offset); err != nil {
+			return err
+		}
+	case json.Delim(']'):
+		s.stack = s.stack[:len(s.stack)-1]
+	}
+	s.advance()
+	return nil
+}
+
+func (s *memberScanner) closeObject(offset int) error {
+	top := s.stack[len(s.stack)-1]
+	if members := s.fills[top.pointer]; len(members) > 0 {
+		text, err := encodeMembers(members, top.count > 0)
+		if err != nil {
+			return err
+		}
+		s.insertions[offset-1] = text
+		delete(s.fills, top.pointer)
+	}
+	s.stack = s.stack[:len(s.stack)-1]
+	return nil
+}
+
+// advance counts one completed member of the enclosing container.
+func (s *memberScanner) advance() {
+	if len(s.stack) == 0 {
+		return
+	}
+	top := &s.stack[len(s.stack)-1]
+	top.count++
+	top.expectKey = top.object
+	if !top.object {
+		s.next = top.pointer + "/" + strconv.Itoa(top.count)
+	}
+}
+
+func spliceInsertions(data []byte, insertions map[int][]byte) []byte {
+	offsets := slices.Sorted(maps.Keys(insertions))
 	var result bytes.Buffer
 	previous := 0
 	for _, offset := range offsets {
@@ -368,7 +395,7 @@ func insertMembers(data []byte, fills map[string][]sealedMember) ([]byte, error)
 		previous = offset
 	}
 	result.Write(data[previous:])
-	return result.Bytes(), nil
+	return result.Bytes()
 }
 
 func encodeMembers(members []sealedMember, separated bool) ([]byte, error) {

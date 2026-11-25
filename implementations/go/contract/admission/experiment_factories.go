@@ -15,7 +15,7 @@ var experimentFactoryJSON = map[string]string{ //nolint:gochecknoglobals // Fixe
 	termCleanupObligationResultModel:               `{"evidence_refs":[],"residual_state_refs":[]}`,
 	"DifficultyDecisionRecordModel":                `{"affected_refs":[],"observation_refs":[]}`,
 	"DifficultyInterventionRecordModel":            `{"evidence_refs":[],"occurrence_refs":[]}`,
-	"DifficultyPolicyModel":                        `{"actions":{},"observation_sources":{},"threshold_rules":{}}`,
+	modelDifficultyPolicy:                          `{"actions":{},"observation_sources":{},"threshold_rules":{}}`,
 	"DifficultyRunProvenanceModel":                 `{"decisions":[],"interventions":[]}`,
 	"DifficultyVariantModel":                       `{"action_refs":[],"scaffold_refs":[],"selection_policy_refs":[]}`,
 	"ExecutionRetryPolicyModel":                    `{"compensation_refs":[],"reset_obligation_refs":[]}`,

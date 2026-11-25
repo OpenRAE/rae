@@ -182,7 +182,7 @@ func opacityModelCounterexampleDigest(v any) (string, error) {
 	for _, field := range []string{"safe_ref", "actual_state_ordinal", "actual_path_transition_ordinals", fieldStrategyRef, "examined_cell_size"} {
 		payload[field] = at(counter, field)
 	}
-	for _, field := range []string{"model_digest", "profile_digest", "derived_carrier_digest"} {
+	for _, field := range []string{"model_digest", termProfileDigest, "derived_carrier_digest"} {
 		payload[field] = at(v, field)
 	}
 	return jsonDigest(payload)

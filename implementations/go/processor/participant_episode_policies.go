@@ -72,7 +72,7 @@ func (state *compilerState) compileEpisodePolicies() {
 	specifications := fieldValue(state.input.model.BehaviorSpecifications)
 	for _, name := range orderedNames(specifications, state.names(termBehaviorSpecifications)) {
 		raw := fieldValue(specifications[name].EpisodePolicy)
-		if len(raw) == 0 || string(raw) == "null" {
+		if len(raw) == 0 || string(raw) == termNull {
 			continue
 		}
 		var source episodePolicySource

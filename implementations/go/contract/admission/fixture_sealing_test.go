@@ -46,30 +46,7 @@ func TestFixtureSealingMatchesReferenceEngine(t *testing.T) {
 			return nil
 		}
 		seen++
-		expected, ok := reference.Digests[path]
-		if !ok {
-			t.Errorf("%s: no reference seal", path)
-			return nil
-		}
-		raw, readErr := fs.ReadFile(source, path)
-		if readErr != nil {
-			return readErr
-		}
-		sealed, sealErr := SealFixture(e, parts[2], parts[3], raw, limits)
-		if sealErr != nil {
-			t.Errorf("%s: %v", path, sealErr)
-			return nil
-		}
-		var value any
-		if decodeErr := json.Unmarshal(sealed, &value); decodeErr != nil {
-			t.Errorf("%s: sealed bytes are not JSON: %v", path, decodeErr)
-			return nil
-		}
-		actual, digestErr := jsonDigest(value)
-		if digestErr != nil || actual != expected {
-			t.Errorf("%s: sealed digest %s, reference %s", path, actual, expected)
-		}
-		return nil
+		return checkReferenceSeal(t, e, source, path, reference.Digests[path], limits)
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -77,6 +54,35 @@ func TestFixtureSealingMatchesReferenceEngine(t *testing.T) {
 	if seen != len(reference.Digests) {
 		t.Fatalf("sealed fixture inventory differs: native=%d reference=%d", seen, len(reference.Digests))
 	}
+}
+
+// checkReferenceSeal compares one native sealed fixture with its reference digest.
+func checkReferenceSeal(t *testing.T, e *Validator, source fs.FS, path, expected string, limits ingress.Limits) error {
+	t.Helper()
+	if expected == "" {
+		t.Errorf("%s: no reference seal", path)
+		return nil
+	}
+	raw, err := fs.ReadFile(source, path)
+	if err != nil {
+		return err
+	}
+	parts := strings.Split(path, "/")
+	sealed, err := SealFixture(e, parts[2], parts[3], raw, limits)
+	if err != nil {
+		t.Errorf("%s: %v", path, err)
+		return nil
+	}
+	var value any
+	if err = json.Unmarshal(sealed, &value); err != nil {
+		t.Errorf("%s: sealed bytes are not JSON: %v", path, err)
+		return nil
+	}
+	actual, err := jsonDigest(value)
+	if err != nil || actual != expected {
+		t.Errorf("%s: sealed digest %s, reference %s", path, actual, expected)
+	}
+	return nil
 }
 
 func TestFixtureSealingKeepsPresentValuesAndOtherKinds(t *testing.T) {

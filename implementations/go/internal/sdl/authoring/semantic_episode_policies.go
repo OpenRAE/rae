@@ -9,7 +9,7 @@ import (
 )
 
 // Constraint kinds that bound elapsed shared time, so their expiry can be a timeout.
-var episodeTimeoutKinds = []string{"deadline", "window", "duration"} //nolint:gochecknoglobals // Fixed reference vocabulary.
+var episodeTimeoutKinds = []string{"deadline", "window", durationOperation} //nolint:gochecknoglobals // Fixed reference vocabulary.
 
 type semanticEpisodePolicy struct {
 	Initialization *struct {
@@ -124,7 +124,7 @@ func (e semanticEpisodeCheck) policy(owner semanticEpisodeOwner) {
 	policy := owner.policy
 	label := fmt.Sprintf("Behavior specification '%s' episode policy", owner.behavior.name)
 	if policy.Initialization != nil {
-		e.assertionRoles(label+" initialization", policy.Initialization.AssertionRefs, []string{"precondition"}, "a precondition")
+		e.assertionRoles(label+" initialization", policy.Initialization.AssertionRefs, []string{rolePrecondition}, "a precondition")
 	}
 	if policy.InteractionStructure != nil {
 		e.turnActions(label, owner, policy.InteractionStructure.ActionContractRefs)
@@ -164,7 +164,7 @@ func (m *semanticModel) episodeConditionOrder(name, field string, conditions map
 }
 
 func (e semanticEpisodeCheck) closure(label string, refs []string) {
-	e.assertionRoles(label, refs, []string{"invariant", "postcondition"}, "an invariant or postcondition")
+	e.assertionRoles(label, refs, []string{"invariant", rolePostcondition}, "an invariant or postcondition")
 }
 
 func (e semanticEpisodeCheck) assertionRoles(label string, refs, roles []string, roleLabel string) {

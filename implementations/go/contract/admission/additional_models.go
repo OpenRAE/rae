@@ -11,7 +11,9 @@ func (e *Validator) additionalModel(name string, v any) (bool, error) {
 	case "BehavioralClaimBindingModel":
 		return true, claimStrength(v)
 	case "RealizationClosure":
-		return true, require((text(defaultMember(v, "posture", termUndefined)) != termUndefined) == (at(v, "universe") != nil && at(v, "profile") != nil))
+		// A defined closure names both its universe and profile; an undefined closure names neither.
+		defined := text(defaultMember(v, "posture", termUndefined)) != termUndefined
+		return true, require(defined == (at(v, "universe") != nil) && defined == (at(v, "profile") != nil))
 	case "recursive-realization-constraint-v1", "RealizationConstraintDocument":
 		return true, require(len(rowSet(at(v, "scopes"), "field_pointer")) == len(array(at(v, "scopes"))))
 	case "RealizationScope":
