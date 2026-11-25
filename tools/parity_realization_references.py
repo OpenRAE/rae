@@ -56,10 +56,7 @@ FAMILIES = {
         "portable-realization-reference.json",
         "portable-realization-reference-2.json",
     ],
-    "relations": [
-        f"relations-reference{suffix}.json"
-        for suffix in ("", *(f"-{n}" for n in range(2, 10)))
-    ],
+    "relations": [f"relations-reference{suffix}.json" for suffix in ("", *(f"-{n}" for n in range(2, 10)))],
 }
 LIBRARY = ("plans", "snapshots", "manifests", "envelopes", "requirements")
 
@@ -109,18 +106,14 @@ class Inputs:
         self.library = library
 
     def plan(self, key: str) -> object:
-        return _provisioning_plan(
-            ProvisioningPlanModel.model_validate(self.library["plans"][key])
-        )
+        return _provisioning_plan(ProvisioningPlanModel.model_validate(self.library["plans"][key]))
 
     def snapshot(self, key: str) -> object:
         envelope = {
             "schema_version": "runtime-snapshot/v1",
             **self.library["snapshots"][key],
         }
-        return runtime_snapshot_from_contract(
-            RuntimeSnapshotEnvelopeModel.model_validate(envelope)
-        )
+        return runtime_snapshot_from_contract(RuntimeSnapshotEnvelopeModel.model_validate(envelope))
 
     def manifest(self, key: str, envelope_key: str) -> object | None:
         if not key:
@@ -134,9 +127,7 @@ class Inputs:
         )
 
     def requirements(self, key: str) -> tuple[CompiledRealizationRequirement, ...]:
-        return REQUIREMENTS.validate_python(
-            self.library["requirements"].get(key, []) if key else []
-        )
+        return REQUIREMENTS.validate_python(self.library["requirements"].get(key, []) if key else [])
 
 
 def diagnostics(items: list[Any]) -> list[dict[str, str]]:
@@ -170,9 +161,7 @@ def provenance(items: tuple[Any, ...]) -> list[dict[str, str]]:
     ]
 
 
-def evaluate(
-    case: dict[str, Any], inputs: Inputs
-) -> tuple[list[dict[str, str]], list[dict[str, str]]] | None:
+def evaluate(case: dict[str, Any], inputs: Inputs) -> tuple[list[dict[str, str]], list[dict[str, str]]] | None:
     relation = case["relation"]
     manifest = inputs.manifest(case.get("manifest", ""), case.get("envelope", ""))
     if relation == "support":
@@ -198,9 +187,9 @@ def evaluate(
         )
         return diagnostics(found), provenance(entries)
     if relation == "planned-diagnostics":
-        return diagnostics(
-            realization_authority_diagnostics(inputs.plan(case["plan"]), manifest)
-        ), case.get("provenance", [])
+        return diagnostics(realization_authority_diagnostics(inputs.plan(case["plan"]), manifest)), case.get(
+            "provenance", []
+        )
     if relation == "planned-cleanup":
         found = realization_cleanup_diagnostics(
             inputs.plan(case["plan"]),
@@ -224,14 +213,10 @@ def patch_cases(name: str, updated: dict[str, dict[str, Any]]) -> None:
         if case_name in updated:
             comma = "," if stripped.endswith(",") else ""
             lines[index] = (
-                line[: len(line) - len(stripped)]
-                + json.dumps(updated.pop(case_name), separators=(",", ":"))
-                + comma
+                line[: len(line) - len(stripped)] + json.dumps(updated.pop(case_name), separators=(",", ":")) + comma
             )
     if updated:
-        raise ValueError(
-            f"{name}: changed cases are not one line each: {sorted(updated)}"
-        )
+        raise ValueError(f"{name}: changed cases are not one line each: {sorted(updated)}")
     path.write_text("\n".join(lines), encoding="utf-8")
 
 
@@ -247,10 +232,7 @@ def record(check: bool) -> bool:
                 if result is None:
                     continue
                 found, entries = result
-                if (
-                    case.get("diagnostics") != found
-                    or case.get("provenance") != entries
-                ):
+                if case.get("diagnostics") != found or case.get("provenance") != entries:
                     print(f"{name}: {case['name']} differs", file=sys.stderr)
                     case["diagnostics"], case["provenance"] = found, entries
                     updated[case["name"]] = case
@@ -276,9 +258,7 @@ def patch_fields(name: str, updated: dict[str, dict[str, Any]]) -> None:
             if case is not None and stripped.startswith(f'"{field}":'):
                 comma = "," if stripped.endswith(",") else ""
                 encoded = json.dumps(case[field], separators=(",", ":"))
-                lines[index] = (
-                    line[: len(line) - len(stripped)] + f'"{field}":{encoded}{comma}'
-                )
+                lines[index] = line[: len(line) - len(stripped)] + f'"{field}":{encoded}{comma}'
     path.write_text("\n".join(lines), encoding="utf-8")
 
 

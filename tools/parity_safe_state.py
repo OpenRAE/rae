@@ -20,10 +20,7 @@ from raes._transformation_rename import rename_sdl_declaration  # noqa: E402
 from raes._transformation_types import RenameSDLDeclarationRequest  # noqa: E402
 from raes.observation_scope import resolve_safe_states  # noqa: E402
 
-OUTPUT = (
-    ROOT
-    / "implementations/go/internal/sdl/authoring/testdata/safe-state-reference.json"
-)
+OUTPUT = ROOT / "implementations/go/internal/sdl/authoring/testdata/safe-state-reference.json"
 SUBJECTS = ["nodes.first", "nodes.second", "nodes.first.services.api"]
 
 
@@ -77,9 +74,7 @@ def single(value: dict[str, Any]) -> dict[str, str]:
     return {"main.yaml": yaml.safe_dump(value, sort_keys=False)}
 
 
-def imported(
-    module_state: dict[str, Any], root_state: dict[str, Any] | None
-) -> dict[str, str]:
+def imported(module_state: dict[str, Any], root_state: dict[str, Any] | None) -> dict[str, str]:
     module = payload()
     module["module"] = {
         "id": "example/safe",
@@ -109,9 +104,7 @@ def cases() -> list[tuple[str, dict[str, str], dict[str, Any] | None]]:
     nearest["safe_state"]["scopes"] = [{"scope": "/nodes/first", "state": stop}]
     result.append(("nearest-scope", single(nearest), None))
     service = payload()
-    service["safe_state"] = {
-        "scopes": [{"scope": "/nodes/first/services/api", "state": stop}]
-    }
+    service["safe_state"] = {"scopes": [{"scope": "/nodes/first/services/api", "state": stop}]}
     result.append(("service-scope", single(service), None))
     for change in (
         "declared",
@@ -138,9 +131,7 @@ def cases() -> list[tuple[str, dict[str, str], dict[str, Any] | None]]:
             value["evidence_requirements"]["readback"]["source_refs"] = SUBJECTS[:2]
             value["evidence_requirements"]["readback"]["scope_refs"] = SUBJECTS[:2]
         elif change == "field-scope":
-            value["safe_state"] = {
-                "scopes": [{"scope": "/nodes/first/os", "state": hold}]
-            }
+            value["safe_state"] = {"scopes": [{"scope": "/nodes/first/os", "state": hold}]}
         else:
             value["safe_state"]["default"]["assertion_refs"] = ["absent"]
         result.append((f"invalid-{change}", single(value), None))
@@ -174,9 +165,7 @@ def cases() -> list[tuple[str, dict[str, str], dict[str, Any] | None]]:
     for scopes in (False, True):
         value = payload()
         if scopes:
-            value["safe_state"]["scopes"] = [
-                {"scope": "/nodes/first", "state": copy.deepcopy(hold)}
-            ]
+            value["safe_state"]["scopes"] = [{"scope": "/nodes/first", "state": copy.deepcopy(hold)}]
         result.append(
             (
                 f"rename-{'scopes' if scopes else 'default'}",
@@ -187,9 +176,7 @@ def cases() -> list[tuple[str, dict[str, str], dict[str, Any] | None]]:
     return result
 
 
-def record_case(
-    name: str, files: dict[str, str], rename: dict[str, Any] | None
-) -> dict[str, Any]:
+def record_case(name: str, files: dict[str, str], rename: dict[str, Any] | None) -> dict[str, Any]:
     row: dict[str, Any] = {"name": name, "files": files}
     with tempfile.TemporaryDirectory() as directory:
         for file, text in files.items():
@@ -204,9 +191,7 @@ def record_case(
             return row
     row["accepted"] = True
     try:
-        row["safe_states"] = [
-            state.model_dump(mode="json") for state in resolve_safe_states(scenario)
-        ]
+        row["safe_states"] = [state.model_dump(mode="json") for state in resolve_safe_states(scenario)]
     except ValueError:
         # Source-time references stay deferred; instantiation refuses them before compilation.
         row["safe_states"] = None
@@ -214,9 +199,7 @@ def record_case(
         result = rename_sdl_declaration(scenario, RenameSDLDeclarationRequest(**rename))
         row["rename"] = rename
         row["renamed"] = (
-            result.output.model_dump(mode="json", by_alias=True, exclude_unset=True)[
-                "safe_state"
-            ]
+            result.output.model_dump(mode="json", by_alias=True, exclude_unset=True)["safe_state"]
             if result.succeeded
             else None
         )
@@ -234,9 +217,7 @@ def main() -> int:
     actual = json.dumps(record(), indent=1, sort_keys=True) + "\n"
     if args.check:
         if OUTPUT.read_text(encoding="utf-8") != actual:
-            print(
-                "safe-state reference differs from the reference owner", file=sys.stderr
-            )
+            print("safe-state reference differs from the reference owner", file=sys.stderr)
             return 1
     else:
         OUTPUT.write_text(actual, encoding="utf-8")

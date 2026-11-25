@@ -280,9 +280,7 @@ def semantic_record(row: dict[str, Any]) -> dict[str, Any]:
 def portable_semantic_input(document: SemanticDocument) -> bool:
     if isinstance(document, MaterializedScenario):
         content = {name: getattr(document, name) for name in ScenarioContent.model_fields}
-        return validate_realization_value(
-            content, limits=MATERIALIZATION_VALUE_LIMITS, python_carriers=True
-        ).conformant
+        return validate_realization_value(content, limits=MATERIALIZATION_VALUE_LIMITS, python_carriers=True).conformant
     return True
 
 
