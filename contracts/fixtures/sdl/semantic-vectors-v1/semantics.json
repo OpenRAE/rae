@@ -1,6 +1,6 @@
 {
   "schema": "raes-sdl-semantic-vectors/v1",
-  "case_count": 824,
+  "case_count": 825,
   "shards": [
     {
       "name": "semantics-000.json",
@@ -51,6 +51,11 @@
       "name": "semantics-009.json",
       "case_count": 1,
       "sha256": "d08b6c282570d0485771680f757c312e1cd3af1fdf2551420876343143b53939"
+    },
+    {
+      "name": "semantics-010.json",
+      "case_count": 1,
+      "sha256": "bae5e47fbc4552140c3a9e8aa8c3c3d293c5e1276440c530a0d6aca9ba328550"
     }
   ]
 }
