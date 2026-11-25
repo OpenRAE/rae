@@ -187,6 +187,6 @@ No new service, hosting, credential source, data transfer, local SQLite fallback
 - [PostgreSQL 17 schemas](https://www.postgresql.org/docs/17/ddl-schemas.html), sections 5.10.3–5.10.6: namespace lookup, privileges, and trusted search paths.
 - [PostgreSQL 17 explicit locking](https://www.postgresql.org/docs/17/explicit-locking.html), section 13.3.5: session advisory-lock lifetime.
 - [PostgreSQL 17 function definitions](https://www.postgresql.org/docs/17/sql-createfunction.html): function-local settings and object resolution.
-- [Psycopg 3 SQL composition](https://www.psycopg.org/psycopg3/docs/api/sql.html): separate identifiers from value parameters. The repository pins Psycopg 3.3.8.
+- [Psycopg 3 SQL composition](https://www.psycopg.org/psycopg3/docs/api/sql.html): separate identifiers from value parameters. The repository pins Psycopg 3.3.9.
 
 These references support storage mechanics, not new RAE authorization or coordination guarantees.
