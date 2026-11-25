@@ -94,6 +94,9 @@ func (w *normalizer) fieldInput(pointer, name string, value any) (any, error) {
 	if bound, ok := integerBound(model, name); ok && value != nil && !variable(value) {
 		return boundedInteger(value, bound)
 	}
+	if (model == "ImportDecl" || model == "ModuleDescriptor") && name == "version" {
+		return value, versionText(value)
+	}
 	switch model {
 	case scriptModelName:
 		return scriptInput(name, value)

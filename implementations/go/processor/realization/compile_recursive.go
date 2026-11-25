@@ -311,10 +311,9 @@ func (m *concernMetadata) collectionIdentity(pointer string) []string {
 		return m.concern.definition.identity
 	}
 	kind := m.concern.definition.kind
-	if kind == "runtime-datastore-services" || kind == "runtime-orchestration-authorities" || kind == "runtime-app-authorizations" {
-		if identity := sdlrules.RuntimeCollectionIdentity(strings.TrimPrefix(kind, "runtime-"), pointer); identity != "" {
-			return []string{identity}
-		}
+	// Every registered runtime service family compares its members by identity.
+	if identity := sdlrules.RuntimeCollectionIdentity(strings.TrimPrefix(kind, "runtime-"), pointer); identity != "" {
+		return []string{identity}
 	}
 	tokens := jsonpointer.Tokens(pointer)
 	field := tokens[len(tokens)-1]
@@ -322,6 +321,8 @@ func (m *concernMetadata) collectionIdentity(pointer string) []string {
 	switch {
 	case kind == termRuntimeSoftwareComponents && field == "repository_refs":
 		identity = termIdentityMarker
+	case kind == "runtime-applications" && field == "routes":
+		identity = "route_id"
 	case kind == termRuntimeRepositoryState:
 		identity = map[string]string{"repositories": termRepositoryID, "trust_bindings": termTrustID}[field]
 	case kind == termLinuxCapabilities && slices.Contains([]string{termRequired, termEffective, termAdd, termDrop, "process_overrides"}, field):

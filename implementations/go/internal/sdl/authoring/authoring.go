@@ -60,6 +60,7 @@ type Parser struct {
 	authority         *concept.Authority
 	schemas           map[string]map[string]any
 	layouts           map[string]map[string]layout
+	unionLabels       map[string][]string
 }
 
 type layout struct {
@@ -95,7 +96,11 @@ func New(limits source.Limits) (*Parser, error) {
 	if err != nil {
 		return nil, err
 	}
-	p := &Parser{limits: limits, models: models, authority: authority, schemas: map[string]map[string]any{}}
+	unionLabels, err := modelUnionLabels()
+	if err != nil {
+		return nil, err
+	}
+	p := &Parser{limits: limits, models: models, authority: authority, schemas: map[string]map[string]any{}, unionLabels: unionLabels}
 	p.evidenceContracts, err = manifestEvidenceContracts(packaged)
 	if err != nil {
 		return nil, err

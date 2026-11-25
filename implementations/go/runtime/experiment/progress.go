@@ -2,13 +2,10 @@ package experiment
 
 import (
 	"context"
-	"crypto/sha1" //nolint:gosec // UUIDv5 requires SHA-1 for stable identity; it supplies no security claim.
-	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"maps"
 	"slices"
-	"strconv"
 	"time"
 
 	"github.com/OpenRAE/rae/implementations/go/base/fault"
@@ -17,15 +14,7 @@ import (
 )
 
 func attemptID(experimentID, entryID string, ordinal int) string {
-	namespace := [16]byte{0x6b, 0xa7, 0xb8, 0x11, 0x9d, 0xad, 0x11, 0xd1, 0x80, 0xb4, 0x00, 0xc0, 0x4f, 0xd4, 0x30, 0xc8}
-	hash := sha1.New() //nolint:gosec // UUIDv5 requires this published identity algorithm.
-	_, _ = hash.Write(namespace[:])
-	_, _ = hash.Write([]byte(experimentID + ":" + entryID + ":" + strconv.Itoa(ordinal)))
-	sum := hash.Sum(nil)[:16]
-	sum[6] = sum[6]&0x0f | 0x50
-	sum[8] = sum[8]&0x3f | 0x80
-	value := hex.EncodeToString(sum)
-	return "attempt:" + value[:8] + "-" + value[8:12] + "-" + value[12:16] + "-" + value[16:20] + "-" + value[20:]
+	return admission.TrialAttemptID(experimentID, entryID, ordinal)
 }
 func (c *coordinator) Advance(ctx context.Context, id Identity) (Progress, error) {
 	if err := c.authorize(ctx, id); err != nil {

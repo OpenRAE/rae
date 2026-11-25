@@ -13,7 +13,7 @@ import (
 func processorManifestRunner() Runner {
 	// Supply the frozen recording's release version to the native builder.
 	// Version selection is an application input, not processor semantics.
-	manifest, err := processor.Manifest("10.2.0", nil)
+	manifest, err := processor.Manifest("12.0.0", nil)
 	return func(_ context.Context, _ Case) (json.RawMessage, error) {
 		if err != nil {
 			return nil, err

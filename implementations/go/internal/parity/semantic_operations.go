@@ -10,7 +10,11 @@ import (
 	"github.com/OpenRAE/rae/implementations/go/internal/sdl/source"
 )
 
-type semanticCommand struct{ operation, name, contract, policy, transform string }
+type semanticCommand struct {
+	operation, name, contract, policy, transform string
+	// human is the reference CLI's default output; its text stdout is not a JSON observation.
+	human bool
+}
 
 func semanticOperationRunner() Runner {
 	parser, loadErr := authoring.New(source.DefaultLimits())
@@ -27,6 +31,20 @@ func semanticOperationCase(ctx context.Context, c Case, parser *authoring.Parser
 	if !ok {
 		return formatEnvelope(2, nil)
 	}
+	observed, err := semanticObservation(ctx, c, parser, command)
+	if err != nil || !command.human {
+		return observed, err
+	}
+	var envelope struct {
+		ExitCode int `json:"exit_code"`
+	}
+	if err = json.Unmarshal(observed, &envelope); err != nil {
+		return nil, err
+	}
+	return formatEnvelope(envelope.ExitCode, nil)
+}
+
+func semanticObservation(ctx context.Context, c Case, parser *authoring.Parser, command semanticCommand) (json.RawMessage, error) {
 	result := semanticResult(command)
 	if command.contract != termSdlYamlV1 {
 		result["status"] = "unsupported"
@@ -137,7 +155,7 @@ func semanticRefusal(result map[string]any, err error) (json.RawMessage, error) 
 	return semanticEnvelope(1, result)
 }
 func semanticArguments(args []string) (semanticCommand, bool) {
-	command := semanticCommand{contract: termSdlYamlV1, policy: "reject", transform: termCanonical}
+	command := semanticCommand{contract: termSdlYamlV1, policy: "reject", transform: termCanonical, human: true}
 	if len(args) < 3 || args[0] != termSemantic {
 		return command, false
 	}
@@ -167,7 +185,10 @@ func (c *semanticCommand) option(option, value string) bool {
 		}
 		c.policy = value
 	case "--output":
-		return value == termJSON
+		if value != termJSON && value != "human" {
+			return false
+		}
+		c.human = value == "human"
 	case "--transform":
 		if c.operation != termTransform || value != termCanonical && value != "format" {
 			return false

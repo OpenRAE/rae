@@ -104,6 +104,16 @@ func (w *normalizer) walk(schema map[string]any, pointer string, value any, path
 			return nil, invalid()
 		}
 	}
+	if expected, constant := schema["const"]; constant && expected != value {
+		return nil, invalid()
+	}
+	if labels := w.parser.unionLabels[pointer]; labels != nil && schema["properties"] == nil {
+		if _, mapping := value.(map[string]any); mapping {
+			if result, handled, unionErr := w.modelUnion(schema, labels, value, path, policy, view); handled {
+				return result, unionErr
+			}
+		}
+	}
 	if schema["properties"] == nil {
 		if chosen, selected := w.choose(alternatives(schema), value); chosen != nil {
 			policy.Convert = nil
@@ -223,24 +233,34 @@ func objectMatches(schema, value map[string]any) bool {
 }
 func (w *normalizer) mapping(schema map[string]any, pointer string, value map[string]any, path []string, policy scalarPolicy, view source.View) (any, error) {
 	value = w.contentConstructorInput(pointer, value)
+	if err := episodeIntentInput(pointer, schema, value); err != nil {
+		return nil, locatedModelError(err, path)
+	}
 	if pointer == domainProfileSchemaPointer && value["schema_digest"] == nil {
 		value = maps.Clone(value)
 		delete(value, "schema_digest")
 	}
 	presentation := w.parser.layoutFor(w.id, pointer)
-	keys := fieldOrder(w.keys(value, path, view), presentation.Fields)
-	result := make(ordered, 0, len(value))
-	failures := []error{}
+	keys := w.keys(value, path, view)
+	missing := map[string]bool{}
 	for _, required := range array(schema["required"]) {
 		name := text(required)
 		if pointer == domainProfileSchemaPointer && name == "schema_digest" {
 			continue // The native output constructor computes a missing digest below.
 		}
 		if _, present := value[name]; !present {
-			failures = append(failures, locatedModelError(invalid(), appendPath(path, name)))
+			missing[name] = true
+			keys = append(keys, name)
 		}
 	}
-	for _, name := range keys {
+	result := make(ordered, 0, len(value))
+	failures := []error{}
+	// Fields fail in model order, as the reference reports them; undeclared keys follow.
+	for _, name := range fieldOrder(keys, presentation.Fields) {
+		if missing[name] {
+			failures = append(failures, locatedModelError(invalid(), appendPath(path, name)))
+			continue
+		}
 		normalized, err := w.mappingField(schema, pointer, name, value[name], path, mappingPresentation{layout: presentation, inherited: policy}, view)
 		if err != nil {
 			failures = append(failures, err)

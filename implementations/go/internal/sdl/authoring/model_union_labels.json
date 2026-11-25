@@ -1,0 +1,7 @@
+{
+  "#/$defs/ParticipantBehaviorSpecification/properties/autonomous_execution": [
+    "ParticipantAutonomousExecutionPolicyV1",
+    "function-after[_validate_candidate_graph(), ParticipantAutonomousExecutionPolicyV2]",
+    "function-after[_validate_concurrency_projection(), function-after[_validate_candidate_graph(), ParticipantAutonomousExecutionPolicyV3]]"
+  ]
+}

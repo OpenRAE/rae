@@ -160,6 +160,8 @@ type constraintEvaluation struct {
 	document                      constraintDocument
 	limits                        ConstraintLimits
 	nodes, operations, identities int
+	// keyedScopes indexes each keyed collection once for one scope evaluation.
+	keyedScopes map[keyedScopeKey]keyedScopeMembers
 }
 
 func (e *constraintEvaluation) spend(depth int) bool {

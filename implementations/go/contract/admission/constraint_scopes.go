@@ -137,24 +137,57 @@ func scopeRecordTarget(current map[string]any, rule *constraintNode, token, poin
 	}
 }
 
+type keyedScopeKey struct {
+	rule   *constraintNode
+	first  *any
+	length int
+}
+
+type keyedScopeMembers struct {
+	indexed  map[string]any
+	declared map[string]*constraintNode
+}
+
+// scopeKeyedMembers resolves the actual and declared members of one keyed
+// collection. Scopes beneath the same collection reuse them, so the identity
+// budget pays for each member once, not once for each scope.
+func (e *constraintEvaluation) scopeKeyedMembers(rule *constraintNode, actual []any, pointer string) (keyedScopeMembers, constraintResult) {
+	key := keyedScopeKey{rule: rule, length: len(actual)}
+	if len(actual) > 0 {
+		key.first = &actual[0]
+	}
+	if members, cached := e.keyedScopes[key]; cached {
+		return members, constraintSuccess()
+	}
+	indexed, failure := e.keyedIndex(rule, actual, pointer)
+	if failure.Status != assuranceConformant {
+		return keyedScopeMembers{}, failure
+	}
+	declared, _, failure := e.keyedDeclarations(rule, pointer)
+	if failure.Status != assuranceConformant {
+		return keyedScopeMembers{}, failure
+	}
+	members := keyedScopeMembers{indexed: indexed, declared: declared}
+	if e.keyedScopes != nil {
+		e.keyedScopes[key] = members
+	}
+	return members, constraintSuccess()
+}
+
 func (e *constraintEvaluation) scopeKeyedTarget(current []any, rule *constraintNode, token, pointer string) (any, *constraintNode, bool, constraintResult) {
 	if !strings.HasPrefix(token, "@sha256:") {
 		return nil, nil, false, constraintFailure(statusUnsupported, pointer, "A keyed-collection scope must use a semantic member identity.")
 	}
-	indexed, failure := e.keyedIndex(rule, current, pointer)
-	if failure.Status != assuranceConformant {
-		return nil, nil, false, failure
-	}
-	declared, _, failure := e.keyedDeclarations(rule, pointer)
+	members, failure := e.scopeKeyedMembers(rule, current, pointer)
 	if failure.Status != assuranceConformant {
 		return nil, nil, false, failure
 	}
 	key := strings.TrimPrefix(token, "@")
-	child, present := indexed[key]
+	child, present := members.indexed[key]
 	if !present {
 		return nil, nil, false, constraintSuccess()
 	}
-	return child, declared[key], true, constraintSuccess()
+	return child, members.declared[key], true, constraintSuccess()
 }
 
 func scopeSequenceTarget(current []any, rule *constraintNode, token, pointer string) (any, *constraintNode, bool, constraintResult) {
@@ -210,16 +243,12 @@ func closedRecordScope(observed map[string]any, rule *constraintNode, pointer st
 }
 
 func (e *constraintEvaluation) closedKeyedScope(observed []any, rule *constraintNode, pointer string, children map[string]bool) constraintResult {
-	indexed, failure := e.keyedIndex(rule, observed, pointer)
+	members, failure := e.scopeKeyedMembers(rule, observed, pointer)
 	if failure.Status != assuranceConformant {
 		return failure
 	}
-	declared, _, failure := e.keyedDeclarations(rule, pointer)
-	if failure.Status != assuranceConformant {
-		return failure
-	}
-	for key := range indexed {
-		if declared[key] == nil && !children["@"+key] {
+	for key := range members.indexed {
+		if members.declared[key] == nil && !children["@"+key] {
 			return constraintFailure("nonconformant", pointer, "A closed scope contains an undeclared collection member in its named universe.")
 		}
 	}
@@ -244,6 +273,8 @@ func closedSequenceScope(observed []any, rule *constraintNode, pointer string, c
 }
 
 func (e *constraintEvaluation) scopeOverlays(actual any) []constraintResult {
+	e.keyedScopes = map[keyedScopeKey]keyedScopeMembers{}
+	defer func() { e.keyedScopes = nil }()
 	results := make([]constraintResult, 0, len(e.document.Scopes))
 	for _, scope := range e.document.Scopes {
 		observed, rule, present, failure := e.scopeTarget(actual, scope.Pointer)
