@@ -1,0 +1,51 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:637a3596e87d5960eac623429cd4c9cf75b015b546991e5687cba28742168d1a"
+  },
+  "name": "regression/91e3f423e813b4517c7c91ba2c01ed9f33d0d3d395f794d527af3708b2a89f37",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "scenario": {
+            "advisories": [
+              "Node 'host' is compute without 'resources'. This is valid SDL, but may be undeployable unless the backend supplies defaults."
+            ],
+            "description_present": false,
+            "name": "techvault",
+            "populated_sections": {
+              "nodes": 1
+            },
+            "source_diagnostics": [],
+            "version": "*"
+          },
+          "semantic_validation": "performed",
+          "status": "parsed"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "scenario": {
+          "advisories": [
+            "Node 'host' is compute without 'resources'. This is valid SDL, but may be undeployable unless the backend supplies defaults."
+          ],
+          "description_present": false,
+          "name": "techvault",
+          "populated_sections": {
+            "nodes": 1
+          },
+          "source_diagnostics": [],
+          "version": "*"
+        },
+        "semantic_validation": "performed",
+        "status": "parsed"
+      }
+    }
+  },
+  "surface": "mcp"
+}

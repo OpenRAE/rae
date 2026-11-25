@@ -1,0 +1,55 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:e6e09432723083816faeec3c34dfb1d102d461632c924d282db8517481e3a723"
+  },
+  "name": "regression/f47033f9c9e5b4b09f16c79e0a40252c04549ab1cd5ba779cbc5f4a7635ea07b",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "scenario": {
+            "advisories": [
+              "Node 'host' is compute without 'resources'. This is valid SDL, but may be undeployable unless the backend supplies defaults.",
+              "Node 'worker' is compute without 'resources'. This is valid SDL, but may be undeployable unless the backend supplies defaults.",
+              "Node 'leaf' is compute without 'resources'. This is valid SDL, but may be undeployable unless the backend supplies defaults."
+            ],
+            "description_present": false,
+            "name": "dynamic",
+            "populated_sections": {
+              "nodes": 3
+            },
+            "source_diagnostics": [],
+            "version": "*"
+          },
+          "semantic_validation": "performed",
+          "status": "parsed"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "scenario": {
+          "advisories": [
+            "Node 'host' is compute without 'resources'. This is valid SDL, but may be undeployable unless the backend supplies defaults.",
+            "Node 'worker' is compute without 'resources'. This is valid SDL, but may be undeployable unless the backend supplies defaults.",
+            "Node 'leaf' is compute without 'resources'. This is valid SDL, but may be undeployable unless the backend supplies defaults."
+          ],
+          "description_present": false,
+          "name": "dynamic",
+          "populated_sections": {
+            "nodes": 3
+          },
+          "source_diagnostics": [],
+          "version": "*"
+        },
+        "semantic_validation": "performed",
+        "status": "parsed"
+      }
+    }
+  },
+  "surface": "mcp"
+}

@@ -1,0 +1,14 @@
+{
+  "args": [
+    "trial-outcome-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:5a1b1734f5d2e0ece00701b883841012f263b55966a459867d9045b93e6e2b14"
+  },
+  "name": "contracts/fixtures/control-plane/trial-outcome-v1/invalid/unsupported-version",
+  "result": {
+    "valid": false
+  },
+  "surface": "schema"
+}

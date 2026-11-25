@@ -1,0 +1,51 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:12270ae91559c77e97d89d3ca8197af67da7a38e5da3f6d0210d397f344876fb"
+  },
+  "name": "regression/a0fe030a2e2e8bb90bd0508410ddda47a5570061a741243096ed88c766218b4a",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "scenario": {
+            "advisories": [
+              "Node 'host' is compute without 'resources'. This is valid SDL, but may be undeployable unless the backend supplies defaults."
+            ],
+            "description_present": false,
+            "name": "augmented",
+            "populated_sections": {
+              "nodes": 1
+            },
+            "source_diagnostics": [],
+            "version": "*"
+          },
+          "semantic_validation": "performed",
+          "status": "parsed"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "scenario": {
+          "advisories": [
+            "Node 'host' is compute without 'resources'. This is valid SDL, but may be undeployable unless the backend supplies defaults."
+          ],
+          "description_present": false,
+          "name": "augmented",
+          "populated_sections": {
+            "nodes": 1
+          },
+          "source_diagnostics": [],
+          "version": "*"
+        },
+        "semantic_validation": "performed",
+        "status": "parsed"
+      }
+    }
+  },
+  "surface": "mcp"
+}

@@ -10,20 +10,27 @@
   ],
   "command": "semantic conformance",
   "files": {
-    "input.json": "sha256:275cddeb6d13fa7717be3bd6f4940b95b75a9f4d3d61ed2948a0592ba70ce5a3"
+    "input.json": "sha256:b596ce2f5a72ec80da67f05dcf08d59c3b76aa7deb569da20322fee7bfb4e772"
   },
   "name": "contracts/fixtures/experiment-core/experiment-study-v1/valid/typed-treatment",
   "result": {
-    "exit_code": 0,
+    "exit_code": 1,
     "stdout": {
       "contract_id": "experiment-study-v1",
-      "diagnostics": [],
+      "diagnostics": [
+        {
+          "address": "experiment-study-v1",
+          "code": "conformance.schema-invalid",
+          "domain": "conformance",
+          "severity": "error"
+        }
+      ],
       "migration_policy": null,
       "normalization_profile": null,
       "operation": "conformance",
       "payload": {
         "check": "registered-contract",
-        "passed": true,
+        "passed": false,
         "phase": "contract-conformance",
         "root_type": "object"
       },
@@ -33,7 +40,7 @@
         "network": "disabled"
       },
       "source_format": null,
-      "status": "success",
+      "status": "invalid",
       "transform_profile": null,
       "validation_strength": "structural"
     }

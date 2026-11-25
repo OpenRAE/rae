@@ -1,0 +1,53 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:ac01f6a5bf3a12c75dfce69aeeeaaa44701202f80235c419613fdabda12583b1"
+  },
+  "name": "regression/b388fea2faedbec3d4cdf9be96669e1590ff5de8464b17752de3f852f1a87d18",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "scenario": {
+            "advisories": [
+              "Node 'primary' is compute without 'resources'. This is valid SDL, but may be undeployable unless the backend supplies defaults."
+            ],
+            "description_present": false,
+            "name": "compiler-family",
+            "populated_sections": {
+              "infrastructure": 2,
+              "nodes": 2
+            },
+            "source_diagnostics": [],
+            "version": "*"
+          },
+          "semantic_validation": "performed",
+          "status": "parsed"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "scenario": {
+          "advisories": [
+            "Node 'primary' is compute without 'resources'. This is valid SDL, but may be undeployable unless the backend supplies defaults."
+          ],
+          "description_present": false,
+          "name": "compiler-family",
+          "populated_sections": {
+            "infrastructure": 2,
+            "nodes": 2
+          },
+          "source_diagnostics": [],
+          "version": "*"
+        },
+        "semantic_validation": "performed",
+        "status": "parsed"
+      }
+    }
+  },
+  "surface": "mcp"
+}

@@ -4,11 +4,11 @@
   ],
   "command": "validate",
   "files": {
-    "payload.json": "sha256:8ab30e8e5a4cb52f603ed9db04fec746499f863620d28efe3331ec632959a7dc"
+    "payload.json": "sha256:c27c72b0f482918ddcebd74e037251dc6e8111113170894b3f43c9e615780641"
   },
   "name": "contracts/fixtures/experiment-core/experiment-run-v1/context-invalid/typed-treatment-duplicate-point",
   "result": {
-    "valid": true
+    "valid": false
   },
   "surface": "schema"
 }

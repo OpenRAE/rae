@@ -1,0 +1,51 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:88cd14d3928b0d7cd3bb5f3920bbc4552b1bf818d1c0fc14916ab2419f5e9263"
+  },
+  "name": "regression/e6dc0d2feefd2787346ec819c541679855e39386c9dc2ba9d8fbef8c9f042d7a",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "scenario": {
+            "advisories": [
+              "Node 'host' is compute without 'resources'. This is valid SDL, but may be undeployable unless the backend supplies defaults."
+            ],
+            "description_present": false,
+            "name": "profiles",
+            "populated_sections": {
+              "nodes": 1
+            },
+            "source_diagnostics": [],
+            "version": "*"
+          },
+          "semantic_validation": "performed",
+          "status": "parsed"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "scenario": {
+          "advisories": [
+            "Node 'host' is compute without 'resources'. This is valid SDL, but may be undeployable unless the backend supplies defaults."
+          ],
+          "description_present": false,
+          "name": "profiles",
+          "populated_sections": {
+            "nodes": 1
+          },
+          "source_diagnostics": [],
+          "version": "*"
+        },
+        "semantic_validation": "performed",
+        "status": "parsed"
+      }
+    }
+  },
+  "surface": "mcp"
+}

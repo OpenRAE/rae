@@ -4,11 +4,11 @@
   ],
   "command": "validate",
   "files": {
-    "payload.json": "sha256:b5aaf9d1294f0b104772572aa5ee213ed4e456ce244e7b628b1ef1ca9f415912"
+    "payload.json": "sha256:923de5a5c9579da17c0e358c11cfc9a37e1685ae66c77a2036efc0d689ae060d"
   },
   "name": "contracts/fixtures/formal-analysis/participant-opacity-analysis-evidence-v1/valid/bounded-counterexample",
   "result": {
-    "valid": true
+    "valid": false
   },
   "surface": "schema"
 }

@@ -1,0 +1,63 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:89ce6940f386a909da61820b0bd03dc08d83c9c4f22ae2a2a2fdb636bc492e25"
+  },
+  "name": "regression/dcff85b7137d352770739e41cc3592a6f80ba86e28c9236d0782cd2d30cb4852",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "scenario": {
+            "advisories": [],
+            "description_present": false,
+            "name": "materialized-example",
+            "populated_sections": {
+              "accounts": 1,
+              "action_contracts": 1,
+              "agents": 1,
+              "content": 1,
+              "entities": 1,
+              "features": 1,
+              "infrastructure": 2,
+              "nodes": 3,
+              "observation_boundaries": 1
+            },
+            "source_diagnostics": [],
+            "version": "*"
+          },
+          "semantic_validation": "skipped",
+          "status": "parsed"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "scenario": {
+          "advisories": [],
+          "description_present": false,
+          "name": "materialized-example",
+          "populated_sections": {
+            "accounts": 1,
+            "action_contracts": 1,
+            "agents": 1,
+            "content": 1,
+            "entities": 1,
+            "features": 1,
+            "infrastructure": 2,
+            "nodes": 3,
+            "observation_boundaries": 1
+          },
+          "source_diagnostics": [],
+          "version": "*"
+        },
+        "semantic_validation": "skipped",
+        "status": "parsed"
+      }
+    }
+  },
+  "surface": "mcp"
+}

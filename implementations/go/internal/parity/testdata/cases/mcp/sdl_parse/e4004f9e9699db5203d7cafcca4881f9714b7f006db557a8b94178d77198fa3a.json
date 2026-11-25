@@ -1,0 +1,61 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:31474f6d6fde4f3ff99db4cf87f5403109901e5f81e398ecbb991efdff5461da"
+  },
+  "name": "regression/ae352d66672014c416bb8678b03ff774a05ee678328f7b8c9bba04101b876574",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "scenario": {
+            "advisories": [],
+            "description_present": false,
+            "name": "materialized-example",
+            "populated_sections": {
+              "accounts": 1,
+              "agents": 1,
+              "content": 1,
+              "entities": 1,
+              "features": 1,
+              "infrastructure": 2,
+              "nodes": 3,
+              "objectives": 1
+            },
+            "source_diagnostics": [],
+            "version": "*"
+          },
+          "semantic_validation": "skipped",
+          "status": "parsed"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "scenario": {
+          "advisories": [],
+          "description_present": false,
+          "name": "materialized-example",
+          "populated_sections": {
+            "accounts": 1,
+            "agents": 1,
+            "content": 1,
+            "entities": 1,
+            "features": 1,
+            "infrastructure": 2,
+            "nodes": 3,
+            "objectives": 1
+          },
+          "source_diagnostics": [],
+          "version": "*"
+        },
+        "semantic_validation": "skipped",
+        "status": "parsed"
+      }
+    }
+  },
+  "surface": "mcp"
+}

@@ -10,7 +10,7 @@
   ],
   "command": "semantic validate",
   "files": {
-    "input.json": "sha256:af1375decf2827e4a6631914c2c5f7d6ddf9481a46d88a07951d6af26f708790"
+    "input.json": "sha256:7c390e57f57fc6d8919965676c45d1dc643604e03dffaaa3d5ba265a5e342ca9"
   },
   "name": "contracts/fixtures/plans/mixed-participant-composition-profile-v1/valid/alternative",
   "result": {
@@ -20,7 +20,7 @@
       "diagnostics": [
         {
           "address": "mixed-participant-composition-profile-v1",
-          "code": "conformance.semantic-context-required",
+          "code": "conformance.schema-invalid",
           "domain": "conformance",
           "severity": "error"
         }
@@ -30,7 +30,7 @@
       "operation": "validate",
       "payload": {
         "admitted": false,
-        "member_count": 19,
+        "member_count": 18,
         "phase": "contract-admission",
         "root_type": "object"
       },

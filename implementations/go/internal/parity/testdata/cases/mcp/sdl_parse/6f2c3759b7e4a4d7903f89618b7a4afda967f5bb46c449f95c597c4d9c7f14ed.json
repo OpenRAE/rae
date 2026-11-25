@@ -1,0 +1,57 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:20a5c467b7e95f73fb8c8de45a17aa23bfc8b2a64bd62cc1fddb99413856c4cb"
+  },
+  "name": "regression/84c4dd195234c9ccdeb01cb0ac5083eb3444d7c0748e3971c425871caea3e636",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "scenario": {
+            "advisories": [
+              "Node 'worker' is compute without 'resources'. This is valid SDL, but may be undeployable unless the backend supplies defaults.",
+              "Node 'iam' is compute without 'resources'. This is valid SDL, but may be undeployable unless the backend supplies defaults.",
+              "Node 'secrets' is compute without 'resources'. This is valid SDL, but may be undeployable unless the backend supplies defaults."
+            ],
+            "description_present": false,
+            "name": "cross-project-secret",
+            "populated_sections": {
+              "content": 2,
+              "nodes": 3
+            },
+            "source_diagnostics": [],
+            "version": "*"
+          },
+          "semantic_validation": "performed",
+          "status": "parsed"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "scenario": {
+          "advisories": [
+            "Node 'worker' is compute without 'resources'. This is valid SDL, but may be undeployable unless the backend supplies defaults.",
+            "Node 'iam' is compute without 'resources'. This is valid SDL, but may be undeployable unless the backend supplies defaults.",
+            "Node 'secrets' is compute without 'resources'. This is valid SDL, but may be undeployable unless the backend supplies defaults."
+          ],
+          "description_present": false,
+          "name": "cross-project-secret",
+          "populated_sections": {
+            "content": 2,
+            "nodes": 3
+          },
+          "source_diagnostics": [],
+          "version": "*"
+        },
+        "semantic_validation": "performed",
+        "status": "parsed"
+      }
+    }
+  },
+  "surface": "mcp"
+}

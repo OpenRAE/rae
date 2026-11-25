@@ -1,0 +1,48 @@
+{
+  "args": [
+    "sdl",
+    "format",
+    "input/first-scenario.sdl.yaml"
+  ],
+  "command": "sdl format",
+  "files": {
+    "input/first-scenario.sdl.yaml": "sha256:4748f4baf1b4b679e81fe6fd16259808588735c0db766f69cb071457f5d173a3"
+  },
+  "name": "regression/5bee78513862839e32ac978c316c23c8ea5f3b848a71ad21b121d40d5601e7d5",
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "description": "A small network with one Linux host.",
+      "infrastructure": {
+        "lab-network": {
+          "count": 1,
+          "properties": {
+            "cidr": "10.0.0.0/24",
+            "gateway": "10.0.0.1"
+          }
+        },
+        "web": {
+          "count": 1,
+          "links": [
+            "lab-network"
+          ]
+        }
+      },
+      "name": "first-scenario",
+      "nodes": {
+        "lab-network": {
+          "type": "switch"
+        },
+        "web": {
+          "os": "linux",
+          "resources": {
+            "cpu": 1,
+            "ram": 4294967296
+          },
+          "type": "compute"
+        }
+      }
+    }
+  },
+  "surface": "cli"
+}

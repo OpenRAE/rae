@@ -1,0 +1,14 @@
+{
+  "args": [
+    "admitted-trial-plan-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:831cd2eb2206ae98d1c90806405812b7030b593c691aa544d362ab769c9baf13"
+  },
+  "name": "regression/9e7258eea41d4448baa35cdd6bb175c822834383567312ce8e7021442e834efd",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

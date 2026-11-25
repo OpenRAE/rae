@@ -18,7 +18,7 @@
           "capability_feature": null,
           "claim_bindings": [],
           "cleanup_verified": null,
-          "configuration_digest": "sha256:538ed923cf3dad84b87ed6d62b991de2219aa72af8b48b4d37856344d9c00197",
+          "configuration_digest": "sha256:e472cab80e8d6db93b7b01cf643b0d9e4fb1ae246b83860be4e2a7eeed83053a",
           "contract_name": "processor-manifest-v2",
           "declared_support_level": null,
           "diagnostics": [],
@@ -59,7 +59,7 @@
           "capability_feature": "runtime-control-plane",
           "claim_bindings": [],
           "cleanup_verified": null,
-          "configuration_digest": "sha256:538ed923cf3dad84b87ed6d62b991de2219aa72af8b48b4d37856344d9c00197",
+          "configuration_digest": "sha256:e472cab80e8d6db93b7b01cf643b0d9e4fb1ae246b83860be4e2a7eeed83053a",
           "contract_name": "processor-manifest-v2",
           "declared_support_level": "declared",
           "diagnostics": [
@@ -135,13 +135,13 @@
         "taxonomy_revision": "rev8"
       },
       "contract_digests": {
-        "evaluation-plan-v1": "sha256:832ed283e8eb66750be9327830e9b26ff41ec902e87aa7d4ff6931b7687f0297",
+        "evaluation-plan-v1": "sha256:f341be6587c687240603d214f0aecfe5e4d15d9e829098ac986da76f62f50ad1",
         "operation-receipt-v1": "sha256:6449c3dd60d34b2d40f8bfee5c6bb3360f2ceee3c04c0d34ec520dbc036cd7ed",
         "operation-status-v1": "sha256:980c11cc8980258a94864107f78ebab3f9e654fc5b1ee17a9912c67fbcf75354",
-        "orchestration-plan-v1": "sha256:dab4f20af44c29e6aa7f82f66132315d3ba41a0b1bc59f216ceebf3d5d26f9e5",
-        "processor-manifest-v2": "sha256:eb41344e4392d08e7c4a7e77c7170b863a48624d28a58fb9ea852a7c95d4ada3",
-        "provisioning-plan-v1": "sha256:b18f31a3c3582c688e82cb364850c4c4b212d3bcf0aac74e72d98b2b4bb0849d",
-        "runtime-snapshot-v1": "sha256:cf3d76682683e3b09628616aa0e0fb8a2ad932be406860be53bcaf6d244ea61a",
+        "orchestration-plan-v1": "sha256:8f78f0f720087472ad1ae2ce70e61f3ca15acdb55a1e10e8da3f274cc86e9ae3",
+        "processor-manifest-v2": "sha256:7e8d426c7ad704691f97a66c4260503e5afeee543391208340d380041824bd2d",
+        "provisioning-plan-v1": "sha256:7b70ea977e91908300874e2e4a220bafd2014caaa7fb185c378c63f8d5a7ca8f",
+        "runtime-snapshot-v1": "sha256:afe6fa250bedf172dfacb4062c5fd920ac263e6bf9b6a58e0f8cb54376d3dfe9",
         "workflow-cancellation-request-v1": "sha256:50f63d3e9f24a674b7ecc2d8f3a8847e1465d790762319cd47a9ee9477d6295f"
       },
       "contract_versions": {
@@ -162,7 +162,7 @@
       "profile_digest": "sha256:6321922ac0a766f9654c0785761f184fcec730d8baf1413c43aa3c2073d5db0e",
       "profile_version": "v1",
       "provenance": {
-        "planning_backend_digest": "sha256:538ed923cf3dad84b87ed6d62b991de2219aa72af8b48b4d37856344d9c00197",
+        "planning_backend_digest": "sha256:e472cab80e8d6db93b7b01cf643b0d9e4fb1ae246b83860be4e2a7eeed83053a",
         "requested_features": [
           "runtime-control-plane"
         ],
@@ -190,14 +190,14 @@
           "subject_kind": "published_claim"
         }
       },
-      "reporter_version": "10.2.0",
+      "reporter_version": "12.0.0",
       "required_case_refs": [
         "conformance-case:processor-manifest-v2:manifest",
         "conformance-case:processor-manifest-v2:support-1"
       ],
       "subject_kind": "processor",
       "subject_name": "raes-reference-processor",
-      "subject_version": "10.2.0",
+      "subject_version": "12.0.0",
       "summary": {
         "achieved_profile": null,
         "checks": {
@@ -236,7 +236,7 @@
           "quantifier_scope": "finite-cases"
         }
       },
-      "tool_version": "10.2.0",
+      "tool_version": "12.0.0",
       "unsupported_capability_gaps": [
         "runtime-control-plane"
       ],

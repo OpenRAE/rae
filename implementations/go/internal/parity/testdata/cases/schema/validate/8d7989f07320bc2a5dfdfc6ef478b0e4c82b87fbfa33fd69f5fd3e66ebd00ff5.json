@@ -4,11 +4,11 @@
   ],
   "command": "validate",
   "files": {
-    "payload.json": "sha256:972ed481422002a0a6b77ee702092a9163cf5fab54406086fd057adbae3498fa"
+    "payload.json": "sha256:3dbcf128a10b49756a098b54944d7cf58b1b184d6cd5193148d87290a9bbf521"
   },
   "name": "domain-profile-definition-v1/routed/contracts/fixtures/profiles/domain-profile-definition-v1/valid/reference.json",
   "result": {
-    "valid": true
+    "valid": false
   },
   "surface": "schema"
 }

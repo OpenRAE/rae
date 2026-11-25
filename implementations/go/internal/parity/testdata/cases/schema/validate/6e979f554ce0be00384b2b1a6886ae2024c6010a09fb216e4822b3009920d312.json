@@ -4,11 +4,11 @@
   ],
   "command": "validate",
   "files": {
-    "payload.json": "sha256:17cbc87785f899160f7d2e5d431e5a917f23392eb7572e2f794ced067ca06694"
+    "payload.json": "sha256:3b5a5a3877ffa3b07cef44d25a037c8ac6bbbe5405607bec2ec9300ef09d96fa"
   },
   "name": "contracts/fixtures/candidate-synthesis/sdl-candidate-synthesis-record-v1/valid/nist-csf",
   "result": {
-    "valid": true
+    "valid": false
   },
   "surface": "schema"
 }

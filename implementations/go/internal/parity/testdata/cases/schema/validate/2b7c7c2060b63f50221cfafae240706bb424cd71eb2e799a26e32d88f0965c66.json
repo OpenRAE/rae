@@ -4,11 +4,11 @@
   ],
   "command": "validate",
   "files": {
-    "payload.json": "sha256:275cddeb6d13fa7717be3bd6f4940b95b75a9f4d3d61ed2948a0592ba70ce5a3"
+    "payload.json": "sha256:b596ce2f5a72ec80da67f05dcf08d59c3b76aa7deb569da20322fee7bfb4e772"
   },
   "name": "experiment-study-v1/routed/contracts/fixtures/experiment-core/experiment-study-v1/valid/typed-treatment.json",
   "result": {
-    "valid": true
+    "valid": false
   },
   "surface": "schema"
 }

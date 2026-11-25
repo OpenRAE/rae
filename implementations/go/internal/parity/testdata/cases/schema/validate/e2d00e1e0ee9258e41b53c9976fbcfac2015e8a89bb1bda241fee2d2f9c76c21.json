@@ -1,0 +1,14 @@
+{
+  "args": [
+    "scientific-completeness-assessment-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:2ac06a09d3fd83ab11bf013122598b6485acb3c28cb92c388952f00424f4fba6"
+  },
+  "name": "regression/5c366c704edeae1d08d8db3d0373859d85b771b0d33d1820dfe6c18cc85819a1",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

@@ -6,18 +6,12 @@
   ],
   "command": "sdl verify-imports",
   "files": {
-    "repo/examples/library/patterns/participant-behavior-contract-binding.yaml": "sha256:13562ff6b1191201041810e70822e3c8529c9f9f285582ca8f3ebb13d3353be1",
+    "repo/examples/library/patterns/participant-behavior-contract-binding.yaml": "sha256:cbc244357ce07e5b865819725d56e5f17c629c03ed4f91558614d8b3fb72984c",
     "setup.json": "sha256:7716101a0ab6632401a85e72fe4fe197959b3d2aade63bc44ed4daf58872e575"
   },
   "name": "examples/library/patterns/participant-behavior-contract-binding.yaml/resolved",
   "result": {
-    "exit_code": 1,
-    "generated_files": {
-      "repo/examples/library/patterns/raes.lock.json": {
-        "imports": [],
-        "schema_version": "raes-lock/v1"
-      }
-    },
+    "exit_code": 2,
     "stdout": null
   },
   "surface": "cli"

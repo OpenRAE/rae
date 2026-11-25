@@ -4,11 +4,11 @@
   ],
   "command": "validate",
   "files": {
-    "payload.json": "sha256:30ff5e653da50d271c1cb1979441f134c4ebbeeab26b12d9062184b68e56e857"
+    "payload.json": "sha256:59940d32058c02689426fabc7bcec324c9bdcbf978327cb372bb7498831453cb"
   },
   "name": "admitted-trial-plan-v1/routed/contracts/fixtures/plans/admitted-trial-plan-v1/context-invalid/typed-treatment-wrong-family-pin.json",
   "result": {
-    "valid": true
+    "valid": false
   },
   "surface": "schema"
 }

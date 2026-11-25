@@ -1,0 +1,14 @@
+{
+  "args": [],
+  "command": "encode",
+  "files": {
+    "value.json": "sha256:5a1b1734f5d2e0ece00701b883841012f263b55966a459867d9045b93e6e2b14"
+  },
+  "name": "contracts/fixtures/control-plane/trial-outcome-v1/invalid/unsupported-version",
+  "result": {
+    "jcs": "sha256:26b4745fafdc0c07dca78a82b3a0d6ebaa56fc7abbe0291596888d32237bd873",
+    "sorted_ascii": "sha256:26b4745fafdc0c07dca78a82b3a0d6ebaa56fc7abbe0291596888d32237bd873",
+    "sorted_unicode": "sha256:26b4745fafdc0c07dca78a82b3a0d6ebaa56fc7abbe0291596888d32237bd873"
+  },
+  "surface": "canonical"
+}

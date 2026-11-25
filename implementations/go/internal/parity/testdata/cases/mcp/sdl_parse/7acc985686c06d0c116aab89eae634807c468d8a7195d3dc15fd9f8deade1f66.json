@@ -1,0 +1,57 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:b476ca91f898e2b7d779e0b189e69645a84bc6b7a72b28249a47916fa26fd190"
+  },
+  "name": "regression/b0220e30167d7147714e612ef909c9a9935b46e19614f9d331d3832e2715897f",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "scenario": {
+            "advisories": [],
+            "description_present": false,
+            "name": "bounded-family",
+            "populated_sections": {
+              "content": 1,
+              "events": 2,
+              "features": 2,
+              "nodes": 2,
+              "scripts": 2,
+              "stories": 1
+            },
+            "source_diagnostics": [],
+            "version": "*"
+          },
+          "semantic_validation": "skipped",
+          "status": "parsed"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "scenario": {
+          "advisories": [],
+          "description_present": false,
+          "name": "bounded-family",
+          "populated_sections": {
+            "content": 1,
+            "events": 2,
+            "features": 2,
+            "nodes": 2,
+            "scripts": 2,
+            "stories": 1
+          },
+          "source_diagnostics": [],
+          "version": "*"
+        },
+        "semantic_validation": "skipped",
+        "status": "parsed"
+      }
+    }
+  },
+  "surface": "mcp"
+}

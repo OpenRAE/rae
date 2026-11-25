@@ -1,0 +1,53 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:e12b8178ee136e284ce24f5ef163dc6d042d72979f0649234a9cbae68ea6df43"
+  },
+  "name": "regression/915b5cb9e0af7db3846275cb3094f770bf4455a2bc89845e2325885a4c7cbc43",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "scenario": {
+            "advisories": [],
+            "description_present": false,
+            "name": "compiler-family",
+            "populated_sections": {
+              "agents": 1,
+              "content": 1,
+              "infrastructure": 1,
+              "nodes": 2
+            },
+            "source_diagnostics": [],
+            "version": "*"
+          },
+          "semantic_validation": "performed",
+          "status": "parsed"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "scenario": {
+          "advisories": [],
+          "description_present": false,
+          "name": "compiler-family",
+          "populated_sections": {
+            "agents": 1,
+            "content": 1,
+            "infrastructure": 1,
+            "nodes": 2
+          },
+          "source_diagnostics": [],
+          "version": "*"
+        },
+        "semantic_validation": "performed",
+        "status": "parsed"
+      }
+    }
+  },
+  "surface": "mcp"
+}

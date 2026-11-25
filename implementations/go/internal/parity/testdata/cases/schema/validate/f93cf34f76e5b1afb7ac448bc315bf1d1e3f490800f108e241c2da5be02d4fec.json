@@ -1,0 +1,14 @@
+{
+  "args": [
+    "recursive-realization-constraint-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:c209b2917096222393c312331625d591eace7a85a419e036ac6cc211f47e69d2"
+  },
+  "name": "regression/03a17f13a68062fc701c69b91934e6a37b6cf99b7e85165a530cf2567781954a",
+  "result": {
+    "valid": false
+  },
+  "surface": "schema"
+}

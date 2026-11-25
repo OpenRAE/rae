@@ -1,0 +1,63 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:8dd80705e6ce4891e866cdd9f0b34dd27263b2a792203d7853d7d4556fee0cc4"
+  },
+  "name": "regression/9f95a50cf77dcd68b81be573af4dc12fe803b9633cb5ca9eae4e19421e2779fa",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "diagnostics": [
+            {
+              "code": "sdl.model.invalid",
+              "path": "/behavior_specifications/analyst-triage/episode_policy/truncation_conditions/queue-stalled",
+              "range": {
+                "end": {
+                  "column": 7,
+                  "line": 169
+                },
+                "start": {
+                  "column": 11,
+                  "line": 166
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            }
+          ],
+          "stage": "parse",
+          "status": "invalid"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "diagnostics": [
+          {
+            "code": "sdl.model.invalid",
+            "path": "/behavior_specifications/analyst-triage/episode_policy/truncation_conditions/queue-stalled",
+            "range": {
+              "end": {
+                "column": 7,
+                "line": 169
+              },
+              "start": {
+                "column": 11,
+                "line": 166
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          }
+        ],
+        "stage": "parse",
+        "status": "invalid"
+      }
+    }
+  },
+  "surface": "mcp"
+}

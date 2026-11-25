@@ -1,0 +1,81 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:ab3f926c3d57dfac2ef0f0748c619613046b2168240247814162f1591e6f4655"
+  },
+  "name": "regression/0001e9475e941da1f7d7f36085cb61665564a8df2105c40bb5ca5a11a2adba07",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "scenario": {
+            "advisories": [],
+            "description_present": false,
+            "name": "declaration-kinds",
+            "populated_sections": {
+              "accounts": 2,
+              "action_contracts": 1,
+              "agents": 2,
+              "conditions": 2,
+              "content": 2,
+              "entities": 2,
+              "events": 1,
+              "features": 1,
+              "infrastructure": 1,
+              "injects": 1,
+              "nodes": 9,
+              "objectives": 1,
+              "observation_boundaries": 1,
+              "outcome_interpretation_rules": 1,
+              "relationships": 4,
+              "scripts": 1,
+              "stories": 1,
+              "workflows": 1
+            },
+            "source_diagnostics": [],
+            "version": "*"
+          },
+          "semantic_validation": "performed",
+          "status": "parsed"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "scenario": {
+          "advisories": [],
+          "description_present": false,
+          "name": "declaration-kinds",
+          "populated_sections": {
+            "accounts": 2,
+            "action_contracts": 1,
+            "agents": 2,
+            "conditions": 2,
+            "content": 2,
+            "entities": 2,
+            "events": 1,
+            "features": 1,
+            "infrastructure": 1,
+            "injects": 1,
+            "nodes": 9,
+            "objectives": 1,
+            "observation_boundaries": 1,
+            "outcome_interpretation_rules": 1,
+            "relationships": 4,
+            "scripts": 1,
+            "stories": 1,
+            "workflows": 1
+          },
+          "source_diagnostics": [],
+          "version": "*"
+        },
+        "semantic_validation": "performed",
+        "status": "parsed"
+      }
+    }
+  },
+  "surface": "mcp"
+}

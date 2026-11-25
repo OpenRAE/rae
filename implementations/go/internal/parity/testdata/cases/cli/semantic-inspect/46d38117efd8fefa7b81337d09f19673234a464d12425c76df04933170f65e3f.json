@@ -1,0 +1,54 @@
+{
+  "args": [
+    "semantic",
+    "inspect",
+    "--output",
+    "json",
+    "--contract",
+    "assigned-trial-control-v1",
+    "input.json"
+  ],
+  "command": "semantic inspect",
+  "files": {
+    "input.json": "sha256:99db5583fdc6ea1206916ebf8fd45a5d4133ac32f84e3deb0b34f22e58c26c58"
+  },
+  "name": "contracts/fixtures/control-plane/assigned-trial-control-v1/invalid/coerced-cancellation",
+  "result": {
+    "exit_code": 1,
+    "stdout": {
+      "contract_id": "assigned-trial-control-v1",
+      "diagnostics": [
+        {
+          "address": "assigned-trial-control-v1",
+          "code": "conformance.schema-invalid",
+          "domain": "conformance",
+          "severity": "error"
+        }
+      ],
+      "migration_policy": null,
+      "normalization_profile": null,
+      "operation": "inspect",
+      "payload": {
+        "member_count": 4,
+        "members": [
+          "assignment_digest",
+          "cancelled",
+          "prepare_retry",
+          "schema_version"
+        ],
+        "phase": "inspection",
+        "root_type": "object"
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": null,
+      "status": "invalid",
+      "transform_profile": null,
+      "validation_strength": "structural"
+    }
+  },
+  "surface": "cli"
+}

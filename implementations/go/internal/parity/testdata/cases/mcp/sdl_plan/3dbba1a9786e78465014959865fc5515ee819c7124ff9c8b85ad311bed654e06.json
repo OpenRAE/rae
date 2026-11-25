@@ -1,0 +1,863 @@
+{
+  "args": [],
+  "command": "sdl_plan",
+  "files": {
+    "arguments.json": "sha256:56cf9ac6389f5b27197d1a44f5119565f06a23a0655bfd13c0b60b36eefba926"
+  },
+  "name": "contracts/fixtures/sdl/participant-episode-policy-v1/invalid/autonomous-profile-episode-structure.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "diagnostics": [
+            {
+              "code": "sdl.model.invalid",
+              "path": "/behavior_specifications/replay-episodes/autonomous_execution/ParticipantAutonomousExecutionPolicyV1/episode_policy",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 105
+                },
+                "start": {
+                  "column": 7,
+                  "line": 79
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/behavior_specifications/replay-episodes/autonomous_execution/function-after[_validate_candidate_graph(), ParticipantAutonomousExecutionPolicyV2]/profile",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 105
+                },
+                "start": {
+                  "column": 7,
+                  "line": 79
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/behavior_specifications/replay-episodes/autonomous_execution/function-after[_validate_candidate_graph(), ParticipantAutonomousExecutionPolicyV2]/work_window_refs",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 105
+                },
+                "start": {
+                  "column": 7,
+                  "line": 79
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/behavior_specifications/replay-episodes/autonomous_execution/function-after[_validate_candidate_graph(), ParticipantAutonomousExecutionPolicyV2]/stochastic_control_ref",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 105
+                },
+                "start": {
+                  "column": 7,
+                  "line": 79
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/behavior_specifications/replay-episodes/autonomous_execution/function-after[_validate_candidate_graph(), ParticipantAutonomousExecutionPolicyV2]/selection_strategy",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 105
+                },
+                "start": {
+                  "column": 7,
+                  "line": 79
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/behavior_specifications/replay-episodes/autonomous_execution/function-after[_validate_candidate_graph(), ParticipantAutonomousExecutionPolicyV2]/timing",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 105
+                },
+                "start": {
+                  "column": 7,
+                  "line": 79
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/behavior_specifications/replay-episodes/autonomous_execution/function-after[_validate_candidate_graph(), ParticipantAutonomousExecutionPolicyV2]/outside_window_disposition",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 105
+                },
+                "start": {
+                  "column": 7,
+                  "line": 79
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/behavior_specifications/replay-episodes/autonomous_execution/function-after[_validate_candidate_graph(), ParticipantAutonomousExecutionPolicyV2]/empty_eligible_disposition",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 105
+                },
+                "start": {
+                  "column": 7,
+                  "line": 79
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/behavior_specifications/replay-episodes/autonomous_execution/function-after[_validate_candidate_graph(), ParticipantAutonomousExecutionPolicyV2]/action_candidates",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 105
+                },
+                "start": {
+                  "column": 7,
+                  "line": 79
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/behavior_specifications/replay-episodes/autonomous_execution/function-after[_validate_candidate_graph(), ParticipantAutonomousExecutionPolicyV2]/max_occurrences",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 105
+                },
+                "start": {
+                  "column": 7,
+                  "line": 79
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/behavior_specifications/replay-episodes/autonomous_execution/function-after[_validate_candidate_graph(), ParticipantAutonomousExecutionPolicyV2]/temporal_constraint_refs",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 105
+                },
+                "start": {
+                  "column": 7,
+                  "line": 79
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/behavior_specifications/replay-episodes/autonomous_execution/function-after[_validate_candidate_graph(), ParticipantAutonomousExecutionPolicyV2]/action_order",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 105
+                },
+                "start": {
+                  "column": 7,
+                  "line": 79
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/behavior_specifications/replay-episodes/autonomous_execution/function-after[_validate_candidate_graph(), ParticipantAutonomousExecutionPolicyV2]/episode_policy",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 105
+                },
+                "start": {
+                  "column": 7,
+                  "line": 79
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/behavior_specifications/replay-episodes/autonomous_execution/function-after[_validate_concurrency_projection(), function-after[_validate_candidate_graph(), ParticipantAutonomousExecutionPolicyV3]]/profile",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 105
+                },
+                "start": {
+                  "column": 7,
+                  "line": 79
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/behavior_specifications/replay-episodes/autonomous_execution/function-after[_validate_concurrency_projection(), function-after[_validate_candidate_graph(), ParticipantAutonomousExecutionPolicyV3]]/work_window_refs",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 105
+                },
+                "start": {
+                  "column": 7,
+                  "line": 79
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/behavior_specifications/replay-episodes/autonomous_execution/function-after[_validate_concurrency_projection(), function-after[_validate_candidate_graph(), ParticipantAutonomousExecutionPolicyV3]]/stochastic_control_ref",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 105
+                },
+                "start": {
+                  "column": 7,
+                  "line": 79
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/behavior_specifications/replay-episodes/autonomous_execution/function-after[_validate_concurrency_projection(), function-after[_validate_candidate_graph(), ParticipantAutonomousExecutionPolicyV3]]/selection_strategy",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 105
+                },
+                "start": {
+                  "column": 7,
+                  "line": 79
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/behavior_specifications/replay-episodes/autonomous_execution/function-after[_validate_concurrency_projection(), function-after[_validate_candidate_graph(), ParticipantAutonomousExecutionPolicyV3]]/timing",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 105
+                },
+                "start": {
+                  "column": 7,
+                  "line": 79
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/behavior_specifications/replay-episodes/autonomous_execution/function-after[_validate_concurrency_projection(), function-after[_validate_candidate_graph(), ParticipantAutonomousExecutionPolicyV3]]/outside_window_disposition",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 105
+                },
+                "start": {
+                  "column": 7,
+                  "line": 79
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/behavior_specifications/replay-episodes/autonomous_execution/function-after[_validate_concurrency_projection(), function-after[_validate_candidate_graph(), ParticipantAutonomousExecutionPolicyV3]]/empty_eligible_disposition",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 105
+                },
+                "start": {
+                  "column": 7,
+                  "line": 79
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/behavior_specifications/replay-episodes/autonomous_execution/function-after[_validate_concurrency_projection(), function-after[_validate_candidate_graph(), ParticipantAutonomousExecutionPolicyV3]]/action_candidates",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 105
+                },
+                "start": {
+                  "column": 7,
+                  "line": 79
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/behavior_specifications/replay-episodes/autonomous_execution/function-after[_validate_concurrency_projection(), function-after[_validate_candidate_graph(), ParticipantAutonomousExecutionPolicyV3]]/max_occurrences",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 105
+                },
+                "start": {
+                  "column": 7,
+                  "line": 79
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/behavior_specifications/replay-episodes/autonomous_execution/function-after[_validate_concurrency_projection(), function-after[_validate_candidate_graph(), ParticipantAutonomousExecutionPolicyV3]]/resource_budget",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 105
+                },
+                "start": {
+                  "column": 7,
+                  "line": 79
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/behavior_specifications/replay-episodes/autonomous_execution/function-after[_validate_concurrency_projection(), function-after[_validate_candidate_graph(), ParticipantAutonomousExecutionPolicyV3]]/temporal_constraint_refs",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 105
+                },
+                "start": {
+                  "column": 7,
+                  "line": 79
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/behavior_specifications/replay-episodes/autonomous_execution/function-after[_validate_concurrency_projection(), function-after[_validate_candidate_graph(), ParticipantAutonomousExecutionPolicyV3]]/action_order",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 105
+                },
+                "start": {
+                  "column": 7,
+                  "line": 79
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/behavior_specifications/replay-episodes/autonomous_execution/function-after[_validate_concurrency_projection(), function-after[_validate_candidate_graph(), ParticipantAutonomousExecutionPolicyV3]]/episode_policy",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 105
+                },
+                "start": {
+                  "column": 7,
+                  "line": 79
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            }
+          ],
+          "stage": "parse",
+          "status": "invalid"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "diagnostics": [
+          {
+            "code": "sdl.model.invalid",
+            "path": "/behavior_specifications/replay-episodes/autonomous_execution/ParticipantAutonomousExecutionPolicyV1/episode_policy",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 105
+              },
+              "start": {
+                "column": 7,
+                "line": 79
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/behavior_specifications/replay-episodes/autonomous_execution/function-after[_validate_candidate_graph(), ParticipantAutonomousExecutionPolicyV2]/profile",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 105
+              },
+              "start": {
+                "column": 7,
+                "line": 79
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/behavior_specifications/replay-episodes/autonomous_execution/function-after[_validate_candidate_graph(), ParticipantAutonomousExecutionPolicyV2]/work_window_refs",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 105
+              },
+              "start": {
+                "column": 7,
+                "line": 79
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/behavior_specifications/replay-episodes/autonomous_execution/function-after[_validate_candidate_graph(), ParticipantAutonomousExecutionPolicyV2]/stochastic_control_ref",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 105
+              },
+              "start": {
+                "column": 7,
+                "line": 79
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/behavior_specifications/replay-episodes/autonomous_execution/function-after[_validate_candidate_graph(), ParticipantAutonomousExecutionPolicyV2]/selection_strategy",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 105
+              },
+              "start": {
+                "column": 7,
+                "line": 79
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/behavior_specifications/replay-episodes/autonomous_execution/function-after[_validate_candidate_graph(), ParticipantAutonomousExecutionPolicyV2]/timing",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 105
+              },
+              "start": {
+                "column": 7,
+                "line": 79
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/behavior_specifications/replay-episodes/autonomous_execution/function-after[_validate_candidate_graph(), ParticipantAutonomousExecutionPolicyV2]/outside_window_disposition",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 105
+              },
+              "start": {
+                "column": 7,
+                "line": 79
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/behavior_specifications/replay-episodes/autonomous_execution/function-after[_validate_candidate_graph(), ParticipantAutonomousExecutionPolicyV2]/empty_eligible_disposition",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 105
+              },
+              "start": {
+                "column": 7,
+                "line": 79
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/behavior_specifications/replay-episodes/autonomous_execution/function-after[_validate_candidate_graph(), ParticipantAutonomousExecutionPolicyV2]/action_candidates",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 105
+              },
+              "start": {
+                "column": 7,
+                "line": 79
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/behavior_specifications/replay-episodes/autonomous_execution/function-after[_validate_candidate_graph(), ParticipantAutonomousExecutionPolicyV2]/max_occurrences",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 105
+              },
+              "start": {
+                "column": 7,
+                "line": 79
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/behavior_specifications/replay-episodes/autonomous_execution/function-after[_validate_candidate_graph(), ParticipantAutonomousExecutionPolicyV2]/temporal_constraint_refs",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 105
+              },
+              "start": {
+                "column": 7,
+                "line": 79
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/behavior_specifications/replay-episodes/autonomous_execution/function-after[_validate_candidate_graph(), ParticipantAutonomousExecutionPolicyV2]/action_order",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 105
+              },
+              "start": {
+                "column": 7,
+                "line": 79
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/behavior_specifications/replay-episodes/autonomous_execution/function-after[_validate_candidate_graph(), ParticipantAutonomousExecutionPolicyV2]/episode_policy",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 105
+              },
+              "start": {
+                "column": 7,
+                "line": 79
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/behavior_specifications/replay-episodes/autonomous_execution/function-after[_validate_concurrency_projection(), function-after[_validate_candidate_graph(), ParticipantAutonomousExecutionPolicyV3]]/profile",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 105
+              },
+              "start": {
+                "column": 7,
+                "line": 79
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/behavior_specifications/replay-episodes/autonomous_execution/function-after[_validate_concurrency_projection(), function-after[_validate_candidate_graph(), ParticipantAutonomousExecutionPolicyV3]]/work_window_refs",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 105
+              },
+              "start": {
+                "column": 7,
+                "line": 79
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/behavior_specifications/replay-episodes/autonomous_execution/function-after[_validate_concurrency_projection(), function-after[_validate_candidate_graph(), ParticipantAutonomousExecutionPolicyV3]]/stochastic_control_ref",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 105
+              },
+              "start": {
+                "column": 7,
+                "line": 79
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/behavior_specifications/replay-episodes/autonomous_execution/function-after[_validate_concurrency_projection(), function-after[_validate_candidate_graph(), ParticipantAutonomousExecutionPolicyV3]]/selection_strategy",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 105
+              },
+              "start": {
+                "column": 7,
+                "line": 79
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/behavior_specifications/replay-episodes/autonomous_execution/function-after[_validate_concurrency_projection(), function-after[_validate_candidate_graph(), ParticipantAutonomousExecutionPolicyV3]]/timing",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 105
+              },
+              "start": {
+                "column": 7,
+                "line": 79
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/behavior_specifications/replay-episodes/autonomous_execution/function-after[_validate_concurrency_projection(), function-after[_validate_candidate_graph(), ParticipantAutonomousExecutionPolicyV3]]/outside_window_disposition",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 105
+              },
+              "start": {
+                "column": 7,
+                "line": 79
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/behavior_specifications/replay-episodes/autonomous_execution/function-after[_validate_concurrency_projection(), function-after[_validate_candidate_graph(), ParticipantAutonomousExecutionPolicyV3]]/empty_eligible_disposition",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 105
+              },
+              "start": {
+                "column": 7,
+                "line": 79
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/behavior_specifications/replay-episodes/autonomous_execution/function-after[_validate_concurrency_projection(), function-after[_validate_candidate_graph(), ParticipantAutonomousExecutionPolicyV3]]/action_candidates",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 105
+              },
+              "start": {
+                "column": 7,
+                "line": 79
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/behavior_specifications/replay-episodes/autonomous_execution/function-after[_validate_concurrency_projection(), function-after[_validate_candidate_graph(), ParticipantAutonomousExecutionPolicyV3]]/max_occurrences",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 105
+              },
+              "start": {
+                "column": 7,
+                "line": 79
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/behavior_specifications/replay-episodes/autonomous_execution/function-after[_validate_concurrency_projection(), function-after[_validate_candidate_graph(), ParticipantAutonomousExecutionPolicyV3]]/resource_budget",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 105
+              },
+              "start": {
+                "column": 7,
+                "line": 79
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/behavior_specifications/replay-episodes/autonomous_execution/function-after[_validate_concurrency_projection(), function-after[_validate_candidate_graph(), ParticipantAutonomousExecutionPolicyV3]]/temporal_constraint_refs",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 105
+              },
+              "start": {
+                "column": 7,
+                "line": 79
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/behavior_specifications/replay-episodes/autonomous_execution/function-after[_validate_concurrency_projection(), function-after[_validate_candidate_graph(), ParticipantAutonomousExecutionPolicyV3]]/action_order",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 105
+              },
+              "start": {
+                "column": 7,
+                "line": 79
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/behavior_specifications/replay-episodes/autonomous_execution/function-after[_validate_concurrency_projection(), function-after[_validate_candidate_graph(), ParticipantAutonomousExecutionPolicyV3]]/episode_policy",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 105
+              },
+              "start": {
+                "column": 7,
+                "line": 79
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          }
+        ],
+        "stage": "parse",
+        "status": "invalid"
+      }
+    }
+  },
+  "surface": "mcp"
+}

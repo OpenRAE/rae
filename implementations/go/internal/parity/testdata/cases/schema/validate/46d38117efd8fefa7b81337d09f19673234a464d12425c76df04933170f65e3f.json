@@ -1,0 +1,14 @@
+{
+  "args": [
+    "assigned-trial-control-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:99db5583fdc6ea1206916ebf8fd45a5d4133ac32f84e3deb0b34f22e58c26c58"
+  },
+  "name": "contracts/fixtures/control-plane/assigned-trial-control-v1/invalid/coerced-cancellation",
+  "result": {
+    "valid": false
+  },
+  "surface": "schema"
+}

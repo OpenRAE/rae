@@ -4,11 +4,11 @@
   ],
   "command": "validate",
   "files": {
-    "payload.json": "sha256:2c88d1448de198d55a311c5e4e810e232f80605c0a77bbcf2c1e2ad4deb7b7bf"
+    "payload.json": "sha256:8a92b77db6949c4275169177e2295a62d83914827dffefec734894ff882baec5"
   },
   "name": "contracts/fixtures/authoring-adapters/authoring-adapter-vector-v1/valid/reference",
   "result": {
-    "valid": true
+    "valid": false
   },
   "surface": "schema"
 }

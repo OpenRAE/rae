@@ -1,0 +1,14 @@
+{
+  "args": [],
+  "command": "encode",
+  "files": {
+    "value.json": "sha256:7904d594dbe5cf472b1c70a8276b970daa80cafe94aba46b6d749c1a6b693835"
+  },
+  "name": "contracts/fixtures/control-plane/workflow-step-response-v1/invalid/backend-successor",
+  "result": {
+    "jcs": "sha256:4ec78b1a13fcbe5d7c502a90a928e69cf696c2e668aba54bd5ee0ad758774b28",
+    "sorted_ascii": "sha256:4ec78b1a13fcbe5d7c502a90a928e69cf696c2e668aba54bd5ee0ad758774b28",
+    "sorted_unicode": "sha256:4ec78b1a13fcbe5d7c502a90a928e69cf696c2e668aba54bd5ee0ad758774b28"
+  },
+  "surface": "canonical"
+}

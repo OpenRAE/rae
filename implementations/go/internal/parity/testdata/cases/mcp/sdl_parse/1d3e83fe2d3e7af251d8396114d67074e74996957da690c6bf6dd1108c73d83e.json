@@ -1,0 +1,63 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:ecd86bce4dbc861659b9de27d84c0384e2239162589a0f837317934bf636463a"
+  },
+  "name": "regression/aba7cf99ef6d3ce83ad19d7f83cfa9835f6c3f713d99068c94357a41f845d5a0",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "diagnostics": [
+            {
+              "code": "sdl.model.invalid",
+              "path": "/behavior_specifications/analyst-triage/episode_policy/terminal_conditions/ticket-closed/completed",
+              "range": {
+                "end": {
+                  "column": 9,
+                  "line": 161
+                },
+                "start": {
+                  "column": 11,
+                  "line": 157
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            }
+          ],
+          "stage": "parse",
+          "status": "invalid"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "diagnostics": [
+          {
+            "code": "sdl.model.invalid",
+            "path": "/behavior_specifications/analyst-triage/episode_policy/terminal_conditions/ticket-closed/completed",
+            "range": {
+              "end": {
+                "column": 9,
+                "line": 161
+              },
+              "start": {
+                "column": 11,
+                "line": 157
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          }
+        ],
+        "stage": "parse",
+        "status": "invalid"
+      }
+    }
+  },
+  "surface": "mcp"
+}

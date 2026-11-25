@@ -1,0 +1,14 @@
+{
+  "args": [],
+  "command": "encode",
+  "files": {
+    "value.json": "sha256:99db5583fdc6ea1206916ebf8fd45a5d4133ac32f84e3deb0b34f22e58c26c58"
+  },
+  "name": "contracts/fixtures/control-plane/assigned-trial-control-v1/invalid/coerced-cancellation",
+  "result": {
+    "jcs": "sha256:c56e87a9fc1e0c7b10a88951ac6351af878d464cb9c75f3fee856b9b5a70c25d",
+    "sorted_ascii": "sha256:c56e87a9fc1e0c7b10a88951ac6351af878d464cb9c75f3fee856b9b5a70c25d",
+    "sorted_unicode": "sha256:c56e87a9fc1e0c7b10a88951ac6351af878d464cb9c75f3fee856b9b5a70c25d"
+  },
+  "surface": "canonical"
+}

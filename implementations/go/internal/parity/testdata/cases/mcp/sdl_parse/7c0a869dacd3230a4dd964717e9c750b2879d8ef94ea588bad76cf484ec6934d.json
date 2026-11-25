@@ -1,0 +1,63 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:c46d9d5870e4752bb2a441168309f999fcc0a65ed1c4abb06cce50533aab2ae6"
+  },
+  "name": "regression/83ba5b5efa73287a7260952f819d975f73a0c0e8e0685ac5e4cc9f17ac33d1d1",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "scenario": {
+            "advisories": [],
+            "description_present": false,
+            "name": "dsl-142",
+            "populated_sections": {
+              "agents": 1,
+              "content": 1,
+              "entities": 1,
+              "events": 1,
+              "injects": 1,
+              "nodes": 1,
+              "observation_boundaries": 1,
+              "scripts": 1,
+              "stories": 1
+            },
+            "source_diagnostics": [],
+            "version": "*"
+          },
+          "semantic_validation": "skipped",
+          "status": "parsed"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "scenario": {
+          "advisories": [],
+          "description_present": false,
+          "name": "dsl-142",
+          "populated_sections": {
+            "agents": 1,
+            "content": 1,
+            "entities": 1,
+            "events": 1,
+            "injects": 1,
+            "nodes": 1,
+            "observation_boundaries": 1,
+            "scripts": 1,
+            "stories": 1
+          },
+          "source_diagnostics": [],
+          "version": "*"
+        },
+        "semantic_validation": "skipped",
+        "status": "parsed"
+      }
+    }
+  },
+  "surface": "mcp"
+}

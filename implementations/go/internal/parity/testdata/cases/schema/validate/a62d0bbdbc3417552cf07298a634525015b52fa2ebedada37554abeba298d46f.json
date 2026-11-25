@@ -1,0 +1,14 @@
+{
+  "args": [
+    "participant-implementation-provenance-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:bdfbc803a607d694a0bc6056a6c39c2d8741388f681ae555c44660d17ff25716"
+  },
+  "name": "regression/9040f82ddc7afd762844230718f5dc849ebe8b5b5c0007d1f438f2b1f6b446d9",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

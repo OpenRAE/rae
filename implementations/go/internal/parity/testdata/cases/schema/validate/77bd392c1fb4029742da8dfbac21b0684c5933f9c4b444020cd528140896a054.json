@@ -1,0 +1,14 @@
+{
+  "args": [
+    "participant-crossing-evidence-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:958b5c4a6f0d4f5f0cd47d2108e3f2303fa1699919af1aba8b212d2a6c9a3408"
+  },
+  "name": "participant-crossing-evidence-v1/routed/contracts/fixtures/participant-runtime/participant-crossing-evidence-v1/valid/example.json",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

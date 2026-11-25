@@ -1,0 +1,14 @@
+{
+  "args": [],
+  "command": "encode",
+  "files": {
+    "value.json": "sha256:5426b34a5dd97255fa3ec226b176cd798ea5c2f131e00c410b53bbf04707dd82"
+  },
+  "name": "contracts/fixtures/control-plane/trial-outcome-v1/valid/reference",
+  "result": {
+    "jcs": "sha256:a9536464a28435e546f0e8cec6c94ca065abf406e395f7577e286c688ee401cf",
+    "sorted_ascii": "sha256:a9536464a28435e546f0e8cec6c94ca065abf406e395f7577e286c688ee401cf",
+    "sorted_unicode": "sha256:a9536464a28435e546f0e8cec6c94ca065abf406e395f7577e286c688ee401cf"
+  },
+  "surface": "canonical"
+}

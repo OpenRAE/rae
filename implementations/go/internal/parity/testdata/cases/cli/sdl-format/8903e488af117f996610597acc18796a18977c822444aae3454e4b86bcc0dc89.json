@@ -1,0 +1,172 @@
+{
+  "args": [
+    "sdl",
+    "format",
+    "repo/contracts/fixtures/sdl/participant-episode-policy-v1/valid/standalone-episode-structure.yaml"
+  ],
+  "command": "sdl format",
+  "files": {
+    "repo/contracts/fixtures/sdl/participant-episode-policy-v1/valid/standalone-episode-structure.yaml": "sha256:bf2f66701c27305dc2dfa8e2b5d9ffe53d8bf27f447a3b47542c23cdb5b65592"
+  },
+  "name": "contracts/fixtures/sdl/participant-episode-policy-v1/valid/standalone-episode-structure.yaml",
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "agents": {
+        "replayer": {
+          "affiliations": [
+            "blue-team"
+          ]
+        }
+      },
+      "assertions": {
+        "console-ready": {
+          "proposition": "console-ready",
+          "role": "precondition"
+        }
+      },
+      "behavior_specifications": {
+        "replay-episodes": {
+          "episode_policy": {
+            "initialization": {
+              "assertion_refs": [
+                "console-ready"
+              ]
+            },
+            "profile": "participant-episode-policy/v1",
+            "reset_policy": {
+              "control_actions": [
+                "reset"
+              ],
+              "evidence_requirement_refs": [
+                "replay-reset-evidence"
+              ],
+              "memory_reset_authority_ref": "agents.replayer",
+              "participant_memory_scope": "episode_local_reset"
+            },
+            "terminal_conditions": {
+              "replay-window-closed": {
+                "evidence_requirement_refs": [
+                  "replay-clock-evidence"
+                ],
+                "temporal_constraint_ref": "replay-deadline",
+                "terminal_reason": "timed_out"
+              }
+            }
+          },
+          "participant_refs": [
+            "replayer"
+          ],
+          "semantic_version": "1.0.0"
+        }
+      },
+      "clocks": {
+        "replay-clock": {
+          "authority_kind": "runtime",
+          "authority_ref": "runtime.scheduler",
+          "description": "replay scheduler clock",
+          "monotonicity": "non_decreasing",
+          "time_domain_ref": "replay-time"
+        }
+      },
+      "entities": {
+        "blue-team": {
+          "role": "blue"
+        }
+      },
+      "evidence_requirements": {
+        "replay-clock-evidence": {
+          "artifact_role": "episode_timeout_evidence",
+          "channel": "log",
+          "description": "capture the replay clock reading at episode close",
+          "integrity": "checksum",
+          "loss_disclosure": "required",
+          "redaction": "none",
+          "retention": "study_lifetime",
+          "scope_refs": [
+            "siem"
+          ],
+          "sensitivity": "plain",
+          "source_refs": [
+            "agents.replayer"
+          ],
+          "window": "replay episode close"
+        },
+        "replay-reset-evidence": {
+          "artifact_role": "episode_reset_evidence",
+          "channel": "log",
+          "description": "capture the replay reset record",
+          "integrity": "checksum",
+          "loss_disclosure": "required",
+          "redaction": "none",
+          "retention": "study_lifetime",
+          "scope_refs": [
+            "siem"
+          ],
+          "sensitivity": "plain",
+          "source_refs": [
+            "agents.replayer"
+          ],
+          "window": "replay episode reset"
+        }
+      },
+      "name": "act-623",
+      "nodes": {
+        "siem": {
+          "resources": {
+            "cpu": 1,
+            "ram": 1073741824
+          },
+          "services": [
+            {
+              "name": "console",
+              "port": 443
+            }
+          ],
+          "type": "compute"
+        }
+      },
+      "propositions": {
+        "console-ready": {
+          "basis": "declared_state",
+          "description": "The SIEM console is reachable before a replay episode starts.",
+          "predicate": {
+            "expected": true,
+            "kind": "boolean",
+            "property": "console-reachable",
+            "semantic_ref": "urn:raes:observable:console-reachable"
+          },
+          "subjects": [
+            "nodes.siem.services.console"
+          ]
+        }
+      },
+      "temporal_constraints": {
+        "replay-deadline": {
+          "clock_ref": "replay-clock",
+          "constraint_kind": "deadline",
+          "description": "each replay episode closes within fifteen minutes",
+          "end": {
+            "tick": 900
+          },
+          "subject_refs": [
+            "agents.replayer"
+          ]
+        }
+      },
+      "time_domains": {
+        "replay-time": {
+          "description": "replay logical time",
+          "epoch": "scenario_start",
+          "kind": "logical",
+          "tick_period_seconds": {
+            "denominator": 1,
+            "numerator": 1
+          },
+          "visibility": "participant_visible"
+        }
+      }
+    }
+  },
+  "surface": "cli"
+}

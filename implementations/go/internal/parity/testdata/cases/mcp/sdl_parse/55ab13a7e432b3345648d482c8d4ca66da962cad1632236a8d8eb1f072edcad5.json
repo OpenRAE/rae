@@ -1,0 +1,127 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:0608299a45cae181214f3d6e17640bfd80de27b15dc7aea8ef819e29591d1016"
+  },
+  "name": "regression/d1c9211f7fdd50c858c4d3c7ec3deef1e400c8e75e714372a10cff399075711f",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "diagnostics": [
+            {
+              "code": "sdl.model.invalid",
+              "path": "/nodes/m7jmgy/services/0/port",
+              "range": {
+                "end": {
+                  "column": 15,
+                  "line": 18
+                },
+                "start": {
+                  "column": 13,
+                  "line": 18
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/nodes/m7jmgy/services/3/port",
+              "range": {
+                "end": {
+                  "column": 18,
+                  "line": 27
+                },
+                "start": {
+                  "column": 13,
+                  "line": 27
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/nodes/qt0/services/2/port",
+              "range": {
+                "end": {
+                  "column": 14,
+                  "line": 60
+                },
+                "start": {
+                  "column": 13,
+                  "line": 60
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            }
+          ],
+          "stage": "parse",
+          "status": "invalid"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "diagnostics": [
+          {
+            "code": "sdl.model.invalid",
+            "path": "/nodes/m7jmgy/services/0/port",
+            "range": {
+              "end": {
+                "column": 15,
+                "line": 18
+              },
+              "start": {
+                "column": 13,
+                "line": 18
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/nodes/m7jmgy/services/3/port",
+            "range": {
+              "end": {
+                "column": 18,
+                "line": 27
+              },
+              "start": {
+                "column": 13,
+                "line": 27
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/nodes/qt0/services/2/port",
+            "range": {
+              "end": {
+                "column": 14,
+                "line": 60
+              },
+              "start": {
+                "column": 13,
+                "line": 60
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          }
+        ],
+        "stage": "parse",
+        "status": "invalid"
+      }
+    }
+  },
+  "surface": "mcp"
+}

@@ -4,11 +4,11 @@
   ],
   "command": "validate",
   "files": {
-    "payload.json": "sha256:bf592e8dc928ffb2936acbb36fa90bf961045d6f0459493d4bd5bca27d92b5da"
+    "payload.json": "sha256:c2749dc91bc46f3f766cca6dac648145f05cfb1bd5658e376980596fdda70b18"
   },
   "name": "admitted-trial-plan-v1/routed/contracts/fixtures/plans/admitted-trial-plan-v1/valid/minimal.json",
   "result": {
-    "valid": true
+    "valid": false
   },
   "surface": "schema"
 }

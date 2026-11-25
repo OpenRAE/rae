@@ -1,0 +1,14 @@
+{
+  "args": [
+    "realized-time-model-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:96c6f9cc0130cdd2d2ba52919f6959c07af182ba17f849610f79febf0a3c57ef"
+  },
+  "name": "regression/83872273d82a67ca0f4615db388335d39ea5075a7a6f9fbf7ebfd18ddcab257f",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

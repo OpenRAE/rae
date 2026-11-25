@@ -1,0 +1,311 @@
+{
+  "args": [
+    "sdl",
+    "format",
+    "repo/contracts/fixtures/sdl/participant-episode-policy-v1/valid/analyst-shift-episode.yaml"
+  ],
+  "command": "sdl format",
+  "files": {
+    "repo/contracts/fixtures/sdl/participant-episode-policy-v1/valid/analyst-shift-episode.yaml": "sha256:f8f5288f4522481d27bf686a6180a79c7128853eec477927a29618b1eb41be74"
+  },
+  "name": "contracts/fixtures/sdl/participant-episode-policy-v1/valid/analyst-shift-episode.yaml",
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "action_contracts": {
+        "triage-alert": {
+          "behavioral_granularity": "atomic",
+          "effects": [
+            {
+              "description": "the analyst records a disposition for the alert",
+              "effect_class": "intended_effect",
+              "effect_id": "alert-disposition-recorded",
+              "target_refs": [
+                "nodes.siem.services.console"
+              ]
+            }
+          ],
+          "failure_classes": [
+            "target_unavailable",
+            "unknown"
+          ],
+          "fidelity_claim": "records the analyst disposition and the terminal console observation",
+          "preconditions": [
+            {
+              "description": "the SIEM console is in the analyst's action scope",
+              "precondition_class": "target",
+              "precondition_id": "console-in-scope",
+              "support_refs": [
+                "nodes.siem.services.console"
+              ]
+            }
+          ],
+          "procedure_basis": "analyst reviews one SIEM alert and records a disposition",
+          "realization_profile": "backend-declared",
+          "semantic_version": "1.0.0"
+        }
+      },
+      "agents": {
+        "analyst": {
+          "actions": [
+            "triage-alert"
+          ],
+          "affiliations": [
+            "blue-team"
+          ]
+        }
+      },
+      "assertions": {
+        "console-ready": {
+          "proposition": "console-ready",
+          "role": "precondition"
+        },
+        "queue-stalled": {
+          "proposition": "queue-stalled",
+          "role": "postcondition"
+        },
+        "ticket-closed": {
+          "proposition": "ticket-closed",
+          "role": "postcondition"
+        }
+      },
+      "behavior_specifications": {
+        "analyst-triage": {
+          "action_contract_refs": [
+            "triage-alert"
+          ],
+          "behavior_mode": "human-supervised",
+          "episode_policy": {
+            "initialization": {
+              "assertion_refs": [
+                "console-ready"
+              ]
+            },
+            "interaction_structure": {
+              "action_contract_refs": [
+                "triage-alert"
+              ],
+              "order_basis": "decision-epoch"
+            },
+            "profile": "participant-episode-policy/v1",
+            "reset_policy": {
+              "control_actions": [
+                "reset",
+                "restart"
+              ],
+              "evidence_requirement_refs": [
+                "reset-evidence"
+              ],
+              "participant_memory_scope": "persistent_across_episodes"
+            },
+            "terminal_conditions": {
+              "shift-ended": {
+                "evidence_requirement_refs": [
+                  "shift-clock-evidence"
+                ],
+                "temporal_constraint_ref": "shift-deadline",
+                "terminal_reason": "timed_out"
+              },
+              "ticket-closed": {
+                "assertion_refs": [
+                  "ticket-closed"
+                ],
+                "evidence_requirement_refs": [
+                  "ticket-evidence"
+                ],
+                "terminal_reason": "completed"
+              }
+            },
+            "truncation_conditions": {
+              "queue-stalled": {
+                "assertion_refs": [
+                  "queue-stalled"
+                ],
+                "evidence_requirement_refs": [
+                  "queue-evidence"
+                ]
+              }
+            }
+          },
+          "participant_refs": [
+            "analyst"
+          ],
+          "semantic_version": "1.0.0"
+        }
+      },
+      "clocks": {
+        "shift-clock": {
+          "authority_kind": "runtime",
+          "authority_ref": "runtime.scheduler",
+          "description": "analyst shift clock",
+          "monotonicity": "non_decreasing",
+          "time_domain_ref": "shift-time"
+        }
+      },
+      "entities": {
+        "blue-team": {
+          "role": "blue"
+        }
+      },
+      "evidence_requirements": {
+        "queue-evidence": {
+          "artifact_role": "episode_truncation_evidence",
+          "channel": "log",
+          "description": "capture the alert queue telemetry",
+          "integrity": "checksum",
+          "loss_disclosure": "required",
+          "redaction": "none",
+          "retention": "study_lifetime",
+          "scope_refs": [
+            "siem"
+          ],
+          "sensitivity": "plain",
+          "source_refs": [
+            "nodes.siem.services.console"
+          ],
+          "window": "analyst episode close"
+        },
+        "reset-evidence": {
+          "artifact_role": "episode_reset_evidence",
+          "channel": "log",
+          "description": "capture the episode reset or restart record",
+          "integrity": "checksum",
+          "loss_disclosure": "required",
+          "redaction": "none",
+          "retention": "study_lifetime",
+          "scope_refs": [
+            "siem"
+          ],
+          "sensitivity": "plain",
+          "source_refs": [
+            "behavior_specifications.analyst-triage"
+          ],
+          "window": "analyst episode reset"
+        },
+        "shift-clock-evidence": {
+          "artifact_role": "episode_timeout_evidence",
+          "channel": "log",
+          "description": "capture the shift clock reading at episode close",
+          "integrity": "checksum",
+          "loss_disclosure": "required",
+          "redaction": "none",
+          "retention": "study_lifetime",
+          "scope_refs": [
+            "siem"
+          ],
+          "sensitivity": "plain",
+          "source_refs": [
+            "behavior_specifications.analyst-triage"
+          ],
+          "window": "analyst episode close"
+        },
+        "ticket-evidence": {
+          "artifact_role": "episode_terminal_evidence",
+          "channel": "log",
+          "description": "capture the ticket closure record",
+          "integrity": "checksum",
+          "loss_disclosure": "required",
+          "redaction": "none",
+          "retention": "study_lifetime",
+          "scope_refs": [
+            "siem"
+          ],
+          "sensitivity": "plain",
+          "source_refs": [
+            "nodes.siem.services.console"
+          ],
+          "window": "analyst episode close"
+        }
+      },
+      "name": "dsl-120",
+      "nodes": {
+        "siem": {
+          "resources": {
+            "cpu": 1,
+            "ram": 1073741824
+          },
+          "services": [
+            {
+              "name": "console",
+              "port": 443
+            }
+          ],
+          "type": "compute"
+        }
+      },
+      "propositions": {
+        "console-ready": {
+          "basis": "declared_state",
+          "description": "The SIEM console is reachable before the analyst episode starts.",
+          "predicate": {
+            "expected": true,
+            "kind": "boolean",
+            "property": "console-reachable",
+            "semantic_ref": "urn:raes:observable:console-reachable"
+          },
+          "subjects": [
+            "nodes.siem.services.console"
+          ]
+        },
+        "queue-stalled": {
+          "basis": "observed_state",
+          "description": "The alert queue stopped producing new work for the analyst.",
+          "evidence_requirements": [
+            "queue-evidence"
+          ],
+          "predicate": {
+            "expected": true,
+            "kind": "boolean",
+            "property": "alert-queue-stalled",
+            "semantic_ref": "urn:raes:observable:alert-queue-stalled"
+          },
+          "subjects": [
+            "nodes.siem.services.console"
+          ]
+        },
+        "ticket-closed": {
+          "basis": "observed_state",
+          "description": "The analyst closed the escalated incident ticket.",
+          "evidence_requirements": [
+            "ticket-evidence"
+          ],
+          "predicate": {
+            "expected": true,
+            "kind": "boolean",
+            "property": "incident-ticket-closed",
+            "semantic_ref": "urn:raes:observable:incident-ticket-closed"
+          },
+          "subjects": [
+            "nodes.siem.services.console"
+          ]
+        }
+      },
+      "temporal_constraints": {
+        "shift-deadline": {
+          "clock_ref": "shift-clock",
+          "constraint_kind": "deadline",
+          "description": "the analyst episode must close within one shift",
+          "end": {
+            "tick": 480
+          },
+          "subject_refs": [
+            "behavior_specifications.analyst-triage"
+          ]
+        }
+      },
+      "time_domains": {
+        "shift-time": {
+          "description": "analyst shift logical time",
+          "epoch": "scenario_start",
+          "kind": "logical",
+          "tick_period_seconds": {
+            "denominator": 1,
+            "numerator": 60
+          },
+          "visibility": "participant_visible"
+        }
+      }
+    }
+  },
+  "surface": "cli"
+}

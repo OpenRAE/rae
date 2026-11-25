@@ -2,14 +2,14 @@
   "args": [],
   "command": "sdl_apply_edit",
   "files": {
-    "arguments.json": "sha256:2bade1e7561d072d1b88ed72a601f040b1957e5dc6ea843537e02bde8935a9fe"
+    "arguments.json": "sha256:dea16c0f51f40de6c4056eee539fe193275193210bfb039b6e53416273d769f3"
   },
   "name": "examples/library/patterns/scenario-reference-integrity.yaml",
   "result": {
     "content": [
       {
         "text": {
-          "content": "pattern: raes-library-pattern\nversion: 1\nid: scenario-reference-integrity\nsurface: scenario\nrequirement_refs:\n- AUT-806\nsource_refs:\n- examples/scenarios/hospital-ransomware-surgery-day.sdl.yaml\n- docs/explain/sdl/validation.md\nsummary: Keep scenario examples useful by making every cross-reference resolve through\n  the current SDL validator.\nintent: 'Authors can copy a scenario skeleton and replace names while preserving the\n  parser-backed relationship between nodes, entities, agents, objectives, and workflows.\n\n  '\nuse_when:\n- Building a new scenario from a small validated starting point.\n- Reviewing whether a scenario example is still a positive corpus artifact.\nauthoring_steps:\n- Start with a complete SDL document that parses without semantic errors.\n- Give every reusable surface a stable identifier before adding references.\n- Add objective and workflow references only after the target sections exist.\n- Validate with parse_sdl_file or the example-library policy checker.\nvalidation:\n- command: uv run --project implementations/python --frozen python tools/check_example_library.py\n  expected: catalog and template bodies pass with no policy failures.\nname: changed\n",
+          "content": "pattern: raes-library-pattern\nversion: 1\nid: scenario-reference-integrity\nsurface: scenario\nrequirement_refs:\n- AUT-806\nsource_refs:\n- examples/scenarios/hospital-ransomware-surgery-day.sdl.yaml\n- docs/explain/sdl/validation.md\nsummary: Resolve every scenario reference through the current SDL validator.\nintent: 'Copy a scenario skeleton and replace names. Keep valid references between\n  nodes, entities, agents, objectives, and workflows.\n\n  '\nuse_when:\n- A new scenario needs a small validated starting point.\n- A positive corpus example needs review.\nauthoring_steps:\n- Start with a complete SDL document that parses without semantic errors.\n- Give every reusable surface a stable identifier before adding references.\n- Add objective and workflow references only after the target sections exist.\n- Validate with parse_sdl_file or the example-library policy checker.\nvalidation:\n- command: uv run --project implementations/python --frozen python tools/check_example_library.py\n  expected: catalog and template bodies pass with no policy failures.\nname: changed\n",
           "diagnostics": [
             {
               "code": "sdl.model.invalid",
@@ -112,8 +112,8 @@
               "path": "/summary",
               "range": {
                 "end": {
-                  "column": 29,
-                  "line": 11
+                  "column": 77,
+                  "line": 10
                 },
                 "start": {
                   "column": 10,
@@ -129,11 +129,11 @@
               "range": {
                 "end": {
                   "column": 4,
-                  "line": 15
+                  "line": 14
                 },
                 "start": {
                   "column": 9,
-                  "line": 12
+                  "line": 11
                 }
               },
               "severity": "error",
@@ -145,11 +145,11 @@
               "range": {
                 "end": {
                   "column": 1,
-                  "line": 19
+                  "line": 18
                 },
                 "start": {
                   "column": 1,
-                  "line": 17
+                  "line": 16
                 }
               },
               "severity": "error",
@@ -161,11 +161,11 @@
               "range": {
                 "end": {
                   "column": 1,
-                  "line": 24
+                  "line": 23
                 },
                 "start": {
                   "column": 1,
-                  "line": 20
+                  "line": 19
                 }
               },
               "severity": "error",
@@ -177,11 +177,11 @@
               "range": {
                 "end": {
                   "column": 1,
-                  "line": 27
+                  "line": 26
                 },
                 "start": {
                   "column": 1,
-                  "line": 25
+                  "line": 24
                 }
               },
               "severity": "error",
@@ -196,7 +196,7 @@
     "is_error": false,
     "structured_content": {
       "result": {
-        "content": "pattern: raes-library-pattern\nversion: 1\nid: scenario-reference-integrity\nsurface: scenario\nrequirement_refs:\n- AUT-806\nsource_refs:\n- examples/scenarios/hospital-ransomware-surgery-day.sdl.yaml\n- docs/explain/sdl/validation.md\nsummary: Keep scenario examples useful by making every cross-reference resolve through\n  the current SDL validator.\nintent: 'Authors can copy a scenario skeleton and replace names while preserving the\n  parser-backed relationship between nodes, entities, agents, objectives, and workflows.\n\n  '\nuse_when:\n- Building a new scenario from a small validated starting point.\n- Reviewing whether a scenario example is still a positive corpus artifact.\nauthoring_steps:\n- Start with a complete SDL document that parses without semantic errors.\n- Give every reusable surface a stable identifier before adding references.\n- Add objective and workflow references only after the target sections exist.\n- Validate with parse_sdl_file or the example-library policy checker.\nvalidation:\n- command: uv run --project implementations/python --frozen python tools/check_example_library.py\n  expected: catalog and template bodies pass with no policy failures.\nname: changed\n",
+        "content": "pattern: raes-library-pattern\nversion: 1\nid: scenario-reference-integrity\nsurface: scenario\nrequirement_refs:\n- AUT-806\nsource_refs:\n- examples/scenarios/hospital-ransomware-surgery-day.sdl.yaml\n- docs/explain/sdl/validation.md\nsummary: Resolve every scenario reference through the current SDL validator.\nintent: 'Copy a scenario skeleton and replace names. Keep valid references between\n  nodes, entities, agents, objectives, and workflows.\n\n  '\nuse_when:\n- A new scenario needs a small validated starting point.\n- A positive corpus example needs review.\nauthoring_steps:\n- Start with a complete SDL document that parses without semantic errors.\n- Give every reusable surface a stable identifier before adding references.\n- Add objective and workflow references only after the target sections exist.\n- Validate with parse_sdl_file or the example-library policy checker.\nvalidation:\n- command: uv run --project implementations/python --frozen python tools/check_example_library.py\n  expected: catalog and template bodies pass with no policy failures.\nname: changed\n",
         "diagnostics": [
           {
             "code": "sdl.model.invalid",
@@ -299,8 +299,8 @@
             "path": "/summary",
             "range": {
               "end": {
-                "column": 29,
-                "line": 11
+                "column": 77,
+                "line": 10
               },
               "start": {
                 "column": 10,
@@ -316,11 +316,11 @@
             "range": {
               "end": {
                 "column": 4,
-                "line": 15
+                "line": 14
               },
               "start": {
                 "column": 9,
-                "line": 12
+                "line": 11
               }
             },
             "severity": "error",
@@ -332,11 +332,11 @@
             "range": {
               "end": {
                 "column": 1,
-                "line": 19
+                "line": 18
               },
               "start": {
                 "column": 1,
-                "line": 17
+                "line": 16
               }
             },
             "severity": "error",
@@ -348,11 +348,11 @@
             "range": {
               "end": {
                 "column": 1,
-                "line": 24
+                "line": 23
               },
               "start": {
                 "column": 1,
-                "line": 20
+                "line": 19
               }
             },
             "severity": "error",
@@ -364,11 +364,11 @@
             "range": {
               "end": {
                 "column": 1,
-                "line": 27
+                "line": 26
               },
               "start": {
                 "column": 1,
-                "line": 25
+                "line": 24
               }
             },
             "severity": "error",

@@ -1,0 +1,19 @@
+{
+  "args": [
+    "sdl",
+    "publish",
+    "repo/contracts/fixtures/sdl/participant-episode-policy-v1/valid/analyst-shift-episode.yaml",
+    "--output-dir",
+    "layout"
+  ],
+  "command": "sdl publish",
+  "files": {
+    "repo/contracts/fixtures/sdl/participant-episode-policy-v1/valid/analyst-shift-episode.yaml": "sha256:f8f5288f4522481d27bf686a6180a79c7128853eec477927a29618b1eb41be74"
+  },
+  "name": "contracts/fixtures/sdl/participant-episode-policy-v1/valid/analyst-shift-episode.yaml",
+  "result": {
+    "exit_code": 1,
+    "stdout": null
+  },
+  "surface": "cli"
+}

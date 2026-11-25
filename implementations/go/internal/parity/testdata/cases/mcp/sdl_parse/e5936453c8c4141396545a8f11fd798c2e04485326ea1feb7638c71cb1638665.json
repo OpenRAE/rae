@@ -1,0 +1,63 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:e37741793e43e6e601e50d452525c0151ddf8541afb54de0610b85291614b8cd"
+  },
+  "name": "regression/22c297277cb56e5068881f3c34d3234f7da59720f90d085b6e51d5321346f15f",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "diagnostics": [
+            {
+              "code": "sdl.model.invalid",
+              "path": "/nodes/t6kemu7990um3ih5ki3lu/services/6/port",
+              "range": {
+                "end": {
+                  "column": 14,
+                  "line": 102
+                },
+                "start": {
+                  "column": 13,
+                  "line": 102
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            }
+          ],
+          "stage": "parse",
+          "status": "invalid"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "diagnostics": [
+          {
+            "code": "sdl.model.invalid",
+            "path": "/nodes/t6kemu7990um3ih5ki3lu/services/6/port",
+            "range": {
+              "end": {
+                "column": 14,
+                "line": 102
+              },
+              "start": {
+                "column": 13,
+                "line": 102
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          }
+        ],
+        "stage": "parse",
+        "status": "invalid"
+      }
+    }
+  },
+  "surface": "mcp"
+}

@@ -10,27 +10,32 @@
   ],
   "command": "semantic inspect",
   "files": {
-    "input.json": "sha256:2c88d1448de198d55a311c5e4e810e232f80605c0a77bbcf2c1e2ad4deb7b7bf"
+    "input.json": "sha256:8a92b77db6949c4275169177e2295a62d83914827dffefec734894ff882baec5"
   },
   "name": "contracts/fixtures/authoring-adapters/authoring-adapter-vector-v1/valid/reference",
   "result": {
-    "exit_code": 0,
+    "exit_code": 1,
     "stdout": {
       "contract_id": "authoring-adapter-vector-v1",
-      "diagnostics": [],
+      "diagnostics": [
+        {
+          "address": "authoring-adapter-vector-v1",
+          "code": "conformance.schema-invalid",
+          "domain": "conformance",
+          "severity": "error"
+        }
+      ],
       "migration_policy": null,
       "normalization_profile": null,
       "operation": "inspect",
       "payload": {
-        "member_count": 9,
+        "member_count": 7,
         "members": [
           "case_id",
           "contrast",
           "expected",
-          "input_digest",
           "input_source",
           "operation",
-          "operation_digest",
           "profile_digest",
           "schema_version"
         ],
@@ -43,7 +48,7 @@
         "network": "disabled"
       },
       "source_format": null,
-      "status": "success",
+      "status": "invalid",
       "transform_profile": null,
       "validation_strength": "semantic"
     }

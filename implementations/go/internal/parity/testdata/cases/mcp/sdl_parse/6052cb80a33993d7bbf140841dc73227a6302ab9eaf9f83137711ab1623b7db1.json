@@ -1,0 +1,39 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:9b60714a14a9ecf57d2eeb52b2d2da1b07058d5df85941a4d3f4c5cd3b4a3ff5"
+  },
+  "name": "regression/73cfdff019e9ef65a02b9ab3d758b1e64ad1f34b9b94522a3a5631815b769a2a",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "diagnostics": [
+            {
+              "severity": "error",
+              "stage": "input"
+            }
+          ],
+          "stage": "input",
+          "status": "invalid"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "diagnostics": [
+          {
+            "severity": "error",
+            "stage": "input"
+          }
+        ],
+        "stage": "input",
+        "status": "invalid"
+      }
+    }
+  },
+  "surface": "mcp"
+}

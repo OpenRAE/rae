@@ -52,10 +52,10 @@
         "taxonomy_revision": "rev8"
       },
       "contract_digests": {
-        "backend-manifest-v2": "sha256:bda9de2ef1c7476cbf90d083ee6548288d90e638d3845deac97480ab66d928d6",
+        "backend-manifest-v2": "sha256:9f867a033c61ef5d76fc6a0d341428e6190f472cf0dc91df771f9e093e29bffe",
         "operation-receipt-v1": "sha256:6449c3dd60d34b2d40f8bfee5c6bb3360f2ceee3c04c0d34ec520dbc036cd7ed",
         "operation-status-v1": "sha256:980c11cc8980258a94864107f78ebab3f9e654fc5b1ee17a9912c67fbcf75354",
-        "runtime-snapshot-v1": "sha256:cf3d76682683e3b09628616aa0e0fb8a2ad932be406860be53bcaf6d244ea61a"
+        "runtime-snapshot-v1": "sha256:afe6fa250bedf172dfacb4062c5fd920ac263e6bf9b6a58e0f8cb54376d3dfe9"
       },
       "contract_versions": {
         "backend-manifest-v2": "BackendManifestV2Model",
@@ -99,7 +99,7 @@
         "fixture_origin": "unknown",
         "fixture_set_digest": "sha256:4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
       },
-      "reporter_version": "10.2.0",
+      "reporter_version": "12.0.0",
       "required_case_refs": [],
       "subject_kind": "backend",
       "subject_name": null,
@@ -130,7 +130,7 @@
           "quantifier_scope": "finite-cases"
         }
       },
-      "tool_version": "10.2.0",
+      "tool_version": "12.0.0",
       "unsupported_capability_gaps": [],
       "unsupported_contract_gaps": []
     }

@@ -1,0 +1,14 @@
+{
+  "args": [
+    "mixed-participant-composition-profile-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:8849d4ba202c5038df4fc1920b2ff2f29a3281ec50daba943225ad894c404b93"
+  },
+  "name": "regression/bf75b8bd7b06757084181b409e6d9a8e8a40a6a40a3e05741cd72f1a75371d15",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

@@ -1,0 +1,2031 @@
+{
+  "args": [
+    "processor",
+    "satisfiability",
+    "repo/contracts/fixtures/sdl/participant-episode-policy-v1/valid/analyst-shift-episode.yaml"
+  ],
+  "command": "processor satisfiability",
+  "files": {
+    "repo/contracts/fixtures/sdl/participant-episode-policy-v1/valid/analyst-shift-episode.yaml": "sha256:f8f5288f4522481d27bf686a6180a79c7128853eec477927a29618b1eb41be74"
+  },
+  "name": "contracts/fixtures/sdl/participant-episode-policy-v1/valid/analyst-shift-episode.yaml",
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "analysis_profile": "raes-finite-domain-satisfiability-v1",
+      "authored_digest": {
+        "algorithm": "sha256",
+        "profile": "raes-sdl-semantic/v2",
+        "value": "sha256:b9289156f0a5498a502a6dfbb939bcbd96a93cb4e443e487c81943a5e5b389de"
+      },
+      "diagnostics": [],
+      "imports": [],
+      "normalized_model": {
+        "authored_digest": {
+          "algorithm": "sha256",
+          "profile": "raes-sdl-semantic/v2",
+          "value": "sha256:b9289156f0a5498a502a6dfbb939bcbd96a93cb4e443e487c81943a5e5b389de"
+        },
+        "clauses": [],
+        "profile": "raes-finite-domain-constraints/v1",
+        "source_digest": "sha256:f8f5288f4522481d27bf686a6180a79c7128853eec477927a29618b1eb41be74",
+        "symbols": [],
+        "theory_profile": "raes-finite-domain-theory/v1",
+        "translation_profile": "raes-sdl-authoring-translation/v1"
+      },
+      "normalized_model_digest": "sha256:3030080290bdb1781133a3b5684c6ab1a33a27b1f3903e4d57a98b5a9316af8d",
+      "outcome": "satisfiable",
+      "profile": "scenario-satisfiability-evidence/v1",
+      "solver_configuration": {
+        "auto_config": false,
+        "core_reduction": "sorted-deletion-subset-minimal/v1",
+        "engine": "z3",
+        "engine_version": "4.16.0",
+        "logic": "QF_LIA",
+        "model": true,
+        "package": "z3-solver",
+        "package_version": "4.16.0.0",
+        "profile": "raes-z3-finite-domain/v1",
+        "random_seed": 0,
+        "threads": 1,
+        "timeout_ms": 5000,
+        "unsat_core": true,
+        "witness_selection": "canonical-lexicographic/v1"
+      },
+      "solver_configuration_digest": "sha256:1204635e17e759e9ad3bd6be2ecb28c6de05c07ead6dfdd15936ed5d3d5b81b2",
+      "source": {
+        "byte_digest": "sha256:f8f5288f4522481d27bf686a6180a79c7128853eec477927a29618b1eb41be74",
+        "source_id": "analyst-shift-episode.yaml"
+      },
+      "unsat_core": null,
+      "unsupported": null,
+      "witness": {
+        "profile": "raes-satisfiability-witness/v1",
+        "snapshot": {
+          "profile": "raes-sdl-instantiated-snapshot/v2",
+          "scenario": {
+            "accounts": {},
+            "action_contracts": {
+              "triage-alert": {
+                "arguments": {},
+                "backend_failure_mappings": [],
+                "backend_timing_disclosures": [],
+                "behavioral_granularity": "atomic",
+                "effects": [
+                  {
+                    "description": "the analyst records a disposition for the alert",
+                    "effect_class": "intended_effect",
+                    "effect_id": "alert-disposition-recorded",
+                    "evidence_refs": [],
+                    "target_refs": [
+                      "nodes.siem.services.console"
+                    ]
+                  }
+                ],
+                "evidence_expectations": [],
+                "failure_classes": [
+                  "target_unavailable",
+                  "unknown"
+                ],
+                "fidelity_claim": "records the analyst disposition and the terminal console observation",
+                "interactions": [],
+                "lifecycle_state": "active",
+                "observation_expectations": [],
+                "preconditions": [
+                  {
+                    "description": "the SIEM console is in the analyst's action scope",
+                    "evidence_refs": [],
+                    "precondition_class": "target",
+                    "precondition_id": "console-in-scope",
+                    "support_refs": [
+                      "nodes.siem.services.console"
+                    ]
+                  }
+                ],
+                "procedure_basis": "analyst reviews one SIEM alert and records a disposition",
+                "realization_profile": "backend-declared",
+                "semantic_version": "1.0.0",
+                "state_transition_effects": [],
+                "temporal_contracts": []
+              }
+            },
+            "agents": {
+              "analyst": {
+                "actions": [
+                  "triage-alert"
+                ],
+                "affiliations": [
+                  "blue-team"
+                ],
+                "allowed_subnets": [],
+                "authority_anchors": [],
+                "description": "",
+                "initial_knowledge": null,
+                "interactive_access": {},
+                "observation_boundaries": [],
+                "operating_scope": [],
+                "role": null,
+                "starting_accounts": [],
+                "starting_assertions": []
+              }
+            },
+            "assertions": {
+              "console-ready": {
+                "description": "",
+                "polarity": "positive",
+                "proposition": "console-ready",
+                "role": "precondition"
+              },
+              "queue-stalled": {
+                "description": "",
+                "polarity": "positive",
+                "proposition": "queue-stalled",
+                "role": "postcondition"
+              },
+              "ticket-closed": {
+                "description": "",
+                "polarity": "positive",
+                "proposition": "ticket-closed",
+                "role": "postcondition"
+              }
+            },
+            "behavior_specifications": {
+              "analyst-triage": {
+                "action_contract_refs": [
+                  "triage-alert"
+                ],
+                "authority_scope_refs": [],
+                "autonomous_execution": null,
+                "backend_feature_support_refs": [],
+                "behavior_mode": "human-supervised",
+                "episode_policy": {
+                  "initialization": {
+                    "assertion_refs": [
+                      "console-ready"
+                    ]
+                  },
+                  "interaction_structure": {
+                    "action_contract_refs": [
+                      "triage-alert"
+                    ],
+                    "order_basis": "decision-epoch"
+                  },
+                  "profile": "participant-episode-policy/v1",
+                  "reset_policy": {
+                    "control_actions": [
+                      "reset",
+                      "restart"
+                    ],
+                    "evidence_requirement_refs": [
+                      "reset-evidence"
+                    ],
+                    "memory_reset_authority_ref": null,
+                    "participant_memory_scope": "persistent_across_episodes"
+                  },
+                  "terminal_conditions": {
+                    "shift-ended": {
+                      "evidence_requirement_refs": [
+                        "shift-clock-evidence"
+                      ],
+                      "temporal_constraint_ref": "shift-deadline",
+                      "terminal_reason": "timed_out"
+                    },
+                    "ticket-closed": {
+                      "assertion_refs": [
+                        "ticket-closed"
+                      ],
+                      "evidence_requirement_refs": [
+                        "ticket-evidence"
+                      ],
+                      "terminal_reason": "completed"
+                    }
+                  },
+                  "truncation_conditions": {
+                    "queue-stalled": {
+                      "assertion_refs": [
+                        "queue-stalled"
+                      ],
+                      "evidence_requirement_refs": [
+                        "queue-evidence"
+                      ]
+                    }
+                  }
+                },
+                "evidence_contract_refs": [],
+                "extension_policy": "governed-extension",
+                "extensions": {},
+                "lifecycle_state": "active",
+                "mixed_control": null,
+                "observation_boundary_refs": [],
+                "outcome_interpretation_rule_refs": [],
+                "participant_inject_deliveries": {},
+                "participant_refs": [
+                  "analyst"
+                ],
+                "participant_role_refs": [],
+                "realization_profile_ref": null,
+                "semantic_version": "1.0.0",
+                "tool_affordances": {}
+              }
+            },
+            "clocks": {
+              "shift-clock": {
+                "authority_kind": "runtime",
+                "authority_ref": "runtime.scheduler",
+                "description": "analyst shift clock",
+                "monotonicity": "non_decreasing",
+                "supports_jump": false,
+                "supports_pause": false,
+                "supports_reset": false,
+                "time_domain_ref": "shift-time"
+              }
+            },
+            "conditions": {},
+            "content": {},
+            "deployment_cells": {},
+            "deployment_tenants": {},
+            "description": "",
+            "entities": {
+              "blue-team": {
+                "description": "",
+                "entities": {},
+                "events": [],
+                "facts": {},
+                "mission": "",
+                "name": "",
+                "role": "blue"
+              }
+            },
+            "events": {},
+            "evidence_requirements": {
+              "queue-evidence": {
+                "artifact_role": "episode_truncation_evidence",
+                "boundary_kind": "",
+                "boundary_ref": "",
+                "capture_requirement_ref": "",
+                "capture_spec_ref": "",
+                "channel": "log",
+                "channel_refs": [],
+                "description": "capture the alert queue telemetry",
+                "field_selectors": [],
+                "integrity": "checksum",
+                "loss_disclosure": "required",
+                "media_types": [],
+                "notes": [],
+                "observation_demand": null,
+                "output_contract": "",
+                "redaction": "none",
+                "retention": "study_lifetime",
+                "scope": "",
+                "scope_refs": [
+                  "siem"
+                ],
+                "sensitivity": "plain",
+                "source_class": null,
+                "source_refs": [
+                  "nodes.siem.services.console"
+                ],
+                "trigger_ref": "",
+                "window": "analyst episode close"
+              },
+              "reset-evidence": {
+                "artifact_role": "episode_reset_evidence",
+                "boundary_kind": "",
+                "boundary_ref": "",
+                "capture_requirement_ref": "",
+                "capture_spec_ref": "",
+                "channel": "log",
+                "channel_refs": [],
+                "description": "capture the episode reset or restart record",
+                "field_selectors": [],
+                "integrity": "checksum",
+                "loss_disclosure": "required",
+                "media_types": [],
+                "notes": [],
+                "observation_demand": null,
+                "output_contract": "",
+                "redaction": "none",
+                "retention": "study_lifetime",
+                "scope": "",
+                "scope_refs": [
+                  "siem"
+                ],
+                "sensitivity": "plain",
+                "source_class": null,
+                "source_refs": [
+                  "behavior_specifications.analyst-triage"
+                ],
+                "trigger_ref": "",
+                "window": "analyst episode reset"
+              },
+              "shift-clock-evidence": {
+                "artifact_role": "episode_timeout_evidence",
+                "boundary_kind": "",
+                "boundary_ref": "",
+                "capture_requirement_ref": "",
+                "capture_spec_ref": "",
+                "channel": "log",
+                "channel_refs": [],
+                "description": "capture the shift clock reading at episode close",
+                "field_selectors": [],
+                "integrity": "checksum",
+                "loss_disclosure": "required",
+                "media_types": [],
+                "notes": [],
+                "observation_demand": null,
+                "output_contract": "",
+                "redaction": "none",
+                "retention": "study_lifetime",
+                "scope": "",
+                "scope_refs": [
+                  "siem"
+                ],
+                "sensitivity": "plain",
+                "source_class": null,
+                "source_refs": [
+                  "behavior_specifications.analyst-triage"
+                ],
+                "trigger_ref": "",
+                "window": "analyst episode close"
+              },
+              "ticket-evidence": {
+                "artifact_role": "episode_terminal_evidence",
+                "boundary_kind": "",
+                "boundary_ref": "",
+                "capture_requirement_ref": "",
+                "capture_spec_ref": "",
+                "channel": "log",
+                "channel_refs": [],
+                "description": "capture the ticket closure record",
+                "field_selectors": [],
+                "integrity": "checksum",
+                "loss_disclosure": "required",
+                "media_types": [],
+                "notes": [],
+                "observation_demand": null,
+                "output_contract": "",
+                "redaction": "none",
+                "retention": "study_lifetime",
+                "scope": "",
+                "scope_refs": [
+                  "siem"
+                ],
+                "sensitivity": "plain",
+                "source_class": null,
+                "source_refs": [
+                  "nodes.siem.services.console"
+                ],
+                "trigger_ref": "",
+                "window": "analyst episode close"
+              }
+            },
+            "features": {},
+            "forwarding_agents": [],
+            "generated_artifacts": {},
+            "identity_domains": {},
+            "identity_facades": {},
+            "identity_forests": {},
+            "infrastructure": {},
+            "injects": {},
+            "instantiation_provenance": {
+              "authored_digest": {
+                "algorithm": "sha256",
+                "profile": "raes-sdl-semantic/v2",
+                "value": "sha256:b9289156f0a5498a502a6dfbb939bcbd96a93cb4e443e487c81943a5e5b389de"
+              },
+              "bindings": [],
+              "capability_constraints": [],
+              "explicitness": [
+                {
+                  "classification": "exact",
+                  "model_path": "name",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.siem.type",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.siem.resources.ram",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.siem.resources.cpu",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.siem.resources",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.siem.services[0].port",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.siem.services[0].name",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.siem.services[0]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.siem.services",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.siem",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "propositions.console-ready.description",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "propositions.console-ready.subjects[0]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "propositions.console-ready.subjects",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "propositions.console-ready.basis",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "propositions.console-ready.predicate.kind",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "propositions.console-ready.predicate.property",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "propositions.console-ready.predicate.semantic_ref",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "propositions.console-ready.predicate.expected",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "propositions.console-ready.predicate",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "propositions.console-ready",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "propositions.ticket-closed.description",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "propositions.ticket-closed.subjects[0]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "propositions.ticket-closed.subjects",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "propositions.ticket-closed.basis",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "propositions.ticket-closed.predicate.kind",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "propositions.ticket-closed.predicate.property",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "propositions.ticket-closed.predicate.semantic_ref",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "propositions.ticket-closed.predicate.expected",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "propositions.ticket-closed.predicate",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "propositions.ticket-closed.evidence_requirements[0]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "propositions.ticket-closed.evidence_requirements",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "propositions.ticket-closed",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "propositions.queue-stalled.description",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "propositions.queue-stalled.subjects[0]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "propositions.queue-stalled.subjects",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "propositions.queue-stalled.basis",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "propositions.queue-stalled.predicate.kind",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "propositions.queue-stalled.predicate.property",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "propositions.queue-stalled.predicate.semantic_ref",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "propositions.queue-stalled.predicate.expected",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "propositions.queue-stalled.predicate",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "propositions.queue-stalled.evidence_requirements[0]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "propositions.queue-stalled.evidence_requirements",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "propositions.queue-stalled",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "propositions",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "assertions.console-ready.proposition",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "assertions.console-ready.role",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "assertions.console-ready",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "assertions.ticket-closed.proposition",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "assertions.ticket-closed.role",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "assertions.ticket-closed",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "assertions.queue-stalled.proposition",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "assertions.queue-stalled.role",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "assertions.queue-stalled",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "assertions",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "entities.blue-team.role",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "entities.blue-team",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "entities",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "agents.analyst.affiliations[0]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "agents.analyst.affiliations",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "agents.analyst.actions[0]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "agents.analyst.actions",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "agents.analyst",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "agents",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "action_contracts.triage-alert.semantic_version",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "action_contracts.triage-alert.behavioral_granularity",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "action_contracts.triage-alert.procedure_basis",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "action_contracts.triage-alert.realization_profile",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "action_contracts.triage-alert.fidelity_claim",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "action_contracts.triage-alert.preconditions[0].precondition_id",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "action_contracts.triage-alert.preconditions[0].precondition_class",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "action_contracts.triage-alert.preconditions[0].description",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "action_contracts.triage-alert.preconditions[0].support_refs[0]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "action_contracts.triage-alert.preconditions[0].support_refs",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "action_contracts.triage-alert.preconditions[0]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "action_contracts.triage-alert.preconditions",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "action_contracts.triage-alert.effects[0].effect_id",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "action_contracts.triage-alert.effects[0].effect_class",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "action_contracts.triage-alert.effects[0].description",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "action_contracts.triage-alert.effects[0].target_refs[0]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "action_contracts.triage-alert.effects[0].target_refs",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "action_contracts.triage-alert.effects[0]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "action_contracts.triage-alert.effects",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "action_contracts.triage-alert.failure_classes[0]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "open",
+                  "model_path": "action_contracts.triage-alert.failure_classes[1]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "open taxonomy sentinel"
+                },
+                {
+                  "classification": "open",
+                  "model_path": "action_contracts.triage-alert.failure_classes",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "open",
+                  "model_path": "action_contracts.triage-alert",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "open",
+                  "model_path": "action_contracts",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "behavior_specifications.analyst-triage.semantic_version",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "behavior_specifications.analyst-triage.participant_refs[0]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "behavior_specifications.analyst-triage.participant_refs",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "behavior_specifications.analyst-triage.action_contract_refs[0]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "behavior_specifications.analyst-triage.action_contract_refs",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "behavior_specifications.analyst-triage.behavior_mode",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "behavior_specifications.analyst-triage.episode_policy.profile",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "behavior_specifications.analyst-triage.episode_policy.initialization.assertion_refs[0]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "behavior_specifications.analyst-triage.episode_policy.initialization.assertion_refs",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "behavior_specifications.analyst-triage.episode_policy.initialization",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "behavior_specifications.analyst-triage.episode_policy.interaction_structure.order_basis",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "behavior_specifications.analyst-triage.episode_policy.interaction_structure.action_contract_refs[0]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "behavior_specifications.analyst-triage.episode_policy.interaction_structure.action_contract_refs",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "behavior_specifications.analyst-triage.episode_policy.interaction_structure",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "behavior_specifications.analyst-triage.episode_policy.terminal_conditions.ticket-closed.terminal_reason",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "behavior_specifications.analyst-triage.episode_policy.terminal_conditions.ticket-closed.assertion_refs[0]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "behavior_specifications.analyst-triage.episode_policy.terminal_conditions.ticket-closed.assertion_refs",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "behavior_specifications.analyst-triage.episode_policy.terminal_conditions.ticket-closed.evidence_requirement_refs[0]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "behavior_specifications.analyst-triage.episode_policy.terminal_conditions.ticket-closed.evidence_requirement_refs",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "behavior_specifications.analyst-triage.episode_policy.terminal_conditions.ticket-closed",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "behavior_specifications.analyst-triage.episode_policy.terminal_conditions.shift-ended.terminal_reason",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "behavior_specifications.analyst-triage.episode_policy.terminal_conditions.shift-ended.temporal_constraint_ref",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "behavior_specifications.analyst-triage.episode_policy.terminal_conditions.shift-ended.evidence_requirement_refs[0]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "behavior_specifications.analyst-triage.episode_policy.terminal_conditions.shift-ended.evidence_requirement_refs",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "behavior_specifications.analyst-triage.episode_policy.terminal_conditions.shift-ended",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "behavior_specifications.analyst-triage.episode_policy.terminal_conditions",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "behavior_specifications.analyst-triage.episode_policy.truncation_conditions.queue-stalled.assertion_refs[0]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "behavior_specifications.analyst-triage.episode_policy.truncation_conditions.queue-stalled.assertion_refs",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "behavior_specifications.analyst-triage.episode_policy.truncation_conditions.queue-stalled.evidence_requirement_refs[0]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "behavior_specifications.analyst-triage.episode_policy.truncation_conditions.queue-stalled.evidence_requirement_refs",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "behavior_specifications.analyst-triage.episode_policy.truncation_conditions.queue-stalled",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "behavior_specifications.analyst-triage.episode_policy.truncation_conditions",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "behavior_specifications.analyst-triage.episode_policy.reset_policy.control_actions[0]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "behavior_specifications.analyst-triage.episode_policy.reset_policy.control_actions[1]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "behavior_specifications.analyst-triage.episode_policy.reset_policy.control_actions",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "behavior_specifications.analyst-triage.episode_policy.reset_policy.participant_memory_scope",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "behavior_specifications.analyst-triage.episode_policy.reset_policy.evidence_requirement_refs[0]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "behavior_specifications.analyst-triage.episode_policy.reset_policy.evidence_requirement_refs",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "behavior_specifications.analyst-triage.episode_policy.reset_policy",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "behavior_specifications.analyst-triage.episode_policy",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "behavior_specifications.analyst-triage",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "behavior_specifications",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "evidence_requirements.ticket-evidence.description",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "evidence_requirements.ticket-evidence.source_refs[0]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "evidence_requirements.ticket-evidence.source_refs",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "evidence_requirements.ticket-evidence.scope_refs[0]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "evidence_requirements.ticket-evidence.scope_refs",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "evidence_requirements.ticket-evidence.window",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "evidence_requirements.ticket-evidence.channel",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "evidence_requirements.ticket-evidence.artifact_role",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "evidence_requirements.ticket-evidence.sensitivity",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "evidence_requirements.ticket-evidence.redaction",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "evidence_requirements.ticket-evidence.integrity",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "evidence_requirements.ticket-evidence.retention",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "evidence_requirements.ticket-evidence.loss_disclosure",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "evidence_requirements.ticket-evidence",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "evidence_requirements.queue-evidence.description",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "evidence_requirements.queue-evidence.source_refs[0]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "evidence_requirements.queue-evidence.source_refs",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "evidence_requirements.queue-evidence.scope_refs[0]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "evidence_requirements.queue-evidence.scope_refs",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "evidence_requirements.queue-evidence.window",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "evidence_requirements.queue-evidence.channel",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "evidence_requirements.queue-evidence.artifact_role",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "evidence_requirements.queue-evidence.sensitivity",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "evidence_requirements.queue-evidence.redaction",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "evidence_requirements.queue-evidence.integrity",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "evidence_requirements.queue-evidence.retention",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "evidence_requirements.queue-evidence.loss_disclosure",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "evidence_requirements.queue-evidence",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "evidence_requirements.shift-clock-evidence.description",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "evidence_requirements.shift-clock-evidence.source_refs[0]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "evidence_requirements.shift-clock-evidence.source_refs",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "evidence_requirements.shift-clock-evidence.scope_refs[0]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "evidence_requirements.shift-clock-evidence.scope_refs",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "evidence_requirements.shift-clock-evidence.window",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "evidence_requirements.shift-clock-evidence.channel",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "evidence_requirements.shift-clock-evidence.artifact_role",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "evidence_requirements.shift-clock-evidence.sensitivity",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "evidence_requirements.shift-clock-evidence.redaction",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "evidence_requirements.shift-clock-evidence.integrity",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "evidence_requirements.shift-clock-evidence.retention",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "evidence_requirements.shift-clock-evidence.loss_disclosure",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "evidence_requirements.shift-clock-evidence",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "evidence_requirements.reset-evidence.description",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "evidence_requirements.reset-evidence.source_refs[0]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "evidence_requirements.reset-evidence.source_refs",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "evidence_requirements.reset-evidence.scope_refs[0]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "evidence_requirements.reset-evidence.scope_refs",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "evidence_requirements.reset-evidence.window",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "evidence_requirements.reset-evidence.channel",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "evidence_requirements.reset-evidence.artifact_role",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "evidence_requirements.reset-evidence.sensitivity",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "evidence_requirements.reset-evidence.redaction",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "evidence_requirements.reset-evidence.integrity",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "evidence_requirements.reset-evidence.retention",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "evidence_requirements.reset-evidence.loss_disclosure",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "evidence_requirements.reset-evidence",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "evidence_requirements",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "time_domains.shift-time.kind",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "time_domains.shift-time.tick_period_seconds.numerator",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "time_domains.shift-time.tick_period_seconds.denominator",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "time_domains.shift-time.tick_period_seconds",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "time_domains.shift-time.epoch",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "time_domains.shift-time.visibility",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "time_domains.shift-time.description",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "time_domains.shift-time",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "time_domains",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "clocks.shift-clock.time_domain_ref",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "clocks.shift-clock.authority_kind",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "clocks.shift-clock.authority_ref",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "clocks.shift-clock.monotonicity",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "clocks.shift-clock.description",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "clocks.shift-clock",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "clocks",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "temporal_constraints.shift-deadline.constraint_kind",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "temporal_constraints.shift-deadline.clock_ref",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "temporal_constraints.shift-deadline.subject_refs[0]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "temporal_constraints.shift-deadline.subject_refs",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "temporal_constraints.shift-deadline.end.tick",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "temporal_constraints.shift-deadline.end",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "temporal_constraints.shift-deadline.description",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "temporal_constraints.shift-deadline",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "temporal_constraints",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                }
+              ],
+              "imports": [],
+              "realization_constraints": [],
+              "realization_designations": [],
+              "selected_profile": "raes-finite-domain-satisfiability-v1"
+            },
+            "name": "dsl-120",
+            "nodes": {
+              "siem": {
+                "architecture": null,
+                "asset_value": null,
+                "conditions": {},
+                "description": "",
+                "endpoint_persona": null,
+                "features": {},
+                "injects": {},
+                "os": null,
+                "os_distribution": null,
+                "os_version": "",
+                "resources": {
+                  "cpu": 1,
+                  "ram": 1073741824
+                },
+                "roles": {},
+                "runtime": null,
+                "services": [
+                  {
+                    "description": "",
+                    "name": "console",
+                    "port": 443,
+                    "protocol": "tcp"
+                  }
+                ],
+                "source": null,
+                "type": "compute"
+              }
+            },
+            "objectives": {},
+            "observation_boundaries": {},
+            "outcome_interpretation_rules": {},
+            "persistent_volumes": {},
+            "propositions": {
+              "console-ready": {
+                "basis": "declared_state",
+                "description": "The SIEM console is reachable before the analyst episode starts.",
+                "evidence_requirements": [],
+                "predicate": {
+                  "expected": true,
+                  "kind": "boolean",
+                  "operator": "equals",
+                  "property": "console-reachable",
+                  "semantic_ref": "urn:raes:observable:console-reachable"
+                },
+                "quantifier": "all",
+                "subjects": [
+                  "nodes.siem.services.console"
+                ],
+                "threshold": null
+              },
+              "queue-stalled": {
+                "basis": "observed_state",
+                "description": "The alert queue stopped producing new work for the analyst.",
+                "evidence_requirements": [
+                  "queue-evidence"
+                ],
+                "predicate": {
+                  "expected": true,
+                  "kind": "boolean",
+                  "operator": "equals",
+                  "property": "alert-queue-stalled",
+                  "semantic_ref": "urn:raes:observable:alert-queue-stalled"
+                },
+                "quantifier": "all",
+                "subjects": [
+                  "nodes.siem.services.console"
+                ],
+                "threshold": null
+              },
+              "ticket-closed": {
+                "basis": "observed_state",
+                "description": "The analyst closed the escalated incident ticket.",
+                "evidence_requirements": [
+                  "ticket-evidence"
+                ],
+                "predicate": {
+                  "expected": true,
+                  "kind": "boolean",
+                  "operator": "equals",
+                  "property": "incident-ticket-closed",
+                  "semantic_ref": "urn:raes:observable:incident-ticket-closed"
+                },
+                "quantifier": "all",
+                "subjects": [
+                  "nodes.siem.services.console"
+                ],
+                "threshold": null
+              }
+            },
+            "relationships": {},
+            "scripts": {},
+            "stories": {},
+            "temporal_constraints": {
+              "shift-deadline": {
+                "cadence_ticks": null,
+                "clock_ref": "shift-clock",
+                "constraint_kind": "deadline",
+                "description": "the analyst episode must close within one shift",
+                "duration_ticks": null,
+                "end": {
+                  "microstep": 0,
+                  "tick": 480
+                },
+                "start": null,
+                "subject_refs": [
+                  "behavior_specifications.analyst-triage"
+                ]
+              }
+            },
+            "time_domain_mappings": {},
+            "time_domains": {
+              "shift-time": {
+                "description": "analyst shift logical time",
+                "epoch": "scenario_start",
+                "kind": "logical",
+                "tick_period_seconds": {
+                  "denominator": 1,
+                  "numerator": 60
+                },
+                "visibility": "participant_visible"
+              }
+            },
+            "time_progression_policies": {},
+            "version": "*",
+            "workflows": {}
+          }
+        },
+        "snapshot_digest": "sha256:971476d1146b4301f9fe3cc7461c13afd220a908e316bf79dbdaac8087567756"
+      }
+    }
+  },
+  "surface": "cli"
+}

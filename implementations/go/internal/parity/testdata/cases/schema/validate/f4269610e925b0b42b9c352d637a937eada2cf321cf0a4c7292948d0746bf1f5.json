@@ -1,0 +1,14 @@
+{
+  "args": [
+    "participant-inject-application-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:e67a9197be981892848b65e85bab4bbce74927ade4b7ceefc5cce75819c59943"
+  },
+  "name": "regression/7e5a9e26ade82afa6cda5a393a8f662686bfedecf641f4e2ca8dcd5d31c47b56",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

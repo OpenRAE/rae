@@ -1,0 +1,18 @@
+{
+  "args": [
+    "sdl",
+    "verify-imports",
+    "repo/contracts/fixtures/sdl/participant-episode-policy-v1/invalid/realized-episode-state.yaml"
+  ],
+  "command": "sdl verify-imports",
+  "files": {
+    "repo/contracts/fixtures/sdl/participant-episode-policy-v1/invalid/realized-episode-state.yaml": "sha256:ec38bcee898d990d2792faf323d57a0d35f620fd1d1bc818fdac66a41c0eedd0",
+    "setup.json": "sha256:30c441694eea1270e13ab885c28bd7da95648f55c9de022494d4159d24db3983"
+  },
+  "name": "contracts/fixtures/sdl/participant-episode-policy-v1/invalid/realized-episode-state.yaml/resolved",
+  "result": {
+    "exit_code": 2,
+    "stdout": null
+  },
+  "surface": "cli"
+}

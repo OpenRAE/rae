@@ -1,0 +1,863 @@
+{
+  "args": [],
+  "command": "sdl_apply_edit",
+  "files": {
+    "arguments.json": "sha256:1d9cfa22145d4ffe271a3fc61ec3fed1b92f3f9b551fb3f59cead4f94eba1f5c"
+  },
+  "name": "contracts/fixtures/sdl/participant-episode-policy-v1/invalid/autonomous-profile-episode-structure.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "content": "name: changed\nnodes:\n  siem:\n    type: compute\n    resources:\n      ram: 1 gib\n      cpu: 1\n    services:\n    - port: 443\n      name: console\nentities:\n  blue-team:\n    role: blue\npropositions:\n  console-ready:\n    description: The SIEM console is reachable before a replay episode starts.\n    subjects:\n    - nodes.siem.services.console\n    basis: declared_state\n    predicate:\n      kind: boolean\n      property: console-reachable\n      semantic_ref: urn:raes:observable:console-reachable\n      expected: true\nassertions:\n  console-ready:\n    proposition: console-ready\n    role: precondition\ntime_domains:\n  replay-time:\n    kind: logical\n    tick_period_seconds:\n      numerator: 1\n      denominator: 1\n    epoch: scenario_start\n    visibility: participant_visible\n    description: replay logical time\nclocks:\n  replay-clock:\n    time_domain_ref: replay-time\n    authority_kind: runtime\n    authority_ref: runtime.scheduler\n    monotonicity: non_decreasing\n    description: replay scheduler clock\ntemporal_constraints:\n  replay-deadline:\n    constraint_kind: deadline\n    clock_ref: replay-clock\n    subject_refs:\n    - agents.replayer\n    end:\n      tick: 900\n    description: each replay episode closes within fifteen minutes\nevidence_requirements:\n  replay-clock-evidence:\n    description: capture the replay clock reading at episode close\n    source_refs:\n    - agents.replayer\n    scope_refs:\n    - siem\n    window: replay episode close\n    channel: log\n    artifact_role: episode_timeout_evidence\n    sensitivity: plain\n    redaction: none\n    integrity: checksum\n    retention: study_lifetime\n    loss_disclosure: required\n  replay-reset-evidence:\n    description: capture the replay reset record\n    source_refs:\n    - agents.replayer\n    scope_refs:\n    - siem\n    window: replay episode reset\n    channel: log\n    artifact_role: episode_reset_evidence\n    sensitivity: plain\n    redaction: none\n    integrity: checksum\n    retention: study_lifetime\n    loss_disclosure: required\nagents:\n  replayer:\n    affiliations:\n    - blue-team\nbehavior_specifications:\n  replay-episodes:\n    semantic_version: 1.0.0\n    participant_refs:\n    - replayer\n    behavior_mode: autonomous\n    autonomous_execution:\n      participant_implementation_ref: participant-implementation-manifests.replayer.v1\n      clock_ref: replay-clock\n      progression_policy_ref: replay-progression\n      temporal_constraint_refs:\n      - replay-deadline\n      action_order:\n      - replay-step\n      observation_boundary_ref: replay-view\n      selection_strategy: ordered_cycle\n      max_action_attempts: 3\n      max_in_flight: 1\n      failure_policy: stop\n      evaluation_authority:\n        mode: none\n      episode_policy:\n        profile: participant-episode-policy/v1\n        initialization:\n          assertion_refs:\n          - console-ready\n        terminal_conditions:\n          replay-window-closed:\n            terminal_reason: timed_out\n            temporal_constraint_ref: replay-deadline\n            evidence_requirement_refs:\n            - replay-clock-evidence\n        reset_policy:\n          control_actions:\n          - reset\n          participant_memory_scope: episode_local_reset\n          memory_reset_authority_ref: agents.replayer\n          evidence_requirement_refs:\n          - replay-reset-evidence\n",
+          "diagnostics": [
+            {
+              "code": "sdl.model.invalid",
+              "path": "/behavior_specifications/replay-episodes/autonomous_execution/ParticipantAutonomousExecutionPolicyV1/episode_policy",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 126
+                },
+                "start": {
+                  "column": 7,
+                  "line": 94
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/behavior_specifications/replay-episodes/autonomous_execution/function-after[_validate_candidate_graph(), ParticipantAutonomousExecutionPolicyV2]/profile",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 126
+                },
+                "start": {
+                  "column": 7,
+                  "line": 94
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/behavior_specifications/replay-episodes/autonomous_execution/function-after[_validate_candidate_graph(), ParticipantAutonomousExecutionPolicyV2]/work_window_refs",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 126
+                },
+                "start": {
+                  "column": 7,
+                  "line": 94
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/behavior_specifications/replay-episodes/autonomous_execution/function-after[_validate_candidate_graph(), ParticipantAutonomousExecutionPolicyV2]/stochastic_control_ref",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 126
+                },
+                "start": {
+                  "column": 7,
+                  "line": 94
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/behavior_specifications/replay-episodes/autonomous_execution/function-after[_validate_candidate_graph(), ParticipantAutonomousExecutionPolicyV2]/selection_strategy",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 126
+                },
+                "start": {
+                  "column": 7,
+                  "line": 94
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/behavior_specifications/replay-episodes/autonomous_execution/function-after[_validate_candidate_graph(), ParticipantAutonomousExecutionPolicyV2]/timing",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 126
+                },
+                "start": {
+                  "column": 7,
+                  "line": 94
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/behavior_specifications/replay-episodes/autonomous_execution/function-after[_validate_candidate_graph(), ParticipantAutonomousExecutionPolicyV2]/outside_window_disposition",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 126
+                },
+                "start": {
+                  "column": 7,
+                  "line": 94
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/behavior_specifications/replay-episodes/autonomous_execution/function-after[_validate_candidate_graph(), ParticipantAutonomousExecutionPolicyV2]/empty_eligible_disposition",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 126
+                },
+                "start": {
+                  "column": 7,
+                  "line": 94
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/behavior_specifications/replay-episodes/autonomous_execution/function-after[_validate_candidate_graph(), ParticipantAutonomousExecutionPolicyV2]/action_candidates",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 126
+                },
+                "start": {
+                  "column": 7,
+                  "line": 94
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/behavior_specifications/replay-episodes/autonomous_execution/function-after[_validate_candidate_graph(), ParticipantAutonomousExecutionPolicyV2]/max_occurrences",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 126
+                },
+                "start": {
+                  "column": 7,
+                  "line": 94
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/behavior_specifications/replay-episodes/autonomous_execution/function-after[_validate_candidate_graph(), ParticipantAutonomousExecutionPolicyV2]/temporal_constraint_refs",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 126
+                },
+                "start": {
+                  "column": 7,
+                  "line": 94
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/behavior_specifications/replay-episodes/autonomous_execution/function-after[_validate_candidate_graph(), ParticipantAutonomousExecutionPolicyV2]/action_order",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 126
+                },
+                "start": {
+                  "column": 7,
+                  "line": 94
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/behavior_specifications/replay-episodes/autonomous_execution/function-after[_validate_candidate_graph(), ParticipantAutonomousExecutionPolicyV2]/episode_policy",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 126
+                },
+                "start": {
+                  "column": 7,
+                  "line": 94
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/behavior_specifications/replay-episodes/autonomous_execution/function-after[_validate_concurrency_projection(), function-after[_validate_candidate_graph(), ParticipantAutonomousExecutionPolicyV3]]/profile",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 126
+                },
+                "start": {
+                  "column": 7,
+                  "line": 94
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/behavior_specifications/replay-episodes/autonomous_execution/function-after[_validate_concurrency_projection(), function-after[_validate_candidate_graph(), ParticipantAutonomousExecutionPolicyV3]]/work_window_refs",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 126
+                },
+                "start": {
+                  "column": 7,
+                  "line": 94
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/behavior_specifications/replay-episodes/autonomous_execution/function-after[_validate_concurrency_projection(), function-after[_validate_candidate_graph(), ParticipantAutonomousExecutionPolicyV3]]/stochastic_control_ref",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 126
+                },
+                "start": {
+                  "column": 7,
+                  "line": 94
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/behavior_specifications/replay-episodes/autonomous_execution/function-after[_validate_concurrency_projection(), function-after[_validate_candidate_graph(), ParticipantAutonomousExecutionPolicyV3]]/selection_strategy",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 126
+                },
+                "start": {
+                  "column": 7,
+                  "line": 94
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/behavior_specifications/replay-episodes/autonomous_execution/function-after[_validate_concurrency_projection(), function-after[_validate_candidate_graph(), ParticipantAutonomousExecutionPolicyV3]]/timing",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 126
+                },
+                "start": {
+                  "column": 7,
+                  "line": 94
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/behavior_specifications/replay-episodes/autonomous_execution/function-after[_validate_concurrency_projection(), function-after[_validate_candidate_graph(), ParticipantAutonomousExecutionPolicyV3]]/outside_window_disposition",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 126
+                },
+                "start": {
+                  "column": 7,
+                  "line": 94
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/behavior_specifications/replay-episodes/autonomous_execution/function-after[_validate_concurrency_projection(), function-after[_validate_candidate_graph(), ParticipantAutonomousExecutionPolicyV3]]/empty_eligible_disposition",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 126
+                },
+                "start": {
+                  "column": 7,
+                  "line": 94
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/behavior_specifications/replay-episodes/autonomous_execution/function-after[_validate_concurrency_projection(), function-after[_validate_candidate_graph(), ParticipantAutonomousExecutionPolicyV3]]/action_candidates",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 126
+                },
+                "start": {
+                  "column": 7,
+                  "line": 94
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/behavior_specifications/replay-episodes/autonomous_execution/function-after[_validate_concurrency_projection(), function-after[_validate_candidate_graph(), ParticipantAutonomousExecutionPolicyV3]]/max_occurrences",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 126
+                },
+                "start": {
+                  "column": 7,
+                  "line": 94
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/behavior_specifications/replay-episodes/autonomous_execution/function-after[_validate_concurrency_projection(), function-after[_validate_candidate_graph(), ParticipantAutonomousExecutionPolicyV3]]/resource_budget",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 126
+                },
+                "start": {
+                  "column": 7,
+                  "line": 94
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/behavior_specifications/replay-episodes/autonomous_execution/function-after[_validate_concurrency_projection(), function-after[_validate_candidate_graph(), ParticipantAutonomousExecutionPolicyV3]]/temporal_constraint_refs",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 126
+                },
+                "start": {
+                  "column": 7,
+                  "line": 94
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/behavior_specifications/replay-episodes/autonomous_execution/function-after[_validate_concurrency_projection(), function-after[_validate_candidate_graph(), ParticipantAutonomousExecutionPolicyV3]]/action_order",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 126
+                },
+                "start": {
+                  "column": 7,
+                  "line": 94
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/behavior_specifications/replay-episodes/autonomous_execution/function-after[_validate_concurrency_projection(), function-after[_validate_candidate_graph(), ParticipantAutonomousExecutionPolicyV3]]/episode_policy",
+              "range": {
+                "end": {
+                  "column": 1,
+                  "line": 126
+                },
+                "start": {
+                  "column": 7,
+                  "line": 94
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            }
+          ],
+          "status": "edited_with_diagnostics"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "content": "name: changed\nnodes:\n  siem:\n    type: compute\n    resources:\n      ram: 1 gib\n      cpu: 1\n    services:\n    - port: 443\n      name: console\nentities:\n  blue-team:\n    role: blue\npropositions:\n  console-ready:\n    description: The SIEM console is reachable before a replay episode starts.\n    subjects:\n    - nodes.siem.services.console\n    basis: declared_state\n    predicate:\n      kind: boolean\n      property: console-reachable\n      semantic_ref: urn:raes:observable:console-reachable\n      expected: true\nassertions:\n  console-ready:\n    proposition: console-ready\n    role: precondition\ntime_domains:\n  replay-time:\n    kind: logical\n    tick_period_seconds:\n      numerator: 1\n      denominator: 1\n    epoch: scenario_start\n    visibility: participant_visible\n    description: replay logical time\nclocks:\n  replay-clock:\n    time_domain_ref: replay-time\n    authority_kind: runtime\n    authority_ref: runtime.scheduler\n    monotonicity: non_decreasing\n    description: replay scheduler clock\ntemporal_constraints:\n  replay-deadline:\n    constraint_kind: deadline\n    clock_ref: replay-clock\n    subject_refs:\n    - agents.replayer\n    end:\n      tick: 900\n    description: each replay episode closes within fifteen minutes\nevidence_requirements:\n  replay-clock-evidence:\n    description: capture the replay clock reading at episode close\n    source_refs:\n    - agents.replayer\n    scope_refs:\n    - siem\n    window: replay episode close\n    channel: log\n    artifact_role: episode_timeout_evidence\n    sensitivity: plain\n    redaction: none\n    integrity: checksum\n    retention: study_lifetime\n    loss_disclosure: required\n  replay-reset-evidence:\n    description: capture the replay reset record\n    source_refs:\n    - agents.replayer\n    scope_refs:\n    - siem\n    window: replay episode reset\n    channel: log\n    artifact_role: episode_reset_evidence\n    sensitivity: plain\n    redaction: none\n    integrity: checksum\n    retention: study_lifetime\n    loss_disclosure: required\nagents:\n  replayer:\n    affiliations:\n    - blue-team\nbehavior_specifications:\n  replay-episodes:\n    semantic_version: 1.0.0\n    participant_refs:\n    - replayer\n    behavior_mode: autonomous\n    autonomous_execution:\n      participant_implementation_ref: participant-implementation-manifests.replayer.v1\n      clock_ref: replay-clock\n      progression_policy_ref: replay-progression\n      temporal_constraint_refs:\n      - replay-deadline\n      action_order:\n      - replay-step\n      observation_boundary_ref: replay-view\n      selection_strategy: ordered_cycle\n      max_action_attempts: 3\n      max_in_flight: 1\n      failure_policy: stop\n      evaluation_authority:\n        mode: none\n      episode_policy:\n        profile: participant-episode-policy/v1\n        initialization:\n          assertion_refs:\n          - console-ready\n        terminal_conditions:\n          replay-window-closed:\n            terminal_reason: timed_out\n            temporal_constraint_ref: replay-deadline\n            evidence_requirement_refs:\n            - replay-clock-evidence\n        reset_policy:\n          control_actions:\n          - reset\n          participant_memory_scope: episode_local_reset\n          memory_reset_authority_ref: agents.replayer\n          evidence_requirement_refs:\n          - replay-reset-evidence\n",
+        "diagnostics": [
+          {
+            "code": "sdl.model.invalid",
+            "path": "/behavior_specifications/replay-episodes/autonomous_execution/ParticipantAutonomousExecutionPolicyV1/episode_policy",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 126
+              },
+              "start": {
+                "column": 7,
+                "line": 94
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/behavior_specifications/replay-episodes/autonomous_execution/function-after[_validate_candidate_graph(), ParticipantAutonomousExecutionPolicyV2]/profile",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 126
+              },
+              "start": {
+                "column": 7,
+                "line": 94
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/behavior_specifications/replay-episodes/autonomous_execution/function-after[_validate_candidate_graph(), ParticipantAutonomousExecutionPolicyV2]/work_window_refs",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 126
+              },
+              "start": {
+                "column": 7,
+                "line": 94
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/behavior_specifications/replay-episodes/autonomous_execution/function-after[_validate_candidate_graph(), ParticipantAutonomousExecutionPolicyV2]/stochastic_control_ref",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 126
+              },
+              "start": {
+                "column": 7,
+                "line": 94
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/behavior_specifications/replay-episodes/autonomous_execution/function-after[_validate_candidate_graph(), ParticipantAutonomousExecutionPolicyV2]/selection_strategy",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 126
+              },
+              "start": {
+                "column": 7,
+                "line": 94
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/behavior_specifications/replay-episodes/autonomous_execution/function-after[_validate_candidate_graph(), ParticipantAutonomousExecutionPolicyV2]/timing",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 126
+              },
+              "start": {
+                "column": 7,
+                "line": 94
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/behavior_specifications/replay-episodes/autonomous_execution/function-after[_validate_candidate_graph(), ParticipantAutonomousExecutionPolicyV2]/outside_window_disposition",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 126
+              },
+              "start": {
+                "column": 7,
+                "line": 94
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/behavior_specifications/replay-episodes/autonomous_execution/function-after[_validate_candidate_graph(), ParticipantAutonomousExecutionPolicyV2]/empty_eligible_disposition",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 126
+              },
+              "start": {
+                "column": 7,
+                "line": 94
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/behavior_specifications/replay-episodes/autonomous_execution/function-after[_validate_candidate_graph(), ParticipantAutonomousExecutionPolicyV2]/action_candidates",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 126
+              },
+              "start": {
+                "column": 7,
+                "line": 94
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/behavior_specifications/replay-episodes/autonomous_execution/function-after[_validate_candidate_graph(), ParticipantAutonomousExecutionPolicyV2]/max_occurrences",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 126
+              },
+              "start": {
+                "column": 7,
+                "line": 94
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/behavior_specifications/replay-episodes/autonomous_execution/function-after[_validate_candidate_graph(), ParticipantAutonomousExecutionPolicyV2]/temporal_constraint_refs",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 126
+              },
+              "start": {
+                "column": 7,
+                "line": 94
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/behavior_specifications/replay-episodes/autonomous_execution/function-after[_validate_candidate_graph(), ParticipantAutonomousExecutionPolicyV2]/action_order",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 126
+              },
+              "start": {
+                "column": 7,
+                "line": 94
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/behavior_specifications/replay-episodes/autonomous_execution/function-after[_validate_candidate_graph(), ParticipantAutonomousExecutionPolicyV2]/episode_policy",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 126
+              },
+              "start": {
+                "column": 7,
+                "line": 94
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/behavior_specifications/replay-episodes/autonomous_execution/function-after[_validate_concurrency_projection(), function-after[_validate_candidate_graph(), ParticipantAutonomousExecutionPolicyV3]]/profile",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 126
+              },
+              "start": {
+                "column": 7,
+                "line": 94
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/behavior_specifications/replay-episodes/autonomous_execution/function-after[_validate_concurrency_projection(), function-after[_validate_candidate_graph(), ParticipantAutonomousExecutionPolicyV3]]/work_window_refs",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 126
+              },
+              "start": {
+                "column": 7,
+                "line": 94
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/behavior_specifications/replay-episodes/autonomous_execution/function-after[_validate_concurrency_projection(), function-after[_validate_candidate_graph(), ParticipantAutonomousExecutionPolicyV3]]/stochastic_control_ref",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 126
+              },
+              "start": {
+                "column": 7,
+                "line": 94
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/behavior_specifications/replay-episodes/autonomous_execution/function-after[_validate_concurrency_projection(), function-after[_validate_candidate_graph(), ParticipantAutonomousExecutionPolicyV3]]/selection_strategy",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 126
+              },
+              "start": {
+                "column": 7,
+                "line": 94
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/behavior_specifications/replay-episodes/autonomous_execution/function-after[_validate_concurrency_projection(), function-after[_validate_candidate_graph(), ParticipantAutonomousExecutionPolicyV3]]/timing",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 126
+              },
+              "start": {
+                "column": 7,
+                "line": 94
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/behavior_specifications/replay-episodes/autonomous_execution/function-after[_validate_concurrency_projection(), function-after[_validate_candidate_graph(), ParticipantAutonomousExecutionPolicyV3]]/outside_window_disposition",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 126
+              },
+              "start": {
+                "column": 7,
+                "line": 94
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/behavior_specifications/replay-episodes/autonomous_execution/function-after[_validate_concurrency_projection(), function-after[_validate_candidate_graph(), ParticipantAutonomousExecutionPolicyV3]]/empty_eligible_disposition",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 126
+              },
+              "start": {
+                "column": 7,
+                "line": 94
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/behavior_specifications/replay-episodes/autonomous_execution/function-after[_validate_concurrency_projection(), function-after[_validate_candidate_graph(), ParticipantAutonomousExecutionPolicyV3]]/action_candidates",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 126
+              },
+              "start": {
+                "column": 7,
+                "line": 94
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/behavior_specifications/replay-episodes/autonomous_execution/function-after[_validate_concurrency_projection(), function-after[_validate_candidate_graph(), ParticipantAutonomousExecutionPolicyV3]]/max_occurrences",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 126
+              },
+              "start": {
+                "column": 7,
+                "line": 94
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/behavior_specifications/replay-episodes/autonomous_execution/function-after[_validate_concurrency_projection(), function-after[_validate_candidate_graph(), ParticipantAutonomousExecutionPolicyV3]]/resource_budget",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 126
+              },
+              "start": {
+                "column": 7,
+                "line": 94
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/behavior_specifications/replay-episodes/autonomous_execution/function-after[_validate_concurrency_projection(), function-after[_validate_candidate_graph(), ParticipantAutonomousExecutionPolicyV3]]/temporal_constraint_refs",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 126
+              },
+              "start": {
+                "column": 7,
+                "line": 94
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/behavior_specifications/replay-episodes/autonomous_execution/function-after[_validate_concurrency_projection(), function-after[_validate_candidate_graph(), ParticipantAutonomousExecutionPolicyV3]]/action_order",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 126
+              },
+              "start": {
+                "column": 7,
+                "line": 94
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/behavior_specifications/replay-episodes/autonomous_execution/function-after[_validate_concurrency_projection(), function-after[_validate_candidate_graph(), ParticipantAutonomousExecutionPolicyV3]]/episode_policy",
+            "range": {
+              "end": {
+                "column": 1,
+                "line": 126
+              },
+              "start": {
+                "column": 7,
+                "line": 94
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          }
+        ],
+        "status": "edited_with_diagnostics"
+      }
+    }
+  },
+  "surface": "mcp"
+}

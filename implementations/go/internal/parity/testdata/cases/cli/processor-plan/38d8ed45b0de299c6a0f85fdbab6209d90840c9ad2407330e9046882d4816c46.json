@@ -119,14 +119,14 @@
               "provision.network.security-net"
             ],
             "payload": {
-              "architecture": "",
+              "architecture": null,
               "count": 1,
               "domain_topology": null,
               "name": "aptl-otel-collector",
               "network_namespace_target": "",
               "node_kind": "compute",
               "node_name": "aptl-otel-collector",
-              "os_distribution": "",
+              "os_distribution": null,
               "os_family": "linux",
               "os_version": "",
               "spec": {
@@ -185,14 +185,14 @@
               "provision.network.security-net"
             ],
             "payload": {
-              "architecture": "",
+              "architecture": null,
               "count": 1,
               "domain_topology": null,
               "name": "aptl-tempo",
               "network_namespace_target": "",
               "node_kind": "compute",
               "node_name": "aptl-tempo",
-              "os_distribution": "",
+              "os_distribution": null,
               "os_family": "linux",
               "os_version": "",
               "spec": {
@@ -246,14 +246,14 @@
               "provision.network.security-net"
             ],
             "payload": {
-              "architecture": "",
+              "architecture": null,
               "count": 1,
               "domain_topology": null,
               "name": "aptl-grafana-otel",
               "network_namespace_target": "",
               "node_kind": "compute",
               "node_name": "aptl-grafana-otel",
-              "os_distribution": "",
+              "os_distribution": null,
               "os_family": "linux",
               "os_version": "",
               "spec": {

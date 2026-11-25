@@ -1,0 +1,63 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:3729b60901d384235fe3567296e6b3ea6f6edd2281a28b41eff6da7c7e67b362"
+  },
+  "name": "regression/599ccd7e5c0fb04f09ce597af0f771f51557f1af1102b1c7912044f97584da39",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "diagnostics": [
+            {
+              "code": "sdl.model.invalid",
+              "path": "/behavior_specifications/analyst-triage/episode_policy/initialization/assertion_refs/0",
+              "range": {
+                "end": {
+                  "column": 31,
+                  "line": 151
+                },
+                "start": {
+                  "column": 26,
+                  "line": 151
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            }
+          ],
+          "stage": "parse",
+          "status": "invalid"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "diagnostics": [
+          {
+            "code": "sdl.model.invalid",
+            "path": "/behavior_specifications/analyst-triage/episode_policy/initialization/assertion_refs/0",
+            "range": {
+              "end": {
+                "column": 31,
+                "line": 151
+              },
+              "start": {
+                "column": 26,
+                "line": 151
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          }
+        ],
+        "stage": "parse",
+        "status": "invalid"
+      }
+    }
+  },
+  "surface": "mcp"
+}

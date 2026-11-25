@@ -1,0 +1,14 @@
+{
+  "args": [
+    "sdl-lineage-ledger-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:50e2ed6869f7a773b27cfa52cba1a8a6c1c0023b4cb8ca59e8829066035774d3"
+  },
+  "name": "regression/11f5a40d0576e9a4e2b89d2d82fb8ceb0a78091b50b39ef43402eea28a370867",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

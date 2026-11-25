@@ -88,7 +88,7 @@
                     "claim": "Role-constrained assertion model.",
                     "contract_id": null,
                     "kind": "implementation",
-                    "path": "implementations/python/packages/raes/propositions.py"
+                    "path": "implementations/python/packages/raes_contracts/propositions.py"
                   },
                   {
                     "claim": "Assertion truth-result integrity coverage.",
@@ -213,22 +213,10 @@
                     "path": "specs/formal/participant-semantics/participant-crossing-machine-check.md"
                   },
                   {
-                    "claim": "Complete-carrier, mutation, source-drift, and claim-promotion refusals for the finite model-check result.",
+                    "claim": "Complete-carrier, negative-control, and source-drift refusals for the finite model check built from the current sources.",
                     "contract_id": null,
                     "kind": "test",
                     "path": "implementations/python/tests/test_issue_974_machine_check.py"
-                  },
-                  {
-                    "claim": "The pinned qualified reproduction joins its measurement, execution record, and separate implementation-agent review to the pinned model-check subject.",
-                    "contract_id": null,
-                    "kind": "test",
-                    "path": "implementations/python/tests/test_issue_975_reproduction_record.py"
-                  },
-                  {
-                    "claim": "Published participant-crossing facts and claim equal the admitted model-check and reproduction records.",
-                    "contract_id": null,
-                    "kind": "test",
-                    "path": "implementations/python/tests/test_issue_976_crossing_publication.py"
                   }
                 ],
                 "exclusion_rationale": null,
@@ -575,7 +563,7 @@
                     "claim": "Typed proposition model.",
                     "contract_id": null,
                     "kind": "implementation",
-                    "path": "implementations/python/packages/raes/propositions.py"
+                    "path": "implementations/python/packages/raes_contracts/propositions.py"
                   },
                   {
                     "claim": "Predicate, subject, and truth-composition coverage.",
@@ -1002,7 +990,7 @@
                   "claim": "Role-constrained assertion model.",
                   "contract_id": null,
                   "kind": "implementation",
-                  "path": "implementations/python/packages/raes/propositions.py"
+                  "path": "implementations/python/packages/raes_contracts/propositions.py"
                 },
                 {
                   "claim": "Assertion truth-result integrity coverage.",
@@ -1127,22 +1115,10 @@
                   "path": "specs/formal/participant-semantics/participant-crossing-machine-check.md"
                 },
                 {
-                  "claim": "Complete-carrier, mutation, source-drift, and claim-promotion refusals for the finite model-check result.",
+                  "claim": "Complete-carrier, negative-control, and source-drift refusals for the finite model check built from the current sources.",
                   "contract_id": null,
                   "kind": "test",
                   "path": "implementations/python/tests/test_issue_974_machine_check.py"
-                },
-                {
-                  "claim": "The pinned qualified reproduction joins its measurement, execution record, and separate implementation-agent review to the pinned model-check subject.",
-                  "contract_id": null,
-                  "kind": "test",
-                  "path": "implementations/python/tests/test_issue_975_reproduction_record.py"
-                },
-                {
-                  "claim": "Published participant-crossing facts and claim equal the admitted model-check and reproduction records.",
-                  "contract_id": null,
-                  "kind": "test",
-                  "path": "implementations/python/tests/test_issue_976_crossing_publication.py"
                 }
               ],
               "exclusion_rationale": null,
@@ -1489,7 +1465,7 @@
                   "claim": "Typed proposition model.",
                   "contract_id": null,
                   "kind": "implementation",
-                  "path": "implementations/python/packages/raes/propositions.py"
+                  "path": "implementations/python/packages/raes_contracts/propositions.py"
                 },
                 {
                   "claim": "Predicate, subject, and truth-composition coverage.",

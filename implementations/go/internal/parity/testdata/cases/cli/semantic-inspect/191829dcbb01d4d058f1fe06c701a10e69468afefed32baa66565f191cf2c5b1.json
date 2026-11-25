@@ -10,22 +10,28 @@
   ],
   "command": "semantic inspect",
   "files": {
-    "input.json": "sha256:88f7bee0370ea8da9f8a77dd3cb14f18c4a2f3af2fec7a509b0607674afb45db"
+    "input.json": "sha256:540127ebd509e6458fe8711188688b75ac0429d9fa24d88e3488570229c0648d"
   },
   "name": "contracts/fixtures/participant-implementation-configuration/participant-configuration-result-v1/valid/reference",
   "result": {
-    "exit_code": 0,
+    "exit_code": 1,
     "stdout": {
       "contract_id": "participant-configuration-result-v1",
-      "diagnostics": [],
+      "diagnostics": [
+        {
+          "address": "participant-configuration-result-v1",
+          "code": "conformance.schema-invalid",
+          "domain": "conformance",
+          "severity": "error"
+        }
+      ],
       "migration_policy": null,
       "normalization_profile": null,
       "operation": "inspect",
       "payload": {
-        "member_count": 6,
+        "member_count": 5,
         "members": [
           "configuration",
-          "configuration_digest",
           "manifest_digest",
           "manifest_ref",
           "participant_address",
@@ -40,7 +46,7 @@
         "network": "disabled"
       },
       "source_format": null,
-      "status": "success",
+      "status": "invalid",
       "transform_profile": null,
       "validation_strength": "semantic"
     }

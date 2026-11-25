@@ -1,0 +1,14 @@
+{
+  "args": [
+    "experiment-authoring-input-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:fa58ae637c919dfcbfa8ffc8dbc7f38f892169d99512e94b4ab8c677906d6438"
+  },
+  "name": "regression/049ca43822d9c230d07a2419c7a2d82e808c1c1f2028f84523cced2811678da8",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

@@ -1,0 +1,17 @@
+{
+  "args": [
+    "processor",
+    "satisfiability",
+    "repo/contracts/fixtures/sdl/participant-episode-policy-v1/invalid/realized-episode-state.yaml"
+  ],
+  "command": "processor satisfiability",
+  "files": {
+    "repo/contracts/fixtures/sdl/participant-episode-policy-v1/invalid/realized-episode-state.yaml": "sha256:ec38bcee898d990d2792faf323d57a0d35f620fd1d1bc818fdac66a41c0eedd0"
+  },
+  "name": "contracts/fixtures/sdl/participant-episode-policy-v1/invalid/realized-episode-state.yaml",
+  "result": {
+    "exit_code": 1,
+    "stdout": null
+  },
+  "surface": "cli"
+}

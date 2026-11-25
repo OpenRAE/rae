@@ -2,13 +2,13 @@
   "args": [],
   "command": "encode",
   "files": {
-    "value.json": "sha256:18a5007b45ea0ca81b710828472bebb8f2c1d537c828a614ffdd0e4a0f9728a9"
+    "value.json": "sha256:b9d11efd5b23761ec937833404abadaaae1471b34339730eba01b9d7111b6bbb"
   },
   "name": "contracts/fixtures/semantic-comparison/semantic-comparison-result-v1/valid/changed-with-impact",
   "result": {
-    "jcs": "sha256:932ed115f2f1acadb7f81f281cac90f1783d725d9c3328b79af03c2ec0a770d7",
-    "sorted_ascii": "sha256:932ed115f2f1acadb7f81f281cac90f1783d725d9c3328b79af03c2ec0a770d7",
-    "sorted_unicode": "sha256:932ed115f2f1acadb7f81f281cac90f1783d725d9c3328b79af03c2ec0a770d7"
+    "jcs": "sha256:1d5b4f20b8a08b25a7a93ae95665d1c079f86faab93c7a202c6675d1169046b0",
+    "sorted_ascii": "sha256:1d5b4f20b8a08b25a7a93ae95665d1c079f86faab93c7a202c6675d1169046b0",
+    "sorted_unicode": "sha256:1d5b4f20b8a08b25a7a93ae95665d1c079f86faab93c7a202c6675d1169046b0"
   },
   "surface": "canonical"
 }

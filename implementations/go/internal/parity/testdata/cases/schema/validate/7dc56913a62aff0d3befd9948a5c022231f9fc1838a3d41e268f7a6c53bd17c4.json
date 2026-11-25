@@ -4,11 +4,11 @@
   ],
   "command": "validate",
   "files": {
-    "payload.json": "sha256:0ecc7b10c44471bc300822039c47c3824b7612b273f02a438d94bc4f0d1bcec5"
+    "payload.json": "sha256:05eb921c21b18cd6e0745c852e10688118578f3f4a18d08c3a4f2692bd9e418d"
   },
   "name": "sdl-candidate-synthesis-record-v1/routed/contracts/fixtures/candidate-synthesis/sdl-candidate-synthesis-record-v1/valid/attack-enterprise.json",
   "result": {
-    "valid": true
+    "valid": false
   },
   "surface": "schema"
 }

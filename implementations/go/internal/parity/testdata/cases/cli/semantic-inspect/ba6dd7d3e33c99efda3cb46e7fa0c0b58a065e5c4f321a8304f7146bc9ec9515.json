@@ -1,0 +1,161 @@
+{
+  "args": [
+    "semantic",
+    "inspect",
+    "--output",
+    "json",
+    "--contract",
+    "sdl-yaml/v1",
+    "input.yaml"
+  ],
+  "command": "semantic inspect",
+  "files": {
+    "input.yaml": "sha256:bf2f66701c27305dc2dfa8e2b5d9ffe53d8bf27f447a3b47542c23cdb5b65592"
+  },
+  "name": "contracts/fixtures/sdl/participant-episode-policy-v1/valid/standalone-episode-structure",
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "contract_id": "sdl-yaml/v1",
+      "diagnostics": [],
+      "migration_policy": "reject",
+      "normalization_profile": "raes-sdl-semantic/v2",
+      "operation": "inspect",
+      "payload": {
+        "declaration_count": 13,
+        "declarations": [
+          {
+            "address": "agents.replayer",
+            "kind": "agents",
+            "model_path": "agents.replayer",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "assertions.console-ready",
+            "kind": "assertions",
+            "model_path": "assertions.console-ready",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "behavior_specifications.replay-episodes",
+            "kind": "behavior_specifications",
+            "model_path": "behavior_specifications.replay-episodes",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "clocks.replay-clock",
+            "kind": "clocks",
+            "model_path": "clocks.replay-clock",
+            "referenceable": true,
+            "targetable": false
+          },
+          {
+            "address": "entities.blue-team",
+            "kind": "entity",
+            "model_path": "entities.blue-team",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "evidence_requirements.replay-clock-evidence",
+            "kind": "evidence_requirements",
+            "model_path": "evidence_requirements.replay-clock-evidence",
+            "referenceable": true,
+            "targetable": false
+          },
+          {
+            "address": "evidence_requirements.replay-reset-evidence",
+            "kind": "evidence_requirements",
+            "model_path": "evidence_requirements.replay-reset-evidence",
+            "referenceable": true,
+            "targetable": false
+          },
+          {
+            "address": "nodes.siem",
+            "kind": "node",
+            "model_path": "nodes.siem",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "nodes.siem.services.console",
+            "kind": "service",
+            "model_path": "nodes.siem.services.0.name",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "propositions.console-ready",
+            "kind": "propositions",
+            "model_path": "propositions.console-ready",
+            "referenceable": true,
+            "targetable": true
+          },
+          {
+            "address": "scenario.act-623",
+            "kind": "scenario",
+            "model_path": "name",
+            "referenceable": false,
+            "targetable": false
+          },
+          {
+            "address": "temporal_constraints.replay-deadline",
+            "kind": "temporal_constraints",
+            "model_path": "temporal_constraints.replay-deadline",
+            "referenceable": true,
+            "targetable": false
+          },
+          {
+            "address": "time_domains.replay-time",
+            "kind": "time_domains",
+            "model_path": "time_domains.replay-time",
+            "referenceable": true,
+            "targetable": false
+          }
+        ],
+        "phase": "inspection",
+        "root_type": "object",
+        "scenario_name": "act-623",
+        "semantic_axes": {
+          "constraints": {
+            "authored_sections": [
+              "agents",
+              "assertions",
+              "behavior_specifications",
+              "clocks",
+              "entities",
+              "nodes",
+              "propositions",
+              "temporal_constraints",
+              "time_domains"
+            ]
+          },
+          "delegation": {
+            "omission_policy": "legacy-closed-default"
+          },
+          "observation": {
+            "replay-clock-evidence": {
+              "source": "legacy-evidence-requirement"
+            },
+            "replay-reset-evidence": {
+              "source": "legacy-evidence-requirement"
+            }
+          }
+        }
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": "sdl-yaml/v1",
+      "status": "success",
+      "transform_profile": null,
+      "validation_strength": "semantic"
+    }
+  },
+  "surface": "cli"
+}

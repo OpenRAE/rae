@@ -1,0 +1,24 @@
+{
+  "args": [
+    "sdl",
+    "verify-imports",
+    "repo/contracts/fixtures/sdl/participant-episode-policy-v1/valid/standalone-episode-structure.yaml"
+  ],
+  "command": "sdl verify-imports",
+  "files": {
+    "repo/contracts/fixtures/sdl/participant-episode-policy-v1/valid/standalone-episode-structure.yaml": "sha256:bf2f66701c27305dc2dfa8e2b5d9ffe53d8bf27f447a3b47542c23cdb5b65592",
+    "setup.json": "sha256:544d07f0aa5f537ed649e668fa40baf21537d6f3c3cd8fef58429ebbfd1ddaeb"
+  },
+  "name": "contracts/fixtures/sdl/participant-episode-policy-v1/valid/standalone-episode-structure.yaml/resolved",
+  "result": {
+    "exit_code": 0,
+    "generated_files": {
+      "repo/contracts/fixtures/sdl/participant-episode-policy-v1/valid/raes.lock.json": {
+        "imports": [],
+        "schema_version": "raes-lock/v1"
+      }
+    },
+    "stdout": null
+  },
+  "surface": "cli"
+}

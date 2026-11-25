@@ -1,0 +1,41 @@
+{
+  "args": [],
+  "command": "sdl_list_elements",
+  "files": {
+    "arguments.json": "sha256:0a8c0e01aa3bc5e98f05b14f986a0c3cf14fa12a05ca632e257fde9f00169a75"
+  },
+  "name": "contracts/fixtures/sdl/participant-episode-policy-v1/valid/standalone-episode-structure.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "agents": [
+            "replayer"
+          ],
+          "entities": [
+            "blue-team"
+          ],
+          "nodes": [
+            "siem"
+          ]
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "agents": [
+          "replayer"
+        ],
+        "entities": [
+          "blue-team"
+        ],
+        "nodes": [
+          "siem"
+        ]
+      }
+    }
+  },
+  "surface": "mcp"
+}

@@ -1,0 +1,14 @@
+{
+  "args": [],
+  "command": "encode",
+  "files": {
+    "value.json": "sha256:3f3bfd4f77a2bc99c6742721550d90a3bef961fd67ca870b3b1b9d056b729edb"
+  },
+  "name": "contracts/fixtures/plans/provisioning-plan-v1/invalid/safe-state-evidence-key",
+  "result": {
+    "jcs": "sha256:22e368f51f4ff6949ac966a249762c514aeab16fc0066ded36a064ea9c67ccf7",
+    "sorted_ascii": "sha256:22e368f51f4ff6949ac966a249762c514aeab16fc0066ded36a064ea9c67ccf7",
+    "sorted_unicode": "sha256:22e368f51f4ff6949ac966a249762c514aeab16fc0066ded36a064ea9c67ccf7"
+  },
+  "surface": "canonical"
+}

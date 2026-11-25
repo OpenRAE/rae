@@ -1,0 +1,95 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:980646ba7475485cbb063f8a7ec3927a45f58ec1c4ca23b7ff689a54d0bb9033"
+  },
+  "name": "regression/6e54c0e59440b8bc09a1a70d1e685e98a1ea29d67a7ee5a99ef2fb1e85152ebd",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "diagnostics": [
+            {
+              "code": "sdl.model.invalid",
+              "path": "/nodes/m7jmgy/services/0/port",
+              "range": {
+                "end": {
+                  "column": 15,
+                  "line": 9
+                },
+                "start": {
+                  "column": 13,
+                  "line": 9
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            },
+            {
+              "code": "sdl.model.invalid",
+              "path": "/nodes/m7jmgy/services/3/port",
+              "range": {
+                "end": {
+                  "column": 14,
+                  "line": 18
+                },
+                "start": {
+                  "column": 13,
+                  "line": 18
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            }
+          ],
+          "stage": "parse",
+          "status": "invalid"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "diagnostics": [
+          {
+            "code": "sdl.model.invalid",
+            "path": "/nodes/m7jmgy/services/0/port",
+            "range": {
+              "end": {
+                "column": 15,
+                "line": 9
+              },
+              "start": {
+                "column": 13,
+                "line": 9
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          },
+          {
+            "code": "sdl.model.invalid",
+            "path": "/nodes/m7jmgy/services/3/port",
+            "range": {
+              "end": {
+                "column": 14,
+                "line": 18
+              },
+              "start": {
+                "column": 13,
+                "line": 18
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          }
+        ],
+        "stage": "parse",
+        "status": "invalid"
+      }
+    }
+  },
+  "surface": "mcp"
+}

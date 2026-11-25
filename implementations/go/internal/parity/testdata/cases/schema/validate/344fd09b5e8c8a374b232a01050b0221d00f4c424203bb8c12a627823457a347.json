@@ -4,11 +4,11 @@
   ],
   "command": "validate",
   "files": {
-    "payload.json": "sha256:7f79fab8edf64cea629ed0de2a730f5693438c6bbd04d93a88df9e61343fcc81"
+    "payload.json": "sha256:2a4495643e45a93fdfedd9ead0807de1e9872b2c38a1774ed17bf67e3f756211"
   },
   "name": "contracts/fixtures/plans/mixed-participant-composition-profile-v1/valid/simultaneous-mixed",
   "result": {
-    "valid": true
+    "valid": false
   },
   "surface": "schema"
 }

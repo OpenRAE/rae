@@ -1,0 +1,14 @@
+{
+  "args": [
+    "experiment-capture-spec-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:ae077739ed0858b33014e5a9976ee51131e23dbdc918a8adb94fb32d1708439d"
+  },
+  "name": "regression/2f2741324111afd4fd0012686a3bb428b8018a08cfcbe3e3d0e6acb0fd2d8764",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

@@ -1,0 +1,53 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:7316d6714691460638db649ff7a5784e6c5bfa3cdd6191efedc2f151c5598108"
+  },
+  "name": "contracts/fixtures/sdl/participant-episode-policy-v1/valid/analyst-shift-episode.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "scenario": {
+            "advisories": [],
+            "description_present": false,
+            "name": "dsl-120",
+            "populated_sections": {
+              "action_contracts": 1,
+              "agents": 1,
+              "entities": 1,
+              "nodes": 1
+            },
+            "source_diagnostics": [],
+            "version": "*"
+          },
+          "semantic_validation": "skipped",
+          "status": "parsed"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "scenario": {
+          "advisories": [],
+          "description_present": false,
+          "name": "dsl-120",
+          "populated_sections": {
+            "action_contracts": 1,
+            "agents": 1,
+            "entities": 1,
+            "nodes": 1
+          },
+          "source_diagnostics": [],
+          "version": "*"
+        },
+        "semantic_validation": "skipped",
+        "status": "parsed"
+      }
+    }
+  },
+  "surface": "mcp"
+}

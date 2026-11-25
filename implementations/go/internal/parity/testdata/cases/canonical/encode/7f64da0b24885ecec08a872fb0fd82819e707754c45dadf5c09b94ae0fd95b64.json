@@ -1,0 +1,14 @@
+{
+  "args": [],
+  "command": "encode",
+  "files": {
+    "value.json": "sha256:81bfd5807b85768a415468fca7d993d545ee72ccc1be05aeffc4c197d86de67d"
+  },
+  "name": "contracts/fixtures/control-plane/assigned-trial-control-v1/invalid/unsupported-version",
+  "result": {
+    "jcs": "sha256:ee2232ed434f1f5ac97539f1f715119c798eff6162a495299e25ce4a38635941",
+    "sorted_ascii": "sha256:ee2232ed434f1f5ac97539f1f715119c798eff6162a495299e25ce4a38635941",
+    "sorted_unicode": "sha256:ee2232ed434f1f5ac97539f1f715119c798eff6162a495299e25ce4a38635941"
+  },
+  "surface": "canonical"
+}

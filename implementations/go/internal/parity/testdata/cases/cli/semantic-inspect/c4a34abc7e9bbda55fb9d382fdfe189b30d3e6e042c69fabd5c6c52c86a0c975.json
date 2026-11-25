@@ -10,26 +10,31 @@
   ],
   "command": "semantic inspect",
   "files": {
-    "input.json": "sha256:074a5a57b445426a37209bcc928a0dd1ba72a6b6709f3524aaef0e7b1bb692f7"
+    "input.json": "sha256:71cb38dd280cc9c07b2d8645a6699b4b004f739659577aea198ab507c90b4494"
   },
   "name": "contracts/fixtures/formal-analysis/participant-opacity-model-check-evidence-v1/valid/opaque-transition-model",
   "result": {
-    "exit_code": 0,
+    "exit_code": 1,
     "stdout": {
       "contract_id": "participant-opacity-model-check-evidence-v1",
-      "diagnostics": [],
+      "diagnostics": [
+        {
+          "address": "participant-opacity-model-check-evidence-v1",
+          "code": "conformance.schema-invalid",
+          "domain": "conformance",
+          "severity": "error"
+        }
+      ],
       "migration_policy": null,
       "normalization_profile": null,
       "operation": "inspect",
       "payload": {
-        "member_count": 28,
+        "member_count": 26,
         "members": [
           "analysis_profile",
           "assumptions",
-          "assumptions_digest",
           "catalog_digest",
           "checker_configuration",
-          "checker_configuration_digest",
           "claim",
           "counterexample",
           "coverage",
@@ -62,7 +67,7 @@
         "network": "disabled"
       },
       "source_format": null,
-      "status": "success",
+      "status": "invalid",
       "transform_profile": null,
       "validation_strength": "structural"
     }

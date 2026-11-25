@@ -1,0 +1,14 @@
+{
+  "args": [
+    "trial-cleanup-receipt-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:7b6e0f3f50551cbf4b783cae7e369dc10163216957f385cd198282cc52879b6d"
+  },
+  "name": "regression/660e837bf0603d75fc3e0dd50a05fba6a068075a2e8988e5f58f2f5a300b3933",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

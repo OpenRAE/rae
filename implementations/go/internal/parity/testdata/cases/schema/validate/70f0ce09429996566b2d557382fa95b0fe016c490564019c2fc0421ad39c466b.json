@@ -1,0 +1,14 @@
+{
+  "args": [
+    "sdl-authoring-input-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:903c582e358f78d5340af0f21eae3297f62ad1b91941a0a7db7e2bbea885e15d"
+  },
+  "name": "contracts/fixtures/sdl/sdl-authoring-input-v1/valid/safe-state-hold",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

@@ -1,0 +1,21 @@
+{
+  "args": [],
+  "command": "sdl_get_element",
+  "files": {
+    "arguments.json": "sha256:a8269209b739f7cf718decad61916765e00bb96d2bb285b491e1d9e6a777a214"
+  },
+  "name": "contracts/fixtures/sdl/participant-episode-policy-v1/invalid/realized-episode-state.yaml",
+  "result": {
+    "content": [
+      {
+        "text": null,
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": null
+    }
+  },
+  "surface": "mcp"
+}

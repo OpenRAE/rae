@@ -1,0 +1,14 @@
+{
+  "args": [
+    "semantic-projection-report-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:5112e6cfebb352b3ee091bc87be9bef9b050a1b20288ae88684df5f3f4459891"
+  },
+  "name": "regression/98c461075bab73b7d4a518a50799e8eda1e3fb27d1baf4f95de221dee25e2f11",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

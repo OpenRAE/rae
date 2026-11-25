@@ -1,0 +1,14 @@
+{
+  "args": [
+    "workflow-step-response-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:cf12b2d269ffd1f07298feec663f6e0e8dd41956bde82527c7a67714db719970"
+  },
+  "name": "regression/01a1437c8216f73b825036b9342beee6f36f245e5f41e44d94b96c48d0ead4ae",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

@@ -6,7 +6,7 @@
   ],
   "command": "processor satisfiability",
   "files": {
-    "repo/examples/scenarios/cloud-resources/cloud-secret-cross-project.sdl.yaml": "sha256:15791b8d502f9f38b6a0dfcb4707dc763f846033e6590eaa95cd158dae171f27"
+    "repo/examples/scenarios/cloud-resources/cloud-secret-cross-project.sdl.yaml": "sha256:5e7be0f557cc74bc7d621ef4234b7a0b37d002ff4fe5a008ea1c23df5ae0f190"
   },
   "name": "examples/scenarios/cloud-resources/cloud-secret-cross-project.sdl.yaml",
   "result": {
@@ -16,7 +16,7 @@
       "authored_digest": {
         "algorithm": "sha256",
         "profile": "raes-sdl-semantic/v2",
-        "value": "sha256:cfc9970b889d56af1d3e6e6e5316b73d6a6337bd858478926de3982496b9d299"
+        "value": "sha256:85d5771a9a455ab92c5ff7512efc1bb09299c482fe133425a0295ccbd8a3b989"
       },
       "diagnostics": [],
       "imports": [],
@@ -24,16 +24,16 @@
         "authored_digest": {
           "algorithm": "sha256",
           "profile": "raes-sdl-semantic/v2",
-          "value": "sha256:cfc9970b889d56af1d3e6e6e5316b73d6a6337bd858478926de3982496b9d299"
+          "value": "sha256:85d5771a9a455ab92c5ff7512efc1bb09299c482fe133425a0295ccbd8a3b989"
         },
         "clauses": [],
         "profile": "raes-finite-domain-constraints/v1",
-        "source_digest": "sha256:15791b8d502f9f38b6a0dfcb4707dc763f846033e6590eaa95cd158dae171f27",
+        "source_digest": "sha256:5e7be0f557cc74bc7d621ef4234b7a0b37d002ff4fe5a008ea1c23df5ae0f190",
         "symbols": [],
         "theory_profile": "raes-finite-domain-theory/v1",
         "translation_profile": "raes-sdl-authoring-translation/v1"
       },
-      "normalized_model_digest": "sha256:5a88367bfaf2cddb48c9922569c5586d7b346dca75371d04300db9a989918b04",
+      "normalized_model_digest": "sha256:1316b5fe2d3fe4cc9bb566e6fa7fde77fb6d2b0ef0c6e7a427b4db10a8022255",
       "outcome": "satisfiable",
       "profile": "scenario-satisfiability-evidence/v1",
       "solver_configuration": {
@@ -54,7 +54,7 @@
       },
       "solver_configuration_digest": "sha256:1204635e17e759e9ad3bd6be2ecb28c6de05c07ead6dfdd15936ed5d3d5b81b2",
       "source": {
-        "byte_digest": "sha256:15791b8d502f9f38b6a0dfcb4707dc763f846033e6590eaa95cd158dae171f27",
+        "byte_digest": "sha256:5e7be0f557cc74bc7d621ef4234b7a0b37d002ff4fe5a008ea1c23df5ae0f190",
         "source_id": "cloud-secret-cross-project.sdl.yaml"
       },
       "unsat_core": null,
@@ -90,7 +90,7 @@
               "authored_digest": {
                 "algorithm": "sha256",
                 "profile": "raes-sdl-semantic/v2",
-                "value": "sha256:cfc9970b889d56af1d3e6e6e5316b73d6a6337bd858478926de3982496b9d299"
+                "value": "sha256:85d5771a9a455ab92c5ff7512efc1bb09299c482fe133425a0295ccbd8a3b989"
               },
               "bindings": [],
               "capability_constraints": [],
@@ -608,6 +608,69 @@
                 },
                 {
                   "classification": "exact",
+                  "model_path": "nodes.iam.runtime.identity_authorities[0].resource_scopes[1].audit_logs[0].audit_log_id",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.iam.runtime.identity_authorities[0].resource_scopes[1].audit_logs[0].service",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.iam.runtime.identity_authorities[0].resource_scopes[1].audit_logs[0].log_type",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.iam.runtime.identity_authorities[0].resource_scopes[1].audit_logs[0]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.iam.runtime.identity_authorities[0].resource_scopes[1].audit_logs[1].audit_log_id",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.iam.runtime.identity_authorities[0].resource_scopes[1].audit_logs[1].service",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.iam.runtime.identity_authorities[0].resource_scopes[1].audit_logs[1].log_type",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.iam.runtime.identity_authorities[0].resource_scopes[1].audit_logs[1]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.iam.runtime.identity_authorities[0].resource_scopes[1].audit_logs",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
                   "model_path": "nodes.iam.runtime.identity_authorities[0].resource_scopes[1]",
                   "parameters": [],
                   "provenance": "author-declared",
@@ -885,6 +948,69 @@
                   "parameters": [],
                   "provenance": "author-declared",
                   "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.secrets.runtime.platform_applications[0].secrets[0].replication.provider",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.secrets.runtime.platform_applications[0].secrets[0].replication.mode",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.secrets.runtime.platform_applications[0].secrets[0].replication.replicas[0].location",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.secrets.runtime.platform_applications[0].secrets[0].replication.replicas[0].kms_key_name",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.secrets.runtime.platform_applications[0].secrets[0].replication.replicas[0]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.secrets.runtime.platform_applications[0].secrets[0].replication.replicas[1].location",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "authored concrete value"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.secrets.runtime.platform_applications[0].secrets[0].replication.replicas[1]",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.secrets.runtime.platform_applications[0].secrets[0].replication.replicas",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
+                },
+                {
+                  "classification": "exact",
+                  "model_path": "nodes.secrets.runtime.platform_applications[0].secrets[0].replication",
+                  "parameters": [],
+                  "provenance": "author-declared",
+                  "reason": "derived from child declarations"
                 },
                 {
                   "classification": "exact",
@@ -1320,6 +1446,7 @@
                       "relationships": [],
                       "resource_scopes": [
                         {
+                          "audit_logs": [],
                           "description": "",
                           "incarnation_id": "",
                           "name": "",
@@ -1330,6 +1457,20 @@
                           "scope_kind": "project"
                         },
                         {
+                          "audit_logs": [
+                            {
+                              "audit_log_id": "secret-reads",
+                              "exempted_principal_refs": [],
+                              "log_type": "DATA_READ",
+                              "service": "secretmanager.googleapis.com"
+                            },
+                            {
+                              "audit_log_id": "secret-admin-reads",
+                              "exempted_principal_refs": [],
+                              "log_type": "ADMIN_READ",
+                              "service": "secretmanager.googleapis.com"
+                            }
+                          ],
                           "description": "",
                           "incarnation_id": "",
                           "name": "",
@@ -1490,6 +1631,21 @@
                           "location": "",
                           "native_id": "database",
                           "replica_locations": [],
+                          "replication": {
+                            "kms_key_name": null,
+                            "mode": "user-managed",
+                            "provider": "gcp-secret-manager",
+                            "replicas": [
+                              {
+                                "kms_key_name": "projects/example/locations/us-east1/keyRings/example/cryptoKeys/example",
+                                "location": "us-east1"
+                              },
+                              {
+                                "kms_key_name": null,
+                                "location": "europe-west1"
+                              }
+                            ]
+                          },
                           "reset_owner_ref": "",
                           "resource_scope_ref": "nodes.iam.runtime.identity_authorities.cloud.resource_scopes.project-b",
                           "secret_id": "database",
@@ -1583,7 +1739,7 @@
             "workflows": {}
           }
         },
-        "snapshot_digest": "sha256:20077a05cfc963234dc1d2b505d41a8af1005b328bf3c4154fc16e01d6d6aa07"
+        "snapshot_digest": "sha256:5f772cbfaeed72786d615b1c641697793abb371903fb477ce92ca964cf6f1f8e"
       }
     }
   },

@@ -519,14 +519,14 @@
               "provision.network.lab-network"
             ],
             "payload": {
-              "architecture": "",
+              "architecture": null,
               "count": 1,
               "domain_topology": null,
               "name": "web",
               "network_namespace_target": "",
               "node_kind": "compute",
               "node_name": "web",
-              "os_distribution": "",
+              "os_distribution": null,
               "os_family": "",
               "os_version": "",
               "spec": {
@@ -585,14 +585,14 @@
               "provision.network.lab-network"
             ],
             "payload": {
-              "architecture": "",
+              "architecture": null,
               "count": 1,
               "domain_topology": null,
               "name": "workstation",
               "network_namespace_target": "",
               "node_kind": "compute",
               "node_name": "workstation",
-              "os_distribution": "",
+              "os_distribution": null,
               "os_family": "",
               "os_version": "",
               "spec": {

@@ -4,11 +4,11 @@
   ],
   "command": "validate",
   "files": {
-    "payload.json": "sha256:6d33aed2c55e8134cbadb716954ec1d9d34521d09b15112ee5bd51251be44334"
+    "payload.json": "sha256:bbefd9347bf4a1555b085552be103000ab71652ad1998c1fa81f598ad3e41fb0"
   },
   "name": "contracts/fixtures/experiment-core/materialization-archive-record-v1/valid/reference",
   "result": {
-    "valid": true
+    "valid": false
   },
   "surface": "schema"
 }

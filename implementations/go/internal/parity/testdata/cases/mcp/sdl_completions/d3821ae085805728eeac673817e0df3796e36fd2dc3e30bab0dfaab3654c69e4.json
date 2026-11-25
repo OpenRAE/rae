@@ -2,7 +2,7 @@
   "args": [],
   "command": "sdl_completions",
   "files": {
-    "arguments.json": "sha256:7ffde1a7ea2a42686c372d7902ca399204a0a6311db649f29ecd16b2c27b0014"
+    "arguments.json": "sha256:e230ce914df6198ffcdbbfc1b3a43e519f6ba2a9e7838dd1bd1b1449bf5cbcc2"
   },
   "name": "examples/scenarios/cloud-resources/cloud-secret-cross-project.sdl.yaml",
   "result": {
@@ -16,6 +16,12 @@
               "insert_text": "version: ",
               "kind": "field",
               "label": "version"
+            },
+            {
+              "detail": "top-level SDL key",
+              "insert_text": "trial_parallelism: ",
+              "kind": "field",
+              "label": "trial_parallelism"
             },
             {
               "detail": "top-level SDL key",
@@ -193,6 +199,12 @@
             },
             {
               "detail": "top-level SDL key",
+              "insert_text": "safe_state: ",
+              "kind": "field",
+              "label": "safe_state"
+            },
+            {
+              "detail": "top-level SDL key",
               "insert_text": "execution_policy: ",
               "kind": "field",
               "label": "execution_policy"
@@ -291,6 +303,12 @@
             "insert_text": "version: ",
             "kind": "field",
             "label": "version"
+          },
+          {
+            "detail": "top-level SDL key",
+            "insert_text": "trial_parallelism: ",
+            "kind": "field",
+            "label": "trial_parallelism"
           },
           {
             "detail": "top-level SDL key",
@@ -465,6 +483,12 @@
             "insert_text": "evidence_requirements: ",
             "kind": "field",
             "label": "evidence_requirements"
+          },
+          {
+            "detail": "top-level SDL key",
+            "insert_text": "safe_state: ",
+            "kind": "field",
+            "label": "safe_state"
           },
           {
             "detail": "top-level SDL key",

@@ -1,0 +1,14 @@
+{
+  "args": [
+    "participant-delivery-invocation-context-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:ac77a3ed41ae4ba4203abd3025653f79a4fca409765d407a6c01316cf650f44b"
+  },
+  "name": "regression/78312b26efa7d4827f7151e52f4372e250628ce7923d21f036ed7da11f6b18fb",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

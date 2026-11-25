@@ -715,14 +715,14 @@
               "provision.network.lab"
             ],
             "payload": {
-              "architecture": "",
+              "architecture": null,
               "count": 1,
               "domain_topology": null,
               "name": "cache",
               "network_namespace_target": "",
               "node_kind": "compute",
               "node_name": "cache",
-              "os_distribution": "",
+              "os_distribution": null,
               "os_family": "",
               "os_version": "",
               "spec": {
@@ -767,14 +767,14 @@
               "provision.network.lab"
             ],
             "payload": {
-              "architecture": "",
+              "architecture": null,
               "count": 1,
               "domain_topology": null,
               "name": "database",
               "network_namespace_target": "",
               "node_kind": "compute",
               "node_name": "database",
-              "os_distribution": "",
+              "os_distribution": null,
               "os_family": "",
               "os_version": "",
               "spec": {
@@ -826,14 +826,14 @@
               "provision.network.lab"
             ],
             "payload": {
-              "architecture": "",
+              "architecture": null,
               "count": 1,
               "domain_topology": null,
               "name": "web",
               "network_namespace_target": "",
               "node_kind": "compute",
               "node_name": "web",
-              "os_distribution": "",
+              "os_distribution": null,
               "os_family": "",
               "os_version": "",
               "spec": {

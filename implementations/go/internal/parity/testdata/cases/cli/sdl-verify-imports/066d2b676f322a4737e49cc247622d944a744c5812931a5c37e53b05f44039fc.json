@@ -1,0 +1,18 @@
+{
+  "args": [
+    "sdl",
+    "verify-imports",
+    "repo/contracts/fixtures/sdl/participant-episode-policy-v1/invalid/autonomous-profile-episode-structure.yaml"
+  ],
+  "command": "sdl verify-imports",
+  "files": {
+    "repo/contracts/fixtures/sdl/participant-episode-policy-v1/invalid/autonomous-profile-episode-structure.yaml": "sha256:1927f655e8366a61cf85a97c2d8f609f0a83bafbe38b39046fe65f7e3938021b",
+    "setup.json": "sha256:babce72946243432feaba3e2e0deb821c0d9de8c5b9775ef6c28c3d79c4fedd0"
+  },
+  "name": "contracts/fixtures/sdl/participant-episode-policy-v1/invalid/autonomous-profile-episode-structure.yaml/resolved",
+  "result": {
+    "exit_code": 2,
+    "stdout": null
+  },
+  "surface": "cli"
+}

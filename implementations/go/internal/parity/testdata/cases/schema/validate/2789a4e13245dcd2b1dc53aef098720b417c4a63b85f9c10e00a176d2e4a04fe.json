@@ -4,11 +4,11 @@
   ],
   "command": "validate",
   "files": {
-    "payload.json": "sha256:18a5007b45ea0ca81b710828472bebb8f2c1d537c828a614ffdd0e4a0f9728a9"
+    "payload.json": "sha256:b9d11efd5b23761ec937833404abadaaae1471b34339730eba01b9d7111b6bbb"
   },
   "name": "contracts/fixtures/semantic-comparison/semantic-comparison-result-v1/valid/changed-with-impact",
   "result": {
-    "valid": true
+    "valid": false
   },
   "surface": "schema"
 }

@@ -2,14 +2,14 @@
   "args": [],
   "command": "sdl_apply_edit",
   "files": {
-    "arguments.json": "sha256:d21a11ea994ad33d24f24c3886d85b21cfd5bdd8bf349d74694abd996b9367b3"
+    "arguments.json": "sha256:1f698cee4af54b7b76c241d10e3b2985ddd9269290794dde6fd5a02399094e06"
   },
   "name": "examples/library/patterns/participant-behavior-contract-binding.yaml",
   "result": {
     "content": [
       {
         "text": {
-          "content": "pattern: raes-library-pattern\nversion: 1\nid: participant-behavior-contract-binding\nsurface: participant_behavior\nrequirement_refs:\n- AUT-806\nsource_refs:\n- implementations/python/tests/test_sem_208_participant_behavior.py\n- docs/explain/sdl/validation.md\nsummary: Bind participant actions to governed action contracts and observation boundaries.\nintent: 'Make participant behavior examples reusable without treating free-form action\n  names as complete semantics.\n\n  '\nuse_when:\n- An agent action needs declared preconditions, effects, failures, and evidence expectations.\n- A participant view needs explicit hidden, observable, and evidence-only material.\nauthoring_steps:\n- Add an action-contract entry for each governed action name.\n- Bind agent actions to the action-contract keys.\n- Add observation-boundaries and bind each agent boundary reference.\n- Keep sensitive information in hidden or evidence-only boundary rules.\nvalidation:\n- command: parse_sdl_file\n  expected: agent actions and observation boundaries resolve to declared entries.\nname: changed\n",
+          "content": "pattern: raes-library-pattern\nversion: 1\nid: participant-behavior-contract-binding\nsurface: participant_behavior\nrequirement_refs:\n- AUT-806\nsource_refs:\n- implementations/python/tests/test_sem_208_participant_behavior.py\n- docs/explain/sdl/validation.md\nsummary: Bind participant actions to governed action contracts and observation boundaries.\nintent: 'Bind participant behavior to declared contracts. Free-form action names alone\n  do not define complete semantics.\n\n  '\nuse_when:\n- An agent action needs declared preconditions, effects, failures, and evidence expectations.\n- A participant view needs explicit hidden, observable, and evidence-only material.\nauthoring_steps:\n- Add an action-contract entry for each governed action name.\n- Bind agent actions to the action-contract keys.\n- Add observation-boundaries and bind each agent boundary reference.\n- Keep sensitive information in hidden or evidence-only boundary rules.\nvalidation:\n- command: parse_sdl_file\n  expected: agent actions and observation boundaries resolve to declared entries.\nname: changed\n",
           "diagnostics": [
             {
               "code": "sdl.model.invalid",
@@ -196,7 +196,7 @@
     "is_error": false,
     "structured_content": {
       "result": {
-        "content": "pattern: raes-library-pattern\nversion: 1\nid: participant-behavior-contract-binding\nsurface: participant_behavior\nrequirement_refs:\n- AUT-806\nsource_refs:\n- implementations/python/tests/test_sem_208_participant_behavior.py\n- docs/explain/sdl/validation.md\nsummary: Bind participant actions to governed action contracts and observation boundaries.\nintent: 'Make participant behavior examples reusable without treating free-form action\n  names as complete semantics.\n\n  '\nuse_when:\n- An agent action needs declared preconditions, effects, failures, and evidence expectations.\n- A participant view needs explicit hidden, observable, and evidence-only material.\nauthoring_steps:\n- Add an action-contract entry for each governed action name.\n- Bind agent actions to the action-contract keys.\n- Add observation-boundaries and bind each agent boundary reference.\n- Keep sensitive information in hidden or evidence-only boundary rules.\nvalidation:\n- command: parse_sdl_file\n  expected: agent actions and observation boundaries resolve to declared entries.\nname: changed\n",
+        "content": "pattern: raes-library-pattern\nversion: 1\nid: participant-behavior-contract-binding\nsurface: participant_behavior\nrequirement_refs:\n- AUT-806\nsource_refs:\n- implementations/python/tests/test_sem_208_participant_behavior.py\n- docs/explain/sdl/validation.md\nsummary: Bind participant actions to governed action contracts and observation boundaries.\nintent: 'Bind participant behavior to declared contracts. Free-form action names alone\n  do not define complete semantics.\n\n  '\nuse_when:\n- An agent action needs declared preconditions, effects, failures, and evidence expectations.\n- A participant view needs explicit hidden, observable, and evidence-only material.\nauthoring_steps:\n- Add an action-contract entry for each governed action name.\n- Bind agent actions to the action-contract keys.\n- Add observation-boundaries and bind each agent boundary reference.\n- Keep sensitive information in hidden or evidence-only boundary rules.\nvalidation:\n- command: parse_sdl_file\n  expected: agent actions and observation boundaries resolve to declared entries.\nname: changed\n",
         "diagnostics": [
           {
             "code": "sdl.model.invalid",

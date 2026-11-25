@@ -1,0 +1,14 @@
+{
+  "args": [
+    "workflow-step-dispatch-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:f52c81014fc1dd3dc1813dd4d04e06cf0814033c462a23dae24b4def36360ffc"
+  },
+  "name": "contracts/fixtures/control-plane/workflow-step-dispatch-v1/valid/objective",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

@@ -1,0 +1,17 @@
+{
+  "args": [
+    "sdl",
+    "verify-imports",
+    "repo/contracts/fixtures/sdl/participant-episode-policy-v1/valid/standalone-episode-structure.yaml"
+  ],
+  "command": "sdl verify-imports",
+  "files": {
+    "repo/contracts/fixtures/sdl/participant-episode-policy-v1/valid/standalone-episode-structure.yaml": "sha256:bf2f66701c27305dc2dfa8e2b5d9ffe53d8bf27f447a3b47542c23cdb5b65592"
+  },
+  "name": "contracts/fixtures/sdl/participant-episode-policy-v1/valid/standalone-episode-structure.yaml",
+  "result": {
+    "exit_code": 2,
+    "stdout": null
+  },
+  "surface": "cli"
+}

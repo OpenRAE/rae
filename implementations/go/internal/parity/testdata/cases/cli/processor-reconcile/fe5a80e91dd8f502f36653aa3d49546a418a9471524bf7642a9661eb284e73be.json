@@ -1,0 +1,62 @@
+{
+  "args": [
+    "processor",
+    "reconcile",
+    "repo/contracts/fixtures/sdl/participant-episode-policy-v1/valid/analyst-shift-episode.yaml",
+    "repo/contracts/fixtures/sdl/participant-episode-policy-v1/valid/analyst-shift-episode.yaml",
+    "--format",
+    "json"
+  ],
+  "command": "processor reconcile",
+  "files": {
+    "repo/contracts/fixtures/sdl/participant-episode-policy-v1/valid/analyst-shift-episode.yaml": "sha256:f8f5288f4522481d27bf686a6180a79c7128853eec477927a29618b1eb41be74"
+  },
+  "name": "contracts/fixtures/sdl/participant-episode-policy-v1/valid/analyst-shift-episode.yaml",
+  "result": {
+    "exit_code": 1,
+    "stdout": {
+      "actions": null,
+      "baseline": {
+        "diagnostics": [
+          {
+            "address": "time.model",
+            "code": "time.unsupported-capability",
+            "domain": "time",
+            "severity": "error"
+          },
+          {
+            "address": "evidence_requirements.queue-evidence",
+            "code": "capture.offer-missing",
+            "domain": "capture",
+            "severity": "error"
+          },
+          {
+            "address": "evidence_requirements.reset-evidence",
+            "code": "capture.offer-missing",
+            "domain": "capture",
+            "severity": "error"
+          },
+          {
+            "address": "evidence_requirements.shift-clock-evidence",
+            "code": "capture.offer-missing",
+            "domain": "capture",
+            "severity": "error"
+          },
+          {
+            "address": "evidence_requirements.ticket-evidence",
+            "code": "capture.offer-missing",
+            "domain": "capture",
+            "severity": "error"
+          }
+        ],
+        "scenario_name": "dsl-120",
+        "snapshot": null
+      },
+      "candidate": null,
+      "operations": null,
+      "snapshot_kind": "planned-state-projection",
+      "status": "baseline_rejected"
+    }
+  },
+  "surface": "cli"
+}

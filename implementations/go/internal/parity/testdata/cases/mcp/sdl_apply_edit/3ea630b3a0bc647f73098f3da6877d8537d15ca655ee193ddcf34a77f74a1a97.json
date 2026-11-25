@@ -2,14 +2,14 @@
   "args": [],
   "command": "sdl_apply_edit",
   "files": {
-    "arguments.json": "sha256:a931818b8c3ac831194e8fc1a99c1e8c078141d90e5d5e06d4bc37ce584b6f54"
+    "arguments.json": "sha256:b5ab6ceec3c779f115998bb01e1994ebe362a8223affcbbdd39bdd334920fd25"
   },
   "name": "examples/library/patterns/observable-study-conditions.yaml",
   "result": {
     "content": [
       {
         "text": {
-          "content": "pattern: raes-library-pattern\nversion: 1\nid: observable-study-conditions\nsurface: study\nrequirement_refs:\n- AUT-806\nsource_refs:\n- examples/scenarios/satcom-release-poisoning.sdl.yaml\n- docs/decisions/adrs/adr-073-scoring-reward-language-scope.md\nsummary: Represent study-style examples through propositions, assertions, and explicit\n  probe bindings while keeping graded scoring in the experiment/evaluator plane.\nintent: 'Make study-like examples reusable by connecting participant activity to backend-neutral\n  propositions, assertions, evidence requirements, and workflow protocol. Graded scoring,\n  reward, and interpretation live in the experiment/evaluator plane (experiment-*\n  contracts) per ADR-073, not in the SDL.\n\n  '\nuse_when:\n- A study needs a repeatable, observable definition of participant success.\n- Reviewers need to see how evidence and a probe binding support an asserted proposition.\nauthoring_steps:\n- Define a typed proposition with grounded property semantics and finite subjects.\n- Declare the evidence requirement needed for observed-state truth.\n- Bind a condition probe to the proposition when an executable check is needed.\n- Reference a postcondition or invariant assertion from objective success.\n- Drive the objective from a workflow protocol step.\n- Carry any graded scoring or reward in the experiment/evaluator plane, not the SDL.\nvalidation:\n- command: parse_sdl_file\n  expected: proposition, assertion, evidence, objective, and workflow references resolve\n    with no removed scoring surfaces.\nname: changed\n",
+          "content": "pattern: raes-library-pattern\nversion: 1\nid: observable-study-conditions\nsurface: study\nrequirement_refs:\n- AUT-806\nsource_refs:\n- examples/scenarios/satcom-release-poisoning.sdl.yaml\n- docs/decisions/adrs/adr-073-scoring-reward-language-scope.md\nsummary: Connect propositions, assertions, and probe bindings in a study-style example.\n  Keep graded scoring in the experiment/evaluator plane.\nintent: 'Connect participant activity to backend-neutral propositions, assertions,\n  evidence requirements, and workflow protocol. Graded scoring, reward, and interpretation\n  belong to the experiment/evaluator plane under ADR-073. The experiment-* contracts\n  own these concerns.\n\n  '\nuse_when:\n- A study needs a repeatable, observable definition of participant success.\n- Reviewers need to see how evidence and a probe binding support an asserted proposition.\nauthoring_steps:\n- Define a typed proposition with grounded property semantics and finite subjects.\n- Declare the evidence requirement needed for observed-state truth.\n- Bind a condition probe to the proposition when an executable check is needed.\n- Reference a postcondition or invariant assertion from objective success.\n- Drive the objective from a workflow protocol step.\n- Put graded scoring and reward in the experiment/evaluator plane.\nvalidation:\n- command: parse_sdl_file\n  expected: proposition, assertion, evidence, objective, and workflow references resolve\n    with no removed scoring surfaces.\nname: changed\n",
           "diagnostics": [
             {
               "code": "sdl.model.invalid",
@@ -112,7 +112,7 @@
               "path": "/summary",
               "range": {
                 "end": {
-                  "column": 81,
+                  "column": 57,
                   "line": 11
                 },
                 "start": {
@@ -196,7 +196,7 @@
     "is_error": false,
     "structured_content": {
       "result": {
-        "content": "pattern: raes-library-pattern\nversion: 1\nid: observable-study-conditions\nsurface: study\nrequirement_refs:\n- AUT-806\nsource_refs:\n- examples/scenarios/satcom-release-poisoning.sdl.yaml\n- docs/decisions/adrs/adr-073-scoring-reward-language-scope.md\nsummary: Represent study-style examples through propositions, assertions, and explicit\n  probe bindings while keeping graded scoring in the experiment/evaluator plane.\nintent: 'Make study-like examples reusable by connecting participant activity to backend-neutral\n  propositions, assertions, evidence requirements, and workflow protocol. Graded scoring,\n  reward, and interpretation live in the experiment/evaluator plane (experiment-*\n  contracts) per ADR-073, not in the SDL.\n\n  '\nuse_when:\n- A study needs a repeatable, observable definition of participant success.\n- Reviewers need to see how evidence and a probe binding support an asserted proposition.\nauthoring_steps:\n- Define a typed proposition with grounded property semantics and finite subjects.\n- Declare the evidence requirement needed for observed-state truth.\n- Bind a condition probe to the proposition when an executable check is needed.\n- Reference a postcondition or invariant assertion from objective success.\n- Drive the objective from a workflow protocol step.\n- Carry any graded scoring or reward in the experiment/evaluator plane, not the SDL.\nvalidation:\n- command: parse_sdl_file\n  expected: proposition, assertion, evidence, objective, and workflow references resolve\n    with no removed scoring surfaces.\nname: changed\n",
+        "content": "pattern: raes-library-pattern\nversion: 1\nid: observable-study-conditions\nsurface: study\nrequirement_refs:\n- AUT-806\nsource_refs:\n- examples/scenarios/satcom-release-poisoning.sdl.yaml\n- docs/decisions/adrs/adr-073-scoring-reward-language-scope.md\nsummary: Connect propositions, assertions, and probe bindings in a study-style example.\n  Keep graded scoring in the experiment/evaluator plane.\nintent: 'Connect participant activity to backend-neutral propositions, assertions,\n  evidence requirements, and workflow protocol. Graded scoring, reward, and interpretation\n  belong to the experiment/evaluator plane under ADR-073. The experiment-* contracts\n  own these concerns.\n\n  '\nuse_when:\n- A study needs a repeatable, observable definition of participant success.\n- Reviewers need to see how evidence and a probe binding support an asserted proposition.\nauthoring_steps:\n- Define a typed proposition with grounded property semantics and finite subjects.\n- Declare the evidence requirement needed for observed-state truth.\n- Bind a condition probe to the proposition when an executable check is needed.\n- Reference a postcondition or invariant assertion from objective success.\n- Drive the objective from a workflow protocol step.\n- Put graded scoring and reward in the experiment/evaluator plane.\nvalidation:\n- command: parse_sdl_file\n  expected: proposition, assertion, evidence, objective, and workflow references resolve\n    with no removed scoring surfaces.\nname: changed\n",
         "diagnostics": [
           {
             "code": "sdl.model.invalid",
@@ -299,7 +299,7 @@
             "path": "/summary",
             "range": {
               "end": {
-                "column": 81,
+                "column": 57,
                 "line": 11
               },
               "start": {

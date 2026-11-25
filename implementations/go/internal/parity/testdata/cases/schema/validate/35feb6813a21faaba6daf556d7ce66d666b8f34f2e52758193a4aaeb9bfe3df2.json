@@ -1,0 +1,14 @@
+{
+  "args": [
+    "admitted-trial-plan-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:97454c01798623442117cb388487f3737e04e9e4ea4fe6284b3727559d394224"
+  },
+  "name": "contracts/fixtures/plans/admitted-trial-plan-v1/valid/two-entry",
+  "result": {
+    "valid": false
+  },
+  "surface": "schema"
+}

@@ -1,0 +1,61 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:baf57fb237394b3e513a8f36aaa58d092de655c9224b9c5900e5468fd95af612"
+  },
+  "name": "regression/c4ac5de35d45810a1d9cb370a7bc038065429efb73d9e65806987d63cb285eac",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "scenario": {
+            "advisories": [],
+            "description_present": true,
+            "name": "enterprise-participant-evidence-loop",
+            "populated_sections": {
+              "action_contracts": 1,
+              "agents": 1,
+              "conditions": 5,
+              "content": 6,
+              "entities": 3,
+              "infrastructure": 10,
+              "nodes": 10,
+              "observation_boundaries": 1
+            },
+            "source_diagnostics": [],
+            "version": "1.0"
+          },
+          "semantic_validation": "performed",
+          "status": "parsed"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "scenario": {
+          "advisories": [],
+          "description_present": true,
+          "name": "enterprise-participant-evidence-loop",
+          "populated_sections": {
+            "action_contracts": 1,
+            "agents": 1,
+            "conditions": 5,
+            "content": 6,
+            "entities": 3,
+            "infrastructure": 10,
+            "nodes": 10,
+            "observation_boundaries": 1
+          },
+          "source_diagnostics": [],
+          "version": "1.0"
+        },
+        "semantic_validation": "performed",
+        "status": "parsed"
+      }
+    }
+  },
+  "surface": "mcp"
+}
