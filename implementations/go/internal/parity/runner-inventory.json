@@ -1,9 +1,11 @@
 {
   "implemented": [
     "canonical encode",
+    "cli processor exploit-path",
     "cli processor manifest",
     "cli processor plan",
     "cli processor reconcile",
+    "cli processor satisfiability",
     "cli sdl format",
     "cli sdl publish",
     "cli sdl resolve",

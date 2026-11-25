@@ -160,9 +160,9 @@ def _replay_production_evidence(
         return _historical_production_replay(stored_payload, observation, replay_mode, repo_root=repo_root)
     if replay_mode == "satisfiability":
         from raes_processor.satisfiability import analyze_scenario_file, replay_satisfiability_evidence
-        from raes_processor.satisfiability.evidence import ScenarioSatisfiabilityEvidenceModel
+        from raes_processor.satisfiability.evidence import ScenarioSatisfiabilityEvidenceV2Model
 
-        evidence_model = ScenarioSatisfiabilityEvidenceModel
+        evidence_model = ScenarioSatisfiabilityEvidenceV2Model
     else:
         from raes_processor.exploit_path import analyze_exploit_path_file, replay_exploit_path_evidence
         from raes_processor.exploit_path.evidence import ExploitPathAnalysisEvidenceModel

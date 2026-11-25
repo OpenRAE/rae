@@ -7,6 +7,7 @@ from collections.abc import Sequence
 import nox
 
 from tools.nox_support.config import (
+    LARGE_FILE_LIMIT_EXCEPTIONS,
     MAX_LARGE_FILE_KB,
     PRIVATE_KEY_EXCLUDE_PREFIXES,
     REPO_ROOT,
@@ -93,13 +94,7 @@ def _run_hygiene(
 
     reporter.run(
         "hygiene / added large files",
-        lambda: _run_pre_commit_hook(
-            session,
-            "check-added-large-files",
-            "--maxkb",
-            MAX_LARGE_FILE_KB,
-            paths=paths,
-        ),
+        lambda: _run_large_file_check(session, paths),
         detail=detail,
     )
 
@@ -120,6 +115,15 @@ def _run_hygiene(
         lambda: _run_gitleaks_dir_scan(session, paths),
         detail=detail,
     )
+
+
+def _run_large_file_check(session: nox.Session, paths: Sequence[str]) -> None:
+    by_limit: dict[str, list[str]] = {}
+    for path in paths:
+        limit = LARGE_FILE_LIMIT_EXCEPTIONS.get(path, MAX_LARGE_FILE_KB)
+        by_limit.setdefault(limit, []).append(path)
+    for limit, selected in by_limit.items():
+        _run_pre_commit_hook(session, "check-added-large-files", "--maxkb", limit, paths=selected)
 
 
 def _run_policy(session: nox.Session, reporter: SessionReporter, *args: str) -> None:

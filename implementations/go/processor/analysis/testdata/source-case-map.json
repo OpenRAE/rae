@@ -1,0 +1,2288 @@
+{
+  "format_version": 1,
+  "scope": "Issue #1789 analysis services. Input limits, refusal categories, digest joins, replay and defects; semantic comparison remains with #1787. Source candidates come from transitive test-helper calls to scoped imports, excluding canonical_contract_digest-only consumers. Every entry states the scoped boundary.",
+  "reference_provenance": "reference-provenance.json",
+  "source_sha256": {
+    "implementations/python/tests/test_formal_semantic_validation.py": "ac203d450b63321221f3775ef7d90b73760b965e3dac827bfa0c4c2e6d0361ff",
+    "implementations/python/tests/test_issue_1678_sweep_pf.py": "2f06f426c4f933492969a212a06262a8a9271fc2602629b8e7a81c086c76872c",
+    "implementations/python/tests/test_satisfiability_cli.py": "a092351894f0cadf1397da97478972b840dc2feab2ae011b8d31388ff66b398c",
+    "implementations/python/tests/test_semantic_comparison.py": "2b3285e5018b498110fa0384a9c8bba6faf5f1bd7fba3cee31d923297dd6bdd4",
+    "implementations/python/tests/test_issue_1076_compute_realization.py": "cfbca0419078613943d4738062790742e2253779bcfaa7558b464c63c074dde6",
+    "implementations/python/tests/test_node_architecture.py": "a5aa786b28bbc1171fb738ff63d92af695ee01924db930e224d4207ddc12bfb3",
+    "implementations/python/tests/test_issue_1789_solver_profile.py": "205bbe71218d87f00a75920b566d3d365f4e15c940bf0f3db14d6f7a565b638a",
+    "implementations/python/tests/test_issue_989_versioned_evidence.py": "b01a53452fad16a50aa79fd10d10a823c4a12e7f255928597f0c18d610f000b7",
+    "implementations/python/tests/test_issue_1710_consumer_vectors.py": "24a0a12f41451a295a9baf99a53ff2b7a9b2a8a9044a266177216f0e2a1b5941",
+    "implementations/python/tests/test_exploit_path_analysis.py": "81e6dd6334bac3e20a45e13d7f1ed76e748ac1532ee944ac7ce478b35264310b",
+    "implementations/python/tests/test_issue_1678_cycle2_pointers.py": "83602cb88ff31ac1cfc18a7cfe3572b2ca24eb0651161936248c43305707db62",
+    "implementations/python/tests/test_issue_962_participant_opacity_model_check.py": "52701520ee88236ef07e2bcb22e479463e0bf5eb818c67ecce285ed809d6dcb9",
+    "implementations/python/tests/test_candidate_synthesis.py": "ef30d3b14c56679a98faa91fb4c6819119c887f64e5b639f8edafe9581ae59c1",
+    "implementations/python/tests/test_exp_731_evidence_requirement_refinement.py": "8f208f2d6131495705018fd88b13efe4178d37530d7a4c9bf6722789e0998366",
+    "implementations/python/tests/test_issue_971_crossing_profile.py": "b788ce949bda512099c567ebc865c67084ebc76db0f801a059574dbd6a7e0c10",
+    "implementations/python/tests/test_issue_1206_review_regressions.py": "4bcf2c57aa08df52527ebc25f08bc3edcb7c7d0ed2b5fd24ec72d25a5b0f76b1",
+    "implementations/python/tests/test_issue_961_participant_opacity.py": "f258cdcb80e2f3663fc2b66ccd0ff5489b86f88a41b58269dbc1d01639198adc",
+    "implementations/python/tests/test_issue_1678_sweep_s.py": "8cea6420871314569846364709d9ddcc6b19edd141a1ce5d80940e5c5fbab239",
+    "implementations/python/tests/test_issue_1395_crossing_profile.py": "63b6dfbb281b683e1749dc8f7acd9301ecdc36d3fcb39324721ad2e7dfda402e",
+    "implementations/python/tests/test_authoring_adapters.py": "1424f9157e9149bd51d67cb6d7fb7575903146bb2c9bac2ed5afa78fe68472fc",
+    "implementations/python/tests/test_scenario_satisfiability.py": "c3d70cdc129353257fa70629fcfec48450fc9ea11d6cd30eba3fbe8423ea7b34",
+    "implementations/python/tests/test_sdl_canonicalization.py": "9721daac008d815ca5b2d9a39697ea0e8fd132b2d584b982e2bcaa1be1018125",
+    "implementations/python/tests/test_issue_1210_semantic_comparison.py": "9a77605ab2d94077cdd6a689302df9f065275cd30fb1fb7624e4ec53b043ee99",
+    "implementations/python/tests/test_issue_1789_serialization.py": "7d58917e0a16fd725c3ae828fcb70dd7f5c869a6bee5468acb1ec46c2fd69b14"
+  },
+  "source_test_map": [
+    {
+      "python_file": "implementations/python/tests/test_authoring_adapters.py",
+      "python_test": "test_published_vectors_accept_equivalent_authoring_paths",
+      "python_line": 32,
+      "status": "independent-reference",
+      "go_test": "TestAnalysisIndependentPythonReference",
+      "behavior": "Exact service-call inputs and complete incumbent outputs/refusal categories; later Python assertions or mutations require the supplemental native tests listed below.",
+      "reference_cases": [
+        {
+          "path": "authoring-adapter-comparison.json.gz",
+          "case_index": 0
+        },
+        {
+          "path": "authoring-adapter-comparison.json.gz",
+          "case_index": 1
+        },
+        {
+          "path": "authoring-adapter-comparison.json.gz",
+          "case_index": 2
+        },
+        {
+          "path": "authoring-adapter-comparison.json.gz",
+          "case_index": 3
+        },
+        {
+          "path": "authoring-adapter-comparison.json.gz",
+          "case_index": 4
+        },
+        {
+          "path": "authoring-adapter-comparison.json.gz",
+          "case_index": 5
+        },
+        {
+          "path": "authoring-adapter-comparison.json.gz",
+          "case_index": 6
+        },
+        {
+          "path": "authoring-adapter-comparison.json.gz",
+          "case_index": 7
+        },
+        {
+          "path": "authoring-adapter-comparison.json.gz",
+          "case_index": 8
+        },
+        {
+          "path": "authoring-adapter-comparison.json.gz",
+          "case_index": 9
+        },
+        {
+          "path": "authoring-adapter-comparison.json.gz",
+          "case_index": 10
+        },
+        {
+          "path": "authoring-adapter-comparison.json.gz",
+          "case_index": 11
+        },
+        {
+          "path": "authoring-adapter-comparison.json.gz",
+          "case_index": 12
+        },
+        {
+          "path": "authoring-adapter-comparison.json.gz",
+          "case_index": 13
+        },
+        {
+          "path": "authoring-adapter-comparison.json.gz",
+          "case_index": 14
+        },
+        {
+          "path": "authoring-adapter-comparison.json.gz",
+          "case_index": 15
+        },
+        {
+          "path": "authoring-adapter-comparison.json.gz",
+          "case_index": 16
+        },
+        {
+          "path": "authoring-adapter-comparison.json.gz",
+          "case_index": 17
+        },
+        {
+          "path": "authoring-adapter-comparison.json.gz",
+          "case_index": 18
+        },
+        {
+          "path": "authoring-adapter-comparison.json.gz",
+          "case_index": 19
+        },
+        {
+          "path": "authoring-adapter-comparison.json.gz",
+          "case_index": 20
+        },
+        {
+          "path": "authoring-adapter-comparison.json.gz",
+          "case_index": 21
+        },
+        {
+          "path": "authoring-adapter-comparison.json.gz",
+          "case_index": 22
+        },
+        {
+          "path": "authoring-adapter-comparison.json.gz",
+          "case_index": 23
+        },
+        {
+          "path": "authoring-adapter-comparison.json.gz",
+          "case_index": 24
+        },
+        {
+          "path": "authoring-adapter-comparison.json.gz",
+          "case_index": 25
+        },
+        {
+          "path": "authoring-adapter-comparison.json.gz",
+          "case_index": 26
+        },
+        {
+          "path": "authoring-adapter-comparison.json.gz",
+          "case_index": 27
+        }
+      ],
+      "supplemental_go_tests": [
+        "TestAuthoringDiagnosticMultisetAndBounds",
+        "TestAuthoringVectorPinsAndPortableRenameIdentifiers"
+      ]
+    },
+    {
+      "python_file": "implementations/python/tests/test_authoring_adapters.py",
+      "python_test": "test_semantic_change_is_typed_and_two_identical_wrong_paths_do_not_pass",
+      "python_line": 58,
+      "status": "independent-reference",
+      "go_test": "TestAnalysisIndependentPythonReference",
+      "behavior": "Exact service-call inputs and complete incumbent outputs/refusal categories; later Python assertions or mutations require the supplemental native tests listed below.",
+      "reference_cases": [
+        {
+          "path": "authoring-adapter-comparison.json.gz",
+          "case_index": 28
+        },
+        {
+          "path": "authoring-adapter-comparison.json.gz",
+          "case_index": 29
+        }
+      ],
+      "supplemental_go_tests": [
+        "TestAuthoringDiagnosticMultisetAndBounds",
+        "TestAuthoringVectorPinsAndPortableRenameIdentifiers"
+      ]
+    },
+    {
+      "python_file": "implementations/python/tests/test_authoring_adapters.py",
+      "python_test": "test_empty_corpus_is_not_success",
+      "python_line": 70,
+      "status": "not-exposed",
+      "reason": "The new API compares one admitted vector. raes_conformance filesystem corpus discovery is not exposed by this service.",
+      "supplemental_go_tests": [
+        "TestAuthoringDiagnosticMultisetAndBounds",
+        "TestAuthoringVectorPinsAndPortableRenameIdentifiers"
+      ]
+    },
+    {
+      "python_file": "implementations/python/tests/test_authoring_adapters.py",
+      "python_test": "test_published_contrasts_have_independent_expected_dispositions",
+      "python_line": 75,
+      "status": "independent-reference",
+      "go_test": "TestAnalysisIndependentPythonReference",
+      "behavior": "Exact service-call inputs and complete incumbent outputs/refusal categories; later Python assertions or mutations require the supplemental native tests listed below.",
+      "reference_cases": [
+        {
+          "path": "authoring-adapter-comparison.json.gz",
+          "case_index": 30
+        },
+        {
+          "path": "authoring-adapter-comparison.json.gz",
+          "case_index": 31
+        }
+      ],
+      "supplemental_go_tests": [
+        "TestAuthoringDiagnosticMultisetAndBounds",
+        "TestAuthoringVectorPinsAndPortableRenameIdentifiers"
+      ]
+    },
+    {
+      "python_file": "implementations/python/tests/test_authoring_adapters.py",
+      "python_test": "test_invalid_output_is_incomparable_without_echoing_source",
+      "python_line": 91,
+      "status": "independent-reference",
+      "go_test": "TestAnalysisIndependentPythonReference",
+      "behavior": "Exact service-call inputs and complete incumbent outputs/refusal categories; later Python assertions or mutations require the supplemental native tests listed below.",
+      "reference_cases": [
+        {
+          "path": "authoring-adapter-comparison.json.gz",
+          "case_index": 32
+        }
+      ],
+      "supplemental_go_tests": [
+        "TestAuthoringDiagnosticMultisetAndBounds",
+        "TestAuthoringVectorPinsAndPortableRenameIdentifiers"
+      ]
+    },
+    {
+      "python_file": "implementations/python/tests/test_authoring_adapters.py",
+      "python_test": "test_editorial_change_is_an_artifact_difference_without_semantic_change",
+      "python_line": 101,
+      "status": "independent-reference",
+      "go_test": "TestAnalysisIndependentPythonReference",
+      "behavior": "Exact service-call inputs and complete incumbent outputs/refusal categories; later Python assertions or mutations require the supplemental native tests listed below.",
+      "reference_cases": [
+        {
+          "path": "authoring-adapter-comparison.json.gz",
+          "case_index": 33
+        }
+      ],
+      "supplemental_go_tests": [
+        "TestAuthoringDiagnosticMultisetAndBounds",
+        "TestAuthoringVectorPinsAndPortableRenameIdentifiers"
+      ]
+    },
+    {
+      "python_file": "implementations/python/tests/test_authoring_adapters.py",
+      "python_test": "test_semantic_uncertainty_remains_incomparable",
+      "python_line": 112,
+      "status": "covered-scoped",
+      "go_test": "TestAuthoringSemanticUncertaintyRemainsIncomparable",
+      "behavior": "Four independent Python semantic carriers; inconsistent injected scope fails native admission, admitted unknown changes remain incomparable.",
+      "supplemental_go_tests": [
+        "TestAuthoringDiagnosticMultisetAndBounds",
+        "TestAuthoringVectorPinsAndPortableRenameIdentifiers"
+      ]
+    },
+    {
+      "python_file": "implementations/python/tests/test_authoring_adapters.py",
+      "python_test": "test_each_input_must_match_the_exact_bound_source",
+      "python_line": 132,
+      "status": "independent-reference",
+      "go_test": "TestAnalysisIndependentPythonReference",
+      "behavior": "Exact service-call inputs and complete incumbent outputs/refusal categories; later Python assertions or mutations require the supplemental native tests listed below.",
+      "reference_cases": [
+        {
+          "path": "authoring-adapter-comparison.json.gz",
+          "case_index": 34
+        }
+      ],
+      "supplemental_go_tests": [
+        "TestAuthoringDiagnosticMultisetAndBounds",
+        "TestAuthoringVectorPinsAndPortableRenameIdentifiers"
+      ]
+    },
+    {
+      "python_file": "implementations/python/tests/test_authoring_adapters.py",
+      "python_test": "test_diagnostic_projection_preserves_code_severity_address_and_multiplicity",
+      "python_line": 141,
+      "status": "independent-reference",
+      "go_test": "TestAnalysisIndependentPythonReference",
+      "behavior": "Exact service-call inputs and complete incumbent outputs/refusal categories; later Python assertions or mutations require the supplemental native tests listed below.",
+      "reference_cases": [
+        {
+          "path": "authoring-adapter-comparison.json.gz",
+          "case_index": 35
+        },
+        {
+          "path": "authoring-adapter-comparison.json.gz",
+          "case_index": 36
+        },
+        {
+          "path": "authoring-adapter-comparison.json.gz",
+          "case_index": 37
+        },
+        {
+          "path": "authoring-adapter-comparison.json.gz",
+          "case_index": 38
+        },
+        {
+          "path": "authoring-adapter-comparison.json.gz",
+          "case_index": 39
+        },
+        {
+          "path": "authoring-adapter-comparison.json.gz",
+          "case_index": 40
+        }
+      ],
+      "supplemental_go_tests": [
+        "TestAuthoringDiagnosticMultisetAndBounds",
+        "TestAuthoringVectorPinsAndPortableRenameIdentifiers"
+      ]
+    },
+    {
+      "python_file": "implementations/python/tests/test_authoring_adapters.py",
+      "python_test": "test_portable_diagnostics_are_order_independent_but_not_ignored",
+      "python_line": 157,
+      "status": "independent-reference",
+      "go_test": "TestAnalysisIndependentPythonReference",
+      "behavior": "Exact service-call inputs and complete incumbent outputs/refusal categories; later Python assertions or mutations require the supplemental native tests listed below.",
+      "reference_cases": [
+        {
+          "path": "authoring-adapter-comparison.json.gz",
+          "case_index": 41
+        },
+        {
+          "path": "authoring-adapter-comparison.json.gz",
+          "case_index": 42
+        }
+      ],
+      "supplemental_go_tests": [
+        "TestAuthoringDiagnosticMultisetAndBounds",
+        "TestAuthoringVectorPinsAndPortableRenameIdentifiers"
+      ]
+    },
+    {
+      "python_file": "implementations/python/tests/test_authoring_adapters.py",
+      "python_test": "test_stale_or_wrong_transformation_joins_are_incomparable",
+      "python_line": 188,
+      "status": "independent-reference",
+      "go_test": "TestAnalysisIndependentPythonReference",
+      "behavior": "Exact service-call inputs and complete incumbent outputs/refusal categories; later Python assertions or mutations require the supplemental native tests listed below.",
+      "reference_cases": [
+        {
+          "path": "authoring-adapter-comparison.json.gz",
+          "case_index": 43
+        },
+        {
+          "path": "authoring-adapter-comparison.json.gz",
+          "case_index": 44
+        },
+        {
+          "path": "authoring-adapter-comparison.json.gz",
+          "case_index": 45
+        },
+        {
+          "path": "authoring-adapter-comparison.json.gz",
+          "case_index": 46
+        },
+        {
+          "path": "authoring-adapter-comparison.json.gz",
+          "case_index": 47
+        },
+        {
+          "path": "authoring-adapter-comparison.json.gz",
+          "case_index": 48
+        }
+      ],
+      "supplemental_go_tests": [
+        "TestAuthoringDiagnosticMultisetAndBounds",
+        "TestAuthoringVectorPinsAndPortableRenameIdentifiers"
+      ]
+    },
+    {
+      "python_file": "implementations/python/tests/test_authoring_adapters.py",
+      "python_test": "test_declared_provenance_difference_does_not_rewrite_artifact_equivalence",
+      "python_line": 196,
+      "status": "independent-reference",
+      "go_test": "TestAnalysisIndependentPythonReference",
+      "behavior": "Exact service-call inputs and complete incumbent outputs/refusal categories; later Python assertions or mutations require the supplemental native tests listed below.",
+      "reference_cases": [
+        {
+          "path": "authoring-adapter-comparison.json.gz",
+          "case_index": 49
+        }
+      ],
+      "supplemental_go_tests": [
+        "TestAuthoringDiagnosticMultisetAndBounds",
+        "TestAuthoringVectorPinsAndPortableRenameIdentifiers"
+      ]
+    },
+    {
+      "python_file": "implementations/python/tests/test_authoring_adapters.py",
+      "python_test": "test_missing_provenance_and_refusal_without_diagnostics_fail_closed",
+      "python_line": 210,
+      "status": "independent-reference",
+      "go_test": "TestAnalysisIndependentPythonReference",
+      "behavior": "Exact service-call inputs and complete incumbent outputs/refusal categories; later Python assertions or mutations require the supplemental native tests listed below.",
+      "reference_cases": [
+        {
+          "path": "authoring-adapter-comparison.json.gz",
+          "case_index": 50
+        },
+        {
+          "path": "authoring-adapter-comparison.json.gz",
+          "case_index": 51
+        }
+      ],
+      "supplemental_go_tests": [
+        "TestAuthoringDiagnosticMultisetAndBounds",
+        "TestAuthoringVectorPinsAndPortableRenameIdentifiers"
+      ]
+    },
+    {
+      "python_file": "implementations/python/tests/test_authoring_adapters.py",
+      "python_test": "test_untyped_provenance_and_diagnostic_carriers_fail_closed",
+      "python_line": 222,
+      "status": "independent-reference",
+      "go_test": "TestAnalysisIndependentPythonReference",
+      "behavior": "Exact service-call inputs and complete incumbent outputs/refusal categories; later Python assertions or mutations require the supplemental native tests listed below.",
+      "reference_cases": [
+        {
+          "path": "authoring-adapter-comparison.json.gz",
+          "case_index": 52
+        }
+      ],
+      "supplemental_go_tests": [
+        "TestAuthoringDiagnosticMultisetAndBounds",
+        "TestAuthoringVectorPinsAndPortableRenameIdentifiers"
+      ]
+    },
+    {
+      "python_file": "implementations/python/tests/test_authoring_adapters.py",
+      "python_test": "test_observation_defect_is_not_reported_as_invalid_output",
+      "python_line": 231,
+      "status": "covered-scoped",
+      "go_test": "TestAuthoringClassifiesOnlyUntrustedOutputFailures",
+      "behavior": "Native fault categories distinguish invalid source from owner defects; Python monkeypatching is not copied.",
+      "supplemental_go_tests": [
+        "TestAuthoringDiagnosticMultisetAndBounds",
+        "TestAuthoringVectorPinsAndPortableRenameIdentifiers"
+      ]
+    },
+    {
+      "python_file": "implementations/python/tests/test_authoring_adapters.py",
+      "python_test": "test_rename_source_admission_refusal_needs_no_transformation_report",
+      "python_line": 243,
+      "status": "independent-reference",
+      "go_test": "TestAnalysisIndependentPythonReference",
+      "behavior": "Exact service-call inputs and complete incumbent outputs/refusal categories; later Python assertions or mutations require the supplemental native tests listed below.",
+      "reference_cases": [
+        {
+          "path": "authoring-adapter-comparison.json.gz",
+          "case_index": 53
+        }
+      ],
+      "supplemental_go_tests": [
+        "TestAuthoringDiagnosticMultisetAndBounds",
+        "TestAuthoringVectorPinsAndPortableRenameIdentifiers"
+      ]
+    },
+    {
+      "python_file": "implementations/python/tests/test_authoring_adapters.py",
+      "python_test": "test_post_admission_rename_refusal_still_requires_provenance",
+      "python_line": 257,
+      "status": "independent-reference",
+      "go_test": "TestAnalysisIndependentPythonReference",
+      "behavior": "Exact service-call inputs and complete incumbent outputs/refusal categories; later Python assertions or mutations require the supplemental native tests listed below.",
+      "reference_cases": [
+        {
+          "path": "authoring-adapter-comparison.json.gz",
+          "case_index": 54
+        }
+      ],
+      "supplemental_go_tests": [
+        "TestAuthoringDiagnosticMultisetAndBounds",
+        "TestAuthoringVectorPinsAndPortableRenameIdentifiers"
+      ]
+    },
+    {
+      "python_file": "implementations/python/tests/test_authoring_adapters.py",
+      "python_test": "test_pre_operation_rename_refusal_cannot_emit_an_artifact",
+      "python_line": 266,
+      "status": "independent-reference",
+      "go_test": "TestAnalysisIndependentPythonReference",
+      "behavior": "Exact service-call inputs and complete incumbent outputs/refusal categories; later Python assertions or mutations require the supplemental native tests listed below.",
+      "reference_cases": [
+        {
+          "path": "authoring-adapter-comparison.json.gz",
+          "case_index": 55
+        }
+      ],
+      "supplemental_go_tests": [
+        "TestAuthoringDiagnosticMultisetAndBounds",
+        "TestAuthoringVectorPinsAndPortableRenameIdentifiers"
+      ]
+    },
+    {
+      "python_file": "implementations/python/tests/test_authoring_adapters.py",
+      "python_test": "test_success_and_refusal_are_an_explicit_outcome_difference",
+      "python_line": 274,
+      "status": "independent-reference",
+      "go_test": "TestAnalysisIndependentPythonReference",
+      "behavior": "Exact service-call inputs and complete incumbent outputs/refusal categories; later Python assertions or mutations require the supplemental native tests listed below.",
+      "reference_cases": [
+        {
+          "path": "authoring-adapter-comparison.json.gz",
+          "case_index": 56
+        }
+      ],
+      "supplemental_go_tests": [
+        "TestAuthoringDiagnosticMultisetAndBounds",
+        "TestAuthoringVectorPinsAndPortableRenameIdentifiers"
+      ]
+    },
+    {
+      "python_file": "implementations/python/tests/test_authoring_adapters.py",
+      "python_test": "test_closed_vector_contract_rejects_tampering",
+      "python_line": 294,
+      "status": "covered-scoped",
+      "go_test": "TestAuthoringVectorPinsAndPortableRenameIdentifiers",
+      "behavior": "Input and operation commitments, unknown operations, irrelevant targets and open fields are rejected.",
+      "supplemental_go_tests": [
+        "TestAuthoringDiagnosticMultisetAndBounds",
+        "TestAuthoringVectorPinsAndPortableRenameIdentifiers"
+      ]
+    },
+    {
+      "python_file": "implementations/python/tests/test_authoring_adapters.py",
+      "python_test": "test_strict_json_ingress_and_utf8_byte_limits",
+      "python_line": 303,
+      "status": "independent-reference",
+      "go_test": "TestAnalysisIndependentPythonReference",
+      "behavior": "Exact service-call inputs and complete incumbent outputs/refusal categories; later Python assertions or mutations require the supplemental native tests listed below.",
+      "reference_cases": [
+        {
+          "path": "authoring-adapter-comparison.json.gz",
+          "case_index": 57
+        },
+        {
+          "path": "authoring-adapter-comparison.json.gz",
+          "case_index": 58
+        },
+        {
+          "path": "authoring-adapter-comparison.json.gz",
+          "case_index": 59
+        }
+      ],
+      "supplemental_go_tests": [
+        "TestAuthoringDiagnosticMultisetAndBounds",
+        "TestAuthoringVectorPinsAndPortableRenameIdentifiers"
+      ]
+    },
+    {
+      "python_file": "implementations/python/tests/test_authoring_adapters.py",
+      "python_test": "test_vector_profile_is_pinned_and_case_paths_cannot_escape",
+      "python_line": 328,
+      "status": "independent-reference",
+      "go_test": "TestAnalysisIndependentPythonReference",
+      "behavior": "Exact service-call inputs and complete incumbent outputs/refusal categories; later Python assertions or mutations require the supplemental native tests listed below.",
+      "reference_cases": [
+        {
+          "path": "authoring-adapter-comparison.json.gz",
+          "case_index": 60
+        }
+      ],
+      "supplemental_go_tests": [
+        "TestAuthoringDiagnosticMultisetAndBounds",
+        "TestAuthoringVectorPinsAndPortableRenameIdentifiers"
+      ]
+    },
+    {
+      "python_file": "implementations/python/tests/test_authoring_adapters.py",
+      "python_test": "test_published_schemas_and_deterministic_reports",
+      "python_line": 340,
+      "status": "independent-reference",
+      "go_test": "TestAnalysisIndependentPythonReference",
+      "behavior": "Exact service-call inputs and complete incumbent outputs/refusal categories; later Python assertions or mutations require the supplemental native tests listed below.",
+      "reference_cases": [
+        {
+          "path": "authoring-adapter-comparison.json.gz",
+          "case_index": 61
+        },
+        {
+          "path": "authoring-adapter-comparison.json.gz",
+          "case_index": 62
+        },
+        {
+          "path": "authoring-adapter-comparison.json.gz",
+          "case_index": 63
+        },
+        {
+          "path": "authoring-adapter-comparison.json.gz",
+          "case_index": 64
+        },
+        {
+          "path": "authoring-adapter-comparison.json.gz",
+          "case_index": 65
+        },
+        {
+          "path": "authoring-adapter-comparison.json.gz",
+          "case_index": 66
+        },
+        {
+          "path": "authoring-adapter-comparison.json.gz",
+          "case_index": 67
+        },
+        {
+          "path": "authoring-adapter-comparison.json.gz",
+          "case_index": 68
+        },
+        {
+          "path": "authoring-adapter-comparison.json.gz",
+          "case_index": 69
+        },
+        {
+          "path": "authoring-adapter-comparison.json.gz",
+          "case_index": 70
+        },
+        {
+          "path": "authoring-adapter-comparison.json.gz",
+          "case_index": 71
+        },
+        {
+          "path": "authoring-adapter-comparison.json.gz",
+          "case_index": 72
+        },
+        {
+          "path": "authoring-adapter-comparison.json.gz",
+          "case_index": 73
+        },
+        {
+          "path": "authoring-adapter-comparison.json.gz",
+          "case_index": 74
+        }
+      ],
+      "supplemental_go_tests": [
+        "TestAuthoringDiagnosticMultisetAndBounds",
+        "TestAuthoringVectorPinsAndPortableRenameIdentifiers"
+      ]
+    },
+    {
+      "python_file": "implementations/python/tests/test_authoring_adapters.py",
+      "python_test": "test_contracts_publish_contextual_invariants_and_bounded_report_ingress",
+      "python_line": 365,
+      "status": "independent-reference",
+      "go_test": "TestAnalysisIndependentPythonReference",
+      "behavior": "Exact service-call inputs and complete incumbent outputs/refusal categories; later Python assertions or mutations require the supplemental native tests listed below.",
+      "reference_cases": [
+        {
+          "path": "authoring-adapter-comparison.json.gz",
+          "case_index": 75
+        }
+      ],
+      "supplemental_go_tests": [
+        "TestAuthoringDiagnosticMultisetAndBounds",
+        "TestAuthoringVectorPinsAndPortableRenameIdentifiers"
+      ]
+    },
+    {
+      "python_file": "implementations/python/tests/test_authoring_adapters.py",
+      "python_test": "test_report_cannot_claim_missing_or_inapplicable_success_evidence",
+      "python_line": 393,
+      "status": "independent-reference",
+      "go_test": "TestAnalysisIndependentPythonReference",
+      "behavior": "Exact service-call inputs and complete incumbent outputs/refusal categories; later Python assertions or mutations require the supplemental native tests listed below.",
+      "reference_cases": [
+        {
+          "path": "authoring-adapter-comparison.json.gz",
+          "case_index": 76
+        },
+        {
+          "path": "authoring-adapter-comparison.json.gz",
+          "case_index": 77
+        },
+        {
+          "path": "authoring-adapter-comparison.json.gz",
+          "case_index": 78
+        },
+        {
+          "path": "authoring-adapter-comparison.json.gz",
+          "case_index": 79
+        },
+        {
+          "path": "authoring-adapter-comparison.json.gz",
+          "case_index": 80
+        },
+        {
+          "path": "authoring-adapter-comparison.json.gz",
+          "case_index": 81
+        },
+        {
+          "path": "authoring-adapter-comparison.json.gz",
+          "case_index": 82
+        },
+        {
+          "path": "authoring-adapter-comparison.json.gz",
+          "case_index": 83
+        },
+        {
+          "path": "authoring-adapter-comparison.json.gz",
+          "case_index": 84
+        }
+      ],
+      "supplemental_go_tests": [
+        "TestAuthoringDiagnosticMultisetAndBounds",
+        "TestAuthoringVectorPinsAndPortableRenameIdentifiers"
+      ]
+    },
+    {
+      "python_file": "implementations/python/tests/test_authoring_adapters.py",
+      "python_test": "test_corpus_bound_and_identifier_are_enforced",
+      "python_line": 401,
+      "status": "not-exposed",
+      "reason": "Corpus directory count/path discovery belongs to the existing conformance loader, not the single-vector API; vector identifiers and closed fields remain schema-admitted.",
+      "supplemental_go_tests": [
+        "TestAuthoringDiagnosticMultisetAndBounds",
+        "TestAuthoringVectorPinsAndPortableRenameIdentifiers"
+      ]
+    },
+    {
+      "python_file": "implementations/python/tests/test_authoring_adapters.py",
+      "python_test": "test_unsupported_imports_and_unstructured_advisories_do_not_claim_equivalence",
+      "python_line": 412,
+      "status": "independent-reference",
+      "go_test": "TestAnalysisIndependentPythonReference",
+      "behavior": "Exact service-call inputs and complete incumbent outputs/refusal categories; later Python assertions or mutations require the supplemental native tests listed below.",
+      "reference_cases": [
+        {
+          "path": "authoring-adapter-comparison.json.gz",
+          "case_index": 85
+        },
+        {
+          "path": "authoring-adapter-comparison.json.gz",
+          "case_index": 86
+        }
+      ],
+      "supplemental_go_tests": [
+        "TestAuthoringDiagnosticMultisetAndBounds",
+        "TestAuthoringVectorPinsAndPortableRenameIdentifiers"
+      ]
+    },
+    {
+      "python_file": "implementations/python/tests/test_authoring_adapters.py",
+      "python_test": "test_rename_request_reuses_the_owning_portable_identifier",
+      "python_line": 424,
+      "status": "covered-scoped",
+      "go_test": "TestAuthoringVectorPinsAndPortableRenameIdentifiers",
+      "behavior": "Published operation fragment accepts portable identifiers through the native contract owner.",
+      "supplemental_go_tests": [
+        "TestAuthoringDiagnosticMultisetAndBounds",
+        "TestAuthoringVectorPinsAndPortableRenameIdentifiers"
+      ]
+    },
+    {
+      "python_file": "implementations/python/tests/test_authoring_adapters.py",
+      "python_test": "test_rename_request_rejects_nonportable_identifiers",
+      "python_line": 434,
+      "status": "covered-scoped",
+      "go_test": "TestAuthoringVectorPinsAndPortableRenameIdentifiers",
+      "behavior": "Uppercase, leading underscore, excessive length and newline identifiers fail the owning fragment.",
+      "supplemental_go_tests": [
+        "TestAuthoringDiagnosticMultisetAndBounds",
+        "TestAuthoringVectorPinsAndPortableRenameIdentifiers"
+      ]
+    },
+    {
+      "python_file": "implementations/python/tests/test_candidate_synthesis.py",
+      "python_test": "test_unrelated_source_formats_use_one_contract_and_reproduce_candidate",
+      "python_line": 132,
+      "status": "independent-reference",
+      "go_test": "TestAnalysisIndependentPythonReference",
+      "behavior": "Exact service-call inputs and complete incumbent outputs/refusal categories; later Python assertions or mutations require the supplemental native tests listed below.",
+      "reference_cases": [
+        {
+          "path": "candidate-synthesis.json.gz",
+          "case_index": 0
+        },
+        {
+          "path": "candidate-synthesis.json.gz",
+          "case_index": 1
+        },
+        {
+          "path": "candidate-synthesis.json.gz",
+          "case_index": 2
+        }
+      ]
+    },
+    {
+      "python_file": "implementations/python/tests/test_candidate_synthesis.py",
+      "python_test": "test_candidate_reenters_ordinary_parse_and_instantiated_admission",
+      "python_line": 161,
+      "status": "independent-reference",
+      "go_test": "TestAnalysisIndependentPythonReference",
+      "behavior": "Exact service-call inputs and complete incumbent outputs/refusal categories; later Python assertions or mutations require the supplemental native tests listed below.",
+      "reference_cases": [
+        {
+          "path": "candidate-synthesis.json.gz",
+          "case_index": 3
+        }
+      ]
+    },
+    {
+      "python_file": "implementations/python/tests/test_candidate_synthesis.py",
+      "python_test": "test_construct_trace_keeps_source_inference_and_author_decision_distinct",
+      "python_line": 181,
+      "status": "independent-reference",
+      "go_test": "TestAnalysisIndependentPythonReference",
+      "behavior": "Exact service-call inputs and complete incumbent outputs/refusal categories; later Python assertions or mutations require the supplemental native tests listed below.",
+      "reference_cases": [
+        {
+          "path": "candidate-synthesis.json.gz",
+          "case_index": 4
+        }
+      ]
+    },
+    {
+      "python_file": "implementations/python/tests/test_candidate_synthesis.py",
+      "python_test": "test_profile_digest_binds_the_complete_published_transformation_artifact",
+      "python_line": 200,
+      "status": "covered-scoped",
+      "go_test": "contract/admission/TestSynthesisRulesUseCompleteDefaultsAndJoins",
+      "behavior": "Native rule recomputes defaults and checks the complete transformation profile digest."
+    },
+    {
+      "python_file": "implementations/python/tests/test_candidate_synthesis.py",
+      "python_test": "test_unsupported_relation_emits_schema_admitted_semantic_omission",
+      "python_line": 220,
+      "status": "independent-reference",
+      "go_test": "TestAnalysisIndependentPythonReference",
+      "behavior": "Exact service-call inputs and complete incumbent outputs/refusal categories; later Python assertions or mutations require the supplemental native tests listed below.",
+      "reference_cases": [
+        {
+          "path": "candidate-synthesis.json.gz",
+          "case_index": 5
+        }
+      ]
+    },
+    {
+      "python_file": "implementations/python/tests/test_candidate_synthesis.py",
+      "python_test": "test_positive_fixtures_share_published_contract_and_are_byte_stable",
+      "python_line": 242,
+      "status": "independent-reference",
+      "go_test": "TestAnalysisIndependentPythonReference",
+      "behavior": "Exact service-call inputs and complete incumbent outputs/refusal categories; later Python assertions or mutations require the supplemental native tests listed below.",
+      "reference_cases": [
+        {
+          "path": "candidate-synthesis.json.gz",
+          "case_index": 6
+        },
+        {
+          "path": "candidate-synthesis.json.gz",
+          "case_index": 7
+        },
+        {
+          "path": "candidate-synthesis.json.gz",
+          "case_index": 8
+        },
+        {
+          "path": "candidate-synthesis.json.gz",
+          "case_index": 9
+        }
+      ]
+    },
+    {
+      "python_file": "implementations/python/tests/test_candidate_synthesis.py",
+      "python_test": "test_synthesis_record_is_published_and_structurally_admitted",
+      "python_line": 258,
+      "status": "independent-reference",
+      "go_test": "TestAnalysisIndependentPythonReference",
+      "behavior": "Exact service-call inputs and complete incumbent outputs/refusal categories; later Python assertions or mutations require the supplemental native tests listed below.",
+      "reference_cases": [
+        {
+          "path": "candidate-synthesis.json.gz",
+          "case_index": 10
+        }
+      ]
+    },
+    {
+      "python_file": "implementations/python/tests/test_candidate_synthesis.py",
+      "python_test": "test_record_recomputes_input_digest_and_resolves_every_contribution_owner",
+      "python_line": 271,
+      "status": "independent-reference",
+      "go_test": "TestAnalysisIndependentPythonReference",
+      "behavior": "Exact service-call inputs and complete incumbent outputs/refusal categories; later Python assertions or mutations require the supplemental native tests listed below.",
+      "reference_cases": [
+        {
+          "path": "candidate-synthesis.json.gz",
+          "case_index": 11
+        }
+      ]
+    },
+    {
+      "python_file": "implementations/python/tests/test_candidate_synthesis.py",
+      "python_test": "test_assumptions_are_distinct_resolved_construct_contributions",
+      "python_line": 287,
+      "status": "independent-reference",
+      "go_test": "TestAnalysisIndependentPythonReference",
+      "behavior": "Exact service-call inputs and complete incumbent outputs/refusal categories; later Python assertions or mutations require the supplemental native tests listed below.",
+      "reference_cases": [
+        {
+          "path": "candidate-synthesis.json.gz",
+          "case_index": 12
+        }
+      ]
+    },
+    {
+      "python_file": "implementations/python/tests/test_candidate_synthesis.py",
+      "python_test": "test_negative_fixtures_refuse_without_partial_candidate",
+      "python_line": 325,
+      "status": "independent-reference",
+      "go_test": "TestAnalysisIndependentPythonReference",
+      "behavior": "Exact service-call inputs and complete incumbent outputs/refusal categories; later Python assertions or mutations require the supplemental native tests listed below.",
+      "reference_cases": [
+        {
+          "path": "candidate-synthesis.json.gz",
+          "case_index": 13
+        },
+        {
+          "path": "candidate-synthesis.json.gz",
+          "case_index": 14
+        },
+        {
+          "path": "candidate-synthesis.json.gz",
+          "case_index": 15
+        },
+        {
+          "path": "candidate-synthesis.json.gz",
+          "case_index": 16
+        },
+        {
+          "path": "candidate-synthesis.json.gz",
+          "case_index": 17
+        }
+      ]
+    },
+    {
+      "python_file": "implementations/python/tests/test_candidate_synthesis.py",
+      "python_test": "test_bounded_ingress_rejects_duplicate_members_and_excess_bytes",
+      "python_line": 347,
+      "status": "covered-scoped",
+      "go_test": "TestAnalysisJSONIngressBoundsPrivacyAndRecovery",
+      "behavior": "Duplicate members and excess bytes fail without a partial candidate; shared admission still accepts subsequent valid input."
+    },
+    {
+      "python_file": "implementations/python/tests/test_candidate_synthesis.py",
+      "python_test": "test_changed_derivation_and_sdl_semantics_are_separate_axes",
+      "python_line": 354,
+      "status": "existing-owner",
+      "go_test": "processor/comparison/TestComparisonAnalyzerMatchesIndependentPython/test_candidate_synthesis.py::test_changed_derivation_and_sdl_semantics_are_separate_axes-0",
+      "behavior": "Exact pure comparison call from named mixed-owner test replayed independently. Candidate synthesis, composition execution, runtime/snapshot operations and archival conformance are outside this comparison claim.",
+      "owner_map": "processor/comparison/testdata/source-case-map.json",
+      "reference_cases": [
+        {
+          "path": "candidate-synthesis.json.gz",
+          "case_index": 18
+        },
+        {
+          "path": "candidate-synthesis.json.gz",
+          "case_index": 19
+        }
+      ]
+    },
+    {
+      "python_file": "implementations/python/tests/test_exp_731_evidence_requirement_refinement.py",
+      "python_test": "test_semantic_comparison_detects_relation_changes",
+      "python_line": 353,
+      "status": "existing-owner",
+      "go_test": "processor/comparison/TestComparisonAnalyzerMatchesIndependentPython/test_exp_731_evidence_requirement_refinement.py::test_semantic_comparison_detects_relation_changes-0; /test_exp_731_evidence_requirement_refinement.py::test_semantic_comparison_detects_relation_changes-1; /test_exp_731_evidence_requirement_refinement.py::test_semantic_comparison_detects_relation_changes-2",
+      "behavior": "Exact pure comparison call from named mixed-owner test replayed independently. Candidate synthesis, composition execution, runtime/snapshot operations and archival conformance are outside this comparison claim.",
+      "owner_map": "processor/comparison/testdata/source-case-map.json"
+    },
+    {
+      "python_file": "implementations/python/tests/test_exploit_path_analysis.py",
+      "python_test": "test_valid_path_emits_replayable_ordered_witness",
+      "python_line": 267,
+      "status": "independent-reference",
+      "go_test": "TestAnalysisIndependentPythonReference",
+      "behavior": "Exact service-call inputs and complete incumbent outputs/refusal categories; later Python assertions or mutations require the supplemental native tests listed below.",
+      "reference_cases": [
+        {
+          "path": "exploit-path.json.gz",
+          "case_index": 0
+        }
+      ],
+      "supplemental_go_tests": [
+        "TestReplayEverySolverAndExploitOutcomeRejectsTampering",
+        "TestReplayRecomputesOpacityAndSynthesis"
+      ]
+    },
+    {
+      "python_file": "implementations/python/tests/test_exploit_path_analysis.py",
+      "python_test": "test_missing_prerequisite_rejects_invalid_path_with_structured_failure",
+      "python_line": 281,
+      "status": "independent-reference",
+      "go_test": "TestAnalysisIndependentPythonReference",
+      "behavior": "Exact service-call inputs and complete incumbent outputs/refusal categories; later Python assertions or mutations require the supplemental native tests listed below.",
+      "reference_cases": [
+        {
+          "path": "exploit-path.json.gz",
+          "case_index": 1
+        }
+      ]
+    },
+    {
+      "python_file": "implementations/python/tests/test_exploit_path_analysis.py",
+      "python_test": "test_impossible_transition_reports_stable_diagnostic",
+      "python_line": 297,
+      "status": "independent-reference",
+      "go_test": "TestAnalysisIndependentPythonReference",
+      "behavior": "Exact service-call inputs and complete incumbent outputs/refusal categories; later Python assertions or mutations require the supplemental native tests listed below.",
+      "reference_cases": [
+        {
+          "path": "exploit-path.json.gz",
+          "case_index": 2
+        }
+      ]
+    },
+    {
+      "python_file": "implementations/python/tests/test_exploit_path_analysis.py",
+      "python_test": "test_search_fails_closed_before_exceeding_evidence_diagnostic_cap",
+      "python_line": 309,
+      "status": "independent-reference",
+      "go_test": "TestAnalysisIndependentPythonReference",
+      "behavior": "Exact service-call inputs and complete incumbent outputs/refusal categories; later Python assertions or mutations require the supplemental native tests listed below.",
+      "reference_cases": [
+        {
+          "path": "exploit-path.json.gz",
+          "case_index": 3
+        }
+      ]
+    },
+    {
+      "python_file": "implementations/python/tests/test_exploit_path_analysis.py",
+      "python_test": "test_ambiguous_binding_fails_closed_with_unsupported_diagnostic",
+      "python_line": 321,
+      "status": "independent-reference",
+      "go_test": "TestAnalysisIndependentPythonReference",
+      "behavior": "Exact service-call inputs and complete incumbent outputs/refusal categories; later Python assertions or mutations require the supplemental native tests listed below.",
+      "reference_cases": [
+        {
+          "path": "exploit-path.json.gz",
+          "case_index": 4
+        }
+      ]
+    },
+    {
+      "python_file": "implementations/python/tests/test_exploit_path_analysis.py",
+      "python_test": "test_unsupported_transition_semantics_fail_closed",
+      "python_line": 344,
+      "status": "independent-reference",
+      "go_test": "TestAnalysisIndependentPythonReference",
+      "behavior": "Exact service-call inputs and complete incumbent outputs/refusal categories; later Python assertions or mutations require the supplemental native tests listed below.",
+      "reference_cases": [
+        {
+          "path": "exploit-path.json.gz",
+          "case_index": 5
+        }
+      ]
+    },
+    {
+      "python_file": "implementations/python/tests/test_exploit_path_analysis.py",
+      "python_test": "test_replay_rejects_source_query_and_payload_mutations",
+      "python_line": 356,
+      "status": "independent-reference",
+      "go_test": "TestAnalysisIndependentPythonReference",
+      "behavior": "Exact service-call inputs and complete incumbent outputs/refusal categories; later Python assertions or mutations require the supplemental native tests listed below.",
+      "reference_cases": [
+        {
+          "path": "exploit-path.json.gz",
+          "case_index": 6
+        }
+      ],
+      "supplemental_go_tests": [
+        "TestReplayEverySolverAndExploitOutcomeRejectsTampering",
+        "TestReplayRecomputesOpacityAndSynthesis"
+      ]
+    },
+    {
+      "python_file": "implementations/python/tests/test_exploit_path_analysis.py",
+      "python_test": "test_prerequisites_effects_ordering_and_goal_checks_are_load_bearing",
+      "python_line": 376,
+      "status": "independent-reference",
+      "go_test": "TestAnalysisIndependentPythonReference",
+      "behavior": "Exact service-call inputs and complete incumbent outputs/refusal categories; later Python assertions or mutations require the supplemental native tests listed below.",
+      "reference_cases": [
+        {
+          "path": "exploit-path.json.gz",
+          "case_index": 7
+        },
+        {
+          "path": "exploit-path.json.gz",
+          "case_index": 8
+        },
+        {
+          "path": "exploit-path.json.gz",
+          "case_index": 9
+        },
+        {
+          "path": "exploit-path.json.gz",
+          "case_index": 10
+        }
+      ]
+    },
+    {
+      "python_file": "implementations/python/tests/test_exploit_path_analysis.py",
+      "python_test": "test_evidence_contract_rejects_cross_outcome_payloads",
+      "python_line": 402,
+      "status": "independent-reference",
+      "go_test": "TestAnalysisIndependentPythonReference",
+      "behavior": "Exact service-call inputs and complete incumbent outputs/refusal categories; later Python assertions or mutations require the supplemental native tests listed below.",
+      "reference_cases": [
+        {
+          "path": "exploit-path.json.gz",
+          "case_index": 11
+        },
+        {
+          "path": "satisfiability.json.gz",
+          "case_index": 6
+        }
+      ],
+      "supplemental_go_tests": [
+        "TestReplayEverySolverAndExploitOutcomeRejectsTampering",
+        "TestReplayRecomputesOpacityAndSynthesis"
+      ]
+    },
+    {
+      "python_file": "implementations/python/tests/test_exploit_path_analysis.py",
+      "python_test": "test_published_valid_and_invalid_fixtures_enforce_outcome_joins",
+      "python_line": 411,
+      "status": "covered-scoped",
+      "go_test": "TestReplayEverySolverAndExploitOutcomeRejectsTampering; contract/admission/TestSatisfiabilityWitnessUsesTheNativeOwner",
+      "behavior": "Every recorded solver and path outcome replays; unknown fields, source identity, digest and cross-outcome mutations fail."
+    },
+    {
+      "python_file": "implementations/python/tests/test_formal_semantic_validation.py",
+      "python_test": "test_retest_production_evidence_contains_governed_payloads",
+      "python_line": 314,
+      "status": "not-exposed",
+      "reason": "This tests a historical formal-research bundle and its release identifiers. Current evidence admission and all supported service outcomes have native tests; archival bundle orchestration is outside this port."
+    },
+    {
+      "python_file": "implementations/python/tests/test_issue_1076_compute_realization.py",
+      "python_test": "test_legacy_satisfiability_snapshot_migration_rejects_a_forged_original_join",
+      "python_line": 243,
+      "status": "covered-scoped",
+      "go_test": "sdl/TestLegacySnapshotAuthenticatesOriginalBeforeMigration; TestReplayEverySolverAndExploitOutcomeRejectsTampering",
+      "behavior": "Native snapshot migration authenticates pre-migration identity and replay re-admits the witness. Existing realization source map retains historical projection coverage."
+    },
+    {
+      "python_file": "implementations/python/tests/test_issue_1076_compute_realization.py",
+      "python_test": "test_legacy_exploit_snapshot_migration_rejects_a_forged_original_graph_join",
+      "python_line": 252,
+      "status": "covered-scoped",
+      "go_test": "TestAnalysisIndependentPythonReference/exploit-path",
+      "behavior": "Independent historical fixture forged-graph rejects the original graph join before migration."
+    },
+    {
+      "python_file": "implementations/python/tests/test_issue_1076_compute_realization.py",
+      "python_test": "test_legacy_exploit_snapshot_migration_rejects_a_forged_matching_digest_pair",
+      "python_line": 261,
+      "status": "covered-scoped",
+      "go_test": "TestAnalysisIndependentPythonReference/exploit-path",
+      "behavior": "Independent historical fixture forged-original rejects a mutually matching but false original digest."
+    },
+    {
+      "python_file": "implementations/python/tests/test_issue_1206_review_regressions.py",
+      "python_test": "test_private_os_variable_domain_is_satisfiable",
+      "python_line": 72,
+      "status": "covered-scoped",
+      "go_test": "TestSatisfiabilityImportedAndArchitectureSources",
+      "behavior": "Both private OS and private architecture values and AMD64 pass native translation, solve, instantiation and evidence admission."
+    },
+    {
+      "python_file": "implementations/python/tests/test_issue_1210_semantic_comparison.py",
+      "python_test": "test_presence_preserving_projection_distinguishes_omitted_and_empty",
+      "python_line": 48,
+      "status": "existing-owner",
+      "go_test": "processor/comparison/TestComparisonAnalyzerMatchesIndependentPython/test_issue_1210_semantic_comparison.py::test_presence_preserving_projection_distinguishes_omitted_and_empty-0; /test_issue_1210_semantic_comparison.py::test_presence_preserving_projection_distinguishes_omitted_and_empty-1",
+      "behavior": "Direct original pure source-test invocation outputs/errors replayed exactly from comparison/testdata/reference*.json. Full typed result JSON includes coordinates, canonical/request/scope digests, subjects, ordered dependencies/paths/reasons/context. Adjacent runtime/store/apply behavior excluded.",
+      "owner_map": "processor/comparison/testdata/source-case-map.json"
+    },
+    {
+      "python_file": "implementations/python/tests/test_issue_1210_semantic_comparison.py",
+      "python_test": "test_private_description_key_is_not_editorial_text",
+      "python_line": 62,
+      "status": "existing-owner",
+      "go_test": "processor/comparison/TestComparisonAnalyzerMatchesIndependentPython/test_issue_1210_semantic_comparison.py::test_private_description_key_is_not_editorial_text-0",
+      "behavior": "Direct original pure source-test invocation outputs/errors replayed exactly from comparison/testdata/reference*.json. Full typed result JSON includes coordinates, canonical/request/scope digests, subjects, ordered dependencies/paths/reasons/context. Adjacent runtime/store/apply behavior excluded.",
+      "owner_map": "processor/comparison/testdata/source-case-map.json"
+    },
+    {
+      "python_file": "implementations/python/tests/test_issue_1210_semantic_comparison.py",
+      "python_test": "test_native_editorial_description_still_has_no_semantic_effect",
+      "python_line": 86,
+      "status": "existing-owner",
+      "go_test": "processor/comparison/TestComparisonAnalyzerMatchesIndependentPython/test_issue_1210_semantic_comparison.py::test_native_editorial_description_still_has_no_semantic_effect-0",
+      "behavior": "Direct original pure source-test invocation outputs/errors replayed exactly from comparison/testdata/reference*.json. Full typed result JSON includes coordinates, canonical/request/scope digests, subjects, ordered dependencies/paths/reasons/context. Adjacent runtime/store/apply behavior excluded.",
+      "owner_map": "processor/comparison/testdata/source-case-map.json"
+    },
+    {
+      "python_file": "implementations/python/tests/test_issue_1210_semantic_comparison.py",
+      "python_test": "test_unsupported_owner_projection_cannot_claim_compatibility",
+      "python_line": 92,
+      "status": "existing-owner",
+      "go_test": "processor/comparison/TestComparisonRechecksRequestPinsAndProfileBeforeAnalysis",
+      "behavior": "Governed module owner projection2 is rejected by native closed profile re-admission before analysis.",
+      "owner_map": "processor/comparison/testdata/source-case-map.json"
+    },
+    {
+      "python_file": "implementations/python/tests/test_issue_1210_semantic_comparison.py",
+      "python_test": "test_progressive_source_requires_current_owner_projection",
+      "python_line": 100,
+      "status": "existing-owner",
+      "go_test": "processor/comparison/TestComparisonAnalyzerMatchesIndependentPython/test_issue_1210_semantic_comparison.py::test_progressive_source_requires_current_owner_projection-0; /test_issue_1210_semantic_comparison.py::test_progressive_source_requires_current_owner_projection-1; /test_issue_1210_semantic_comparison.py::test_progressive_source_requires_current_owner_projection-2; /test_issue_1210_semantic_comparison.py::test_progressive_source_requires_current_owner_projection-3",
+      "behavior": "Direct original pure source-test invocation outputs/errors replayed exactly from comparison/testdata/reference*.json. Full typed result JSON includes coordinates, canonical/request/scope digests, subjects, ordered dependencies/paths/reasons/context. Adjacent runtime/store/apply behavior excluded.",
+      "owner_map": "processor/comparison/testdata/source-case-map.json"
+    },
+    {
+      "python_file": "implementations/python/tests/test_issue_1210_semantic_comparison.py",
+      "python_test": "test_task_comparison_preserves_independent_observation_demand",
+      "python_line": 107,
+      "status": "existing-owner",
+      "go_test": "processor/comparison/TestComparisonAnalyzerMatchesIndependentPython/test_issue_1210_semantic_comparison.py::test_task_comparison_preserves_independent_observation_demand-0; /test_issue_1210_semantic_comparison.py::test_task_comparison_preserves_independent_observation_demand-1",
+      "behavior": "Direct original pure source-test invocation outputs/errors replayed exactly from comparison/testdata/reference*.json. Full typed result JSON includes coordinates, canonical/request/scope digests, subjects, ordered dependencies/paths/reasons/context. Adjacent runtime/store/apply behavior excluded.",
+      "owner_map": "processor/comparison/testdata/source-case-map.json"
+    },
+    {
+      "python_file": "implementations/python/tests/test_issue_1210_semantic_comparison.py",
+      "python_test": "test_task_default_presence_cannot_change_semantics_under_the_same_coordinate",
+      "python_line": 126,
+      "status": "existing-owner",
+      "go_test": "processor/comparison/TestComparisonAnalyzerMatchesIndependentPython/test_issue_1210_semantic_comparison.py::test_task_default_presence_cannot_change_semantics_under_the_same_coordinate-0; /test_issue_1210_semantic_comparison.py::test_task_default_presence_cannot_change_semantics_under_the_same_coordinate-1; /test_issue_1210_semantic_comparison.py::test_task_default_presence_cannot_change_semantics_under_the_same_coordinate-2; /test_issue_1210_semantic_comparison.py::test_task_default_presence_cannot_change_semantics_under_the_same_coordinate-3; /test_issue_1210_semantic_comparison.py::test_task_default_presence_cannot_change_semantics_under_the_same_coordinate-4; /test_issue_1210_semantic_comparison.py::test_task_default_presence_cannot_change_semantics_under_the_same_coordinate-5",
+      "behavior": "Direct original pure source-test invocation outputs/errors replayed exactly from comparison/testdata/reference*.json. Full typed result JSON includes coordinates, canonical/request/scope digests, subjects, ordered dependencies/paths/reasons/context. Adjacent runtime/store/apply behavior excluded.",
+      "owner_map": "processor/comparison/testdata/source-case-map.json"
+    },
+    {
+      "python_file": "implementations/python/tests/test_issue_1395_crossing_profile.py",
+      "python_test": "test_multi_binding_checks_right_carrier_and_opacity_admission_rejects_it",
+      "python_line": 119,
+      "status": "covered-scoped",
+      "go_test": "TestOpacityRejectsBinaryAndMultiOperationProfiles",
+      "behavior": "Multi-operation crossing is refused by opacity; general right-carrier admission remains with contract/profile."
+    },
+    {
+      "python_file": "implementations/python/tests/test_issue_1678_cycle2_pointers.py",
+      "python_test": "test_opacity_file_with_a_bad_document_is_invalid_input",
+      "python_line": 227,
+      "status": "covered-scoped",
+      "go_test": "TestAnalysisJSONIngressBoundsPrivacyAndRecovery",
+      "behavior": "The pure API consumes bytes and returns invalid-input for malformed opacity JSON."
+    },
+    {
+      "python_file": "implementations/python/tests/test_issue_1678_cycle2_pointers.py",
+      "python_test": "test_opacity_file_that_cannot_be_read_is_an_operational_failure",
+      "python_line": 244,
+      "status": "not-exposed",
+      "reason": "The opacity Go API takes bounded bytes, not a filename. File opening remains with the caller; source read error handling is exercised for the explicit SDL source API."
+    },
+    {
+      "python_file": "implementations/python/tests/test_issue_1678_sweep_pf.py",
+      "python_test": "test_malformed_authoring_path_output_is_an_invalid_side",
+      "python_line": 89,
+      "status": "covered-scoped",
+      "go_test": "TestAnalysisIndependentPythonReference/authoring-adapter-comparison; TestAuthoringDiagnosticMultisetAndBounds",
+      "behavior": "Malformed sources and bounded typed diagnostic carriers fail as an invalid side. Go cannot construct arbitrary foreign diagnostic objects."
+    },
+    {
+      "python_file": "implementations/python/tests/test_issue_1678_sweep_pf.py",
+      "python_test": "test_authoring_observation_defect_still_propagates",
+      "python_line": 101,
+      "status": "covered-scoped",
+      "go_test": "TestAuthoringClassifiesOnlyUntrustedOutputFailures",
+      "behavior": "Operational and unclassified owner errors propagate instead of becoming invalid source evidence."
+    },
+    {
+      "python_file": "implementations/python/tests/test_issue_1678_sweep_pf.py",
+      "python_test": "test_exploit_path_input_beyond_the_decoder_limits_is_rejected",
+      "python_line": 215,
+      "status": "covered-scoped",
+      "go_test": "TestAnalysisJSONIngressBoundsPrivacyAndRecovery",
+      "behavior": "Bounded JSON decoding rejects oversized and deeply nested input before snapshot migration, with the incumbent operational category."
+    },
+    {
+      "python_file": "implementations/python/tests/test_issue_1678_sweep_s.py",
+      "python_test": "test_snapshot_migration_refuses_nesting_beyond_its_depth_limit",
+      "python_line": 426,
+      "status": "covered-scoped",
+      "go_test": "sdl/TestSnapshotAdmissionRejectsExcessDepthBeforeMigration",
+      "behavior": "The public migration owner bounds depth before recursive migration."
+    },
+    {
+      "python_file": "implementations/python/tests/test_issue_1710_consumer_vectors.py",
+      "python_test": "test_jcs_identities",
+      "python_line": 43,
+      "status": "covered-scoped",
+      "go_test": "TestExploitStateIdentityMatchesIndependentConsumerVector",
+      "behavior": "The exploit state digest matches the fixed independent vector. Trial and backend identity vectors belong to their existing packages."
+    },
+    {
+      "python_file": "implementations/python/tests/test_issue_1789_solver_profile.py",
+      "python_test": "test_solver_identity_is_correlated_in_model_and_schema",
+      "python_line": 21,
+      "status": "covered-scoped",
+      "go_test": "internal/parity/TestSolverIdentityExceptionKeepsEveryOtherCoordinate",
+      "behavior": "Closed profile pairs and their digests are checked before the narrow comparison allowance; Python model/schema test remains in its original language."
+    },
+    {
+      "python_file": "implementations/python/tests/test_issue_961_participant_opacity.py",
+      "python_test": "test_finite_checker_reports_only_a_bounded_positive_result",
+      "python_line": 263,
+      "status": "independent-reference",
+      "go_test": "TestAnalysisIndependentPythonReference",
+      "behavior": "Exact service-call inputs and complete incumbent outputs/refusal categories; later Python assertions or mutations require the supplemental native tests listed below.",
+      "reference_cases": [
+        {
+          "path": "participant-opacity.json.gz",
+          "case_index": 0
+        }
+      ]
+    },
+    {
+      "python_file": "implementations/python/tests/test_issue_961_participant_opacity.py",
+      "python_test": "test_one_equal_history_pair_does_not_cover_another_secret_point",
+      "python_line": 287,
+      "status": "independent-reference",
+      "go_test": "TestAnalysisIndependentPythonReference",
+      "behavior": "Exact service-call inputs and complete incumbent outputs/refusal categories; later Python assertions or mutations require the supplemental native tests listed below.",
+      "reference_cases": [
+        {
+          "path": "participant-opacity.json.gz",
+          "case_index": 1
+        }
+      ]
+    },
+    {
+      "python_file": "implementations/python/tests/test_issue_961_participant_opacity.py",
+      "python_test": "test_counterexample_scan_completes_all_secret_obligations",
+      "python_line": 304,
+      "status": "independent-reference",
+      "go_test": "TestAnalysisIndependentPythonReference",
+      "behavior": "Exact service-call inputs and complete incumbent outputs/refusal categories; later Python assertions or mutations require the supplemental native tests listed below.",
+      "reference_cases": [
+        {
+          "path": "participant-opacity.json.gz",
+          "case_index": 2
+        }
+      ]
+    },
+    {
+      "python_file": "implementations/python/tests/test_issue_961_participant_opacity.py",
+      "python_test": "test_observable_control_and_retained_knowledge_falsify_opacity",
+      "python_line": 370,
+      "status": "independent-reference",
+      "go_test": "TestAnalysisIndependentPythonReference",
+      "behavior": "Exact service-call inputs and complete incumbent outputs/refusal categories; later Python assertions or mutations require the supplemental native tests listed below.",
+      "reference_cases": [
+        {
+          "path": "participant-opacity.json.gz",
+          "case_index": 3
+        },
+        {
+          "path": "participant-opacity.json.gz",
+          "case_index": 4
+        }
+      ]
+    },
+    {
+      "python_file": "implementations/python/tests/test_issue_961_participant_opacity.py",
+      "python_test": "test_active_probe_requires_a_witness_under_the_same_strategy",
+      "python_line": 380,
+      "status": "independent-reference",
+      "go_test": "TestAnalysisIndependentPythonReference",
+      "behavior": "Exact service-call inputs and complete incumbent outputs/refusal categories; later Python assertions or mutations require the supplemental native tests listed below.",
+      "reference_cases": [
+        {
+          "path": "participant-opacity.json.gz",
+          "case_index": 5
+        }
+      ]
+    },
+    {
+      "python_file": "implementations/python/tests/test_issue_961_participant_opacity.py",
+      "python_test": "test_fused_coalition_observation_is_not_inferred_from_individual_opacity",
+      "python_line": 425,
+      "status": "independent-reference",
+      "go_test": "TestAnalysisIndependentPythonReference",
+      "behavior": "Exact service-call inputs and complete incumbent outputs/refusal categories; later Python assertions or mutations require the supplemental native tests listed below.",
+      "reference_cases": [
+        {
+          "path": "participant-opacity.json.gz",
+          "case_index": 6
+        }
+      ]
+    },
+    {
+      "python_file": "implementations/python/tests/test_issue_961_participant_opacity.py",
+      "python_test": "test_declared_order_context_is_part_of_the_information_cell",
+      "python_line": 458,
+      "status": "independent-reference",
+      "go_test": "TestAnalysisIndependentPythonReference",
+      "behavior": "Exact service-call inputs and complete incumbent outputs/refusal categories; later Python assertions or mutations require the supplemental native tests listed below.",
+      "reference_cases": [
+        {
+          "path": "participant-opacity.json.gz",
+          "case_index": 7
+        }
+      ]
+    },
+    {
+      "python_file": "implementations/python/tests/test_issue_961_participant_opacity.py",
+      "python_test": "test_admission_requires_every_scheduler_environment_pair",
+      "python_line": 488,
+      "status": "independent-reference",
+      "go_test": "TestAnalysisIndependentPythonReference",
+      "behavior": "Exact service-call inputs and complete incumbent outputs/refusal categories; later Python assertions or mutations require the supplemental native tests listed below.",
+      "reference_cases": [
+        {
+          "path": "participant-opacity.json.gz",
+          "case_index": 8
+        }
+      ]
+    },
+    {
+      "python_file": "implementations/python/tests/test_issue_961_participant_opacity.py",
+      "python_test": "test_vacuous_or_incomplete_domains_never_produce_a_positive_result",
+      "python_line": 519,
+      "status": "independent-reference",
+      "go_test": "TestAnalysisIndependentPythonReference",
+      "behavior": "Exact service-call inputs and complete incumbent outputs/refusal categories; later Python assertions or mutations require the supplemental native tests listed below.",
+      "reference_cases": [
+        {
+          "path": "participant-opacity.json.gz",
+          "case_index": 9
+        },
+        {
+          "path": "participant-opacity.json.gz",
+          "case_index": 10
+        }
+      ]
+    },
+    {
+      "python_file": "implementations/python/tests/test_issue_961_participant_opacity.py",
+      "python_test": "test_count_mismatch_is_rejected_before_evaluation",
+      "python_line": 544,
+      "status": "covered-scoped",
+      "go_test": "contract/admission/TestOpacityCarrierAndEvidence",
+      "behavior": "Existing native input admission explicitly mutates declared counts and refuses them."
+    },
+    {
+      "python_file": "implementations/python/tests/test_issue_961_participant_opacity.py",
+      "python_test": "test_evidence_is_permutation_independent_sanitized_and_replayable",
+      "python_line": 558,
+      "status": "independent-reference",
+      "go_test": "TestAnalysisIndependentPythonReference",
+      "behavior": "Exact service-call inputs and complete incumbent outputs/refusal categories; later Python assertions or mutations require the supplemental native tests listed below.",
+      "reference_cases": [
+        {
+          "path": "participant-opacity.json.gz",
+          "case_index": 11
+        },
+        {
+          "path": "participant-opacity.json.gz",
+          "case_index": 12
+        }
+      ],
+      "supplemental_go_tests": [
+        "TestReplayEverySolverAndExploitOutcomeRejectsTampering",
+        "TestReplayRecomputesOpacityAndSynthesis"
+      ]
+    },
+    {
+      "python_file": "implementations/python/tests/test_issue_961_participant_opacity.py",
+      "python_test": "test_evidence_contract_rejects_contradictory_outcome_states",
+      "python_line": 591,
+      "status": "independent-reference",
+      "go_test": "TestAnalysisIndependentPythonReference",
+      "behavior": "Exact service-call inputs and complete incumbent outputs/refusal categories; later Python assertions or mutations require the supplemental native tests listed below.",
+      "reference_cases": [
+        {
+          "path": "participant-opacity.json.gz",
+          "case_index": 13
+        }
+      ]
+    },
+    {
+      "python_file": "implementations/python/tests/test_issue_961_participant_opacity.py",
+      "python_test": "test_file_analyzer_rejects_duplicate_or_open_json_without_echoing_input",
+      "python_line": 622,
+      "status": "covered-scoped",
+      "go_test": "TestAnalysisJSONIngressBoundsPrivacyAndRecovery",
+      "behavior": "Duplicate/open JSON and recovery after refusal, without echoing source bytes."
+    },
+    {
+      "python_file": "implementations/python/tests/test_issue_962_participant_opacity_model_check.py",
+      "python_test": "test_transition_model_contract_rejects_asserted_reachability_and_bad_counts",
+      "python_line": 336,
+      "status": "covered-scoped",
+      "go_test": "contract/admission/TestOpacityCarrierAndEvidence; TestAnalysisJSONIngressBoundsPrivacyAndRecovery",
+      "behavior": "Closed schema ingress and count/graph semantic admission precede fixed-point evaluation."
+    },
+    {
+      "python_file": "implementations/python/tests/test_issue_962_participant_opacity_model_check.py",
+      "python_test": "test_complete_passive_model_check_binds_exact_model_tool_and_coverage",
+      "python_line": 363,
+      "status": "independent-reference",
+      "go_test": "TestAnalysisIndependentPythonReference",
+      "behavior": "Exact service-call inputs and complete incumbent outputs/refusal categories; later Python assertions or mutations require the supplemental native tests listed below.",
+      "reference_cases": [
+        {
+          "path": "participant-opacity-model-check.json.gz",
+          "case_index": 0
+        }
+      ]
+    },
+    {
+      "python_file": "implementations/python/tests/test_issue_962_participant_opacity_model_check.py",
+      "python_test": "test_pair_probe_can_pass_while_reachable_secret_only_cell_fails_model_check",
+      "python_line": 401,
+      "status": "independent-reference",
+      "go_test": "TestAnalysisIndependentPythonReference",
+      "behavior": "Exact service-call inputs and complete incumbent outputs/refusal categories; later Python assertions or mutations require the supplemental native tests listed below.",
+      "reference_cases": [
+        {
+          "path": "participant-opacity-model-check.json.gz",
+          "case_index": 1
+        },
+        {
+          "path": "participant-opacity.json.gz",
+          "case_index": 14
+        }
+      ]
+    },
+    {
+      "python_file": "implementations/python/tests/test_issue_962_participant_opacity_model_check.py",
+      "python_test": "test_bounded_and_model_check_lanes_agree_on_identical_reachable_carriers",
+      "python_line": 452,
+      "status": "independent-reference",
+      "go_test": "TestAnalysisIndependentPythonReference",
+      "behavior": "Exact service-call inputs and complete incumbent outputs/refusal categories; later Python assertions or mutations require the supplemental native tests listed below.",
+      "reference_cases": [
+        {
+          "path": "participant-opacity-model-check.json.gz",
+          "case_index": 2
+        },
+        {
+          "path": "participant-opacity-model-check.json.gz",
+          "case_index": 3
+        },
+        {
+          "path": "participant-opacity.json.gz",
+          "case_index": 15
+        },
+        {
+          "path": "participant-opacity.json.gz",
+          "case_index": 16
+        }
+      ]
+    },
+    {
+      "python_file": "implementations/python/tests/test_issue_962_participant_opacity_model_check.py",
+      "python_test": "test_model_check_evidence_replay_rejects_model_drift",
+      "python_line": 479,
+      "status": "independent-reference",
+      "go_test": "TestAnalysisIndependentPythonReference",
+      "behavior": "Exact service-call inputs and complete incumbent outputs/refusal categories; later Python assertions or mutations require the supplemental native tests listed below.",
+      "reference_cases": [
+        {
+          "path": "participant-opacity-model-check.json.gz",
+          "case_index": 4
+        }
+      ],
+      "supplemental_go_tests": [
+        "TestReplayEverySolverAndExploitOutcomeRejectsTampering",
+        "TestReplayRecomputesOpacityAndSynthesis"
+      ]
+    },
+    {
+      "python_file": "implementations/python/tests/test_issue_962_participant_opacity_model_check.py",
+      "python_test": "test_active_model_checks_every_strategy_and_keeps_witnesses_same_strategy",
+      "python_line": 512,
+      "status": "independent-reference",
+      "go_test": "TestAnalysisIndependentPythonReference",
+      "behavior": "Exact service-call inputs and complete incumbent outputs/refusal categories; later Python assertions or mutations require the supplemental native tests listed below.",
+      "reference_cases": [
+        {
+          "path": "participant-opacity-model-check.json.gz",
+          "case_index": 5
+        }
+      ]
+    },
+    {
+      "python_file": "implementations/python/tests/test_issue_962_participant_opacity_model_check.py",
+      "python_test": "test_observable_control_memory_and_policy_changes_split_model_cells",
+      "python_line": 589,
+      "status": "independent-reference",
+      "go_test": "TestAnalysisIndependentPythonReference",
+      "behavior": "Exact service-call inputs and complete incumbent outputs/refusal categories; later Python assertions or mutations require the supplemental native tests listed below.",
+      "reference_cases": [
+        {
+          "path": "participant-opacity-model-check.json.gz",
+          "case_index": 6
+        },
+        {
+          "path": "participant-opacity-model-check.json.gz",
+          "case_index": 7
+        },
+        {
+          "path": "participant-opacity-model-check.json.gz",
+          "case_index": 8
+        }
+      ]
+    },
+    {
+      "python_file": "implementations/python/tests/test_issue_962_participant_opacity_model_check.py",
+      "python_test": "test_coalition_model_uses_fused_observation_instead_of_individual_projection",
+      "python_line": 608,
+      "status": "independent-reference",
+      "go_test": "TestAnalysisIndependentPythonReference",
+      "behavior": "Exact service-call inputs and complete incumbent outputs/refusal categories; later Python assertions or mutations require the supplemental native tests listed below.",
+      "reference_cases": [
+        {
+          "path": "participant-opacity-model-check.json.gz",
+          "case_index": 9
+        }
+      ]
+    },
+    {
+      "python_file": "implementations/python/tests/test_issue_962_participant_opacity_model_check.py",
+      "python_test": "test_non_total_order_and_probability_promotions_fail_closed",
+      "python_line": 646,
+      "status": "independent-reference",
+      "go_test": "TestAnalysisIndependentPythonReference",
+      "behavior": "Exact service-call inputs and complete incumbent outputs/refusal categories; later Python assertions or mutations require the supplemental native tests listed below.",
+      "reference_cases": [
+        {
+          "path": "participant-opacity-model-check.json.gz",
+          "case_index": 10
+        }
+      ]
+    },
+    {
+      "python_file": "implementations/python/tests/test_issue_962_participant_opacity_model_check.py",
+      "python_test": "test_incomplete_and_vacuous_models_never_produce_positive_evidence",
+      "python_line": 676,
+      "status": "independent-reference",
+      "go_test": "TestAnalysisIndependentPythonReference",
+      "behavior": "Exact service-call inputs and complete incumbent outputs/refusal categories; later Python assertions or mutations require the supplemental native tests listed below.",
+      "reference_cases": [
+        {
+          "path": "participant-opacity-model-check.json.gz",
+          "case_index": 11
+        },
+        {
+          "path": "participant-opacity-model-check.json.gz",
+          "case_index": 12
+        }
+      ]
+    },
+    {
+      "python_file": "implementations/python/tests/test_issue_962_participant_opacity_model_check.py",
+      "python_test": "test_model_check_enforces_profile_bounds",
+      "python_line": 713,
+      "status": "independent-reference",
+      "go_test": "TestAnalysisIndependentPythonReference",
+      "behavior": "Exact service-call inputs and complete incumbent outputs/refusal categories; later Python assertions or mutations require the supplemental native tests listed below.",
+      "reference_cases": [
+        {
+          "path": "participant-opacity-model-check.json.gz",
+          "case_index": 13
+        }
+      ]
+    },
+    {
+      "python_file": "implementations/python/tests/test_issue_962_participant_opacity_model_check.py",
+      "python_test": "test_profile_digest_mutation_is_rejected_by_both_assurance_lanes",
+      "python_line": 734,
+      "status": "independent-reference",
+      "go_test": "TestAnalysisIndependentPythonReference",
+      "behavior": "Exact service-call inputs and complete incumbent outputs/refusal categories; later Python assertions or mutations require the supplemental native tests listed below.",
+      "reference_cases": [
+        {
+          "path": "participant-opacity-model-check.json.gz",
+          "case_index": 14
+        },
+        {
+          "path": "participant-opacity.json.gz",
+          "case_index": 17
+        }
+      ]
+    },
+    {
+      "python_file": "implementations/python/tests/test_issue_962_participant_opacity_model_check.py",
+      "python_test": "test_model_check_file_ingress_rejects_duplicate_and_open_json_without_leaks",
+      "python_line": 756,
+      "status": "covered-scoped",
+      "go_test": "TestAnalysisJSONIngressBoundsPrivacyAndRecovery",
+      "behavior": "Duplicate members, open fields, bytes/depth limits and sanitized errors at the byte API; no new ambient file loader."
+    },
+    {
+      "python_file": "implementations/python/tests/test_issue_971_crossing_profile.py",
+      "python_test": "test_opacity_consumers_reject_binary_profile_before_accessing_parameters",
+      "python_line": 148,
+      "status": "covered-scoped",
+      "go_test": "TestOpacityRejectsBinaryAndMultiOperationProfiles",
+      "behavior": "Raw binary profiles must pass exact native claim/profile readmission and cannot enter the opacity lane."
+    },
+    {
+      "python_file": "implementations/python/tests/test_issue_971_crossing_profile.py",
+      "python_test": "test_opacity_rejects_crossing_profile_with_matching_claim_and_coordinates",
+      "python_line": 178,
+      "status": "covered-scoped",
+      "go_test": "TestOpacityRejectsBinaryAndMultiOperationProfiles",
+      "behavior": "Matching identity fields do not turn binary crossing parameters into unary opacity parameters."
+    },
+    {
+      "python_file": "implementations/python/tests/test_issue_989_versioned_evidence.py",
+      "python_test": "test_historical_integrated_release_does_not_execute_current_code",
+      "python_line": 209,
+      "status": "not-exposed",
+      "reason": "This tests tools/formal_semantic_validation archival release orchestration. Analysis services neither load historical releases nor replace their validators."
+    },
+    {
+      "python_file": "implementations/python/tests/test_node_architecture.py",
+      "python_test": "test_architecture_address_captures_canonical_vocabulary",
+      "python_line": 449,
+      "status": "covered-scoped",
+      "go_test": "TestSatisfiabilityImportedAndArchitectureSources",
+      "behavior": "Native normalization admits architecture alias and private vocabulary before evidence construction."
+    },
+    {
+      "python_file": "implementations/python/tests/test_satisfiability_cli.py",
+      "python_test": "test_cli_emits_published_evidence_and_is_deterministic",
+      "python_line": 30,
+      "status": "covered-scoped",
+      "go_test": "TestSatisfiabilityGoldenControlAndReplay; internal/parity/TestCorpus",
+      "behavior": "Actual CLI logic is registered in the corpus runner; solver identity is the sole currently authorized comparison allowance."
+    },
+    {
+      "python_file": "implementations/python/tests/test_scenario_satisfiability.py",
+      "python_test": "test_satisfiable_control_emits_replayable_lexicographic_witness",
+      "python_line": 108,
+      "status": "independent-reference",
+      "go_test": "TestAnalysisIndependentPythonReference",
+      "behavior": "Exact service-call inputs and complete incumbent outputs/refusal categories; later Python assertions or mutations require the supplemental native tests listed below.",
+      "reference_cases": [
+        {
+          "path": "satisfiability.json.gz",
+          "case_index": 0
+        }
+      ],
+      "supplemental_go_tests": [
+        "TestReplayEverySolverAndExploitOutcomeRejectsTampering",
+        "TestReplayRecomputesOpacityAndSynthesis"
+      ]
+    },
+    {
+      "python_file": "implementations/python/tests/test_scenario_satisfiability.py",
+      "python_test": "test_unsatisfiable_control_emits_stable_replayable_core",
+      "python_line": 122,
+      "status": "independent-reference",
+      "go_test": "TestAnalysisIndependentPythonReference",
+      "behavior": "Exact service-call inputs and complete incumbent outputs/refusal categories; later Python assertions or mutations require the supplemental native tests listed below.",
+      "reference_cases": [
+        {
+          "path": "satisfiability.json.gz",
+          "case_index": 1
+        },
+        {
+          "path": "satisfiability.json.gz",
+          "case_index": 2
+        }
+      ],
+      "supplemental_go_tests": [
+        "TestReplayEverySolverAndExploitOutcomeRejectsTampering",
+        "TestReplayRecomputesOpacityAndSynthesis"
+      ]
+    },
+    {
+      "python_file": "implementations/python/tests/test_scenario_satisfiability.py",
+      "python_test": "test_integer_and_boolean_targets_use_finite_domains",
+      "python_line": 138,
+      "status": "independent-reference",
+      "go_test": "TestAnalysisIndependentPythonReference",
+      "behavior": "Exact service-call inputs and complete incumbent outputs/refusal categories; later Python assertions or mutations require the supplemental native tests listed below.",
+      "reference_cases": [
+        {
+          "path": "satisfiability.json.gz",
+          "case_index": 3
+        }
+      ]
+    },
+    {
+      "python_file": "implementations/python/tests/test_scenario_satisfiability.py",
+      "python_test": "test_unsupported_construct_fails_closed_with_value_free_diagnostic",
+      "python_line": 167,
+      "status": "independent-reference",
+      "go_test": "TestAnalysisIndependentPythonReference",
+      "behavior": "Exact service-call inputs and complete incumbent outputs/refusal categories; later Python assertions or mutations require the supplemental native tests listed below.",
+      "reference_cases": [
+        {
+          "path": "satisfiability.json.gz",
+          "case_index": 4
+        }
+      ]
+    },
+    {
+      "python_file": "implementations/python/tests/test_scenario_satisfiability.py",
+      "python_test": "test_replay_rejects_source_solver_and_payload_mutations",
+      "python_line": 182,
+      "status": "independent-reference",
+      "go_test": "TestAnalysisIndependentPythonReference",
+      "behavior": "Exact service-call inputs and complete incumbent outputs/refusal categories; later Python assertions or mutations require the supplemental native tests listed below.",
+      "reference_cases": [
+        {
+          "path": "satisfiability.json.gz",
+          "case_index": 5
+        }
+      ],
+      "supplemental_go_tests": [
+        "TestReplayEverySolverAndExploitOutcomeRejectsTampering",
+        "TestReplayRecomputesOpacityAndSynthesis"
+      ]
+    },
+    {
+      "python_file": "implementations/python/tests/test_scenario_satisfiability.py",
+      "python_test": "test_evidence_contract_rejects_cross_outcome_payloads",
+      "python_line": 202,
+      "status": "independent-reference",
+      "go_test": "TestAnalysisIndependentPythonReference",
+      "behavior": "Exact service-call inputs and complete incumbent outputs/refusal categories; later Python assertions or mutations require the supplemental native tests listed below.",
+      "reference_cases": [
+        {
+          "path": "exploit-path.json.gz",
+          "case_index": 11
+        },
+        {
+          "path": "satisfiability.json.gz",
+          "case_index": 6
+        }
+      ],
+      "supplemental_go_tests": [
+        "TestReplayEverySolverAndExploitOutcomeRejectsTampering",
+        "TestReplayRecomputesOpacityAndSynthesis"
+      ]
+    },
+    {
+      "python_file": "implementations/python/tests/test_scenario_satisfiability.py",
+      "python_test": "test_evidence_bytes_are_stable_across_json_round_trip",
+      "python_line": 211,
+      "status": "independent-reference",
+      "go_test": "TestAnalysisIndependentPythonReference",
+      "behavior": "Exact service-call inputs and complete incumbent outputs/refusal categories; later Python assertions or mutations require the supplemental native tests listed below.",
+      "reference_cases": [
+        {
+          "path": "satisfiability.json.gz",
+          "case_index": 7
+        }
+      ],
+      "supplemental_go_tests": [
+        "TestReplayEverySolverAndExploitOutcomeRejectsTampering",
+        "TestReplayRecomputesOpacityAndSynthesis"
+      ]
+    },
+    {
+      "python_file": "implementations/python/tests/test_scenario_satisfiability.py",
+      "python_test": "test_stored_evidence_replays_after_model_round_trip",
+      "python_line": 222,
+      "status": "independent-reference",
+      "go_test": "TestAnalysisIndependentPythonReference",
+      "behavior": "Exact service-call inputs and complete incumbent outputs/refusal categories; later Python assertions or mutations require the supplemental native tests listed below.",
+      "reference_cases": [
+        {
+          "path": "satisfiability.json.gz",
+          "case_index": 8
+        }
+      ],
+      "supplemental_go_tests": [
+        "TestReplayEverySolverAndExploitOutcomeRejectsTampering",
+        "TestReplayRecomputesOpacityAndSynthesis"
+      ]
+    },
+    {
+      "python_file": "implementations/python/tests/test_scenario_satisfiability.py",
+      "python_test": "test_domain_order_permutations_have_same_solver_neutral_semantics",
+      "python_line": 232,
+      "status": "independent-reference",
+      "go_test": "TestAnalysisIndependentPythonReference",
+      "behavior": "Exact service-call inputs and complete incumbent outputs/refusal categories; later Python assertions or mutations require the supplemental native tests listed below.",
+      "reference_cases": [
+        {
+          "path": "satisfiability.json.gz",
+          "case_index": 9
+        },
+        {
+          "path": "satisfiability.json.gz",
+          "case_index": 10
+        }
+      ]
+    },
+    {
+      "python_file": "implementations/python/tests/test_scenario_satisfiability.py",
+      "python_test": "test_contract_rejects_unknown_fields",
+      "python_line": 253,
+      "status": "independent-reference",
+      "go_test": "TestAnalysisIndependentPythonReference",
+      "behavior": "Exact service-call inputs and complete incumbent outputs/refusal categories; later Python assertions or mutations require the supplemental native tests listed below.",
+      "reference_cases": [
+        {
+          "path": "satisfiability.json.gz",
+          "case_index": 11
+        }
+      ],
+      "supplemental_go_tests": [
+        "TestReplayEverySolverAndExploitOutcomeRejectsTampering",
+        "TestReplayRecomputesOpacityAndSynthesis"
+      ]
+    },
+    {
+      "python_file": "implementations/python/tests/test_scenario_satisfiability.py",
+      "python_test": "test_max_length_variable_names_have_bounded_portable_normalized_ids",
+      "python_line": 262,
+      "status": "independent-reference",
+      "go_test": "TestAnalysisIndependentPythonReference",
+      "behavior": "Exact service-call inputs and complete incumbent outputs/refusal categories; later Python assertions or mutations require the supplemental native tests listed below.",
+      "reference_cases": [
+        {
+          "path": "satisfiability.json.gz",
+          "case_index": 12
+        }
+      ]
+    },
+    {
+      "python_file": "implementations/python/tests/test_scenario_satisfiability.py",
+      "python_test": "test_symbol_limit_returns_bounded_unsupported_evidence",
+      "python_line": 276,
+      "status": "independent-reference",
+      "go_test": "TestAnalysisIndependentPythonReference",
+      "behavior": "Exact service-call inputs and complete incumbent outputs/refusal categories; later Python assertions or mutations require the supplemental native tests listed below.",
+      "reference_cases": [
+        {
+          "path": "satisfiability.json.gz",
+          "case_index": 13
+        }
+      ]
+    },
+    {
+      "python_file": "implementations/python/tests/test_scenario_satisfiability.py",
+      "python_test": "test_diagnostic_limit_returns_bounded_unsupported_evidence",
+      "python_line": 287,
+      "status": "independent-reference",
+      "go_test": "TestAnalysisIndependentPythonReference",
+      "behavior": "Exact service-call inputs and complete incumbent outputs/refusal categories; later Python assertions or mutations require the supplemental native tests listed below.",
+      "reference_cases": [
+        {
+          "path": "satisfiability.json.gz",
+          "case_index": 14
+        }
+      ]
+    },
+    {
+      "python_file": "implementations/python/tests/test_scenario_satisfiability.py",
+      "python_test": "test_clause_limit_returns_bounded_unsupported_evidence",
+      "python_line": 316,
+      "status": "independent-reference",
+      "go_test": "TestAnalysisIndependentPythonReference",
+      "behavior": "Exact service-call inputs and complete incumbent outputs/refusal categories; later Python assertions or mutations require the supplemental native tests listed below.",
+      "reference_cases": [
+        {
+          "path": "satisfiability.json.gz",
+          "case_index": 15
+        }
+      ]
+    },
+    {
+      "python_file": "implementations/python/tests/test_scenario_satisfiability.py",
+      "python_test": "test_published_valid_and_invalid_fixtures_enforce_outcome_joins",
+      "python_line": 340,
+      "status": "covered-scoped",
+      "go_test": "TestReplayEverySolverAndExploitOutcomeRejectsTampering; contract/admission/TestSatisfiabilityWitnessUsesTheNativeOwner",
+      "behavior": "Every recorded solver and path outcome replays; unknown fields, source identity, digest and cross-outcome mutations fail."
+    },
+    {
+      "python_file": "implementations/python/tests/test_scenario_satisfiability.py",
+      "python_test": "test_unknown_during_initial_decision_fails_without_evidence",
+      "python_line": 368,
+      "status": "covered-scoped",
+      "go_test": "TestSolverSelectionRefusesIncompleteAndInconsistentAnswers",
+      "behavior": "Initial unknown returns an operational refusal and no partial result."
+    },
+    {
+      "python_file": "implementations/python/tests/test_scenario_satisfiability.py",
+      "python_test": "test_unknown_during_core_reduction_fails_loudly_with_budget_context",
+      "python_line": 385,
+      "status": "covered-scoped",
+      "go_test": "TestSolverSelectionRefusesIncompleteAndInconsistentAnswers",
+      "behavior": "Unknown during core deletion returns no partial core."
+    },
+    {
+      "python_file": "implementations/python/tests/test_scenario_satisfiability.py",
+      "python_test": "test_unknown_during_witness_selection_fails_loudly_with_budget_context",
+      "python_line": 406,
+      "status": "covered-scoped",
+      "go_test": "TestSolverSelectionRefusesIncompleteAndInconsistentAnswers",
+      "behavior": "Unknown during witness probing returns no partial assignment."
+    },
+    {
+      "python_file": "implementations/python/tests/test_scenario_satisfiability.py",
+      "python_test": "test_operational_errors_render_complete_and_minimal_context",
+      "python_line": 430,
+      "status": "covered-scoped",
+      "go_test": "TestSolverRejectsUnadmittedExecutable; TestSolverBudgetBoundaryAndUnknown; TestSolverProcessBoundAndCollection",
+      "behavior": "Stable native fault codes report solver identity, deadline, incomplete result and process errors without arbitrary native output. Python exception attributes are not a native API."
+    },
+    {
+      "python_file": "implementations/python/tests/test_scenario_satisfiability.py",
+      "python_test": "test_witness_selection_fails_if_a_prior_sat_decision_cannot_be_reproduced",
+      "python_line": 451,
+      "status": "covered-scoped",
+      "go_test": "TestSolverSelectionRefusesIncompleteAndInconsistentAnswers",
+      "behavior": "Initial SAT followed by all UNSAT assignments fails rather than emitting evidence.",
+      "reference_cases": [
+        {
+          "path": "satisfiability.json.gz",
+          "case_index": 16
+        }
+      ]
+    },
+    {
+      "python_file": "implementations/python/tests/test_scenario_satisfiability.py",
+      "python_test": "test_duplicate_clause_ids_rejected_at_solver_boundary",
+      "python_line": 469,
+      "status": "covered-scoped",
+      "go_test": "TestSolverDuplicateClauseFailsBeforeCheck",
+      "behavior": "Duplicate identity is rejected before a probe can run.",
+      "reference_cases": [
+        {
+          "path": "satisfiability.json.gz",
+          "case_index": 17
+        }
+      ]
+    },
+    {
+      "python_file": "implementations/python/tests/test_scenario_satisfiability.py",
+      "python_test": "test_empty_target_domain_is_explicitly_unsatisfiable",
+      "python_line": 483,
+      "status": "independent-reference",
+      "go_test": "TestAnalysisIndependentPythonReference",
+      "behavior": "Exact service-call inputs and complete incumbent outputs/refusal categories; later Python assertions or mutations require the supplemental native tests listed below.",
+      "reference_cases": [
+        {
+          "path": "satisfiability.json.gz",
+          "case_index": 18
+        }
+      ]
+    },
+    {
+      "python_file": "implementations/python/tests/test_scenario_satisfiability.py",
+      "python_test": "test_derived_solver_check_budget_fails_closed_before_extra_check",
+      "python_line": 493,
+      "status": "covered-scoped",
+      "go_test": "TestSolverBudgetBoundaryAndUnknown; TestSolverPublishedMaximumHasFiniteCheckBudget",
+      "behavior": "Consumes the permitted budget and refuses the extra check before invoking the solver.",
+      "reference_cases": [
+        {
+          "path": "satisfiability.json.gz",
+          "case_index": 19
+        }
+      ]
+    },
+    {
+      "python_file": "implementations/python/tests/test_scenario_satisfiability.py",
+      "python_test": "test_compatibility_check_seam_runs_one_complete_probe",
+      "python_line": 514,
+      "status": "covered-scoped",
+      "go_test": "TestAdmittedNativeSolver; TestCanonicalSolverSelectionAndCore",
+      "behavior": "Native complete solve has no Python compatibility check seam; session probes and full solve have direct tests.",
+      "reference_cases": [
+        {
+          "path": "satisfiability.json.gz",
+          "case_index": 20
+        }
+      ]
+    },
+    {
+      "python_file": "implementations/python/tests/test_scenario_satisfiability.py",
+      "python_test": "test_remaining_timeout_fails_when_no_operation_time_remains",
+      "python_line": 524,
+      "status": "covered-scoped",
+      "go_test": "TestSolverBudgetBoundaryAndUnknown",
+      "behavior": "Ceiling timeout remains positive just before the deadline and refuses at it."
+    },
+    {
+      "python_file": "implementations/python/tests/test_scenario_satisfiability.py",
+      "python_test": "test_incremental_solver_matches_finite_reference",
+      "python_line": 625,
+      "status": "covered-scoped",
+      "go_test": "TestNativeSolverMatchesExhaustiveFiniteReference",
+      "behavior": "Exhaustive two-variable Boolean allowed-subset matrix checks witnesses and minimal cores against a direct finite scan."
+    },
+    {
+      "python_file": "implementations/python/tests/test_scenario_satisfiability.py",
+      "python_test": "test_one_solver_is_constructed_for_all_checks",
+      "python_line": 633,
+      "status": "covered-scoped",
+      "go_test": "TestAdmittedNativeSolver; TestSolverProcessBoundAndCollection",
+      "behavior": "Solver.solve has one session construction, passes the bound session.check method to all probes, and defers collection. Native tests exercise repeated probes and collection; no replaceable global solver factory."
+    },
+    {
+      "python_file": "implementations/python/tests/test_scenario_satisfiability.py",
+      "python_test": "test_published_maximum_witness_shape_has_a_finite_derived_budget",
+      "python_line": 651,
+      "status": "covered-scoped",
+      "go_test": "TestSolverPublishedMaximumHasFiniteCheckBudget",
+      "behavior": "128 domains of 256 members produce exactly 32769 checks; the next check is refused."
+    },
+    {
+      "python_file": "implementations/python/tests/test_scenario_satisfiability.py",
+      "python_test": "test_operation_deadline_covers_model_construction",
+      "python_line": 657,
+      "status": "covered-scoped",
+      "go_test": "TestSolverModelConstructionAndSelectionShareDeadline",
+      "behavior": "A controlled clock expires during SMT model construction; no result is returned."
+    },
+    {
+      "python_file": "implementations/python/tests/test_scenario_satisfiability.py",
+      "python_test": "test_operation_deadline_starts_before_model_validation",
+      "python_line": 670,
+      "status": "covered-scoped",
+      "go_test": "TestSolverModelConstructionAndSelectionShareDeadline; TestSolverDuplicateClauseFailsBeforeCheck",
+      "behavior": "The single budget clock starts before modelScript and uniqueness validation, and remains shared through final selection."
+    },
+    {
+      "python_file": "implementations/python/tests/test_scenario_satisfiability.py",
+      "python_test": "test_result_returned_after_operation_deadline_is_rejected",
+      "python_line": 690,
+      "status": "covered-scoped",
+      "go_test": "TestSolverBudgetBoundaryAndUnknown",
+      "behavior": "A SAT answer returned at the deadline is rejected after the probe."
+    },
+    {
+      "python_file": "implementations/python/tests/test_scenario_satisfiability.py",
+      "python_test": "test_result_selection_finishing_at_operation_deadline_is_rejected",
+      "python_line": 711,
+      "status": "covered-scoped",
+      "go_test": "TestSolverModelConstructionAndSelectionShareDeadline",
+      "behavior": "A separate final checkpoint rejects completed selection at the deadline; targeted mutant removing it is killed."
+    },
+    {
+      "python_file": "implementations/python/tests/test_sdl_canonicalization.py",
+      "python_test": "test_legacy_snapshot_join_reports_sdl_refusal_as_validation_error",
+      "python_line": 240,
+      "status": "covered-scoped",
+      "go_test": "sdl/TestLegacySnapshotAuthenticatesOriginalBeforeMigration; TestAnalysisIndependentPythonReference/exploit-path",
+      "behavior": "Legacy empty containers and VM migration require original digest authority. Nonempty retired data and collisions fail native admission."
+    },
+    {
+      "python_file": "implementations/python/tests/test_semantic_comparison.py",
+      "python_test": "test_profile_and_request_are_governed_bounded_portable_contracts",
+      "python_line": 130,
+      "status": "existing-owner",
+      "go_test": "processor/comparison/TestComparisonImpactScopesMatchIndependentPython; TestComparisonRequestIngressLimitsAndRecovery; contract/profile/TestComparisonProfileReadmissionReusesClosedVersionsAndBounds",
+      "behavior": "Digest-bound sorted scopes match original typed requests; duplicate members, 1MiB ingress byte refusal and subsequent valid recovery are explicit. Native API consumes admitted Value, with bounded construction controlled by caller.",
+      "owner_map": "processor/comparison/testdata/source-case-map.json"
+    },
+    {
+      "python_file": "implementations/python/tests/test_semantic_comparison.py",
+      "python_test": "test_owner_specific_adapters_cover_every_admitted_family",
+      "python_line": 146,
+      "status": "existing-owner",
+      "go_test": "processor/comparison/TestComparisonCoordinatesMatchIndependentPython; TestComparisonRejectsForeignOwnershipBeforeMethods; TestComparisonRechecksRequestPinsAndProfileBeforeAnalysis",
+      "behavior": "Seven exact native artifact family coordinates plus legacy SDL v1 coordinate match Python; foreign handles and owner-specific identity mismatch refused before supplied methods.",
+      "owner_map": "processor/comparison/testdata/source-case-map.json"
+    },
+    {
+      "python_file": "implementations/python/tests/test_semantic_comparison.py",
+      "python_test": "test_typed_artifacts_are_compared_without_caller_supplied_projections",
+      "python_line": 173,
+      "status": "existing-owner",
+      "go_test": "processor/comparison/TestComparisonAnalyzerMatchesIndependentPython/test_semantic_comparison.py::test_typed_artifacts_are_compared_without_caller_supplied_projections-0",
+      "behavior": "Direct original pure source-test invocation outputs/errors replayed exactly from comparison/testdata/reference*.json. Full typed result JSON includes coordinates, canonical/request/scope digests, subjects, ordered dependencies/paths/reasons/context. Adjacent runtime/store/apply behavior excluded.",
+      "owner_map": "processor/comparison/testdata/source-case-map.json"
+    },
+    {
+      "python_file": "implementations/python/tests/test_semantic_comparison.py",
+      "python_test": "test_owner_semantics_exclude_module_integrity_and_study_rationale_fields",
+      "python_line": 191,
+      "status": "existing-owner",
+      "go_test": "processor/comparison/TestComparisonAnalyzerMatchesIndependentPython/test_semantic_comparison.py::test_owner_semantics_exclude_module_integrity_and_study_rationale_fields-0; /test_semantic_comparison.py::test_owner_semantics_exclude_module_integrity_and_study_rationale_fields-1",
+      "behavior": "Direct original pure source-test invocation outputs/errors replayed exactly from comparison/testdata/reference*.json. Full typed result JSON includes coordinates, canonical/request/scope digests, subjects, ordered dependencies/paths/reasons/context. Adjacent runtime/store/apply behavior excluded.",
+      "owner_map": "processor/comparison/testdata/source-case-map.json"
+    },
+    {
+      "python_file": "implementations/python/tests/test_semantic_comparison.py",
+      "python_test": "test_scope_closure_controls_impact_completeness",
+      "python_line": 222,
+      "status": "existing-owner",
+      "go_test": "processor/comparison/TestComparisonAnalyzerMatchesIndependentPython/test_semantic_comparison.py::test_scope_closure_controls_impact_completeness-0",
+      "behavior": "Direct original pure source-test invocation outputs/errors replayed exactly from comparison/testdata/reference*.json. Full typed result JSON includes coordinates, canonical/request/scope digests, subjects, ordered dependencies/paths/reasons/context. Adjacent runtime/store/apply behavior excluded.",
+      "owner_map": "processor/comparison/testdata/source-case-map.json"
+    },
+    {
+      "python_file": "implementations/python/tests/test_semantic_comparison.py",
+      "python_test": "test_dependency_comparison_preserves_before_and_after_resolution",
+      "python_line": 235,
+      "status": "existing-owner",
+      "go_test": "processor/comparison/TestComparisonAnalyzerMatchesIndependentPython/test_semantic_comparison.py::test_dependency_comparison_preserves_before_and_after_resolution-0",
+      "behavior": "Direct original pure source-test invocation outputs/errors replayed exactly from comparison/testdata/reference*.json. Full typed result JSON includes coordinates, canonical/request/scope digests, subjects, ordered dependencies/paths/reasons/context. Adjacent runtime/store/apply behavior excluded.",
+      "owner_map": "processor/comparison/testdata/source-case-map.json"
+    },
+    {
+      "python_file": "implementations/python/tests/test_semantic_comparison.py",
+      "python_test": "test_changed_scenario_emits_rule_named_downstream_impact_path",
+      "python_line": 260,
+      "status": "existing-owner",
+      "go_test": "processor/comparison/TestComparisonAnalyzerMatchesIndependentPython/test_semantic_comparison.py::test_changed_scenario_emits_rule_named_downstream_impact_path-0",
+      "behavior": "Direct original pure source-test invocation outputs/errors replayed exactly from comparison/testdata/reference*.json. Full typed result JSON includes coordinates, canonical/request/scope digests, subjects, ordered dependencies/paths/reasons/context. Adjacent runtime/store/apply behavior excluded.",
+      "owner_map": "processor/comparison/testdata/source-case-map.json"
+    },
+    {
+      "python_file": "implementations/python/tests/test_semantic_comparison.py",
+      "python_test": "test_rename_requires_successful_digest_profile_and_phase_bound_evidence",
+      "python_line": 290,
+      "status": "existing-owner",
+      "go_test": "processor/comparison/TestComparisonAnalyzerMatchesIndependentPython/test_semantic_comparison.py::test_rename_requires_successful_digest_profile_and_phase_bound_evidence-0; /test_semantic_comparison.py::test_rename_requires_successful_digest_profile_and_phase_bound_evidence-1",
+      "behavior": "Direct original pure source-test invocation outputs/errors replayed exactly from comparison/testdata/reference*.json. Full typed result JSON includes coordinates, canonical/request/scope digests, subjects, ordered dependencies/paths/reasons/context. Adjacent runtime/store/apply behavior excluded.",
+      "owner_map": "processor/comparison/testdata/source-case-map.json"
+    },
+    {
+      "python_file": "implementations/python/tests/test_semantic_comparison.py",
+      "python_test": "test_profile_digest_mismatch_is_rejected_before_analysis",
+      "python_line": 353,
+      "status": "existing-owner",
+      "go_test": "processor/comparison/TestComparisonAnalyzerMatchesIndependentPython/test_semantic_comparison.py::test_profile_digest_mismatch_is_rejected_before_analysis-0",
+      "behavior": "Direct original pure source-test invocation outputs/errors replayed exactly from comparison/testdata/reference*.json. Full typed result JSON includes coordinates, canonical/request/scope digests, subjects, ordered dependencies/paths/reasons/context. Adjacent runtime/store/apply behavior excluded.",
+      "owner_map": "processor/comparison/testdata/source-case-map.json"
+    },
+    {
+      "python_file": "implementations/python/tests/test_semantic_comparison.py",
+      "python_test": "test_published_schemas_and_fixtures_validate",
+      "python_line": 365,
+      "status": "existing-owner",
+      "go_test": "contract/admission/TestFullValidationGoldenCorpus/contracts/fixtures/semantic-comparison",
+      "behavior": "All10exact published request/result fixture paths have independently recorded published-schema and full native owner verdicts in full-admission-cases-01/02.json with pinned input SHA256. Python exception class/location labels are representation-specific; Go returns classified value-free faults.",
+      "owner_map": "processor/comparison/testdata/source-case-map.json"
+    },
+    {
+      "python_file": "implementations/python/tests/test_semantic_comparison.py",
+      "python_test": "test_result_contract_rejects_scope_digest_tampering",
+      "python_line": 411,
+      "status": "existing-owner",
+      "go_test": "processor/comparison/TestComparisonAnalyzerMatchesIndependentPython/test_semantic_comparison.py::test_result_contract_rejects_scope_digest_tampering-0; processor/comparison/TestComparisonResultsRetainScopePinsOnReadmission",
+      "behavior": "Direct original pure source-test invocation outputs/errors replayed exactly from comparison/testdata/reference*.json. Full typed result JSON includes coordinates, canonical/request/scope digests, subjects, ordered dependencies/paths/reasons/context. Adjacent runtime/store/apply behavior excluded. Actual generated result is independently re-admitted after tampering its scope digest and refused; original immutable result remains intact.",
+      "owner_map": "processor/comparison/testdata/source-case-map.json"
+    },
+    {
+      "python_file": "implementations/python/tests/test_issue_1789_serialization.py",
+      "python_test": "test_current_service_emits_schema_valid_v2_and_replays; test_cli_exposes_versioned_public_workflow_fields; test_snapshot_v3_serializes_public_names_and_preserves_legacy",
+      "status": "covered-scoped",
+      "go_test": "internal/parity/TestCorpus/cli_processor_satisfiability; TestSatisfiabilityGoldenControlAndReplay; TestReplayEverySolverAndExploitOutcomeRejectsTampering",
+      "behavior": "Exact corrected output, explicit versions, hashes and replay; no workflow comparison exception."
+    }
+  ],
+  "targeted_mutations": [
+    {
+      "mutation": "observation-memory",
+      "test": "^TestOpacityKernelKeepsEveryObserverCoordinate$",
+      "exit_code": 1,
+      "killed": true
+    },
+    {
+      "mutation": "solver-final-deadline",
+      "test": "^TestSolverModelConstructionAndSelectionShareDeadline$",
+      "exit_code": 1,
+      "killed": true
+    },
+    {
+      "mutation": "dynamic-path-queue",
+      "test": "^TestExploitSearchVisitsNewlyQueuedStates$",
+      "exit_code": 1,
+      "killed": true
+    }
+  ],
+  "breaking_correction": "User authorized Python fix: evidence schema v2 and snapshot profile v3. All 110 satisfiability and 14 exploit-path corpus cases match. See issue-1789-evidence-v2-migration.md."
+}

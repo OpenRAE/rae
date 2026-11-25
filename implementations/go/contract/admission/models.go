@@ -40,7 +40,7 @@ func (e *Validator) localModels(id string, root any) error {
 		return studyFactorDeclarations(root)
 	case "semantic-profile-v1":
 		return e.semanticProfile(root)
-	case "scenario-satisfiability-evidence-v1":
+	case satisfiabilityEvidenceID, satisfiabilityEvidenceV2ID:
 		return e.satisfiabilityModel(root)
 	case termProcessorManifestV2:
 		return e.processorManifest(root)
@@ -149,7 +149,7 @@ func (e *Validator) instanceModel(instance validation.SchemaInstance) error {
 		return e.semanticProfile(instance.Value)
 	case "SemanticProfilePhaseModel":
 		return e.semanticProfilePhase(instance.Value)
-	case "ScenarioSatisfiabilityEvidenceModel":
+	case "ScenarioSatisfiabilityEvidenceModel", "ScenarioSatisfiabilityEvidenceV2Model":
 		return e.satisfiabilityModel(instance.Value)
 	case "SourceArtifactIdentityModel":
 		return constraintSource(instance.Value)

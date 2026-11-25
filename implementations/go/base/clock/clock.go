@@ -18,3 +18,9 @@ func Read(clock Clock) time.Time {
 	}
 	return clock().UTC()
 }
+
+// StartElapsed starts a monotonic execution timer independent of wall time.
+func StartElapsed() func() time.Duration {
+	started := time.Now() //nolint:forbidigo // This is the monotonic clock owner; callers receive an elapsed-time function.
+	return func() time.Duration { return time.Since(started) }
+}

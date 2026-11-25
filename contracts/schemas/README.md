@@ -332,3 +332,12 @@ The `time` schema family publishes:
 limit against that declaration. `runtime-snapshot-v1` carries the typed state,
 and `experiment-run-v1` carries the realized model. ADR-090 defines the shared
 time semantics; ADR-091 defines this portable contract and conformance boundary.
+
+
+## Satisfiability evidence v2
+
+New satisfiability results use `satisfiability/scenario-satisfiability-evidence-v2.json`.
+Their snapshots use profile `raes-sdl-instantiated-snapshot/v3` and public SDL
+workflow names. The standalone schema is `sdl/instantiated-scenario-snapshot-v2.json`.
+This is a breaking correction to Python output. Existing v1 schemas remain.
+See [the migration guide](../../docs/decisions/issue-1789-evidence-v2-migration.md).

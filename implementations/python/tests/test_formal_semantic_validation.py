@@ -313,7 +313,7 @@ def test_current_retest_requires_drift_disposition_for_production_evidence_cases
 
 def test_retest_production_evidence_contains_governed_payloads() -> None:
     from raes_processor.exploit_path.evidence import ExploitPathAnalysisEvidenceModel
-    from raes_processor.satisfiability.evidence import ScenarioSatisfiabilityEvidenceModel
+    from raes_processor.satisfiability.evidence import ScenarioSatisfiabilityEvidenceV2Model
 
     _, _, _, snapshot, _ = copy_bundle(load_retest_bundle, REPO_ROOT)
     paths = {
@@ -321,10 +321,10 @@ def test_retest_production_evidence_contains_governed_payloads() -> None:
         for row in snapshot["observations"]
         if row.get("evidence_artifact_path")
     }
-    satisfiable = ScenarioSatisfiabilityEvidenceModel.model_validate_json(
+    satisfiable = ScenarioSatisfiabilityEvidenceV2Model.model_validate_json(
         paths["finite-domain-satisfiable-v2"].read_text(encoding="utf-8")
     )
-    unsatisfiable = ScenarioSatisfiabilityEvidenceModel.model_validate_json(
+    unsatisfiable = ScenarioSatisfiabilityEvidenceV2Model.model_validate_json(
         paths["finite-domain-unsatisfiable-v2"].read_text(encoding="utf-8")
     )
     valid_path = ExploitPathAnalysisEvidenceModel.model_validate_json(
@@ -385,10 +385,27 @@ def test_retest_gate_rejects_forged_production_configuration_digest(case_id) -> 
     ) in {(f.rule_id, f.message, f.path) for f in failures}
 
 
-@pytest.mark.parametrize("case_id", ["finite-domain-satisfiable-v2", "typed-exploit-path-valid-v2"])
+@pytest.mark.parametrize(
+    ("case_id", "expected_rule", "expected_message"),
+    [
+        # Current satisfiability evidence is v2, so the frozen v1 archival shape rejects it.
+        (
+            "finite-domain-satisfiable-v2",
+            "formal-validation-production-replay",
+            "case 'finite-domain-satisfiable-v2' production replay failed (EvidenceIntegrityError)",
+        ),
+        (
+            "typed-exploit-path-valid-v2",
+            "formal-validation-production-evidence-join",
+            "case 'typed-exploit-path-valid-v2' source, configuration, outcome, CLI, replay, or evidence joins drifted",
+        ),
+    ],
+)
 def test_historical_gate_rejects_substitution_with_current_evidence(
     monkeypatch: pytest.MonkeyPatch,
     case_id,
+    expected_rule,
+    expected_message,
 ) -> None:
     release = next(
         item for item in copy_bundle(load_release_bundles, REPO_ROOT) if item.manifest["revision"] == "3.0.0"
@@ -414,11 +431,9 @@ def test_historical_gate_rejects_substitution_with_current_evidence(
 
     failures = validate_retest_bundle(REPO_ROOT, release, protocol, corpus, snapshot, analysis, replay_current=False)
 
-    assert (
-        "formal-validation-production-evidence-join",
-        f"case {case_id!r} source, configuration, outcome, CLI, replay, or evidence joins drifted",
-        release.manifest["snapshot_path"],
-    ) in {(f.rule_id, f.message, f.path) for f in failures}
+    assert (expected_rule, expected_message, release.manifest["snapshot_path"]) in {
+        (f.rule_id, f.message, f.path) for f in failures
+    }
 
 
 @pytest.mark.integration

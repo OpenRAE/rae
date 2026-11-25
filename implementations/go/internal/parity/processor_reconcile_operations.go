@@ -60,7 +60,7 @@ func processorReconcileRunner() Runner {
 }
 
 func processorReconcileInput(c Case, defaultJSON []byte) (string, string, binding.BackendManifestV2, bool) {
-	if len(c.Args) < 4 || c.Args[0] != "processor" || c.Args[1] != "reconcile" || strings.HasPrefix(c.Args[2], "-") || strings.HasPrefix(c.Args[3], "-") {
+	if len(c.Args) < 4 || c.Args[0] != processorCommand || c.Args[1] != "reconcile" || strings.HasPrefix(c.Args[2], "-") || strings.HasPrefix(c.Args[3], "-") {
 		return "", "", binding.BackendManifestV2{}, false
 	}
 	baseline, candidate := c.Args[2], c.Args[3]

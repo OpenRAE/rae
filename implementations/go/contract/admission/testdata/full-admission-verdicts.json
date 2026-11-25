@@ -740,6 +740,26 @@
     "fixtures/plans/trial-compiler-mixed-composition-v1/identity-vectors.json": "Workflow fixture with no registered contract directory or unique published schema version.",
     "fixtures/plans/trial-compiler-v1/identity-vectors.json": "Workflow fixture with no registered contract directory or unique published schema version."
   },
+  "native_owner_fixtures": {
+    "fixtures/satisfiability/scenario-satisfiability-evidence-v2/valid/reconciliation-workflow.json": {
+      "contract_id": "scenario-satisfiability-evidence-v2",
+      "input_sha256": "sha256:9d99e91d73516bc16ca52bb893b78208afc8f3cfd1855fd98c037e0e4b83e8fb",
+      "published_schema_admitted": true,
+      "full_admitted": true,
+      "failure_class": "",
+      "reference_check": "published-schema gate + <class 'raes_contracts.satisfiability.ScenarioSatisfiabilityEvidenceV2Model'>",
+      "covered_by": "implementations/go/processor/analysis TestNativeOwnerContractFixtures"
+    },
+    "fixtures/sdl/instantiated-scenario-snapshot-v2/valid/reconciliation-workflow.json": {
+      "contract_id": "instantiated-scenario-snapshot-v2",
+      "input_sha256": "sha256:25dc8fe7725397bea63625e50db259053e168859417fe0b16384c3d14404df0f",
+      "published_schema_admitted": true,
+      "full_admitted": true,
+      "failure_class": "",
+      "reference_check": "published-schema gate + <class 'raes.canonical.InstantiatedScenarioSnapshotV3'>",
+      "covered_by": "implementations/go/internal/sdl/authoring TestNativeOwnerContractFixtures"
+    }
+  },
   "owner_sources": {
     "full-admission-owners.json": "sha256:345d7323c70e7b51f7a4c1eae3026ed964dcf9696a7a6a88531a4e16da3599be",
     "materialization-archive.json": "sha256:98b4981043e2847d2e2575e324e74bdb8968a82ec14b70af66de9c69a93559b8",

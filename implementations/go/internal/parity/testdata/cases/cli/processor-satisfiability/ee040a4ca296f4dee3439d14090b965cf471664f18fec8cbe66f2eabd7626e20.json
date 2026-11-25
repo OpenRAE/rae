@@ -63,7 +63,7 @@
       },
       "normalized_model_digest": "sha256:d8f9de1165d39b36bb07bf0084aea64ac4723966fea62f317f431304b5e67712",
       "outcome": "satisfiable",
-      "profile": "scenario-satisfiability-evidence/v1",
+      "profile": "scenario-satisfiability-evidence/v2",
       "solver_configuration": {
         "auto_config": false,
         "core_reduction": "sorted-deletion-subset-minimal/v1",
@@ -88,9 +88,9 @@
       "unsat_core": null,
       "unsupported": null,
       "witness": {
-        "profile": "raes-satisfiability-witness/v1",
+        "profile": "raes-satisfiability-witness/v2",
         "snapshot": {
-          "profile": "raes-sdl-instantiated-snapshot/v2",
+          "profile": "raes-sdl-instantiated-snapshot/v3",
           "scenario": {
             "accounts": {},
             "action_contracts": {},
@@ -239,7 +239,7 @@
             "workflows": {}
           }
         },
-        "snapshot_digest": "sha256:560f15fbbca58f404a030dc69fffd2b468c35215a67e36409cff28ddb38d4379"
+        "snapshot_digest": "sha256:d661f4cf5d5701463e7feb17512ed789b1a1c7865ccc9740aa08705d42752134"
       }
     }
   },

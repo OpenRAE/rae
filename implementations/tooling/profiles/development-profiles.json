@@ -59,7 +59,8 @@
         "ste-cli",
         "temporal-cli-runtime-test",
         "uv",
-        "vale"
+        "vale",
+        "z3-analysis"
       ]
     },
     {
@@ -404,7 +405,8 @@
         "osv-scanner",
         "uv",
         "vale",
-        "temporal-cli-runtime-test"
+        "temporal-cli-runtime-test",
+        "z3-analysis"
       ],
       "required_capability_ids": [
         "base-image",
@@ -429,7 +431,9 @@
         "ca-certificates",
         "coreutils",
         "curl",
-        "gh"
+        "gh",
+        "libstdc++6",
+        "libgcc-s1"
       ]
     },
     {

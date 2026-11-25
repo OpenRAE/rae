@@ -12,7 +12,8 @@ import (
 //
 //nolint:ireturn // The declared SDL API returns a sealed native source handle.
 func ParseWithContext(ctx context.Context, source []byte, options ParseOptions) (Scenario, error) {
-	return parseRequest(ctx, authoring.Request{Source: source}, options, true)
+	scenario, err := parseRequest(ctx, authoring.Request{Source: source}, options, true)
+	return scenario, publicSourceError(err)
 }
 
 // ParseFileWithContext admits contained source files under caller cancellation.

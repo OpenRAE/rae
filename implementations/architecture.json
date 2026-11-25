@@ -612,7 +612,8 @@
         "implementations/go/processor",
         "implementations/go/processor/planning",
         "implementations/go/sdl",
-        "implementations/go/contract/binding"
+        "implementations/go/contract/binding",
+        "implementations/go/processor/analysis"
       ],
       "design": "docs/decisions/issue-1859-go-architecture-contract-design.md",
       "api": {
@@ -3833,10 +3834,11 @@
       "public": true,
       "doc": "Injected UTC wall clock and the sole system-clock owner.",
       "imports": [],
-      "design": "docs/decisions/issue-1779-shared-primitives-completion.md",
+      "design": "docs/decisions/issue-1789-processor-analysis-design.md",
       "api": {
         "linux-amd64": [
           "func github.com/OpenRAE/rae/implementations/go/base/clock.Read(clock github.com/OpenRAE/rae/implementations/go/base/clock.Clock) time.Time",
+          "func github.com/OpenRAE/rae/implementations/go/base/clock.StartElapsed() func() time.Duration",
           "func github.com/OpenRAE/rae/implementations/go/base/clock.System() time.Time",
           "method *time.Duration func (time.Duration).Abs() time.Duration selected=func() time.Duration",
           "method *time.Duration func (time.Duration).Hours() float64 selected=func() float64",
@@ -4721,7 +4723,7 @@
       "public": true,
       "doc": "Generated schema-derived transport types, exact numbers and optional fields.",
       "imports": [],
-      "design": "docs/decisions/issue-1780-contract-validation-design.md",
+      "design": "docs/decisions/issue-1789-processor-analysis-design.md",
       "api_files": {
         "linux-amd64": [
           "implementations/architecture-api/contract-binding-linux-amd64-01.json",
@@ -5123,7 +5125,7 @@
         "implementations/go/internal/contract/domainprofile",
         "implementations/go/internal/contract/packaged"
       ],
-      "design": "docs/decisions/issue-1781-concept-profile-design.md",
+      "design": "docs/decisions/issue-1789-processor-analysis-design.md",
       "api_files": {
         "linux-amd64": [
           "implementations/architecture-api/contract-profile-linux-amd64-01.json"
@@ -6073,9 +6075,11 @@
         "implementations/go/internal/base/jsonpointer",
         "implementations/go/internal/sdl/authoring",
         "implementations/go/internal/sdl/source",
-        "implementations/go/sdl/module"
+        "implementations/go/sdl/module",
+        "implementations/go/base/canonjson",
+        "implementations/go/base/digest"
       ],
-      "design": "docs/decisions/issue-1788-experiments-design.md",
+      "design": "docs/decisions/issue-1789-processor-analysis-design.md",
       "api_files": {
         "linux-amd64": [
           "implementations/architecture-api/sdl-linux-amd64-01.json"
@@ -14012,6 +14016,34 @@
           "type time.Weekday constraints[] int comparable=true"
         ]
       }
+    },
+    {
+      "dir": "implementations/go/processor/analysis",
+      "layer": "processor",
+      "public": true,
+      "doc": "Bounded analysis services, native solver isolation, candidate synthesis and authoring comparison.",
+      "imports": [
+        "implementations/go/base/canonjson",
+        "implementations/go/base/clock",
+        "implementations/go/base/digest",
+        "implementations/go/base/fault",
+        "implementations/go/base/ingress",
+        "implementations/go/contract/admission",
+        "implementations/go/contract/concept",
+        "implementations/go/contract/diagnostic",
+        "implementations/go/contract/profile",
+        "implementations/go/contract/validation",
+        "implementations/go/internal/base/jsonpointer",
+        "implementations/go/processor",
+        "implementations/go/processor/comparison",
+        "implementations/go/sdl"
+      ],
+      "design": "docs/decisions/issue-1789-processor-analysis-design.md",
+      "api_files": {
+        "linux-amd64": [
+          "implementations/architecture-api/analysis-design/analysis.json"
+        ]
+      }
     }
   ],
   "configurations": [
@@ -14057,7 +14089,8 @@
     "docs/decisions/issue-1788-experiments-design.md": "ca383b993bcdd68d33e5eb9e6b3877588a6e659d873a0665ec112ef73ac9eab0",
     "docs/decisions/issue-1788-experiments-trials-preflight.md": "4012fc90b329e52491d52a48831c6efc8a79510a6838a061486e6eb2cceacb39",
     "docs/decisions/issue-1788-validator-key-decision.md": "c781e3ca480df4429459b7ef51fc932ddbf14ee500b8ed8e5cae5b4c15f271af",
-    "docs/decisions/issue-1790-backend-design.md": "211ef43d0b409da006eec1a5b025ed594a73f2785dd759e55fbb2ad25eb5deed"
+    "docs/decisions/issue-1790-backend-design.md": "211ef43d0b409da006eec1a5b025ed594a73f2785dd759e55fbb2ad25eb5deed",
+    "docs/decisions/issue-1789-processor-analysis-design.md": "304a728c08507481965001725b68a0d93a7c233e40a1851f8f9e8a275bba1048"
   },
   "consumer_api": {
     "design": "docs/decisions/issue-1825-public-go-api.md",
@@ -14190,6 +14223,7 @@
         "symbols": [
           "Clock",
           "Read",
+          "StartElapsed",
           "System"
         ],
         "uses": [],
@@ -14202,7 +14236,9 @@
           "runtime"
         ],
         "existing": "implementations/go/base/clock",
-        "existing_api_sha256": "7f59594ce66222adb63a00e1ece5b889d6e531f6eeb68a5bca7398773238fcbd"
+        "existing_api_sha256": "2582eb92f20e5edc6057de2fa7ca965af86a967711c8dcdf24d1c47ad3fcd187",
+        "declarations": "implementations/architecture-api/planned/rae/base/clock.go.txt",
+        "declarations_sha256": "9041dfc1dab0a09d37bab94f6b1f977df78a5d165a426721818ebfccd50bc1d0"
       },
       {
         "owner": "rae",
@@ -14489,7 +14525,8 @@
           "Profiles.ResolveDomainProfile",
           "Profiles.AdmitDomainBindings",
           "Profiles.ParseDomainBinding",
-          "AdmitComparisonProfile"
+          "AdmitComparisonProfile",
+          "Profiles.CheckBehavioralClaimInCatalog"
         ],
         "uses": [
           "rae:contract/binding",
@@ -14499,7 +14536,8 @@
         ],
         "issues": [
           1781,
-          1787
+          1787,
+          1789
         ],
         "consumers": [
           "environment-packs",
@@ -14507,7 +14545,7 @@
           "runtime"
         ],
         "declarations": "implementations/architecture-api/planned/rae/contract/profile.go.txt",
-        "declarations_sha256": "2a2b411858c8e6bf7088dfb8b1a75ca5f36a5bdbfaf9917e79ce093395c6af0e"
+        "declarations_sha256": "6993b89491623937480d9dc20e5aec8ca9078fce02256e4b5e447241fa0a61ce"
       },
       {
         "owner": "rae",
@@ -14594,7 +14632,10 @@
           "ValidateExperimentSelectionAgainstFamily",
           "ValidateNodeRealizationContext",
           "ValidateTreatment",
-          "VariationOutcomes"
+          "VariationOutcomes",
+          "InstantiateWithProfile",
+          "RenderSource",
+          "AdmitSnapshotWithContext"
         ],
         "uses": [
           "rae:contract/admission",
@@ -14608,7 +14649,8 @@
           1783,
           1784,
           1785,
-          1790
+          1790,
+          1789
         ],
         "consumers": [
           "environment-packs",
@@ -14616,7 +14658,7 @@
           "runtime"
         ],
         "declarations": "implementations/architecture-api/planned/rae/sdl.go.txt",
-        "declarations_sha256": "9747ba7dfadf690bd11592d245526415a8ddb84e879e8857402ec8710f1ccec9"
+        "declarations_sha256": "24980d1a9e2fc7e1d9456dd02614478eb710f18140b664fb0c948e0f97a256fd"
       },
       {
         "owner": "rae",
@@ -14905,12 +14947,25 @@
         "layer": "processor",
         "symbols": [
           "Analyze",
+          "AnalyzeContext",
+          "ReplayContext",
+          "OpenSolver",
           "Request",
-          "Result"
+          "Result",
+          "SourceInput",
+          "JSONInput",
+          "ComparisonInput",
+          "AuthoringOutput",
+          "AuthoringInput",
+          "Solver"
         ],
         "uses": [
           "rae:contract/diagnostic",
-          "rae:processor"
+          "rae:contract/profile",
+          "rae:contract/validation",
+          "rae:processor",
+          "rae:processor/comparison",
+          "rae:sdl"
         ],
         "issues": [
           1789
@@ -14920,7 +14975,7 @@
           "runtime"
         ],
         "declarations": "implementations/architecture-api/planned/rae/processor/analysis.go.txt",
-        "declarations_sha256": "359d73a29c433f1f6aa989467ae4ae15ae838c74e3c33b3ded26ed18b503a6eb"
+        "declarations_sha256": "19382a5bbbeaded46103e0a2adae5ea4bb6f8578eda62660b5a44de1445f7d86"
       },
       {
         "owner": "rae",

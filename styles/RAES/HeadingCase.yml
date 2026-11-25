@@ -6,6 +6,7 @@ match: $sentence
 exceptions:
   - Go
   - ADR-124
+  - ASR-530
   - MOD-001
   - GOV-928
   - API
@@ -25,5 +26,6 @@ exceptions:
   - Please
   - SDL
   - URI
+  - UCO
   - SARIF
   - Vale

@@ -7,6 +7,8 @@ import (
 	"strings"
 	"testing"
 	"testing/fstest"
+
+	"github.com/OpenRAE/rae/implementations/go/base/digest"
 )
 
 func TestFullReferenceFixtureInventorySeparatesNativeSemanticVectors(t *testing.T) {
@@ -29,7 +31,42 @@ func TestFullReferenceFixtureInventorySeparatesNativeSemanticVectors(t *testing.
 
 // Inventory comes from all packaged fixture files and the published registry,
 // independent of the smaller CLI admission corpus and the reference table.
-func checkCompleteFixtureInventory(t *testing.T, source fs.FS, cases []fullReferenceCase, inventory []string, other map[string]string) {
+// nativeOwnerFixture records the Python verdict for a contract fixture whose Go
+// admission needs a native SDL owner callback. The named native test owns its
+// complete result; this package checks only that the fixture is accounted for.
+type nativeOwnerFixture struct {
+	Contract        string `json:"contract_id"`
+	InputDigest     string `json:"input_sha256"`
+	PublishedSchema bool   `json:"published_schema_admitted"`
+	Full            bool   `json:"full_admitted"`
+	Failure         string `json:"failure_class"`
+	Check           string `json:"reference_check"`
+	CoveredBy       string `json:"covered_by"`
+}
+
+// splitNativeOwnerFixtures removes natively covered fixtures from the scanned
+// contract inventory. Each one must still be a packaged contract fixture.
+func splitNativeOwnerFixtures(t *testing.T, source fs.FS, contracts []string, native map[string]nativeOwnerFixture) []string {
+	t.Helper()
+	remaining := slices.Clone(contracts)
+	for path, fixture := range native {
+		index := slices.Index(remaining, path)
+		if index < 0 || fixture.Contract == "" || fixture.Check == "" || fixture.CoveredBy == "" {
+			t.Fatal("stale or incomplete native owner fixture:", path)
+		}
+		raw, err := fs.ReadFile(source, path)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if digest.SHA256(raw) != fixture.InputDigest {
+			t.Fatal("native owner fixture differs from its recorded bytes:", path)
+		}
+		remaining = slices.Delete(remaining, index, index+1)
+	}
+	return remaining
+}
+
+func checkCompleteFixtureInventory(t *testing.T, source fs.FS, cases []fullReferenceCase, inventory []string, other map[string]string, native map[string]nativeOwnerFixture) {
 	t.Helper()
 	entries, err := fs.ReadDir(source, "schema-publication/entries")
 	if err != nil {
@@ -41,6 +78,7 @@ func checkCompleteFixtureInventory(t *testing.T, source fs.FS, cases []fullRefer
 	}
 	versions := fixtureVersionIndex(t, source, entries)
 	contracts, noncontracts := completeFixturePaths(t, source, ids, versions)
+	contracts = splitNativeOwnerFixtures(t, source, contracts, native)
 	if !slices.Equal(contracts, inventory) {
 		t.Fatalf("full reference does not cover complete contract fixture inventory: scanned=%d recorded=%d first difference=%v", len(contracts), len(inventory), firstFixtureDifference(contracts, inventory))
 	}

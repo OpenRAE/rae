@@ -17,6 +17,7 @@ on:
       - CHANGELOG.md
       - .release-please-manifest.json
       - implementations/python/packages/raes/_version.py
+      - implementations/go/processor/analysis/version.go
   workflow_dispatch:
 
 concurrency:

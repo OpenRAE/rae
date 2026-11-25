@@ -1,18 +1,63 @@
 package analysis
 
 import (
+	"context"
 	"github.com/OpenRAE/rae/implementations/go/contract/diagnostic"
+	"github.com/OpenRAE/rae/implementations/go/contract/profile"
+	"github.com/OpenRAE/rae/implementations/go/contract/validation"
 	"github.com/OpenRAE/rae/implementations/go/processor"
+	"github.com/OpenRAE/rae/implementations/go/processor/comparison"
+	"github.com/OpenRAE/rae/implementations/go/sdl"
 )
 
 type Request struct {
 	Kind        string
 	Compilation processor.Compilation
 	Options     map[string]any
+	Source      *SourceInput
+	Input       *JSONInput
+	Comparison  *ComparisonInput
+	Authoring   *AuthoringInput
+	Solver      *Solver
 }
 type Result struct {
 	Document    map[string]any
 	Diagnostics []diagnostic.Diagnostic
+	CandidateSource *string
+	Candidate sdl.Scenario
+	SemanticResult validation.Value
 }
 
+type SourceInput struct {
+	Source sdl.SourceContext
+	Options sdl.ParseOptions
+}
+type JSONInput struct {
+	SourceID string
+	Data []byte
+ Profile validation.Value
+ Catalog validation.Value
+}
+type ComparisonInput struct {
+	Profile profile.ComparisonProfile
+	Request validation.Value
+	Before, After comparison.Artifact
+	Options comparison.Options
+}
+type AuthoringOutput struct {
+	InputSource string
+	OutputSource *string
+	Diagnostics []diagnostic.Diagnostic
+	TransformationReport validation.Value
+}
+type AuthoringInput struct {
+	Vector validation.Value
+	Left, Right AuthoringOutput
+	LeftPath, RightPath string
+}
+type Solver struct { path string }
+
 func Analyze(request Request) (Result, error)
+func AnalyzeContext(ctx context.Context, request Request) (Result, error)
+func ReplayContext(ctx context.Context, request Request, evidence validation.Value) (Result, error)
+func OpenSolver(path string) (*Solver, error)

@@ -31,7 +31,7 @@ func processorPlanRunner() Runner {
 }
 
 func processorPlanInput(c Case, defaultJSON []byte) (string, binding.BackendManifestV2, bool) {
-	if len(c.Args) < 3 || c.Args[0] != "processor" || c.Args[1] != "plan" {
+	if len(c.Args) < 3 || c.Args[0] != processorCommand || c.Args[1] != "plan" {
 		return "", binding.BackendManifestV2{}, false
 	}
 	name, arguments, valid := operationArguments(c.Args[2:], false)

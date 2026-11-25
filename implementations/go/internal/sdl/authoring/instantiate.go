@@ -336,9 +336,6 @@ func (p *Parser) admitInstantiated(data []byte, origin *Document) (*Document, er
 	if containsVariable(payload) {
 		return nil, instantiationRefusal("InstantiatedScenario must not contain unresolved variable references.")
 	}
-	if err = p.models.CheckSDLConstruction(instantiatedContract, "#", data, modelLimits(data)); err != nil {
-		return nil, fmt.Errorf("check concrete model: %w", err)
-	}
 	options := p.options("instantiated.json", "reject")
 	options.Limits.MaxInputBytes = p.limits.MaxComposedBytes
 	parsed, err := source.Decode(data, options)
@@ -353,6 +350,9 @@ func (p *Parser) admitInstantiated(data []byte, origin *Document) (*Document, er
 	encoded, modelData, err := p.construct(object(full), instantiatedContract, nil, parsed)
 	if err != nil {
 		return nil, fmt.Errorf("construct concrete model: %w", err)
+	}
+	if err = p.models.CheckSDLConstruction(instantiatedContract, "#", encoded, modelLimits(encoded)); err != nil {
+		return nil, fmt.Errorf("check concrete model: %w", err)
 	}
 	document := &Document{contract: instantiatedContract, data: encoded, modelData: modelData, sourceName: "instantiated.json", source: parsed}
 	if origin != nil {
@@ -391,7 +391,7 @@ func (p *Parser) AdmitSDLPhase(request admission.SDLPhaseRequest) (admission.SDL
 		if err == nil {
 			document, _, err = p.Validate(document)
 		}
-	case snapshotContract:
+	case snapshotContract, "instantiated-scenario-snapshot-v2":
 		return p.admitSnapshot(request)
 	default:
 		err = invalid()
@@ -417,7 +417,11 @@ func (p *Parser) admitSnapshot(request admission.SDLPhaseRequest) (admission.SDL
 		return admission.SDLPhaseAdmission{}, err
 	}
 	value := object(parsed)
-	if len(value) != 2 || value[termProfile] != snapshotProfile {
+	profile := snapshotProfile
+	if request.ContractID == "instantiated-scenario-snapshot-v2" {
+		profile = "raes-sdl-instantiated-snapshot/v3"
+	}
+	if len(value) != 2 || value[termProfile] != profile {
 		return admission.SDLPhaseAdmission{}, invalid()
 	}
 	raw, err := json.Marshal(value[termScenario])
@@ -428,7 +432,7 @@ func (p *Parser) admitSnapshot(request admission.SDLPhaseRequest) (admission.SDL
 	if err != nil {
 		return admission.SDLPhaseAdmission{}, err
 	}
-	return admission.SDLPhaseAdmission{ContractID: snapshotContract, SourceSHA256: digest.SHA256(request.Source), Document: slices.Clone(request.Source)}, nil
+	return admission.SDLPhaseAdmission{ContractID: request.ContractID, SourceSHA256: digest.SHA256(request.Source), Document: slices.Clone(request.Source)}, nil
 }
 
 func provenancePointer(root any, pointer string) (any, bool) {

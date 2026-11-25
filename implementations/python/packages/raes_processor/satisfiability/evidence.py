@@ -5,11 +5,13 @@ from __future__ import annotations
 from enum import Enum
 from typing import Annotated, Literal
 
-from pydantic import Field, model_validator
+from pydantic import ConfigDict, Field, model_validator
 from raes.canonical import (
     INSTANTIATED_SNAPSHOT_PROFILE,
     InstantiatedScenarioSnapshot,
+    InstantiatedScenarioSnapshotV3,
     canonical_instantiated_sdl_digest,
+    canonical_instantiated_sdl_v3_digest,
     migrate_legacy_instantiated_snapshot_join,
 )
 from raes.phase_contracts import ResolvedImportProvenance, SemanticDigest
@@ -119,12 +121,34 @@ class NormalizedConstraintModel(ContractModel):
 
 
 class SolverConfigurationModel(ContractModel):
-    """Complete output-affecting configuration for the pinned v1 Z3 adapter."""
+    """Complete configuration for the separately pinned Python and Go adapters."""
 
-    profile: Literal["raes-z3-finite-domain/v1"]
+    model_config = ConfigDict(
+        json_schema_extra={
+            "allOf": [
+                {
+                    "if": {"properties": {"profile": {"const": "raes-z3-finite-domain/v1"}}},
+                    "then": {
+                        "properties": {
+                            "package": {"const": "z3-solver"},
+                            "package_version": {"const": "4.16.0.0"},
+                        }
+                    },
+                    "else": {
+                        "properties": {
+                            "package": {"const": "raes-go-z3-smtlib"},
+                            "package_version": {"const": "1.0.0"},
+                        }
+                    },
+                }
+            ]
+        }
+    )
+
+    profile: Literal["raes-z3-finite-domain/v1", "raes-z3-finite-domain/v2"]
     engine: Literal["z3"]
-    package: Literal["z3-solver"]
-    package_version: Literal["4.16.0.0"]  # NOSONAR -- pinned package version, not an IP address
+    package: Literal["z3-solver", "raes-go-z3-smtlib"]
+    package_version: Literal["4.16.0.0", "1.0.0"]  # NOSONAR -- pinned package version, not an IP address
     engine_version: Literal["4.16.0"]
     logic: Literal["QF_LIA"]
     random_seed: Literal[0]
@@ -135,6 +159,16 @@ class SolverConfigurationModel(ContractModel):
     unsat_core: Literal[True]
     witness_selection: Literal["canonical-lexicographic/v1"]
     core_reduction: Literal["sorted-deletion-subset-minimal/v1"]
+
+    @model_validator(mode="after")
+    def _correlated_adapter_identity(self) -> SolverConfigurationModel:
+        identity = (self.profile, self.package, self.package_version)
+        if identity not in {
+            ("raes-z3-finite-domain/v1", "z3-solver", "4.16.0.0"),
+            ("raes-z3-finite-domain/v2", "raes-go-z3-smtlib", "1.0.0"),
+        }:
+            raise ValueError("solver identity must select one complete pinned adapter profile")
+        return self
 
 
 class SatisfiableWitnessModel(ContractModel):
@@ -224,6 +258,27 @@ class ScenarioSatisfiabilityEvidenceModel(ContractModel):
         return self
 
 
+class SatisfiableWitnessV2Model(ContractModel):
+    """Witness with public-name JSON and an explicitly versioned snapshot hash."""
+
+    profile: Literal["raes-satisfiability-witness/v2"]
+    snapshot: InstantiatedScenarioSnapshotV3
+    snapshot_digest: PrefixedDigestString
+
+    @model_validator(mode="after")
+    def _validate_snapshot(self) -> SatisfiableWitnessV2Model:
+        if self.snapshot_digest != canonical_instantiated_sdl_v3_digest(self.snapshot.scenario).value:
+            raise ValueError("snapshot_digest must bind the canonical v3 snapshot")
+        return self
+
+
+class ScenarioSatisfiabilityEvidenceV2Model(ScenarioSatisfiabilityEvidenceModel):
+    """Breaking evidence revision: public SDL names and snapshot v3 identity."""
+
+    profile: Literal["scenario-satisfiability-evidence/v2"]
+    witness: SatisfiableWitnessV2Model | None = None
+
+
 def _validate_evidence_digests(evidence: ScenarioSatisfiabilityEvidenceModel) -> None:
     """Validate the source, authored, normalized-model, and solver joins."""
 
@@ -274,6 +329,8 @@ __all__ = (
     "ConstraintSymbolModel",
     "NormalizedConstraintModel",
     "ScenarioSatisfiabilityEvidenceModel",
+    "ScenarioSatisfiabilityEvidenceV2Model",
+    "SatisfiableWitnessV2Model",
     "SatisfiabilityOutcome",
     "SatisfiableWitnessModel",
     "SolverConfigurationModel",

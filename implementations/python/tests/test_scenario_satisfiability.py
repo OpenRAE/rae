@@ -36,6 +36,7 @@ from raes_processor.satisfiability.evidence import (
     NormalizedConstraintModel,
     SatisfiabilityOutcome,
     ScenarioSatisfiabilityEvidenceModel,
+    ScenarioSatisfiabilityEvidenceV2Model,
 )
 
 _SATISFIABLE = """\
@@ -191,12 +192,12 @@ def test_replay_rejects_source_solver_and_payload_mutations(tmp_path: Path) -> N
     payload = evidence.model_dump(mode="json")
     payload["solver_configuration"]["random_seed"] = 1
     with pytest.raises(ValidationError):
-        ScenarioSatisfiabilityEvidenceModel.model_validate(payload)
+        ScenarioSatisfiabilityEvidenceV2Model.model_validate(payload)
 
     payload = evidence.model_dump(mode="json")
     payload["witness"]["snapshot_digest"] = "sha256:" + "0" * 64
     with pytest.raises(ValidationError):
-        ScenarioSatisfiabilityEvidenceModel.model_validate(payload)
+        ScenarioSatisfiabilityEvidenceV2Model.model_validate(payload)
 
 
 def test_evidence_contract_rejects_cross_outcome_payloads(tmp_path: Path) -> None:
@@ -205,14 +206,14 @@ def test_evidence_contract_rejects_cross_outcome_payloads(tmp_path: Path) -> Non
     payload["outcome"] = "unsatisfiable"
 
     with pytest.raises(ValidationError):
-        ScenarioSatisfiabilityEvidenceModel.model_validate(payload)
+        ScenarioSatisfiabilityEvidenceV2Model.model_validate(payload)
 
 
 def test_evidence_bytes_are_stable_across_json_round_trip(tmp_path: Path) -> None:
     source = _write(tmp_path, "satisfiable.sdl.yaml", _SATISFIABLE)
     evidence = analyze_scenario_file(source)
 
-    round_tripped = ScenarioSatisfiabilityEvidenceModel.model_validate(json.loads(evidence.model_dump_json()))
+    round_tripped = ScenarioSatisfiabilityEvidenceV2Model.model_validate(json.loads(evidence.model_dump_json()))
 
     assert json.dumps(evidence.model_dump(mode="json"), sort_keys=True, separators=(",", ":")) == json.dumps(
         round_tripped.model_dump(mode="json"), sort_keys=True, separators=(",", ":")
@@ -222,7 +223,7 @@ def test_evidence_bytes_are_stable_across_json_round_trip(tmp_path: Path) -> Non
 def test_stored_evidence_replays_after_model_round_trip(tmp_path: Path) -> None:
     source = _write(tmp_path, "satisfiable.sdl.yaml", _SATISFIABLE)
     evidence = analyze_scenario_file(source)
-    stored = ScenarioSatisfiabilityEvidenceModel.model_validate_json(evidence.model_dump_json())
+    stored = ScenarioSatisfiabilityEvidenceV2Model.model_validate_json(evidence.model_dump_json())
 
     replayed = replay_satisfiability_evidence(source, stored)
 
@@ -256,7 +257,7 @@ def test_contract_rejects_unknown_fields(tmp_path: Path) -> None:
     payload["unexpected"] = True
 
     with pytest.raises(ValidationError):
-        ScenarioSatisfiabilityEvidenceModel.model_validate(payload)
+        ScenarioSatisfiabilityEvidenceV2Model.model_validate(payload)
 
 
 def test_max_length_variable_names_have_bounded_portable_normalized_ids(tmp_path: Path) -> None:

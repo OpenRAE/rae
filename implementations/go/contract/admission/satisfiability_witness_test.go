@@ -9,11 +9,35 @@ import (
 
 	"github.com/OpenRAE/rae/implementations/go/base/digest"
 	"github.com/OpenRAE/rae/implementations/go/base/ingress"
+	"github.com/OpenRAE/rae/implementations/go/contract/validation"
 )
 
 type satisfiabilityCompilerOwner struct {
 	phase        MaterializationCompilation
 	fail, mutate bool
+}
+
+func TestWitnessControlDeferralIsLimitedToDirectSnapshotAssets(t *testing.T) {
+	e := boundTestOwner(t)
+	owner := &satisfiabilityCompilerOwner{}
+	for _, tc := range []struct {
+		contract, path string
+		context        any
+		deferred       bool
+	}{
+		{satisfiabilityEvidenceID, "/witness/snapshot/scenario/control_context_assets/0", owner, true},
+		{satisfiabilityEvidenceID, "/witness/snapshot/scenario/control_context_assets/0", nil, false},
+		{satisfiabilityEvidenceID, "/witness/snapshot/scenario/control_context_assets/0", (*satisfiabilityCompilerOwner)(nil), false},
+		{satisfiabilityEvidenceID, "/witness/snapshot/scenario/control_context_assets/0/nested", owner, false},
+		{satisfiabilityEvidenceID, "/other/control_context_assets/0", owner, false},
+		{termParticipantControlContextAssetV1, "/witness/snapshot/scenario/control_context_assets/0", owner, false},
+		{termParticipantControlContextAssetV1, "", owner, false},
+	} {
+		err := e.controlContextAgreement(validation.Invocation{Key: validation.Key{ContractID: tc.contract}, Path: tc.path, Context: tc.context})
+		if (err == nil) != tc.deferred {
+			t.Fatalf("contract=%s path=%s deferred=%v: %v", tc.contract, tc.path, tc.deferred, err)
+		}
+	}
 }
 
 func (c *satisfiabilityCompilerOwner) CompileMaterialization(request MaterializationCompileRequest) (MaterializationCompilation, error) {

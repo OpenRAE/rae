@@ -168,3 +168,5 @@ func (p *Profiles) ValidationCatalog() ValidationCatalog
 func (p *Profiles) SelectValidationProfile(id, version, subjectKind string) (ValidationProfile, error)
 
 func AdmitComparisonProfile(input ComparisonProfile)(ComparisonProfile,error)
+
+func (p *Profiles) CheckBehavioralClaimInCatalog(catalog concept.RelationCatalog, claim BehavioralClaim, supplied *RelationProfile) error

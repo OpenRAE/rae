@@ -146,6 +146,30 @@ def test_hygiene_retains_fast_checks_and_both_secret_scanners(monkeypatch, graph
     ]
 
 
+def test_hygiene_limits_schema_size_exception_to_two_exact_paths(monkeypatch, graph):
+    lanes = importlib.import_module("tools.nox_support.policy_lanes")
+    allowed = [
+        "contracts/schemas/satisfiability/scenario-satisfiability-evidence-v2.json",
+        "contracts/schemas/sdl/instantiated-scenario-snapshot-v2.json",
+    ]
+    ordinary = ["sample.json", allowed[0] + ".copy", allowed[1].replace("v2", "v3")]
+    paths = ordinary + allowed
+    calls = []
+    scanned = []
+    monkeypatch.setattr(lanes, "_parse_hygiene_posargs", lambda *a, **k: SimpleNamespace(paths=paths, source="test"))
+    monkeypatch.setattr(lanes, "_text_paths", lambda paths: paths)
+
+    def hook(_session, name, *args, **kwargs):
+        if name == "check-added-large-files":
+            calls.append((args, kwargs["paths"]))
+
+    monkeypatch.setattr(lanes, "_run_pre_commit_hook", hook)
+    monkeypatch.setattr(lanes, "_run_gitleaks_dir_scan", lambda _session, paths: scanned.append(paths))
+    graph._run_hygiene(_Session(), _Reporter(), posargs=paths, default_all_files=False)
+    assert calls == [(("--maxkb", "500"), ordinary), (("--maxkb", "750"), allowed)]
+    assert scanned == [paths]
+
+
 def test_fast_feedback_runs_changed_test_modules(monkeypatch: pytest.MonkeyPatch, graph: ModuleType) -> None:
     changed = [ChangeRecord(status="A", path="implementations/python/tests/test_x.py")]
     monkeypatch.setattr(graph, "collect_git_changes", lambda _root, _base: changed)

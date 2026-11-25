@@ -36,12 +36,13 @@ type fullReferenceCase struct {
 // cases use fixed independently supplied owners; payloads cannot mint them.
 func TestFullValidationGoldenCorpus(t *testing.T) {
 	var recording struct {
-		Specification       string              `json:"specification"`
-		Cases               []fullReferenceCase `json:"cases"`
-		CaseFiles           []string            `json:"case_files"`
-		OwnerSources        map[string]string   `json:"owner_sources"`
-		FixtureInventory    []string            `json:"fixture_inventory"`
-		NoncontractFixtures map[string]string   `json:"noncontract_fixtures"`
+		Specification       string                        `json:"specification"`
+		Cases               []fullReferenceCase           `json:"cases"`
+		CaseFiles           []string                      `json:"case_files"`
+		OwnerSources        map[string]string             `json:"owner_sources"`
+		FixtureInventory    []string                      `json:"fixture_inventory"`
+		NoncontractFixtures map[string]string             `json:"noncontract_fixtures"`
+		NativeOwnerFixtures map[string]nativeOwnerFixture `json:"native_owner_fixtures"`
 	}
 	readFullReferenceJSON(t, "testdata/full-admission-verdicts.json", &recording)
 	if recording.Specification != "raes-full-admission-parity/v2" {
@@ -71,7 +72,7 @@ func TestFullValidationGoldenCorpus(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	checkCompleteFixtureInventory(t, source, recording.Cases, recording.FixtureInventory, recording.NoncontractFixtures)
+	checkCompleteFixtureInventory(t, source, recording.Cases, recording.FixtureInventory, recording.NoncontractFixtures, recording.NativeOwnerFixtures)
 	for _, c := range recording.Cases {
 		t.Run(c.Name, func(t *testing.T) { checkFullReferenceCase(t, e, source, owners, c) })
 	}

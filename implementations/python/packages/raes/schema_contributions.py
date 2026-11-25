@@ -14,7 +14,7 @@ from raes_contracts.identifiers import portable_property_names_schema, qualified
 from raes_contracts.variable_references import VARIABLE_REFERENCE_SCHEMA_MARKER, VARIABLE_TOKEN_PATTERN
 
 from .artifact_requirement_contract import ArtifactRequirementContractModel
-from .canonical import InstantiatedScenarioSnapshot
+from .canonical import InstantiatedScenarioSnapshot, InstantiatedScenarioSnapshotV3
 from .materialization import MaterializedScenario
 from .scenario import InstantiatedScenario, Scenario
 from .schema_catalogs import HASHMAP_SECTIONS, RUNTIME_SERVICE_FAMILIES, RuntimeReferenceChild
@@ -31,6 +31,7 @@ _SDL_IDENTIFIER_CONTRACT_IDS = frozenset(
         "materialized-scenario-v1",
         _INSTANTIATION_INVARIANT_CONTRACT_ID,
         _INSTANTIATED_SNAPSHOT_CONTRACT_ID,
+        "instantiated-scenario-snapshot-v2",
     }
 )
 
@@ -44,6 +45,7 @@ def sdl_contract_schemas() -> dict[str, dict[str, Any]]:
         "instantiated-scenario-v1": InstantiatedScenario.model_json_schema(),
         "materialized-scenario-v1": MaterializedScenario.model_json_schema(),
         "instantiated-scenario-snapshot-v1": InstantiatedScenarioSnapshot.model_json_schema(),
+        "instantiated-scenario-snapshot-v2": InstantiatedScenarioSnapshotV3.model_json_schema(),
         "artifact-requirement-v1": ArtifactRequirementContractModel.model_json_schema(),
     }
     add_raes_invariant(
@@ -261,7 +263,9 @@ def attach_instantiation_invariants(contract_id: str, json_schema: dict[str, Any
         _INSTANTIATION_INVARIANT_CONTRACT_ID,
         "materialized-scenario-v1",
         _INSTANTIATED_SNAPSHOT_CONTRACT_ID,
+        "instantiated-scenario-snapshot-v2",
         _SATISFIABILITY_EVIDENCE_CONTRACT_ID,
+        "scenario-satisfiability-evidence-v2",
     }:
         return
     _forbid_variable_tokens_in_strings(json_schema)
@@ -273,6 +277,7 @@ def attach_stateful_resource_invariants(contract_id: str, json_schema: dict[str,
         "materialized-scenario-v1",
         "instantiated-scenario-v1",
         "instantiated-scenario-snapshot-v1",
+        "instantiated-scenario-snapshot-v2",
     }:
         return
     input_contract = [{"contract_id": contract_id, "instance_path": "#"}]
@@ -307,7 +312,9 @@ def attach_initial_service_state_invariants(contract_id: str, json_schema: dict[
         "materialized-scenario-v1",
         "instantiated-scenario-v1",
         "instantiated-scenario-snapshot-v1",
+        "instantiated-scenario-snapshot-v2",
         "scenario-satisfiability-evidence-v1",
+        "scenario-satisfiability-evidence-v2",
     }:
         return
     add_raes_invariant(

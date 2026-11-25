@@ -39,6 +39,7 @@ _EXACT_SCHEMA_DIRECTORIES = (
             "instantiated-scenario-v1",
             "materialized-scenario-v1",
             "instantiated-scenario-snapshot-v1",
+            "instantiated-scenario-snapshot-v2",
             "scenario-instantiation-request-v1",
         },
         "sdl",
@@ -183,7 +184,12 @@ def write_schema_bundle(schemas_dir: Path) -> None:
 
 def _serialize_schema(name: str, schema: dict[str, object]) -> str:
     """Keep large self-contained schemas readable one definition per line."""
-    if name not in {"materialized-scenario-v1", "trial-outcome-v1"}:
+    if name not in {
+        "materialized-scenario-v1",
+        "trial-outcome-v1",
+        "scenario-satisfiability-evidence-v2",
+        "instantiated-scenario-snapshot-v2",
+    }:
         return json.dumps(schema, indent=2, sort_keys=True) + "\n"
 
     def compact(value: object) -> str:

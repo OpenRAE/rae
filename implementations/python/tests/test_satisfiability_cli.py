@@ -10,7 +10,7 @@ from pathlib import Path
 import pytest
 from raes_cli.main import app
 from raes_contracts.errors import OperationalError
-from raes_processor.satisfiability.evidence import ScenarioSatisfiabilityEvidenceModel
+from raes_processor.satisfiability.evidence import ScenarioSatisfiabilityEvidenceV2Model
 from typer.testing import CliRunner
 
 
@@ -44,7 +44,7 @@ nodes:
 
     assert first.exit_code == 0, first.output
     assert first.stdout == second.stdout
-    evidence = ScenarioSatisfiabilityEvidenceModel.model_validate_json(first.stdout)
+    evidence = ScenarioSatisfiabilityEvidenceV2Model.model_validate_json(first.stdout)
     assert evidence.outcome.value == "satisfiable"
 
 

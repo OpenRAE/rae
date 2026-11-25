@@ -1,0 +1,5 @@
+[
+  "func github.com/OpenRAE/rae/implementations/go/sdl.AdmitSnapshotWithContext(ctx context.Context, data []byte, expectedDigest string) (github.com/OpenRAE/rae/implementations/go/sdl.InstantiatedScenario, error)",
+  "func github.com/OpenRAE/rae/implementations/go/sdl.InstantiateWithProfile(scenario github.com/OpenRAE/rae/implementations/go/sdl.Scenario, parameters map[string]any, profile string) (github.com/OpenRAE/rae/implementations/go/sdl.InstantiatedScenario, error)",
+  "func github.com/OpenRAE/rae/implementations/go/sdl.RenderSource(ctx context.Context, scenario github.com/OpenRAE/rae/implementations/go/sdl.Scenario) ([]byte, error)"
+]
