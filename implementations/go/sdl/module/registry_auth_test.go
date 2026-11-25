@@ -108,3 +108,52 @@ func TestTokenResponseRequiresABearerTokenWithoutRedirect(t *testing.T) {
 		t.Fatal("token request followed a redirect")
 	}
 }
+
+func TestChallengeComesFromTheRequestedURLWithOneValidBearer(t *testing.T) {
+	const address = "https://registry.example/v2/a/manifests/1"
+	request, err := http.NewRequestWithContext(t.Context(), http.MethodGet, address, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	valid := `Bearer realm="https://auth.example/token?x=1",service="r",scope="repository:a:pull"`
+	for name, test := range map[string]struct {
+		headers           []string
+		address           string
+		request           *http.Request
+		challenged, valid bool
+	}{
+		"bearer":         {[]string{`Basic realm="r"`, valid}, address, request, true, true},
+		"other address":  {[]string{valid}, address + "?redirected", request, false, true},
+		"no request":     {[]string{valid}, address, nil, false, true},
+		"no bearer":      {[]string{`Basic realm="r"`}, address, request, false, true},
+		"two bearers":    {[]string{valid, valid}, address, request, false, false},
+		"malformed":      {[]string{`Bearer realm=`}, address, request, false, false},
+		"insecure realm": {[]string{`Bearer realm="http://auth.example/token"`}, address, request, false, false},
+	} {
+		response := &http.Response{Request: test.request, Header: http.Header{"Www-Authenticate": test.headers}, Body: http.NoBody}
+		challenge, challenged, err := challengeFor(response, test.address)
+		_ = response.Body.Close()
+		if challenged != test.challenged || (err == nil) != test.valid {
+			t.Errorf("%s: challenge = %t, %v", name, challenged, err)
+		}
+		if name == "bearer" {
+			if got, err := challenge.tokenURL(); err != nil || got != "https://auth.example/token?x=1&service=r&scope=repository%3Aa%3Apull" {
+				t.Errorf("token URL = %q, %v", got, err)
+			}
+		}
+	}
+	if _, err := (bearerChallenge{realm: "https://auth.example/%zz"}).tokenURL(); err == nil {
+		t.Error("an unparsable realm produced a token URL")
+	}
+}
+
+func TestTokenFieldUsesTheReferenceTruthRule(t *testing.T) {
+	for value, want := range map[any]bool{nil: false, "": false, "a": true, false: false, true: true, float64(0): false, float64(2): true} {
+		if truthy(value) != want {
+			t.Errorf("truthy(%#v) != %t", value, want)
+		}
+	}
+	if truthy(map[string]any{}) || !truthy(map[string]any{"a": 1}) || truthy([]any{}) || !truthy([]any{1}) || !truthy(struct{}{}) {
+		t.Error("container truth differs from the reference rule")
+	}
+}
