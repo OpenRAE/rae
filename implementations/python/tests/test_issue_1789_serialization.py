@@ -13,9 +13,9 @@ from raes.canonical import (
     canonical_instantiated_sdl_v3_bytes,
 )
 from raes_contracts.canonical import canonical_json_digest
-from raes_schemas.bundle import schema_bundle
-from raes_processor.satisfiability.evidence import ScenarioSatisfiabilityEvidenceV2Model
 from raes_processor.satisfiability import analyze_scenario_file, replay_satisfiability_evidence
+from raes_processor.satisfiability.evidence import ScenarioSatisfiabilityEvidenceV2Model
+from raes_schemas.bundle import schema_bundle
 
 ROOT = Path(__file__).resolve().parents[3]
 

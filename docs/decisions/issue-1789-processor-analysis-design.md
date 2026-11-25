@@ -276,7 +276,7 @@ through this context when it re-admits the profile. It still checks the input's
 catalog digest. A catalog that removes a relation or forbids its supplied
 parameter profile cannot authorize a result through packaged fallback.
 
-<!-- go-api implementations/go/contract/profile e6d807339741842258c8a114213f8d9875c04c75adc4a6ec31d7dfb73bd0eea0 -->
+<!-- go-api implementations/go/contract/profile 4a7a2f9495d4baede2570cc62a17174c23ab20dfd93386dfee07223007631eaa -->
 
 ### Authenticated historical snapshots
 
@@ -350,7 +350,7 @@ The delivery uses a breaking-change PR title and documents the migration.
 Generated bindings add `ScenarioSatisfiabilityEvidenceV2` and
 `InstantiatedScenarioSnapshotV2`. Existing binding types remain.
 
-<!-- go-api implementations/go/contract/binding 2c17bdd678872cf565b90f2a5eb8a058e439e650832a92e01074c7f9fea31a98 -->
+<!-- go-api implementations/go/contract/binding 5054607604136f9c335cbdbd623d06773bf7fbe2034164ebd1ada94c508e0de0 -->
 
 The two schema versions also add generated public Go binding types. Their exact
 API records bring the architecture snapshot total above 16 MiB. The checker

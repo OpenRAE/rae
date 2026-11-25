@@ -4746,7 +4746,9 @@
           "implementations/architecture-api/contract-binding-linux-amd64-18.json",
           "implementations/architecture-api/contract-binding-linux-amd64-19.json",
           "implementations/architecture-api/contract-binding-linux-amd64-20.json",
-          "implementations/architecture-api/contract-binding-linux-amd64-21.json"
+          "implementations/architecture-api/contract-binding-linux-amd64-21.json",
+          "implementations/architecture-api/contract-binding-linux-amd64-22.json",
+          "implementations/architecture-api/contract-binding-linux-amd64-23.json"
         ]
       }
     },
@@ -14041,7 +14043,7 @@
       "design": "docs/decisions/issue-1789-processor-analysis-design.md",
       "api_files": {
         "linux-amd64": [
-          "implementations/architecture-api/analysis-design/analysis.json"
+          "implementations/architecture-api/processor-analysis-linux-amd64-01.json"
         ]
       }
     }
@@ -14073,7 +14075,7 @@
     "docs/decisions/issue-1780-contract-validation-design.md": "512b76626cf7f7452ddd0230908d8f3473462d0bfd28e62e118ce116c45e1998",
     "docs/decisions/issue-1891-runtime-repository-boundary.md": "e8233ecdf836dbbad4dda9ef373572dd466f1cf59ad0eeb4ab01cc9fd476e406",
     "docs/decisions/adrs/adr-036-sdl-processor-runtime-module-boundaries.md": "c5201fa70c4ec42ba652acd92b92bb98493c107f273ec3e319477ad58d9febb9",
-    "docs/decisions/issue-1825-public-go-api.md": "45e4568e7a6721b153e40c6de6b6d2bc2ade9f48c736b81db2e4a8624252bc4e",
+    "docs/decisions/issue-1825-public-go-api.md": "4b9c41818ad1ea21a638a301cc96e61b1796ee46a71e248d3b6609ecde584f00",
     "docs/decisions/issue-1892-public-go-packages-design.md": "dc24702725acd31a5d3f74f3713ec11eb0a578b95bd1b12bd8dcfa15c5ee22aa",
     "specs/sdl/document-model.md": "aa417cd591477a475189da692a0959955fdb38959769c47183fb91577c6e4e88",
     "specs/sdl/diagnostics.md": "899a8b8328e73928cbd4fb927a67145a4b6e231a0b07048e87904ad87aa2ddef",
@@ -14090,7 +14092,7 @@
     "docs/decisions/issue-1788-experiments-trials-preflight.md": "4012fc90b329e52491d52a48831c6efc8a79510a6838a061486e6eb2cceacb39",
     "docs/decisions/issue-1788-validator-key-decision.md": "c781e3ca480df4429459b7ef51fc932ddbf14ee500b8ed8e5cae5b4c15f271af",
     "docs/decisions/issue-1790-backend-design.md": "211ef43d0b409da006eec1a5b025ed594a73f2785dd759e55fbb2ad25eb5deed",
-    "docs/decisions/issue-1789-processor-analysis-design.md": "304a728c08507481965001725b68a0d93a7c233e40a1851f8f9e8a275bba1048"
+    "docs/decisions/issue-1789-processor-analysis-design.md": "5d4b4f15f153ac3f2e1c11488cf5a57aca2d799615f3ac0bbbde0aad66f7fcea"
   },
   "consumer_api": {
     "design": "docs/decisions/issue-1825-public-go-api.md",
@@ -14263,7 +14265,7 @@
           "runtime"
         ],
         "existing": "implementations/go/contract/binding",
-        "existing_api_sha256": "2d8a35b64dd1fc296047088b4347ee3ff22ef4368240766245e2aa3930a0875a"
+        "existing_api_sha256": "5054607604136f9c335cbdbd623d06773bf7fbe2034164ebd1ada94c508e0de0"
       },
       {
         "owner": "rae",

@@ -234,6 +234,20 @@ def record(verdicts: dict[str, Any]) -> tuple[dict[str, Any], list[list[dict[str
     phase_sources: dict[str, tuple[str, Any]] = {}
     validators = contract_validators()
     contracts, other = inventory()
+    # A native SDL owner covers these fixtures in its own Go package; record their reference verdicts by name.
+    native = verdicts.get("native_owner_fixtures", {})
+    contracts = [(relative, contract) for relative, contract in contracts if relative not in native]
+    for relative, fixture in native.items():
+        raw = (CONTRACTS / relative).read_bytes()
+        payload = json.loads(raw)
+        sealed = _sealed(fixture["contract_id"], relative, payload)
+        verdict = _model_verdict(fixture["contract_id"], sealed, validators)
+        fixture.update(
+            input_sha256=_digest(raw),
+            published_schema_admitted=Draft202012Validator(published_schema(fixture["contract_id"])).is_valid(payload),
+            full_admitted=verdict["full_admitted"],
+            failure_class=verdict["failure_class"],
+        )
     rows: list[dict[str, Any]] = []
     for relative, contract in contracts:
         raw = (CONTRACTS / relative).read_bytes()
