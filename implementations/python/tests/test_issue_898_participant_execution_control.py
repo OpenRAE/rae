@@ -26,7 +26,7 @@ from raes_backend_protocols.manifest import (
 from raes_backend_protocols.participant_runtime_base import BaseParticipantRuntime
 from raes_backend_stubs.stubs import create_stub_target
 from raes_conformance.conformance.profiles import BackendCapabilityProfile
-from raes_conformance.conformance.target_probes import _target_adapter_cases
+from raes_conformance.conformance.target_probes import target_adapter_run
 from raes_contracts.contracts import (
     ParticipantAutonomousExecutionStateModel,
     ParticipantTemporalRuntimeContextModel,
@@ -865,10 +865,10 @@ def test_live_conformance_conditionally_proves_autonomous_action_and_lifecycle()
         participant_runtime=_NativeParticipantRuntime(),
     )
 
-    cases = _target_adapter_cases(
+    cases = target_adapter_run(
         target,
         BackendCapabilityProfile.FULL_REMOTE_CONTROL_PLANE,
-    )
+    ).cases
     participant_execution_cases = tuple(case for case in cases if case.name.startswith("participant-execution-"))
 
     assert participant_execution_cases
@@ -896,10 +896,10 @@ def test_live_conformance_rejects_autonomous_claim_without_executable_behavior()
         participant_runtime=_InertParticipantRuntime(),
     )
 
-    cases = _target_adapter_cases(
+    cases = target_adapter_run(
         target,
         BackendCapabilityProfile.FULL_REMOTE_CONTROL_PLANE,
-    )
+    ).cases
     action_case = next(case for case in cases if case.name == "participant-execution-bounded-native-actions")
 
     assert action_case.passed is False
@@ -921,7 +921,7 @@ def test_live_conformance_sanitizes_and_logs_a_failing_native_action(caplog: pyt
     )
 
     with caplog.at_level(logging.ERROR, logger="raes_conformance"):
-        cases = _target_adapter_cases(target, BackendCapabilityProfile.FULL_REMOTE_CONTROL_PLANE)
+        cases = target_adapter_run(target, BackendCapabilityProfile.FULL_REMOTE_CONTROL_PLANE).cases
     action_case = next(case for case in cases if case.name == "participant-execution-bounded-native-actions")
 
     assert action_case.passed is False

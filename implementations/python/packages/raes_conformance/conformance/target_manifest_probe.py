@@ -5,7 +5,7 @@ from __future__ import annotations
 from raes_backend_protocols.manifest import backend_manifest_payload
 from raes_runtime.registry import RuntimeTarget
 
-from raes_conformance.conformance.diagnostics import _diagnostic, sanitized_failure_message
+from raes_conformance.conformance.diagnostics import conformance_diagnostic, sanitized_failure_message
 from raes_conformance.conformance.report import ConformanceCaseResult
 from raes_conformance.conformance.validators import _validate_payload
 
@@ -22,7 +22,7 @@ def target_manifest_case(target: RuntimeTarget) -> ConformanceCaseResult:
             valid=False,
             passed=False,
             diagnostics=(
-                _diagnostic(
+                conformance_diagnostic(
                     "conformance.target-manifest-invalid",
                     target.name,
                     sanitized_failure_message(exc),

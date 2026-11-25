@@ -173,6 +173,8 @@ def test_current_compile_replay_hashes_complete_capture_dimension():
     # The retained fixture has neither safe-state nor episode-policy intent; empty optional values are omitted.
     assert compiled.pop("safe_states") == ()
     assert compiled.pop("participant_episode_policies") == {}
+    for specification in compiled["behavior_specifications"].values():
+        assert specification.pop("episode_policy_address") == ""
     assert _compiled_case_digest(ROOT, case, path) == _digest(compiled)
 
 

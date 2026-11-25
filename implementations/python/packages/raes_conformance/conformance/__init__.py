@@ -26,6 +26,9 @@ from raes_conformance.conformance.modular_control import (
 from raes_conformance.conformance.observability import (
     observability_evidence_conformance_diagnostics,
 )
+from raes_conformance.conformance.participant_episode_structure import (
+    participant_episode_structure_conformance_diagnostics,
+)
 from raes_conformance.conformance.processor import ProcessorConformanceProbe, run_processor_conformance
 from raes_conformance.conformance.profiles import (
     BackendCapabilityProfile,
@@ -83,6 +86,7 @@ __all__ = [
     "fixtures_root",
     "modular_control_obligations",
     "observability_evidence_conformance_diagnostics",
+    "participant_episode_structure_conformance_diagnostics",
     "profile_for_manifest",
     "profiles_root",
     "required_contracts",

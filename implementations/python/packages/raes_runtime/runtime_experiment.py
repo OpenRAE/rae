@@ -24,7 +24,12 @@ from raes_contracts.errors import (
     InvalidInputError,
     NotFoundError,
 )
-from raes_processor.trial_realization import TrialRealizationInputs, realize_admitted_trial_entry
+from raes_contracts.trial_unit import AdmittedTrialPlanView
+from raes_processor.trial_realization import (
+    TrialRealizationInputs,
+    admitted_trial_batch_realizer,
+    realize_admitted_trial_entry,
+)
 from raes_processor.trial_scheduler import (
     AllocatorGrant,
     ScheduledEntry,
@@ -100,6 +105,9 @@ class RuntimeExperiment:
         self.inputs: TrialRealizationInputs = deepcopy(inputs)
         self.identity, self._lock, self.replacement = identity, RLock(), replacement
         self.plan = revalidate_admitted_trial_plan(self.inputs.plan)
+        # One read-only view serves every trial handoff in the batch, so each
+        # request repeats only entry-scoped checks (issue #2046).
+        self.plan_view = AdmittedTrialPlanView(self.plan)
         self.schedule = plan_batch_schedule(self.plan)
         self.experiment_id = self.plan.plan_id
         self.store_factory = store_factory
@@ -109,11 +117,14 @@ class RuntimeExperiment:
         self._units = {}
         self._children = {}
         commitments = []
+        # Validate the complete plan once for the whole batch, then realize each
+        # scheduled entry without repeating whole-plan reconstruction (issue #2046).
+        realize_entry = admitted_trial_batch_realizer(inputs=self.inputs, target_name=engine.target_name)
         for entry in self.schedule.entries:
-            realized = realize_admitted_trial_entry(
-                inputs=self.inputs, plan_entry_id=entry.plan_entry_id, target_name=engine.target_name
+            realized = realize_entry(entry.plan_entry_id)
+            request = trial_request(
+                self.plan_view, entry.plan_entry_id, realized, self._attempt_id(entry.plan_entry_id, 1)
             )
-            request = trial_request(self.plan, entry.plan_entry_id, realized, self._attempt_id(entry.plan_entry_id, 1))
             admit_trial(engine, realized, request, services)
             self.realizations[entry.plan_entry_id] = realized
             commitments.append(
@@ -484,7 +495,14 @@ class RuntimeExperiment:
 
     def _slots(self, records: tuple[RuntimeDecision, ...]) -> tuple[TrialSlot, ...]:
         roots = tuple(
-            TrialSlot(self.plan, self.schedule, entry, self.realizations[entry.plan_entry_id], entry.plan_entry_id)
+            TrialSlot(
+                self.plan,
+                self.schedule,
+                entry,
+                self.realizations[entry.plan_entry_id],
+                entry.plan_entry_id,
+                self.plan_view,
+            )
             for entry in self.schedule.entries
         )
         ranks = {entry.plan_entry_id: entry.dispatch_ordinal for entry in self.schedule.entries}
@@ -516,12 +534,13 @@ class RuntimeExperiment:
                     plan_entry_id=entry.plan_entry_id,
                     target_name=self.engine.target_name,
                 )
+                child_view = AdmittedTrialPlanView(child.plan)
                 request = trial_request(
-                    child.plan, entry.plan_entry_id, realized, self._attempt_id(entry.plan_entry_id, 1)
+                    child_view, entry.plan_entry_id, realized, self._attempt_id(entry.plan_entry_id, 1)
                 )
                 admit_trial(self.engine, realized, request, self.services)
                 self._children[child.decision_id] = TrialSlot(
-                    child.plan, schedule, entry, realized, child.root_entry_id
+                    child.plan, schedule, entry, realized, child.root_entry_id, child_view
                 )
         return (*roots, *(self._children[child.decision_id] for child in children))
 
@@ -546,7 +565,7 @@ class RuntimeExperiment:
             run = self._run(slot.entry, slot.plan)
             unit = RuntimeTrialUnit(
                 run,
-                trial_request(slot.plan, slot.entry.plan_entry_id, slot.realization, attempt.execution_attempt_id),
+                trial_request(slot.plan_view, slot.entry.plan_entry_id, slot.realization, attempt.execution_attempt_id),
                 slot.realization,
                 self.services,
                 attempt,

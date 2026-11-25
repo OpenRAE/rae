@@ -17,7 +17,7 @@ from raes_contracts.contracts.time_model import TimeRuntimeStateModel
 from raes_contracts.diagnostics import Diagnostic
 from raes_runtime.control_plane_store import NewClaimRejected
 
-from raes_conformance.conformance.diagnostics import _diagnostic
+from raes_conformance.conformance.diagnostics import conformance_diagnostic
 from raes_conformance.conformance.mixed_backend_cases import MixedBackendCase, cut_comparison
 from raes_conformance.conformance.mixed_backend_execution import (
     EFFECT_METHODS,
@@ -69,7 +69,7 @@ def outcome_of(failures: Sequence[str], unrealized: bool) -> str:
 
 
 def unsupported(code: str, address: str, message: str) -> Verdict:
-    return Verdict("unsupported", diagnostics=(_diagnostic(code, address, message),))
+    return Verdict("unsupported", diagnostics=(conformance_diagnostic(code, address, message),))
 
 
 def nonce() -> str:
@@ -374,7 +374,9 @@ def composition_verdict(run: CompositionRun) -> Verdict:
     outcome = outcome_of(run.failures, run.unrealized is not None)
     diagnostics = ()
     if run.unrealized is not None:
-        diagnostics = (_diagnostic("conformance.mixed-condition-unrealized", run.case.case_id, run.unrealized),)
+        diagnostics = (
+            conformance_diagnostic("conformance.mixed-condition-unrealized", run.case.case_id, run.unrealized),
+        )
     binding, declaration = run.configuration.binding, run.declaration
     subject, time = declaration.subject, declaration.subject.time
     expected_ops, accounted_ops = accounting(run.expected, run.calls)

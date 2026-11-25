@@ -114,25 +114,30 @@ def test_invalid_later_realization_is_refused_before_any_configuration(monkeypat
 
     _, inputs, target = factorial_inputs()
     services = TrialServices(target)
-    original = module.realize_admitted_trial_entry
+    original = module.admitted_trial_batch_realizer
     calls = []
 
-    def realize(**options):
-        result = original(**options)
-        calls.append(options["plan_entry_id"])
-        if len(calls) == 2:
-            provisioning = result.execution_plan.provisioning
-            operations = list(provisioning.operations)
-            operations[0] = replace(operations[0], payload={**operations[0].payload, "os_family": "changed"})
-            result = replace(
-                result,
-                execution_plan=replace(
-                    result.execution_plan, provisioning=replace(provisioning, operations=operations)
-                ),
-            )
-        return result
+    def batch_realizer(**options):
+        realize_one = original(**options)
 
-    monkeypatch.setattr(module, "realize_admitted_trial_entry", realize)
+        def realize(plan_entry_id):
+            result = realize_one(plan_entry_id)
+            calls.append(plan_entry_id)
+            if len(calls) == 2:
+                provisioning = result.execution_plan.provisioning
+                operations = list(provisioning.operations)
+                operations[0] = replace(operations[0], payload={**operations[0].payload, "os_family": "changed"})
+                result = replace(
+                    result,
+                    execution_plan=replace(
+                        result.execution_plan, provisioning=replace(provisioning, operations=operations)
+                    ),
+                )
+            return result
+
+        return realize
+
+    monkeypatch.setattr(module, "admitted_trial_batch_realizer", batch_realizer)
     with RuntimeControlPlane(target) as runtime:
         with pytest.raises(ConflictError, match="trial plan cannot be admitted"):
             runtime.admit_experiment(inputs, services=services)

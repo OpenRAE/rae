@@ -35,7 +35,7 @@ from raes_contracts.operational_logging import foreign_failure_record, get_logge
 from raes_contracts.vocabulary import ParticipantFeatureSupportLevel
 from raes_runtime.registry import RuntimeTarget
 
-from raes_conformance.conformance.diagnostics import _diagnostic, sanitized_failure_message
+from raes_conformance.conformance.diagnostics import conformance_diagnostic, sanitized_failure_message
 from raes_conformance.conformance.participant_policy_execution import _Outcome, _run_case
 from raes_conformance.conformance.participant_policy_types import (
     _EXPECTED_DISPOSITIONS,
@@ -105,7 +105,7 @@ def _unsupported_case(
         capability_feature=feature,
         declared_support_level=_declared_level(target, feature),
         effective_support_level=None,
-        diagnostics=(_diagnostic(_PROBE_MISSING_CODE, feature, reason),),
+        diagnostics=(conformance_diagnostic(_PROBE_MISSING_CODE, feature, reason),),
         finite_scope=(
             f"Static declaration only for target {target.name!r} under profile {profile_id!r}; "
             "no authorized participant-policy behavior was established."
@@ -203,7 +203,7 @@ def _case_result(
             declared_support_level=_declared_level(target, case.feature),
             effective_support_level=None,
             diagnostics=(
-                _diagnostic(
+                conformance_diagnostic(
                     _PROBE_FAILED_CODE,
                     case.feature,
                     f"participant-policy probe {case.obligation!r} failed: {sanitized_failure_message(exc)}",
@@ -223,7 +223,7 @@ def _case_result(
         else case.binding
     )
     diagnostics: tuple[Diagnostic, ...] = tuple(
-        _diagnostic(
+        conformance_diagnostic(
             _OVERCLAIM_CODE,
             case.feature,
             (
