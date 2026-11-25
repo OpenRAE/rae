@@ -57,10 +57,11 @@ func TestFullValidationGoldenCorpus(t *testing.T) {
 		}
 		var cases []fullReferenceCase
 		readFullReferenceJSON(t, "testdata/"+path, &cases)
-		if len(cases) != 351 {
-			t.Fatal("reference shard inventory changed")
-		}
 		recording.Cases = append(recording.Cases, cases...)
+	}
+	// Every contract fixture has one row; one more row keeps the selector regression.
+	if len(recording.Cases) != len(recording.FixtureInventory)+1 {
+		t.Fatal("reference shard inventory changed")
 	}
 
 	checkFullReferenceOwners(t, recording.OwnerSources)
@@ -97,6 +98,11 @@ func checkFullReferenceCase(t *testing.T, e *Validator, source fs.FS, owners ful
 		t.Fatal("original schema result changed")
 	}
 
+	// The reference fixture loader seals derived fields before admission.
+	raw, err = SealFixture(e, c.Contract, fullReferenceFixtureKind(c.InputPath), raw, limits)
+	if err != nil {
+		t.Fatal(err)
+	}
 	context := fullReferenceContext(t, e, owners, c.Owner)
 	got, err := e.Validate(c.Contract, raw, limits, context)
 	if (err == nil) != c.Full {
@@ -110,6 +116,19 @@ func checkFullReferenceCase(t *testing.T, e *Validator, source fs.FS, owners ful
 		t.Fatal("refusal returned admitted data")
 	}
 }
+
+// fullReferenceFixtureKind returns the fixture kind directory nearest the file.
+func fullReferenceFixtureKind(path string) string {
+	parts := strings.Split(path, "/")
+	for index := len(parts) - 2; index >= 0; index-- {
+		switch parts[index] {
+		case fixtureKindValid, fixtureKindContextInvalid, "invalid":
+			return parts[index]
+		}
+	}
+	return ""
+}
+
 func readFullReferenceJSON(t *testing.T, path string, value any) {
 	t.Helper()
 	source := os.DirFS(".")
