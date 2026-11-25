@@ -14,7 +14,7 @@ from referencing import Registry
 
 from tools.policy.common import safe_repo_path
 
-from ._types import _ARCHIVAL_MANIFEST_SHA256, _ARCHIVAL_MANIFEST_V2_SHA256
+from ._types import _ARCHIVAL_MANIFEST_SHA256, _ARCHIVAL_MANIFEST_V2_SHA256, _ARCHIVAL_MANIFEST_V3_SHA256
 
 _ARCHIVE_ROOT = "docs/research/formal-semantic-validation/archive-contracts"
 
@@ -23,7 +23,7 @@ class _ArchivedContract(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
 
     mode: Literal["satisfiability", "exploit-path"]
-    path: str = Field(pattern=r"^docs/research/formal-semantic-validation/archive-contracts/[a-z-]+-v[12]\.json$")
+    path: str = Field(pattern=r"^docs/research/formal-semantic-validation/archive-contracts/[a-z-]+-v[123]\.json$")
     sha256: str = Field(pattern=r"^[a-f0-9]{64}$")
     source_revision: str = Field(pattern=r"^[a-f0-9]{40}$")
     source_schema: str = Field(min_length=1)
@@ -35,6 +35,7 @@ class _ArchiveManifest(BaseModel):
     profile: Literal[
         "raes-retained-production-evidence-shapes/v1",
         "raes-retained-production-evidence-shapes/v2",
+        "raes-retained-production-evidence-shapes/v3",
     ]
     contracts: tuple[_ArchivedContract, ...] = Field(min_length=2, max_length=2)
 
@@ -43,6 +44,7 @@ def validate_archival_evidence_shape(repo_root: Path, payload: object, replay_mo
     for version, pin in (
         (1, _ARCHIVAL_MANIFEST_SHA256),
         (2, _ARCHIVAL_MANIFEST_V2_SHA256),
+        (3, _ARCHIVAL_MANIFEST_V3_SHA256),
     ):
         schema = _archival_schema(repo_root, replay_mode, version, pin)
         if Draft202012Validator(schema, registry=Registry()).is_valid(payload):
