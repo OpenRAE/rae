@@ -32,6 +32,10 @@ func (w *normalizer) modelCheck(pointer string, value map[string]any) error {
 		if (text(value[sourceField]) == "") == (text(value["path"]) == "") || !localIdentifier(text(value[namespaceField])) {
 			return invalid()
 		}
+	case "ConstrainedTrialParallelismModel":
+		return trialParallelismModel(value)
+	case "ParticipantEpisodePolicy":
+		return episodePolicyModel(value)
 	case "Scenario", "MaterializedScenario":
 		return nil
 	}
@@ -253,6 +257,23 @@ func scriptModel(value map[string]any) error {
 			if !valid || number.Cmp(minimum) < 0 || number.Cmp(maximum) > 0 {
 				return invalid()
 			}
+		}
+	}
+	return nil
+}
+
+// trialParallelismModel requires one bound at least and a minimum that does not exceed the maximum.
+func trialParallelismModel(value map[string]any) error {
+	minimum, hasMinimum := value["minimum"].(json.Number)
+	maximum, hasMaximum := value["maximum"].(json.Number)
+	if !hasMinimum && !hasMaximum {
+		return invalid()
+	}
+	if hasMinimum && hasMaximum {
+		low, lowValid := new(big.Int).SetString(minimum.String(), 10)
+		high, highValid := new(big.Int).SetString(maximum.String(), 10)
+		if !lowValid || !highValid || low.Cmp(high) > 0 {
+			return invalid()
 		}
 	}
 	return nil

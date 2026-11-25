@@ -4,6 +4,9 @@ type semanticCloudScope struct {
 	ID       string `json:"scope_id"`
 	Provider string `json:"provider"`
 	Parent   string `json:"parent_ref"`
+	Audit    []struct {
+		Exempted []string `json:"exempted_principal_refs"`
+	} `json:"audit_logs"`
 }
 type semanticCloudSubject struct {
 	ID    string `json:"subject_id"`
@@ -37,13 +40,15 @@ type semanticCloudObservation struct {
 	Contexts  []string `json:"context_refs"`
 }
 type semanticCloudSecret struct {
-	ID        string                 `json:"secret_id"`
-	Scope     string                 `json:"resource_scope_ref"`
-	Key       string                 `json:"encryption_key_ref"`
-	Reset     string                 `json:"reset_owner_ref"`
-	Deletion  string                 `json:"deletion_owner_ref"`
-	Versions  []semanticCloudVersion `json:"versions"`
-	Consumers []struct {
+	ID       string `json:"secret_id"`
+	Scope    string `json:"resource_scope_ref"`
+	Key      string `json:"encryption_key_ref"`
+	Reset    string `json:"reset_owner_ref"`
+	Deletion string `json:"deletion_owner_ref"`
+	// Replication is the GCP Secret Manager replication policy; only its presence matters here.
+	Replication any                    `json:"replication"`
+	Versions    []semanticCloudVersion `json:"versions"`
+	Consumers   []struct {
 		Workload string `json:"consumer_ref"`
 		Version  string `json:"version_ref"`
 		Resolved string `json:"resolved_version_ref"`

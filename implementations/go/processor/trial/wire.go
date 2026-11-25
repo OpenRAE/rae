@@ -141,6 +141,7 @@ type executionControls struct {
 }
 type trialEntry struct {
 	signature      string
+	SafeStates     []json.RawMessage `json:"safe_states,omitempty"`
 	ID             string            `json:"plan_entry_id"`
 	Coordinate     coordinate        `json:"coordinate"`
 	RunID          string            `json:"run_id"`

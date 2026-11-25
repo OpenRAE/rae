@@ -370,3 +370,21 @@ def test_proof_references_support_variable_binding(field):
     else:
         owner[field] = ["${reference}", *owner[field][1:]]
     assert len(compile_runtime_model(scenario(value)).safe_states) == 3
+
+
+@pytest.mark.parametrize("scopes", [False, True])
+def test_rename_keeps_the_root_safe_state_default(scopes):
+    from raes._transformation_rename import rename_sdl_declaration
+    from raes._transformation_types import RenameSDLDeclarationRequest
+
+    value = payload()
+    if scopes:
+        value["safe_state"]["scopes"] = [{"scope": "/nodes/first", "state": value["safe_state"]["default"]}]
+    result = rename_sdl_declaration(
+        scenario(value), RenameSDLDeclarationRequest("assertions.safe", "verified")
+    )
+    assert result.succeeded
+    renamed = result.output.safe_state
+    assert renamed.default is not None
+    assert renamed.default.assertion_refs == ("verified",)
+    assert [rule.state.assertion_refs for rule in renamed.scopes] == ([("verified",)] if scopes else [])

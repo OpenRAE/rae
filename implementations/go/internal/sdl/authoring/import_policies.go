@@ -50,7 +50,8 @@ func (c *composition) composePolicies(parent, incoming map[string]any, namespace
 		return err
 	}
 	execution := rewriteExecutionPolicy(object(incoming["execution_policy"]), symbols, namespace)
-	for name, imported := range map[string]map[string]any{"augmentation_scope": augmentation, "execution_policy": execution} {
+	safeState := rewriteSafeState(object(incoming[safeStateSection]), symbols, namespace)
+	for name, imported := range map[string]map[string]any{"augmentation_scope": augmentation, "execution_policy": execution, safeStateSection: safeState} {
 		if imported == nil {
 			continue
 		}
@@ -143,6 +144,49 @@ func rewriteExecutionPolicy(document map[string]any, symbols importSymbols, name
 	}
 	return result
 }
+
+// rewriteSafeState preserves safe-state definitions and private proof bindings
+// across an import. An imported default governs only its own namespace; an
+// unprefixed rewrite keeps the root default.
+func rewriteSafeState(document map[string]any, symbols importSymbols, namespace string) map[string]any {
+	if document == nil {
+		return nil
+	}
+	rules := []map[string]any{}
+	for _, raw := range array(document[scopesField]) {
+		rules = append(rules, object(raw))
+	}
+	result := map[string]any{scopesField: []any{}, defaultField: nil}
+	if state := object(document[defaultField]); state != nil {
+		if namespace != "" {
+			rules = append(rules, map[string]any{namespaceField: []any{}, scopeField: "", "state": state})
+		} else {
+			result[defaultField] = rewriteSafeStateValue(state, symbols)
+		}
+	}
+	scopes := []any{}
+	for _, rule := range rules {
+		state := rewriteSafeStateValue(object(rule["state"]), symbols)
+		for _, owner := range lexicalNamespaces(rule, symbols, namespace, []string{nodesSection}) {
+			scopes = append(scopes, map[string]any{namespaceField: owner, scopeField: symbols.pointer(text(rule[scopeField])), "state": state})
+		}
+	}
+	result[scopesField] = scopes
+	return result
+}
+func rewriteSafeStateValue(state map[string]any, symbols importSymbols) map[string]any {
+	result := safeStateValue(state)
+	renamed := []any{}
+	for _, ref := range array(state[assertionRefsField]) {
+		replacement := ref
+		if qualified, present := symbols[assertionsSection][text(ref)]; present {
+			replacement = qualified
+		}
+		renamed = append(renamed, replacement)
+	}
+	result[assertionRefsField] = renamed
+	return result
+}
 func rewritePolicy(policy map[string]any, symbols importSymbols) map[string]any {
 	result := maps.Clone(policy)
 	if reference := text(result["clock_ref"]); reference != "" {
@@ -173,6 +217,12 @@ func executionPointer(pointer string, symbols importSymbols) string {
 	return jsonpointer.FromTokens(tokens)
 }
 func executionNamespaces(rule map[string]any, symbols importSymbols, namespace string) [][]any {
+	return lexicalNamespaces(rule, symbols, namespace, executionSections())
+}
+
+// lexicalNamespaces rewrites one rule's lexical owner through the module
+// symbol maps of the sections that it may address.
+func lexicalNamespaces(rule map[string]any, symbols importSymbols, namespace string, sections []string) [][]any {
 	owner := array(rule[namespaceField])
 	prefix := policyNamespace(namespace, owner)
 	if len(owner) == 0 {
@@ -180,7 +230,7 @@ func executionNamespaces(rule map[string]any, symbols importSymbols, namespace s
 	}
 	targets := map[string][]any{}
 	tokens := jsonpointer.Tokens(text(rule[scopeField]))
-	for _, section := range executionSections() {
+	for _, section := range sections {
 		if len(tokens) > 0 && tokens[0] != section {
 			continue
 		}

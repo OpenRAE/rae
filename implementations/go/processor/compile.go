@@ -158,6 +158,7 @@ func compileAdmitted(scenario sdl.Scenario, options CompileOptions, descriptive 
 	state.compileObjectives()
 	state.compileWorkflows()
 	state.compileExecutionPolicies()
+	state.compileSafeStates()
 	state.compileSelectedProfiles()
 	if state.err != nil {
 		return nil, state.err

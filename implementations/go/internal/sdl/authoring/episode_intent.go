@@ -43,3 +43,35 @@ func episodeIntentInput(pointer string, schema, value map[string]any) error {
 	}
 	return nil
 }
+
+// episodePolicyModel refuses a condition id that is both terminal and
+// truncating, and a truncation that reuses the assertions of a completion. One
+// evidenced set of assertions cannot end an episode as both completed and truncated.
+func episodePolicyModel(value map[string]any) error {
+	terminal, truncation := object(value["terminal_conditions"]), object(value["truncation_conditions"])
+	completions := map[string]bool{}
+	for id, condition := range terminal {
+		if _, shared := truncation[id]; shared {
+			return invalid()
+		}
+		if text(object(condition)["terminal_reason"]) == "completed" {
+			completions[assertionSet(object(condition)["assertion_refs"])] = true
+		}
+	}
+	for _, condition := range truncation {
+		if completions[assertionSet(object(condition)["assertion_refs"])] {
+			return invalid()
+		}
+	}
+	return nil
+}
+
+// assertionSet returns an order- and duplicate-free identity of a reference list.
+func assertionSet(refs any) string {
+	values := make([]string, 0, len(array(refs)))
+	for _, ref := range array(refs) {
+		values = append(values, text(ref))
+	}
+	slices.Sort(values)
+	return strings.Join(slices.Compact(values), "\x00")
+}

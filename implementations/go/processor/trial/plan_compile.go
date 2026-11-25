@@ -165,6 +165,7 @@ func (w *planCompilation) createPlan() error {
 }
 func (w *planCompilation) compileEntries(ctx context.Context) error {
 	failures := entryFailures{}
+	retained := 0
 	for index, c := range w.coordinates {
 		if w.replacement != nil && index != w.replacement.index {
 			continue
@@ -179,6 +180,18 @@ func (w *planCompilation) compileEntries(ctx context.Context) error {
 			}
 			continue
 		}
+		size, err := w.retainedBytes(entry, cleanup)
+		if err != nil {
+			return err
+		}
+		if retained += size; retained > w.request.Limits.MaxPlanBytes {
+			// Retain no oversized aggregate, but preserve the canonical refusal order.
+			clear(w.plan.Entries)
+			clear(w.plan.Cleanup)
+			clear(w.signatures)
+			failures.refuse(&compilationRefusalError{"plan-byte-limit-exceeded", "", "canonical admitted plan bytes exceed the compilation limit"})
+			continue
+		}
 		w.plan.Entries[entry.ID] = entry
 		w.plan.Cleanup[cleanupID] = cleanup
 		if entry.signature != "" {
@@ -189,6 +202,14 @@ func (w *planCompilation) compileEntries(ctx context.Context) error {
 		}
 	}
 	return failures.result()
+}
+// retainedBytes charges one compiled entry and its cleanup plan at their sealed canonical size.
+func (w *planCompilation) retainedBytes(entry trialEntry, cleanup json.RawMessage) (int, error) {
+	raw, err := encoded(entry)
+	if err != nil {
+		return 0, err
+	}
+	return admission.TrialEntryRetainedBytes(w.input.owner, raw, cleanup)
 }
 func (w *planCompilation) retainDrawControls(draws []json.RawMessage) error {
 	for _, raw := range draws {

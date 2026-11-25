@@ -246,6 +246,7 @@ func (plan *executionPlan) finalizePlanning(view processor.CompiledScenario, ent
 		return err
 	}
 	plan.augmentationScopeRequired = view.AugmentationScopeRequired
+	plan.safeStates = view.SafeStates
 	if view.Descriptive {
 		plan.purpose = "inspection"
 	}

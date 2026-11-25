@@ -41,10 +41,15 @@ func (f *entryFailures) add(err error, c coordinate) error {
 		}
 		refusal = &compilationRefusalError{code: "entry-invalid", address: "/entries/" + replicate, message: "a trial entry failed closed construction"}
 	}
+	f.refuse(refusal)
+	return nil
+}
+
+// refuse retains the earliest canonical refusal.
+func (f *entryFailures) refuse(refusal *compilationRefusalError) {
 	if f.canonical == nil || failureOrder(refusal, f.canonical) < 0 {
 		f.canonical = refusal
 	}
-	return nil
 }
 func failureOrder(a, b *compilationRefusalError) int {
 	if n := strings.Compare(a.address, b.address); n != 0 {

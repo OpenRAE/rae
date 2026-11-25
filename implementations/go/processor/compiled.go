@@ -226,6 +226,10 @@ func copyCompiledScenario(input CompiledScenario) CompiledScenario {
 		}
 	}
 	result.ExecutionPolicies = slices.Clone(input.ExecutionPolicies)
+	result.SafeStates = make([]json.RawMessage, len(input.SafeStates))
+	for i, state := range input.SafeStates {
+		result.SafeStates[i] = slices.Clone(state)
+	}
 	return result
 }
 

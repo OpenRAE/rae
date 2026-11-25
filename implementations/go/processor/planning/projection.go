@@ -124,6 +124,10 @@ func (plan *executionPlan) phaseProjection(domain string) map[string]any {
 	if plan.augmentationScopeRequired {
 		result["augmentation_scope_required"] = true
 	}
+	// Each phase retains the same separate safe-state proof; an empty collection is omitted.
+	if len(plan.safeStates) > 0 {
+		result["safe_states"] = plan.safeStates
+	}
 	return result
 }
 

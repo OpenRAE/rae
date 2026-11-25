@@ -139,13 +139,21 @@ class InstantiatedScenarioSnapshotV3(SDLModel):
         return scenario.model_dump(mode=info.mode, by_alias=True)
 
 
-def canonical_instantiated_sdl_v3_bytes(scenario: InstantiatedScenario) -> bytes:
-    """Return canonical snapshot v3 bytes using the published SDL field names."""
-    from .instantiate import admit_instantiated_scenario
+def _admitted_instantiated(scenario: InstantiatedScenario) -> InstantiatedScenario:
+    """Admit a fresh copy at the compiler's structural and semantic boundary.
 
-    admitted = admit_instantiated_scenario(
+    Canonicalization stays pure with respect to the caller's private validation flags.
+    """
+    from .instantiate import admit_instantiated_scenario  # The instantiation owner imports this module.
+
+    return admit_instantiated_scenario(
         InstantiatedScenario.model_validate(scenario.model_dump(mode="python", by_alias=True))
     )
+
+
+def canonical_instantiated_sdl_v3_bytes(scenario: InstantiatedScenario) -> bytes:
+    """Return canonical snapshot v3 bytes using the published SDL field names."""
+    admitted = _admitted_instantiated(scenario)
     snapshot = InstantiatedScenarioSnapshotV3(profile="raes-sdl-instantiated-snapshot/v3", scenario=admitted)
     try:
         return canonical_json_bytes(snapshot.model_dump(mode="json"))
@@ -316,14 +324,7 @@ def _legacy_instantiated_snapshot_projection_digest(value: Mapping[str, object])
 def canonical_instantiated_sdl_bytes(scenario: InstantiatedScenario) -> bytes:
     """Return RFC 8785 bytes for one admitted instantiated artifact."""
 
-    # Keep canonicalization pure with respect to the caller's private validation
-    # flags while applying the same structural and semantic admission boundary
-    # used by the compiler.
-    from .instantiate import admit_instantiated_scenario
-
-    admitted = admit_instantiated_scenario(
-        InstantiatedScenario.model_validate(scenario.model_dump(mode="python", by_alias=True))
-    )
+    admitted = _admitted_instantiated(scenario)
     snapshot = InstantiatedScenarioSnapshot(
         profile=INSTANTIATED_SNAPSHOT_PROFILE,
         scenario=admitted,

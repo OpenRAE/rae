@@ -44,6 +44,12 @@ func compileEntry(ctx context.Context, request Request, input compilationInputs,
 	if err := work.admitControls(); err != nil {
 		return work.entry, "", nil, err
 	}
+	// Each entry retains the safe-state proof of its own selected scenario.
+	safeStates, err := sdl.SafeStates(work.selected)
+	if err != nil {
+		return work.entry, "", nil, err
+	}
+	work.entry.SafeStates = safeStates
 	return work.entry, work.cleanupID, work.cleanup, nil
 }
 func (w *entryCompilation) selectAuthority() error {
