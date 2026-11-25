@@ -10,7 +10,6 @@ from contextlib import nullcontext
 from types import SimpleNamespace
 
 import pytest
-
 from tools import verified_tool_installation as installation
 
 
