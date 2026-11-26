@@ -114,7 +114,7 @@ The existing shared-engine resource claim remains authoritative.
 - [PostgreSQL 17 schemas](https://www.postgresql.org/docs/17/ddl-schemas.html), sections 5.10.3–5.10.6: trusted schema lookup and grants.
 - [PostgreSQL 17 locking](https://www.postgresql.org/docs/17/explicit-locking.html), section 13.3.5: session and transaction advisory locks.
 - [PostgreSQL 17 client defaults](https://www.postgresql.org/docs/17/runtime-config-client.html), search_path: catalog and temporary schema resolution.
-- [Psycopg SQL composition](https://www.psycopg.org/psycopg3/docs/api/sql.html), Psycopg 3.3 API, pinned runtime 3.3.8: quoted identifiers.
+- [Psycopg SQL composition](https://www.psycopg.org/psycopg3/docs/api/sql.html), Psycopg 3.3 API, pinned runtime 3.3.9: quoted identifiers.
 - [Unit of Work](https://www.cosmicpython.com/book/chapter_06_uow.html), 2020, chapter 6: reuse existing transaction boundaries.
 
 The design review checks terminology, sentence length, brevity, and explanation purpose against the repository style guide.
