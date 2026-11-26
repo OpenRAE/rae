@@ -20,6 +20,7 @@ import types
 import typing
 from collections.abc import Callable
 from pathlib import Path
+from typing import Any
 
 from pydantic import BaseModel, TypeAdapter, ValidationError
 
@@ -173,7 +174,7 @@ def _has_replaced_fields(plan: dict[str, object]) -> bool:
     )
 
 
-def _replace(value: object, replacements: dict[str, str]) -> object:
+def _replace(value: dict[str, Any], replacements: dict[str, str]) -> dict[str, Any]:
     if not replacements:
         return value
     text = json.dumps(value)
@@ -194,7 +195,7 @@ def _plan(value: dict[str, object]) -> AdmittedTrialPlanModel:
     return AdmittedTrialPlanModel.model_validate(value)
 
 
-def _at(reference: object, path: tuple[object, ...]) -> object:
+def _at(reference: dict[str, Any], path: tuple[object, ...]) -> dict[str, Any]:
     for key in path:
         reference = reference[key]
     return reference
@@ -231,13 +232,13 @@ def _migrate_plans(
             ]
             changed = {before: after for before, after in cited if before != after}
             _at(reference, path[:-1])[path[-1]] = new
-            reference = _replace(reference, changed)  # type: ignore[assignment]
+            reference = _replace(reference, changed)
             changed_runs = {
                 before_runs[run]: _run_digest(_at(reference, run))
                 for run in runs
                 if before_runs[run] != _run_digest(_at(reference, run))
             }
-            reference = _replace(reference, changed_runs)  # type: ignore[assignment]
+            reference = _replace(reference, changed_runs)
             progressed = progressed or bool(changed or changed_runs) or new != old
         if not progressed:
             return reference

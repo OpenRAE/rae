@@ -19,7 +19,7 @@ from collections.abc import Callable
 from io import BytesIO
 from pathlib import Path
 from types import SimpleNamespace
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING, Any, cast
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "implementations/python/packages"))
@@ -75,7 +75,7 @@ TOKEN = re.compile(r"sha256:[0-9a-f]{64}|[a-z][a-z-]*-[0-9a-f]{64}")
 ATTEMPT = re.compile(r"attempt:[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}")
 
 
-def _load(path: Path) -> object:
+def _load(path: Path) -> dict[str, Any]:
     raw = path.read_bytes()
     return json.loads(gzip.decompress(raw) if path.suffix == ".gz" else raw)
 

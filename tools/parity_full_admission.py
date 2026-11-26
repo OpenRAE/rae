@@ -15,8 +15,9 @@ import copy
 import hashlib
 import json
 import sys
-from collections.abc import Iterator
+from collections.abc import Iterable, Iterator
 from pathlib import Path
+from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "implementations/python/packages"))
@@ -163,7 +164,7 @@ def _model_verdict(contract: str, payload: object, validators: dict[str, object]
     return {"full_admitted": True, "reference_check": check, "failure_class": ""}
 
 
-def _model_owners(rows: object) -> dict[str, str]:
+def _model_owners(rows: Iterable[dict[str, Any]]) -> dict[str, str]:
     """Return the owner that every retained model row of a contract shares."""
     seen: dict[str, set[str]] = {}
     for row in rows:

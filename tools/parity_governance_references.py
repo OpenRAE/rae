@@ -22,6 +22,7 @@ import sys
 import tempfile
 from collections.abc import Callable, Iterator
 from pathlib import Path
+from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path[:0] = [str(ROOT), str(ROOT / "implementations/python/packages")]
@@ -318,14 +319,18 @@ def publication_history_reference(reference: list[dict[str, object]]) -> list[di
     return cases
 
 
-def listed_reference(
-    evaluate: Callable[[Path], list[object]],
-    targets: re.Pattern[str] | None = None,
-    text: Callable[[Path], str] | None = None,
-) -> Callable[[object], object]:
+class _ListedReference:
     """Re-record a list of independent repository cases."""
 
-    def evaluated(case: dict[str, object], files: dict[str, str]) -> dict[str, object]:
+    def __init__(
+        self,
+        evaluate: Callable[[Path], list[object]],
+        targets: re.Pattern[str] | None,
+        text: Callable[[Path], str] | None,
+    ) -> None:
+        self.evaluate, self.targets, self.text = evaluate, targets, text
+
+    def evaluated(self, case: dict[str, Any], files: dict[str, str]) -> dict[str, Any]:
         recorded = {**case, "Files": files}
         # A native refusal or error keeps its recording. The parser-depth boundary belongs to the
         # retained recording stack: removing a top-level scalar line leaves the nesting unchanged.
@@ -335,12 +340,12 @@ def listed_reference(
             for name, size in (case.get("Padding") or {}).items():
                 data = (root / name).read_bytes()
                 (root / name).write_bytes(data + b" " * (size - len(data)))
-            recorded["Findings"] = _findings(evaluate(root))
-            if text is not None:
-                recorded["Text"] = text(root)
+            recorded["Findings"] = _findings(self.evaluate(root))
+            if self.text is not None:
+                recorded["Text"] = self.text(root)
         return recorded
 
-    def record(reference: list[dict[str, object]]) -> list[dict[str, object]]:
+    def __call__(self, reference: list[dict[str, Any]]) -> list[dict[str, Any]]:
         valid = next((item for item in reference if item["Name"] == "valid"), None)
         valid_files = migrate_files(valid["Files"], None, keep_mutations=False) if valid is not None else None
         cases = []
@@ -348,15 +353,22 @@ def listed_reference(
             if case["Name"] in REMOVED_RULE_CASES:
                 continue
             files = migrate_files(case["Files"], None, keep_mutations=False)
-            if targets and targets.search(case["Name"]):
+            if self.targets and self.targets.search(case["Name"]):
                 files = migrate_files(case["Files"], valid and valid["Files"], keep_mutations=True)
                 # Without the retired key, the case is the valid catalog.
                 if files == valid_files:
                     continue
-            cases.append(evaluated(case, files))
+            cases.append(self.evaluated(case, files))
         return cases
 
-    return record
+
+def listed_reference(
+    evaluate: Callable[[Path], list[object]],
+    targets: re.Pattern[str] | None = None,
+    text: Callable[[Path], str] | None = None,
+) -> Callable[[list[dict[str, Any]]], list[dict[str, Any]]]:
+    """Re-record a list of independent repository cases."""
+    return _ListedReference(evaluate, targets, text)
 
 
 RECORDS: dict[str, tuple[Callable[[object], object], tuple[str, str]]] = {
@@ -369,7 +381,7 @@ RECORDS: dict[str, tuple[Callable[[object], object], tuple[str, str]]] = {
 }
 
 
-def _findings_of(reference: object) -> list[dict[str, object]]:
+def _findings_of(reference: dict[str, Any] | list[dict[str, Any]]) -> list[dict[str, Any]]:
     cases = reference["Cases"] if isinstance(reference, dict) else reference
     return [item for case in cases for item in case.get("Findings") or []]
 
