@@ -1,5 +1,5 @@
 {
-  "reference": "189ee4321b62dc54510b879f1c2b3aa1a07cf6d5",
+  "reference": "39481bb657acab4f58687f27e8bb3357ba3c8226",
   "cases": [
     {"name":"ContainerImageBuildProvenance.runtime-baseline","pointer":"#/$defs/ContainerImageBuildProvenance","accepted":true},
     {"name":"ContainerImageBuildProvenance.base_image-null","pointer":"#/$defs/ContainerImageBuildProvenance","accepted":false,"changes":[{"path":["base_image"],"value":null}]},
