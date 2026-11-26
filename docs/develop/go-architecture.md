@@ -216,6 +216,9 @@ Contract admission's independent model tests retain their recorded inputs in `ad
 Parity corpus refreshes preserve these original test baselines.
 Product CI decodes and scans this retained store before running its Go tests.
 
+<!-- The generated view lists package paths and API names. It is not prose. -->
+<!-- ste-disable STE-5.1 -->
+
 <!-- go-view -->
 
 | Layer | Status | Allowed dependencies |
@@ -407,38 +410,40 @@ flowchart BT
 | `docs/decisions/issue-1779-canonical-json-design.md` | `28f5cff66fdc26e01392d143e5ad52ba23072c2bd6010a35fb4f1e0c0162e8f0` |
 | `docs/decisions/issue-1779-ingress-design.md` | `0dcde22676a7429a0c92d01ed2e8d0eaf15da84d5be800404e12c9414348bed1` |
 | `docs/decisions/issue-1779-random-streams-design.md` | `dae79083acb2909a63a43849e9aeb0ddf4594d3e7d54d118b2a1dd54f68cdb8b` |
-| `docs/decisions/issue-1779-shared-primitives-completion.md` | `edc536552c9629ada1969b8dac32d8fe786e49bf88f870a0ef670458445a27c6` |
-| `docs/decisions/issue-1780-contract-validation-design.md` | `512b76626cf7f7452ddd0230908d8f3473462d0bfd28e62e118ce116c45e1998` |
-| `docs/decisions/issue-1781-concept-profile-design.md` | `ff2f1a74e02ed4af9a656da86801dd35e6f8036b73ab9009fe8b9e3739908a4c` |
-| `docs/decisions/issue-1783-sdl-semantics-design.md` | `1076c6386ad7e6d2df90d3b3cc1c1e991522049fb3b7c18b5279f88e8a7682ff` |
-| `docs/decisions/issue-1784-runtime-inventory-design.md` | `341ae090d298458bd2500afe22e94aa459c9a382970e7cb336ac3ea2d8c33dee` |
-| `docs/decisions/issue-1785-sdl-operations-design.md` | `d33281d6905ef35161b8129a0aa2a217d25447a602d0fba73a7361fb2e537e22` |
-| `docs/decisions/issue-1787-processor-design.md` | `96c145af3275da3c5ecf61d86a03c8407bf702705bd42a8ebbc7a635e38d5b0f` |
-| `docs/decisions/issue-1787-processor-semantics-preflight.md` | `1bfaf7c0094cb52087fbc84fc51a5d06f92deef99c6394953f68120789af125a` |
-| `docs/decisions/issue-1788-experiments-design.md` | `7f1eb09655d7b9643c4951134bd08b147c7f1fd8812d3fa30062832ad2b6588a` |
-| `docs/decisions/issue-1788-experiments-trials-preflight.md` | `4012fc90b329e52491d52a48831c6efc8a79510a6838a061486e6eb2cceacb39` |
+| `docs/decisions/issue-1779-shared-primitives-completion.md` | `3a1f75caee0cbdafd1810d93b8a3f31dcc800ebfde9152f5efb505e045a29335` |
+| `docs/decisions/issue-1780-contract-validation-design.md` | `0ad772c5ec10922efc55cbb556045500fe9db3cdf3ad1f53c7adcd702558f39c` |
+| `docs/decisions/issue-1781-concept-profile-design.md` | `61e6f9a4f00fb1d8835ad21963e92142d99b9f3bbefd2af5c4bfe76378ffa386` |
+| `docs/decisions/issue-1783-sdl-semantics-design.md` | `1ff7e382c7099d8273b4b27fc2f8997a4a58d8f36909c63b7a34c313ba064be7` |
+| `docs/decisions/issue-1784-runtime-inventory-design.md` | `fee6b20e3e9fd9a25dacfe5115c9d62bd2305e48b02a1d6e7ade05e06382403d` |
+| `docs/decisions/issue-1785-sdl-operations-design.md` | `c8c1de53beeafec5ed46e9f1c319d0ee23e5ffa9461dd857f58f90cf95499e48` |
+| `docs/decisions/issue-1787-processor-design.md` | `4a2857c7f8982692a59a4033605fe9734b615f6ec3c394d0fae100fed5096fd4` |
+| `docs/decisions/issue-1787-processor-semantics-preflight.md` | `0b5dba13afc68f5d82fc0b922828e3fad39ccf6d8b18ca623d6529c77d07d54c` |
+| `docs/decisions/issue-1788-experiments-design.md` | `4c70c94b76e85353a3c9ed3d70e32cea57438125360cd3408957c0c8c8627cbc` |
+| `docs/decisions/issue-1788-experiments-trials-preflight.md` | `42f84802fc0ca48c9b8551d31c07808e40ee1e5ae66710617384ca47784be483` |
 | `docs/decisions/issue-1788-validator-key-decision.md` | `c781e3ca480df4429459b7ef51fc932ddbf14ee500b8ed8e5cae5b4c15f271af` |
-| `docs/decisions/issue-1789-processor-analysis-design.md` | `60d9bf1867237acdb131c1f9e36c6bd79a1882bad21d7160dfedb0fef5d3ebe7` |
-| `docs/decisions/issue-1790-backend-design.md` | `4a7b844ccc8f094d8f66688ede52e3821d1703620d3c964ae41642462ed7d8db` |
-| `docs/decisions/issue-1799-go-governance-design.md` | `ac1b4a9ed289df5b33b0f4d9389b9d16fd00a14d277a932c166061dd142aee9d` |
+| `docs/decisions/issue-1789-processor-analysis-design.md` | `3959e37e5575f630344d8381b4b4f0dbaff677eddd2441497c45b97a4eb65c6a` |
+| `docs/decisions/issue-1790-backend-design.md` | `bb3e4697a3e1bd3fdc82b0adae6477e02c196b9fb65c801c44c81570816ff3c9` |
+| `docs/decisions/issue-1799-go-governance-design.md` | `dfc4b1584878d9471df90fb91df7ba065141ac4bbea80f9c2940dc85624055bf` |
 | `docs/decisions/issue-1825-public-go-api.md` | `4b9c41818ad1ea21a638a301cc96e61b1796ee46a71e248d3b6609ecde584f00` |
-| `docs/decisions/issue-1859-go-architecture-contract-design.md` | `96ba1a33cb9dfac3592f5b5a77456a863f66a1fba24c676ca99e873ddc0931ad` |
+| `docs/decisions/issue-1859-go-architecture-contract-design.md` | `9ad0996b9e0b6c02a2ec0809f135b464a9f1f6e54760532c13169a4baf64527e` |
 | `docs/decisions/issue-1891-runtime-repository-boundary.md` | `e8233ecdf836dbbad4dda9ef373572dd466f1cf59ad0eeb4ab01cc9fd476e406` |
-| `docs/decisions/issue-1892-public-go-packages-design.md` | `dc24702725acd31a5d3f74f3713ec11eb0a578b95bd1b12bd8dcfa15c5ee22aa` |
+| `docs/decisions/issue-1892-public-go-packages-design.md` | `edef70ce16e60d2d92ea261e00693b513c71d3ff7b47b81d4f85a386b1519547` |
 | `docs/decisions/issue-2008-sdl-semantic-fixtures-design.md` | `93ee0f27747f5adce6296d00f5190a7f5b7a917d9a6ad1afaa7d1ca2554c53b6` |
 | `specs/sdl/diagnostics.md` | `899a8b8328e73928cbd4fb927a67145a4b6e231a0b07048e87904ad87aa2ddef` |
 | `specs/sdl/document-model.md` | `aa417cd591477a475189da692a0959955fdb38959769c47183fb91577c6e4e88` |
-<!-- go-component base 823706291937c6b1f6ca3b386c45f77f880af131b7b83fe4cf08a4cf8ee26585 -->
-<!-- go-component contract fc13521842d18239902d9549b1ca3dc716af503affe37259310ef0f9ae5f1695 -->
-<!-- go-component sdl a0922c42121c1c9e6dbcd354be0a2dfa5921702ce48480713f0e833341b3ba41 -->
-<!-- go-component processor f8fb00fce5c2b6f4536dbe55d2e62ba2f613713bfc3272c7d38c341cc917025e -->
-<!-- go-component backend 82383850239519c8331ed825b464e0b67aaa5affb36377b4dab41782bd751e5e -->
-<!-- go-component runtime b36e5fb17e79472f1d3b858d3c9e31f3f5b0c199392b2cabee35ffa4d7446931 -->
-<!-- go-component conformance 3c33a0f769b0dad32df08bb4e6033cac76f05353fc6cd90bbeb7702d71a05768 -->
-<!-- go-component app 6634eca20a7eb526b3a0bc89dbc1f1d386f6ecc2f090768e0a360ac7c0ac4dde -->
-<!-- go-component adapter 1bbbb6223ab93cd2c9f2b684881d3e72cd3035179f2c5413204e3a43919ee6ae -->
-<!-- go-component command 81b964e6a1b62c95ca41b4a3fe7271476a6ce9908df13ad9bb44cd47fdf87083 -->
-<!-- go-component parity 4d20cfff1ef4d01d5ff8532e5e4aab651010e2d4f385a9b9e2aee88c05e622f4 -->
-<!-- go-component tooling 13c96ed33a4cf41a2067a3bdf2ceb60d55b6ed2e2ffda4a9a5d4e2e8578f40fb -->
+<!-- go-component base 85acd5d74804eeab8c23b1ae7e20ad09e32fe4111a16e1ff605e6358a42d2247 -->
+<!-- go-component contract 42e0c35c2bef027742aa501252541b513599cb7d49a246abc5e734613262fd04 -->
+<!-- go-component sdl b1e5591d799aed11f07751d14b7e0f6a5ec08edefecd903cb95800fbd4cb21c9 -->
+<!-- go-component processor d76cb21e2fc52930bbfffda093cf0f1a4f2ff300a31c60ca0335f22036df862a -->
+<!-- go-component backend c05a3ba515cf9ddddfff5ce6f2983f3f03a89694cf96d725e9313ae1efc9025e -->
+<!-- go-component runtime 94871a508b9a288844147f1f1a96f19ac9af10a975aa5465044feee0ddb7c3ee -->
+<!-- go-component conformance 2653e5be66edb58ecb127c6086239c64680cd5f2165c9486f06ba4c53d901e40 -->
+<!-- go-component app 191a0d8ea7621d59461dbbb861e476ef4785c8e1aa856539633b10ad207ba121 -->
+<!-- go-component adapter f10740a31390dadf65f72b262d8beebb1d5e43f29537daf5f675e584404fbee1 -->
+<!-- go-component command a28d195936ea2b0b091bbffc53179c71a59584057792bc3aec7b39b709db9525 -->
+<!-- go-component parity d0c48f2ca9e9008b1999cbf1fe619b85623a3b29d8feb4a9cf8eb7198577e100 -->
+<!-- go-component tooling b3f29fb43f295e4d408ebc38f783740a2e4da62e606aa95582eaedc963d64041 -->
 
 <!-- /go-view -->
+
+<!-- ste-enable STE-5.1 -->
