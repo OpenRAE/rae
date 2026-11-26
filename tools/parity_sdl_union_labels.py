@@ -14,7 +14,6 @@ import sys
 import types
 import typing
 from pathlib import Path
-from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "implementations/python/packages"))
@@ -26,23 +25,23 @@ SCHEMA = ROOT / "contracts/schemas/sdl/sdl-authoring-input-v1.json"
 OUTPUT = ROOT / "implementations/go/internal/sdl/authoring/model_union_labels.json"
 
 
-def _strip(annotation: Any) -> Any:
+def _strip(annotation: object) -> object:
     return _strip(typing.get_args(annotation)[0]) if typing.get_origin(annotation) is typing.Annotated else annotation
 
 
-def _members(annotation: Any) -> list[Any]:
+def _members(annotation: object) -> list[object]:
     annotation = _strip(annotation)
     if typing.get_origin(annotation) in (typing.Union, types.UnionType):
         return [item for item in typing.get_args(annotation) if item is not type(None)]
     return []
 
 
-def _model(annotation: Any) -> bool:
+def _model(annotation: object) -> bool:
     annotation = _strip(annotation)
     return isinstance(annotation, type) and issubclass(annotation, BaseModel)
 
 
-def _models_in(annotation: Any, found: list[type[BaseModel]]) -> None:
+def _models_in(annotation: object, found: list[type[BaseModel]]) -> None:
     if _model(annotation):
         found.append(_strip(annotation))
         return
@@ -50,7 +49,7 @@ def _models_in(annotation: Any, found: list[type[BaseModel]]) -> None:
         _models_in(item, found)
 
 
-def _labels(annotation: Any) -> list[str]:
+def _labels(annotation: object) -> list[str]:
     """Return the member labels that the reference reports when every member refuses a value."""
     try:
         TypeAdapter(annotation).validate_python(object())

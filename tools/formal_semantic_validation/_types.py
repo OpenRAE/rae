@@ -347,7 +347,8 @@ _RETAINED_PRODUCTION_EVIDENCE_DIGESTS = frozenset(
         "sha256:0683b55cd2a52ba626bb5cfbf10de109798d8d31ba467aabd13d4930df204798",  # typed-exploit-path-valid-v2.json
         "sha256:1c0fc5c8ecadc14e14b8993b4a3b59562a64bc35ef7dbf64f43ff7df9b5da472",  # typed-exploit-path-valid-v3.json
         "sha256:2d4d1a362751abd9544beb8af7f8c6331d04dac8f4abc315fb261f81fbaf4387",  # typed-exploit-path-valid-v4.json
-        # Satisfiability evidence v2 retained by capture 79da43a654967a598cdfb403ad8cf4020db5a05cede641ad288be886697043a7.
+        # Satisfiability evidence v2 retained by capture
+        # 79da43a654967a598cdfb403ad8cf4020db5a05cede641ad288be886697043a7.
         "sha256:80c5cc78c7ea1b5b0d14bc79fcf902e690641fd703b810e619e14e77de787739",
         "sha256:5ec3fbdbbbdfa06eec8d879dcae1cf33c51be8928099c5d7eca76df2a48ba783",
     }

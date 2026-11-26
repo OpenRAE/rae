@@ -168,7 +168,7 @@ func httpsURL(raw string) bool {
 	if err != nil || parts.Scheme != schemeHTTPS || parts.Fragment != "" || strings.Contains(raw, "#") || parts.User != nil || strings.Contains(parts.Host, "%") {
 		return false
 	}
-	if port := parts.Port(); port == "0" {
+	if parts.Port() == "0" {
 		return false
 	}
 	return asciiHost(parts.Hostname())

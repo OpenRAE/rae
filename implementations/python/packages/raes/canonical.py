@@ -144,7 +144,8 @@ def _admitted_instantiated(scenario: InstantiatedScenario) -> InstantiatedScenar
 
     Canonicalization stays pure with respect to the caller's private validation flags.
     """
-    from .instantiate import admit_instantiated_scenario  # The instantiation owner imports this module.
+    # The instantiation owner imports this module, so the import stays deferred.
+    from .instantiate import admit_instantiated_scenario
 
     return admit_instantiated_scenario(
         InstantiatedScenario.model_validate(scenario.model_dump(mode="python", by_alias=True))

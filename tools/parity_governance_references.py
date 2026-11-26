@@ -13,6 +13,7 @@ from __future__ import annotations
 import argparse
 import contextlib
 import copy
+import itertools
 import json
 import os
 import re
@@ -21,7 +22,6 @@ import sys
 import tempfile
 from collections.abc import Callable, Iterator
 from pathlib import Path
-from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path[:0] = [str(ROOT), str(ROOT / "implementations/python/packages")]
@@ -52,7 +52,7 @@ REMOVED_RULE_CASES = {"stale", "null-schema-ledger-quirk"}
 DEPTH_CASE_PREFIX = "yaml-depth-"
 
 
-def _load(name: str) -> Any:
+def _load(name: str) -> object:
     single = TESTDATA / f"{name}.hex"
     if single.exists():
         encoded = single.read_text(encoding="ascii").strip()
@@ -61,11 +61,11 @@ def _load(name: str) -> Any:
     return json.loads(bytes.fromhex(encoded))
 
 
-def _encoded(value: Any, separators: tuple[str, str]) -> str:
+def _encoded(value: object, separators: tuple[str, str]) -> str:
     return json.dumps(value, separators=separators, ensure_ascii=True).encode().hex()
 
 
-def _store(name: str, value: Any, separators: tuple[str, str]) -> None:
+def _store(name: str, value: object, separators: tuple[str, str]) -> None:
     encoded = _encoded(value, separators)
     single, directory = TESTDATA / f"{name}.hex", TESTDATA / name
     if not directory.is_dir():
@@ -77,18 +77,16 @@ def _store(name: str, value: Any, separators: tuple[str, str]) -> None:
         (directory / f"{index // PART_SIZE:03d}.hex").write_text(encoded[index : index + PART_SIZE] + "\n", "ascii")
 
 
-def _json_style(text: str, value: Any) -> dict[str, Any] | None:
-    for indent in (None, 2):
-        for separators in ((", ", ": "), (",", ":")):
-            for ensure_ascii in (True, False):
-                for tail in ("", "\n"):
-                    style = {"indent": indent, "separators": separators, "ensure_ascii": ensure_ascii, "tail": tail}
-                    if _dumps(value, style) == text:
-                        return style
+def _json_style(text: str, value: object) -> dict[str, object] | None:
+    styles = itertools.product((None, 2), ((", ", ": "), (",", ":")), (True, False), ("", "\n"))
+    for indent, separators, ensure_ascii, tail in styles:
+        style = {"indent": indent, "separators": separators, "ensure_ascii": ensure_ascii, "tail": tail}
+        if _dumps(value, style) == text:
+            return style
     return None
 
 
-def _dumps(value: Any, style: dict[str, Any]) -> str:
+def _dumps(value: object, style: dict[str, object]) -> str:
     separators = style["separators"]
     if style["indent"] is not None:
         separators = (separators[0].rstrip(), separators[1])
@@ -96,7 +94,7 @@ def _dumps(value: Any, style: dict[str, Any]) -> str:
     return text + style["tail"]
 
 
-def _strip(container: Any, keys: tuple[str, ...], base: Any, keep_mutations: bool) -> None:
+def _strip(container: object, keys: tuple[str, ...], base: object, keep_mutations: bool) -> None:
     """Remove retired keys; a deliberate mutation keeps a key whose value differs from the base."""
     if not isinstance(container, dict):
         return
@@ -109,29 +107,34 @@ def _strip(container: Any, keys: tuple[str, ...], base: Any, keep_mutations: boo
         del container[key]
 
 
-def _retired(path: str, value: Any, base: Any, keep_mutations: bool) -> None:
-    def at(index: int, field: str) -> Any:
-        rows = base.get(field) if isinstance(base, dict) else None
-        return rows[index] if isinstance(rows, list) and index < len(rows) else None
+def _rows(value: object, field: str) -> list[object]:
+    rows = value.get(field) if isinstance(value, dict) else None
+    return rows if isinstance(rows, list) else []
 
-    if path == PUBLICATION_MANIFEST:
-        _strip(value, ("hash_algorithm",), base, keep_mutations)
-        rows = value.get("schemas") if isinstance(value, dict) else None
-        for index, row in enumerate(rows if isinstance(rows, list) else []):
-            _strip(row, ("content_hash", "last_change"), at(index, "schemas"), keep_mutations)
-    elif path.startswith(PUBLICATION_ENTRIES):
+
+def _strip_rows(value: object, field: str, keys: tuple[str, ...], base: object, keep_mutations: bool) -> None:
+    """Strip the retired keys of each row; a row compares with the base row at its index."""
+    base_rows = _rows(base, field)
+    for index, row in enumerate(_rows(value, field)):
+        _strip(row, keys, base_rows[index] if index < len(base_rows) else None, keep_mutations)
+
+
+# Each catalog: its retired top-level keys and its row collections with their retired keys.
+CATALOG_RETIRED: dict[str, tuple[tuple[str, ...], tuple[tuple[str, tuple[str, ...]], ...]]] = {
+    PUBLICATION_MANIFEST: (("hash_algorithm",), (("schemas", ("content_hash", "last_change")),)),
+    IDENTITY_MANIFEST: (("hash_algorithm",), tuple((field, ("content_sha256",)) for field in IDENTITY_COLLECTIONS)),
+    ADR_MANIFEST: (("hash_algorithm",), (("adrs", ("pin",)),)),
+}
+
+
+def _retired(path: str, value: object, base: object, keep_mutations: bool) -> None:
+    if path.startswith(PUBLICATION_ENTRIES):
         _strip(value, ("content_hash", "last_change"), base, keep_mutations)
-    elif path == IDENTITY_MANIFEST:
-        _strip(value, ("hash_algorithm",), base, keep_mutations)
-        for field in IDENTITY_COLLECTIONS:
-            rows = value.get(field) if isinstance(value, dict) else None
-            for index, row in enumerate(rows if isinstance(rows, list) else []):
-                _strip(row, ("content_sha256",), at(index, field), keep_mutations)
-    elif path == ADR_MANIFEST:
-        _strip(value, ("hash_algorithm",), base, keep_mutations)
-        rows = value.get("adrs") if isinstance(value, dict) else None
-        for index, row in enumerate(rows if isinstance(rows, list) else []):
-            _strip(row, ("pin",), at(index, "adrs"), keep_mutations)
+        return
+    keys, collections = CATALOG_RETIRED.get(path, ((), ()))
+    _strip(value, keys, base, keep_mutations)
+    for field, row_keys in collections:
+        _strip_rows(value, field, row_keys, base, keep_mutations)
 
 
 # YAML manifests that are not JSON lose the retired keys only at their recorded values.
@@ -152,26 +155,29 @@ def _yaml_text(path: str, text: str) -> str:
     return text
 
 
-def migrate_text(path: str, text: str | None, base_text: str | None, *, keep_mutations: bool) -> str | None:
-    """Return one authored file without the keys that its catalog retired."""
-    if text is None or not (
-        path in {PUBLICATION_MANIFEST, IDENTITY_MANIFEST, ADR_MANIFEST} or path.startswith(PUBLICATION_ENTRIES)
-    ):
-        return text
+def _json_or_none(text: str | None) -> object:
+    try:
+        return json.loads(text) if text is not None else None
+    except ValueError:
+        return None
+
+
+def _migrate_json(path: str, text: str, base_text: str | None, keep_mutations: bool) -> str:
+    """Rewrite one JSON catalog in its own style; a non-JSON catalog loses only recorded YAML keys."""
     try:
         value = json.loads(text)
     except ValueError:
-        return _yaml_text(path, text) if not keep_mutations else text
+        return text if keep_mutations else _yaml_text(path, text)
     style = _json_style(text, value)
-    if style is None:
-        return text
-    try:
-        base = json.loads(base_text) if base_text is not None else None
-    except ValueError:
-        base = None
     migrated = copy.deepcopy(value)
-    _retired(path, migrated, base, keep_mutations)
-    return text if migrated == value else _dumps(migrated, style)
+    _retired(path, migrated, _json_or_none(base_text), keep_mutations)
+    return text if style is None or migrated == value else _dumps(migrated, style)
+
+
+def migrate_text(path: str, text: str | None, base_text: str | None, *, keep_mutations: bool) -> str | None:
+    """Return one authored file without the keys that its catalog retired."""
+    catalog = path in CATALOG_RETIRED or path.startswith(PUBLICATION_ENTRIES)
+    return _migrate_json(path, text, base_text, keep_mutations) if catalog and text is not None else text
 
 
 def migrate_files(
@@ -203,7 +209,7 @@ def _git(root: Path, *args: str) -> None:
     subprocess.run(["git", *args], cwd=root, check=True, capture_output=True, env=environment)
 
 
-def _findings(values: list[Any]) -> list[dict[str, Any]]:
+def _findings(values: list[object]) -> list[dict[str, object]]:
     return [
         {"rule_id": item.rule_id, "message": item.message, "path": item.path, "waivable": item.waivable}
         for item in values
@@ -220,19 +226,22 @@ def _delta_files(base: dict[str, str], changes: dict[str, str | None]) -> dict[s
     return files
 
 
-def delta_reference(evaluate: Callable[[Path], list[Any]], targets: re.Pattern[str]) -> Callable[[Any], Any]:
+def delta_reference(
+    evaluate: Callable[[Path], list[object]], targets: re.Pattern[str] | None
+) -> Callable[[object], object]:
     """Re-record a base-plus-changes catalog of repository findings."""
 
-    def record(reference: dict[str, Any]) -> dict[str, Any]:
+    def record(reference: dict[str, object]) -> dict[str, object]:
         old_base = reference["Base"]
         base = migrate_files(old_base, None, keep_mutations=False)
         cases = []
         for case in reference["Cases"]:
-            targeted = bool(targets.search(case["Name"]))
+            targeted = bool(targets and targets.search(case["Name"]))
             changes = migrate_files(case.get("Changes") or {}, old_base, keep_mutations=targeted)
             files = _delta_files(base, changes)
+            # Without the retired key, the case is the valid catalog.
             if targeted and files == base:
-                continue  # Without the retired key, the case is the valid catalog.
+                continue
             changes = {name: text for name, text in changes.items() if base.get(name) != text or text is None}
             with repository(files, case.get("Tracked")) as root:
                 findings = _findings(evaluate(root))
@@ -243,14 +252,15 @@ def delta_reference(evaluate: Callable[[Path], list[Any]], targets: re.Pattern[s
     return record
 
 
-def _error_type(call: Callable[[], Any]) -> tuple[Any, str]:
+def _error_type(call: Callable[[], object]) -> tuple[object, str]:
     try:
         return call(), ""
-    except (RaesError, OSError, ValueError, TypeError) as exc:  # The reference records the failing exception type.
+    except (RaesError, OSError, ValueError, TypeError) as exc:
+        # The reference records the failing exception type.
         return None, type(exc).__name__
 
 
-def publication_reference(reference: dict[str, Any]) -> dict[str, Any]:
+def publication_reference(reference: dict[str, object]) -> dict[str, object]:
     old_base = reference["Base"]
     base = migrate_files(old_base, None, keep_mutations=False)
     cases = []
@@ -272,7 +282,7 @@ def publication_reference(reference: dict[str, Any]) -> dict[str, Any]:
     return {**reference, "Base": base, "Cases": cases}
 
 
-def publication_history_reference(reference: list[dict[str, Any]]) -> list[dict[str, Any]]:
+def publication_history_reference(reference: list[dict[str, object]]) -> list[dict[str, object]]:
     cases, seen = [], set()
     for case in reference:
         if case["Name"] in REMOVED_RULE_CASES:
@@ -280,8 +290,9 @@ def publication_history_reference(reference: list[dict[str, Any]]) -> list[dict[
         base = migrate_files(case["Base"], None, keep_mutations=False)
         changes = migrate_files(case.get("Changes") or {}, case["Base"], keep_mutations=False)
         key = json.dumps([base, changes, case.get("Revision")], sort_keys=True)
+        # The retired ledger was the only difference from an earlier case.
         if key in seen:
-            continue  # The retired ledger was the only difference from an earlier case.
+            continue
         seen.add(key)
         with repository(base, []) as root:
             _git(root, "add", ".")
@@ -308,51 +319,49 @@ def publication_history_reference(reference: list[dict[str, Any]]) -> list[dict[
 
 
 def listed_reference(
-    evaluate: Callable[[Path], list[Any]],
+    evaluate: Callable[[Path], list[object]],
     targets: re.Pattern[str] | None = None,
     text: Callable[[Path], str] | None = None,
-) -> Callable[[Any], Any]:
+) -> Callable[[object], object]:
     """Re-record a list of independent repository cases."""
 
-    def record(reference: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    def evaluated(case: dict[str, object], files: dict[str, str]) -> dict[str, object]:
+        recorded = {**case, "Files": files}
+        # A native refusal or error keeps its recording. The parser-depth boundary belongs to the
+        # retained recording stack: removing a top-level scalar line leaves the nesting unchanged.
+        if case.get("NativeRefusal") or case.get("ErrorType") or case["Name"].startswith(DEPTH_CASE_PREFIX):
+            return recorded
+        with repository(files, case.get("Tracked")) as root:
+            for name, size in (case.get("Padding") or {}).items():
+                data = (root / name).read_bytes()
+                (root / name).write_bytes(data + b" " * (size - len(data)))
+            recorded["Findings"] = _findings(evaluate(root))
+            if text is not None:
+                recorded["Text"] = text(root)
+        return recorded
+
+    def record(reference: list[dict[str, object]]) -> list[dict[str, object]]:
+        valid = next((item for item in reference if item["Name"] == "valid"), None)
+        valid_files = migrate_files(valid["Files"], None, keep_mutations=False) if valid is not None else None
         cases = []
         for case in reference:
             if case["Name"] in REMOVED_RULE_CASES:
                 continue
-            targeted = bool(targets and targets.search(case["Name"]))
             files = migrate_files(case["Files"], None, keep_mutations=False)
-            if targeted:
-                valid = next((item for item in reference if item["Name"] == "valid"), None)
-                original = migrate_files(case["Files"], valid and valid["Files"], keep_mutations=True)
-                if valid is not None and original == migrate_files(valid["Files"], None, keep_mutations=False):
+            if targets and targets.search(case["Name"]):
+                files = migrate_files(case["Files"], valid and valid["Files"], keep_mutations=True)
+                # Without the retired key, the case is the valid catalog.
+                if files == valid_files:
                     continue
-                files = original
-            recorded = {**case, "Files": files}
-            if case.get("NativeRefusal") or case.get("ErrorType"):
-                cases.append(recorded)
-                continue
-            if case["Name"].startswith(DEPTH_CASE_PREFIX):
-                # The parser-depth boundary belongs to the retained recording stack, not to the
-                # catalog keys; removing a top-level scalar line leaves the nesting unchanged.
-                cases.append(recorded)
-                continue
-            with repository(files, case.get("Tracked")) as root:
-                if case.get("Padding"):
-                    for name, size in case["Padding"].items():
-                        data = (root / name).read_bytes()
-                        (root / name).write_bytes(data + b" " * (size - len(data)))
-                recorded["Findings"] = _findings(evaluate(root))
-                if text is not None:
-                    recorded["Text"] = text(root)
-            cases.append(recorded)
+            cases.append(evaluated(case, files))
         return cases
 
     return record
 
 
-RECORDS: dict[str, tuple[Callable[[Any], Any], tuple[str, str]]] = {
+RECORDS: dict[str, tuple[Callable[[object], object], tuple[str, str]]] = {
     "identity-reference": (delta_reference(evaluate_identity_cutover, IDENTITY_TARGETS), (",", ":")),
-    "deprecation-reference": (delta_reference(evaluate_deprecation_records, re.compile("(?!)")), (",", ":")),
+    "deprecation-reference": (delta_reference(evaluate_deprecation_records, None), (",", ":")),
     "publication-reference": (publication_reference, (",", ":")),
     "publication-history-reference": (publication_history_reference, (",", ":")),
     "adr-reference": (listed_reference(evaluate_adr_immutability, ADR_TARGETS), (", ", ": ")),
@@ -360,12 +369,12 @@ RECORDS: dict[str, tuple[Callable[[Any], Any], tuple[str, str]]] = {
 }
 
 
-def _findings_of(reference: Any) -> list[dict[str, Any]]:
+def _findings_of(reference: object) -> list[dict[str, object]]:
     cases = reference["Cases"] if isinstance(reference, dict) else reference
     return [item for case in cases for item in case.get("Findings") or []]
 
 
-def _match_waivable(before: Any, after: Any) -> Any:
+def _match_waivable(before: object, after: object) -> object:
     """Keep the finding fields of the retained catalog; some catalogs never recorded waivability."""
     if any("waivable" in item for item in _findings_of(before)):
         return after

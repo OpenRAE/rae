@@ -161,44 +161,64 @@ def provenance(items: tuple[Any, ...]) -> list[dict[str, str]]:
     ]
 
 
-def evaluate(case: dict[str, Any], inputs: Inputs) -> tuple[list[dict[str, str]], list[dict[str, str]]] | None:
-    relation = case["relation"]
-    manifest = inputs.manifest(case.get("manifest", ""), case.get("envelope", ""))
-    if relation == "support":
-        requirements = inputs.requirements(case["requirements"])
-        found = [
-            *realization_support_diagnostics(requirements, manifest),
-            *realization_envelope_diagnostics(requirements, manifest),
-        ]
-        return diagnostics(found), case.get("provenance", [])
-    if relation == "evaluate":
-        found, entries = realization_disclosure(
-            inputs.requirements(case["requirements"]),
-            inputs.plan(case["plan"]),
-            inputs.snapshot(case["snapshot"]),
-            manifest=manifest,
-        )
-        return diagnostics(found), provenance(entries)
-    if relation == "planned-evaluate":
-        found, entries = realization_authority_disclosure(
-            inputs.plan(case["plan"]),
-            inputs.snapshot(case["snapshot"]),
-            manifest=manifest,
-        )
-        return diagnostics(found), provenance(entries)
-    if relation == "planned-diagnostics":
-        return diagnostics(realization_authority_diagnostics(inputs.plan(case["plan"]), manifest)), case.get(
-            "provenance", []
-        )
-    if relation == "planned-cleanup":
-        found = realization_cleanup_diagnostics(
-            inputs.plan(case["plan"]),
-            inputs.snapshot(case["snapshot"]),
-            manifest=manifest,
-            requirements=inputs.requirements(case.get("requirements", "")),
-        )
-        return diagnostics(found), case.get("provenance", [])
-    return None
+Recorded = tuple[list[dict[str, str]], list[dict[str, str]]]
+
+
+def _support(case: dict[str, Any], inputs: Inputs, manifest: object) -> Recorded:
+    requirements = inputs.requirements(case["requirements"])
+    found = [
+        *realization_support_diagnostics(requirements, manifest),
+        *realization_envelope_diagnostics(requirements, manifest),
+    ]
+    return diagnostics(found), case.get("provenance", [])
+
+
+def _evaluate(case: dict[str, Any], inputs: Inputs, manifest: object) -> Recorded:
+    found, entries = realization_disclosure(
+        inputs.requirements(case["requirements"]),
+        inputs.plan(case["plan"]),
+        inputs.snapshot(case["snapshot"]),
+        manifest=manifest,
+    )
+    return diagnostics(found), provenance(entries)
+
+
+def _planned_evaluate(case: dict[str, Any], inputs: Inputs, manifest: object) -> Recorded:
+    found, entries = realization_authority_disclosure(
+        inputs.plan(case["plan"]), inputs.snapshot(case["snapshot"]), manifest=manifest
+    )
+    return diagnostics(found), provenance(entries)
+
+
+def _planned_diagnostics(case: dict[str, Any], inputs: Inputs, manifest: object) -> Recorded:
+    found = realization_authority_diagnostics(inputs.plan(case["plan"]), manifest)
+    return diagnostics(found), case.get("provenance", [])
+
+
+def _planned_cleanup(case: dict[str, Any], inputs: Inputs, manifest: object) -> Recorded:
+    found = realization_cleanup_diagnostics(
+        inputs.plan(case["plan"]),
+        inputs.snapshot(case["snapshot"]),
+        manifest=manifest,
+        requirements=inputs.requirements(case.get("requirements", "")),
+    )
+    return diagnostics(found), case.get("provenance", [])
+
+
+RELATIONS = {
+    "support": _support,
+    "evaluate": _evaluate,
+    "planned-evaluate": _planned_evaluate,
+    "planned-diagnostics": _planned_diagnostics,
+    "planned-cleanup": _planned_cleanup,
+}
+
+
+def evaluate(case: dict[str, Any], inputs: Inputs) -> Recorded | None:
+    relation = RELATIONS.get(case["relation"])
+    if relation is None:
+        return None
+    return relation(case, inputs, inputs.manifest(case.get("manifest", ""), case.get("envelope", "")))
 
 
 def patch_cases(name: str, updated: dict[str, dict[str, Any]]) -> None:
@@ -220,26 +240,29 @@ def patch_cases(name: str, updated: dict[str, dict[str, Any]]) -> None:
     path.write_text("\n".join(lines), encoding="utf-8")
 
 
+def _updated_cases(name: str, part: dict[str, Any], inputs: Inputs) -> dict[str, dict[str, Any]]:
+    """Evaluate the cases of one reference part; return each case whose recording changed."""
+    updated: dict[str, dict[str, Any]] = {}
+    for case in part.get("cases", []):
+        result = evaluate(case, inputs)
+        if result is None or (case.get("diagnostics"), case.get("provenance")) == result:
+            continue
+        print(f"{name}: {case['name']} differs", file=sys.stderr)
+        case["diagnostics"], case["provenance"] = result
+        updated[case["name"]] = case
+    return updated
+
+
 def record(check: bool) -> bool:
     changed = False
     for names in FAMILIES.values():
         library, parts = load_family(names)
         inputs = Inputs(library)
         for name, part in parts:
-            updated: dict[str, dict[str, Any]] = {}
-            for case in part.get("cases", []):
-                result = evaluate(case, inputs)
-                if result is None:
-                    continue
-                found, entries = result
-                if case.get("diagnostics") != found or case.get("provenance") != entries:
-                    print(f"{name}: {case['name']} differs", file=sys.stderr)
-                    case["diagnostics"], case["provenance"] = found, entries
-                    updated[case["name"]] = case
-            if updated:
-                changed = True
-                if not check:
-                    patch_cases(name, updated)
+            updated = _updated_cases(name, part, inputs)
+            changed = changed or bool(updated)
+            if updated and not check:
+                patch_cases(name, updated)
     return changed
 
 

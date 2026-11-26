@@ -64,19 +64,21 @@ def _read_example(name: str) -> str:
 
 # Maps each section name to the heading anchor used in sections.md so we
 # can extract just the relevant portion.
+_CONDITIONS_HEADING = "Conditions, propositions, and assertions"
+_ORCHESTRATION_HEADING = "Orchestration: injects, events, scripts, stories"
 _SECTION_NAMES: dict[str, str] = {
     "nodes": "Nodes",
     "infrastructure": "Infrastructure",
     "features": "Features",
-    "conditions": "Conditions, propositions, and assertions",
-    "propositions": "Conditions, propositions, and assertions",
-    "assertions": "Conditions, propositions, and assertions",
+    "conditions": _CONDITIONS_HEADING,
+    "propositions": _CONDITIONS_HEADING,
+    "assertions": _CONDITIONS_HEADING,
     "entities": "Entities",
-    "injects": "Orchestration: injects, events, scripts, stories",
-    "events": "Orchestration: injects, events, scripts, stories",
-    "scripts": "Orchestration: injects, events, scripts, stories",
-    "stories": "Orchestration: injects, events, scripts, stories",
-    "orchestration": "Orchestration: injects, events, scripts, stories",
+    "injects": _ORCHESTRATION_HEADING,
+    "events": _ORCHESTRATION_HEADING,
+    "scripts": _ORCHESTRATION_HEADING,
+    "stories": _ORCHESTRATION_HEADING,
+    "orchestration": _ORCHESTRATION_HEADING,
     "content": "Content",
     "accounts": "Accounts",
     "relationships": "Relationships",

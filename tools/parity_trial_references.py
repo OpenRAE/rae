@@ -20,7 +20,6 @@ import types
 import typing
 from collections.abc import Callable
 from pathlib import Path
-from typing import Any
 
 from pydantic import BaseModel, TypeAdapter, ValidationError
 
@@ -51,27 +50,65 @@ def _field_value(annotation: object, value: object) -> object:
         with sealing():
             return TypeAdapter(annotation).validate_python(value)
     except ValidationError:
-        pass
-    origin, args = typing.get_origin(annotation), typing.get_args(annotation)
-    if origin is typing.Annotated:
-        return _field_value(args[0], value)
-    if isinstance(annotation, type) and issubclass(annotation, BaseModel) and isinstance(value, dict):
-        return _native_instance(annotation, value)
+        return _unvalidated_value(annotation, value)
+
+
+Handled = tuple[bool, object]
+
+
+def _is_model(annotation: object) -> bool:
+    return isinstance(annotation, type) and issubclass(annotation, BaseModel)
+
+
+def _annotated_value(annotation: object, origin: object, args: tuple[object, ...], value: object) -> Handled:
+    return (True, _field_value(args[0], value)) if origin is typing.Annotated else (False, value)
+
+
+def _model_value(annotation: object, origin: object, args: tuple[object, ...], value: object) -> Handled:
+    if _is_model(annotation) and isinstance(value, dict):
+        return True, _native_instance(annotation, value)
+    return False, value
+
+
+def _mapping_value(annotation: object, origin: object, args: tuple[object, ...], value: object) -> Handled:
     if origin is dict and isinstance(value, dict) and len(args) == 2:
-        return {key: _field_value(args[1], item) for key, item in value.items()}
+        return True, {key: _field_value(args[1], item) for key, item in value.items()}
+    return False, value
+
+
+def _sequence_value(annotation: object, origin: object, args: tuple[object, ...], value: object) -> Handled:
     if origin in (list, tuple) and isinstance(value, list) and args:
-        return [_field_value(args[0], item) for item in value]
-    if origin in (typing.Union, types.UnionType):
-        for member in args:
-            if isinstance(member, type) and issubclass(member, BaseModel) and isinstance(value, dict):
-                try:
-                    return _native_instance(member, value)
-                except REJECTED:
-                    continue
+        return True, [_field_value(args[0], item) for item in value]
+    return False, value
+
+
+def _union_value(annotation: object, origin: object, args: tuple[object, ...], value: object) -> Handled:
+    """Build the first model member of a union that the value constructs."""
+    members = args if origin in (typing.Union, types.UnionType) and isinstance(value, dict) else ()
+    for member in members:
+        if not _is_model(member):
+            continue
+        try:
+            return True, _native_instance(member, value)
+        except REJECTED:
+            continue
+    return False, value
+
+
+UNVALIDATED = (_annotated_value, _model_value, _mapping_value, _sequence_value, _union_value)
+
+
+def _unvalidated_value(annotation: object, value: object) -> object:
+    """Rebuild a value that does not validate from the structure of its annotation."""
+    origin, args = typing.get_origin(annotation), typing.get_args(annotation)
+    for handler in UNVALIDATED:
+        handled, result = handler(annotation, origin, args, value)
+        if handled:
+            return result
     return value
 
 
-def _native_instance(model: type[BaseModel], data: dict[str, Any]) -> BaseModel:
+def _native_instance(model: type[BaseModel], data: dict[str, object]) -> BaseModel:
     try:
         with sealing():
             return model.model_validate(data)
@@ -88,12 +125,12 @@ def _native_instance(model: type[BaseModel], data: dict[str, Any]) -> BaseModel:
     return model.model_construct(**values)
 
 
-def native_dump(model: type[BaseModel], data: dict[str, Any]) -> dict[str, Any]:
+def native_dump(model: type[BaseModel], data: dict[str, object]) -> dict[str, object]:
     """Return the reference serialization of *data*, also when its model-level joins are refused."""
     return _native_instance(model, data).model_dump(mode="json", warnings=False)
 
 
-def reseal_plan(plan: dict[str, Any], exact: bool | None = None) -> dict[str, Any]:
+def reseal_plan(plan: dict[str, object], exact: bool | None = None) -> dict[str, object]:
     """Remove the replaced isolation fields and recompute the digests that were exact before.
 
     Entry content and its digest semantics did not change, so each entry keeps its digest. The plan
@@ -120,7 +157,7 @@ def reseal_plan(plan: dict[str, Any], exact: bool | None = None) -> dict[str, An
     return result
 
 
-def plan_digest_exact(plan: dict[str, Any]) -> bool:
+def plan_digest_exact(plan: dict[str, object]) -> bool:
     """Return whether a retained plan digest matches its reference serialization, with any replaced fields."""
     if _has_replaced_fields(plan):
         return reseal_plan(plan)["plan_digest"] != plan.get("plan_digest")
@@ -130,7 +167,7 @@ def plan_digest_exact(plan: dict[str, Any]) -> bool:
     return canonical_json_digest(dumped) == plan.get("plan_digest")
 
 
-def _has_replaced_fields(plan: dict[str, Any]) -> bool:
+def _has_replaced_fields(plan: dict[str, object]) -> bool:
     return any(field in plan for field in REMOVED_PLAN_FIELDS) or any(
         field in plan.get("profiles", {}) for field in REMOVED_PROFILE_FIELDS
     )
@@ -153,25 +190,25 @@ def _admitted(check: Callable[[], object]) -> bool:
     return True
 
 
-def _plan(value: dict[str, Any]) -> AdmittedTrialPlanModel:
+def _plan(value: dict[str, object]) -> AdmittedTrialPlanModel:
     return AdmittedTrialPlanModel.model_validate(value)
 
 
-def _at(reference: Any, path: tuple[Any, ...]) -> Any:
+def _at(reference: object, path: tuple[object, ...]) -> object:
     for key in path:
         reference = reference[key]
     return reference
 
 
-def _run_digest(run: dict[str, Any]) -> str:
+def _run_digest(run: dict[str, object]) -> str:
     return canonical_json_digest(native_dump(ExperimentRunModel, run))
 
 
 def _migrate_plans(
-    reference: dict[str, Any],
-    plans: list[tuple[Any, ...]],
-    runs: list[tuple[Any, ...]] = (),
-) -> dict[str, Any]:
+    reference: dict[str, object],
+    plans: list[tuple[object, ...]],
+    runs: list[tuple[object, ...]] = (),
+) -> dict[str, object]:
     """Reseal plans in order and carry each replaced plan and run digest into the documents that cite it.
 
     A run cites its plan digest, and a replacement plan cites its parent run digest, so repeat until no
@@ -210,14 +247,14 @@ def _migrate_plans(
 # --- reference files ----------------------------------------------------------------------------------------------
 
 
-def plan_join_verdicts(reference: dict[str, Any]) -> dict[str, Any]:
+def plan_join_verdicts(reference: dict[str, object]) -> dict[str, object]:
     for case in reference["cases"]:
         case["value"] = reseal_plan(case["value"])
         case["admitted"] = _admitted(lambda value=case["value"]: _plan(value))
     return reference
 
 
-def plan_projections(reference: dict[str, Any]) -> dict[str, Any]:
+def plan_projections(reference: dict[str, object]) -> dict[str, object]:
     cases = []
     for path in sorted(PLAN_FIXTURES.glob("*.json")):
         raw = path.read_bytes()
@@ -232,12 +269,12 @@ def plan_projections(reference: dict[str, Any]) -> dict[str, Any]:
     return {"cases": cases}
 
 
-def run_reconciliation(reference: dict[str, Any]) -> dict[str, Any]:
+def run_reconciliation(reference: dict[str, object]) -> dict[str, object]:
     reference = _migrate_plans(reference, [("plan",)])
     plan = _plan(reference["plan"])
     for case in reference["cases"]:
 
-        def check(case: dict[str, Any] = case) -> None:
+        def check(case: dict[str, object] = case) -> None:
             run = ExperimentRunModel.model_validate(case["run"])
             receipts = [TrialCleanupReceiptModel.model_validate(item) for item in case["receipts"]]
             validate_admitted_trial_run(plan, run, receipts)
@@ -246,13 +283,13 @@ def run_reconciliation(reference: dict[str, Any]) -> dict[str, Any]:
     return reference
 
 
-def study_reconciliation(reference: dict[str, Any]) -> dict[str, Any]:
+def study_reconciliation(reference: dict[str, object]) -> dict[str, object]:
     reference = _migrate_plans(reference, [("plan",)])
     _plan(reference["plan"])
     return reference
 
 
-def replacement_archive(reference: dict[str, Any]) -> dict[str, Any]:
+def replacement_archive(reference: dict[str, object]) -> dict[str, object]:
     reference = _migrate_plans(
         reference,
         [("cases", index, "child") for index in range(len(reference["cases"]))],
@@ -263,9 +300,9 @@ def replacement_archive(reference: dict[str, Any]) -> dict[str, Any]:
     return reference
 
 
-def replacement_study(reference: dict[str, Any]) -> dict[str, Any]:
-    paths: list[tuple[Any, ...]] = [("root",)] + [("plans", index) for index in range(len(reference["plans"]))]
-    runs: list[tuple[Any, ...]] = [("runs", index) for index in range(len(reference["runs"]))]
+def replacement_study(reference: dict[str, object]) -> dict[str, object]:
+    paths: list[tuple[object, ...]] = [("root",)] + [("plans", index) for index in range(len(reference["plans"]))]
+    runs: list[tuple[object, ...]] = [("runs", index) for index in range(len(reference["runs"]))]
     reference = _migrate_plans(reference, paths, runs)
     reconcile_replacement_trials(
         _plan(reference["root"]),
@@ -276,7 +313,7 @@ def replacement_study(reference: dict[str, Any]) -> dict[str, Any]:
     return reference
 
 
-def large_byte_limit(reference: dict[str, Any]) -> dict[str, Any]:
+def large_byte_limit(reference: dict[str, object]) -> dict[str, object]:
     plan = json.loads((PLAN_FIXTURES / "minimal.json").read_text(encoding="utf-8"))
     plan["admission"]["limitations"] = ["a" * reference["limitation_bytes"]]
     plan.pop("plan_digest", None)
@@ -284,7 +321,7 @@ def large_byte_limit(reference: dict[str, Any]) -> dict[str, Any]:
     return reference
 
 
-RECORDS: dict[str, Callable[[dict[str, Any]], dict[str, Any]]] = {
+RECORDS: dict[str, Callable[[dict[str, object]], dict[str, object]]] = {
     "large-byte-limit-reference.json": large_byte_limit,
     "trial-plan-join-verdicts-01.json": plan_join_verdicts,
     "trial-plan-join-verdicts-02.json": plan_join_verdicts,
@@ -297,13 +334,13 @@ RECORDS: dict[str, Callable[[dict[str, Any]], dict[str, Any]]] = {
 }
 
 
-def large_plan(plan: dict[str, Any]) -> dict[str, Any]:
+def large_plan(plan: dict[str, object]) -> dict[str, object]:
     resealed = reseal_plan(plan)
     _plan(resealed)
     return resealed
 
 
-GZIP_RECORDS: dict[str, Callable[[dict[str, Any]], dict[str, Any]]] = {
+GZIP_RECORDS: dict[str, Callable[[dict[str, object]], dict[str, object]]] = {
     "large-source-plan.json.gz": large_plan,
     "large-trial-plan.json.gz": large_plan,
 }

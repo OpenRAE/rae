@@ -20,6 +20,8 @@ from raes_contracts.contracts.base import ContractModel, PrefixedDigestString
 from raes_contracts.diagnostics import DiagnosticModel
 from raes_contracts.source_identity import SourceArtifactIdentityModel
 
+_Z3_SOLVER_VERSION = "4.16.0.0"  # NOSONAR -- pinned z3-solver package version, not an IP address
+
 JSONScalar = str | int | bool
 ClauseId = Annotated[str, Field(pattern=r"^[a-z][a-z0-9._:-]*$", max_length=256)]
 SymbolId = Annotated[str, Field(pattern=r"^[a-z][a-z0-9._:-]*$", max_length=256)]
@@ -131,7 +133,7 @@ class SolverConfigurationModel(ContractModel):
                     "then": {
                         "properties": {
                             "package": {"const": "z3-solver"},
-                            "package_version": {"const": "4.16.0.0"},
+                            "package_version": {"const": _Z3_SOLVER_VERSION},
                         }
                     },
                     "else": {
@@ -164,7 +166,7 @@ class SolverConfigurationModel(ContractModel):
     def _correlated_adapter_identity(self) -> SolverConfigurationModel:
         identity = (self.profile, self.package, self.package_version)
         if identity not in {
-            ("raes-z3-finite-domain/v1", "z3-solver", "4.16.0.0"),
+            ("raes-z3-finite-domain/v1", "z3-solver", _Z3_SOLVER_VERSION),
             ("raes-z3-finite-domain/v2", "raes-go-z3-smtlib", "1.0.0"),
         }:
             raise ValueError("solver identity must select one complete pinned adapter profile")

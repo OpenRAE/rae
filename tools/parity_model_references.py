@@ -18,9 +18,7 @@ import hashlib
 import json
 import shutil
 import sys
-from collections.abc import Iterator
 from pathlib import Path
-from typing import Any
 
 from pydantic import ValidationError
 
@@ -37,6 +35,7 @@ from tools.parity_support import encode  # noqa: E402
 
 TESTDATA = ROOT / "implementations/go/contract/admission/testdata"
 RETAINED = TESTDATA / "retained-model-inputs"
+MANIFEST = "manifest.json"
 CASES = Path("cases/schema/validate")
 INLINE = ("local-model-inputs.json", "expanded-model-inputs.json")
 SHARDED = (
@@ -74,12 +73,7 @@ class Retained:
         if fields is None:
             return identity
         document = json.loads(self.payload(identity))
-        if contract == "admitted-trial-plan-v1":
-            if "isolation_proof" not in document and "isolation_profile" not in document.get("profiles", {}):
-                return identity
-            changed = reseal_plan(document)
-        else:
-            changed = {key: value for key, value in document.items() if key not in fields}
+        changed = _without_replaced(contract, document, fields)
         if changed == document:
             return identity
         content = encode(changed)
@@ -88,7 +82,16 @@ class Retained:
         return new_identity
 
 
-def _changed(document: Any, changes: list[dict[str, Any]]) -> Any:
+def _without_replaced(contract: str, document: dict[str, object], fields: tuple[str, ...]) -> dict[str, object]:
+    """Return the document without its replaced fields; a trial plan is resealed only when it had them."""
+    if contract != "admitted-trial-plan-v1":
+        return {key: value for key, value in document.items() if key not in fields}
+    if "isolation_proof" in document or "isolation_profile" in document.get("profiles", {}):
+        return reseal_plan(document)
+    return document
+
+
+def _changed(document: object, changes: list[dict[str, object]]) -> object:
     result = copy.deepcopy(document)
     for change in changes:
         parent = result
@@ -102,7 +105,7 @@ def _changed(document: Any, changes: list[dict[str, Any]]) -> Any:
     return result
 
 
-def _admitted(contract: str, document: Any) -> bool:
+def _admitted(contract: str, document: object) -> bool:
     try:
         contract_validator(contract)(document)
     except ValidationError, ValueError, TypeError:
@@ -110,7 +113,7 @@ def _admitted(contract: str, document: Any) -> bool:
     return True
 
 
-def record_case(case: dict[str, Any], retained: Retained) -> dict[str, Any] | None:
+def record_case(case: dict[str, object], retained: Retained) -> dict[str, object] | None:
     contract = case["contract"]
     if contract not in contract_validators():
         return None
@@ -141,20 +144,19 @@ def _case_document(contract: str, identity: str, valid: bool) -> bytes:
     )
 
 
-def _stored(identity: str, content: bytes) -> Iterator[tuple[Path, bytes]]:
+def _stored(identity: str, content: bytes) -> dict[Path, bytes]:
     compressed = gzip.compress(content, mtime=0)
     if len(compressed) <= INLINE_BYTES:
-        yield Path("inputs", identity), compressed
-        return
+        return {Path("inputs", identity): compressed}
     pieces = [compressed[index : index + INLINE_BYTES] for index in range(0, len(compressed), INLINE_BYTES)]
-    yield Path("inputs", identity), encode({"parts": len(pieces)})
-    for index, piece in enumerate(pieces):
-        yield Path("pieces", identity, str(index)), b"\x00" + piece
+    stored = {Path("inputs", identity): encode({"parts": len(pieces)})}
+    stored.update({Path("pieces", identity, str(index)): b"\x00" + piece for index, piece in enumerate(pieces)})
+    return stored
 
 
-def records() -> tuple[dict[str, Any], dict[Path, bytes]]:
+def records() -> tuple[dict[str, object], dict[Path, bytes]]:
     retained = Retained()
-    documents: dict[str, Any] = {}
+    documents: dict[str, object] = {}
     for name in INLINE:
         document = json.loads((TESTDATA / name).read_text(encoding="utf-8"))
         document["cases"] = [row for case in document["cases"] if (row := record_case(case, retained)) is not None]
@@ -178,7 +180,7 @@ def records() -> tuple[dict[str, Any], dict[Path, bytes]]:
     return documents, files
 
 
-def _referenced(documents: dict[str, Any]) -> tuple[set[str], set[str]]:
+def _referenced(documents: dict[str, object]) -> tuple[set[str], set[str]]:
     identities: set[str] = set()
     case_files: set[str] = set()
     for document in documents.values():
@@ -189,7 +191,7 @@ def _referenced(documents: dict[str, Any]) -> tuple[set[str], set[str]]:
     return identities, case_files
 
 
-def _orphans(documents: dict[str, Any]) -> list[Path]:
+def _orphans(documents: dict[str, object]) -> list[Path]:
     """Return retained files that no reference case names."""
     identities, case_files = _referenced(documents)
     orphans = [path for path in (RETAINED / "inputs").iterdir() if path.name not in identities]
@@ -200,10 +202,10 @@ def _orphans(documents: dict[str, Any]) -> list[Path]:
     return sorted(orphans)
 
 
-def _manifest() -> dict[str, Any]:
+def _manifest() -> dict[str, object]:
     """Describe the retained tree; ``files_sha256`` digests the ``sha256sum`` listing of every other file."""
-    manifest = json.loads((RETAINED / "manifest.json").read_text(encoding="utf-8"))
-    files = sorted(path for path in RETAINED.rglob("*") if path.is_file() and path.name != "manifest.json")
+    manifest = json.loads((RETAINED / MANIFEST).read_text(encoding="utf-8"))
+    files = sorted(path for path in RETAINED.rglob("*") if path.is_file() and path.name != MANIFEST)
     listing = "".join(
         f"{hashlib.sha256(path.read_bytes()).hexdigest()}  {path.relative_to(RETAINED).as_posix()}\n" for path in files
     )
@@ -213,46 +215,69 @@ def _manifest() -> dict[str, Any]:
     return manifest
 
 
+def _sync_documents(documents: dict[str, object], check: bool) -> bool:
+    """Check or write the reference documents; return whether a check failed."""
+    failed = False
+    for name, document in documents.items():
+        path = TESTDATA / name
+        if not check:
+            path.write_text(json.dumps(document, indent=2) + "\n", encoding="utf-8")
+        elif json.loads(path.read_text(encoding="utf-8")) != document:
+            print(f"{name} differs from the reference models", file=sys.stderr)
+            failed = True
+    return failed
+
+
+def _sync_files(files: dict[Path, bytes], check: bool) -> bool:
+    """Check or write the retained files; return whether a check failed."""
+    failed = False
+    for relative, content in files.items():
+        path = RETAINED / relative
+        if not check:
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_bytes(content)
+        elif not path.is_file() or path.read_bytes() != content:
+            print(f"{relative} differs from the reference models", file=sys.stderr)
+            failed = True
+    return failed
+
+
+def _sync_orphans(documents: dict[str, object], check: bool) -> bool:
+    """Check for or remove retained files that no case names; return whether a check failed."""
+    orphans = _orphans(documents)
+    if check:
+        if orphans:
+            print("retained inputs contain files that no case names", file=sys.stderr)
+        return bool(orphans)
+    for path in orphans:
+        if path.is_dir():
+            shutil.rmtree(path)
+        else:
+            path.unlink()
+    return False
+
+
+def _sync_manifest(check: bool) -> bool:
+    """Check or write the retained manifest; return whether a check failed."""
+    manifest = json.dumps(_manifest(), indent=2) + "\n"
+    if not check:
+        (RETAINED / MANIFEST).write_text(manifest, encoding="utf-8")
+        return False
+    if (RETAINED / MANIFEST).read_text(encoding="utf-8") != manifest:
+        print("retained input manifest differs", file=sys.stderr)
+        return True
+    return False
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--check", action="store_true")
     args = parser.parse_args()
     documents, files = records()
-    failed = False
-    for name, document in documents.items():
-        path = TESTDATA / name
-        actual = json.dumps(document, indent=2) + "\n"
-        if args.check:
-            if json.loads(path.read_text(encoding="utf-8")) != document:
-                print(f"{name} differs from the reference models", file=sys.stderr)
-                failed = True
-        else:
-            path.write_text(actual, encoding="utf-8")
-    for relative, content in files.items():
-        path = RETAINED / relative
-        if args.check:
-            if not path.is_file() or path.read_bytes() != content:
-                print(f"{relative} differs from the reference models", file=sys.stderr)
-                failed = True
-        else:
-            path.parent.mkdir(parents=True, exist_ok=True)
-            path.write_bytes(content)
-    orphans = _orphans(documents)
-    if args.check and orphans:
-        print("retained inputs contain files that no case names", file=sys.stderr)
-        failed = True
-    for path in [] if args.check else orphans:
-        if path.is_dir():
-            shutil.rmtree(path)
-        else:
-            path.unlink()
-    manifest = json.dumps(_manifest(), indent=2) + "\n"
-    if args.check:
-        if (RETAINED / "manifest.json").read_text(encoding="utf-8") != manifest:
-            print("retained input manifest differs", file=sys.stderr)
-            failed = True
-    else:
-        (RETAINED / "manifest.json").write_text(manifest, encoding="utf-8")
+    failed = _sync_documents(documents, args.check)
+    failed = _sync_files(files, args.check) or failed
+    failed = _sync_orphans(documents, args.check) or failed
+    failed = _sync_manifest(args.check) or failed
     return 1 if failed else 0
 
 

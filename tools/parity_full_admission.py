@@ -17,7 +17,6 @@ import json
 import sys
 from collections.abc import Iterator
 from pathlib import Path
-from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "implementations/python/packages"))
@@ -34,6 +33,7 @@ from raes_contracts.contract_seals import (  # noqa: E402
 from raes_contracts.errors import RaesError  # noqa: E402
 from raes_contracts.published_schemas import published_schema  # noqa: E402
 
+JSON_FILES = "*.json"
 CONTRACTS = ROOT / "contracts"
 TESTDATA = ROOT / "implementations/go/contract/admission/testdata"
 CORPUS = ROOT / "implementations/go/internal/parity/testdata"
@@ -58,7 +58,7 @@ def _digest(raw: bytes) -> str:
 
 
 def _published_ids() -> set[str]:
-    return {path.stem for path in (CONTRACTS / "schema-publication/entries").glob("*.json")}
+    return {path.stem for path in (CONTRACTS / "schema-publication/entries").glob(JSON_FILES)}
 
 
 def _version_index(ids: set[str]) -> dict[str, str]:
@@ -75,7 +75,7 @@ def _version_index(ids: set[str]) -> dict[str, str]:
 def _fixtures() -> Iterator[Path]:
     # The inventory orders repository-relative paths by their bytes, as the Go walk does.
     for path in sorted(
-        (CONTRACTS / "fixtures").rglob("*.json"), key=lambda item: item.relative_to(CONTRACTS).as_posix()
+        (CONTRACTS / "fixtures").rglob(JSON_FILES), key=lambda item: item.relative_to(CONTRACTS).as_posix()
     ):
         relative = path.relative_to(CONTRACTS).as_posix()
         if not relative.startswith(SKIPPED_FAMILY + "/"):
@@ -104,21 +104,21 @@ def inventory() -> tuple[list[tuple[str, str]], list[str]]:
     return contracts, other
 
 
-def _structural_records() -> dict[str, dict[str, Any]]:
+def _structural_records() -> dict[str, dict[str, object]]:
     """Index the original admission CLI and schema results by fixture name and by input digest."""
-    records: dict[str, dict[str, Any]] = {}
-    for path in sorted((CORPUS / "cases/cli/semantic-validate").glob("*.json")):
+    records: dict[str, dict[str, object]] = {}
+    for path in sorted((CORPUS / "cases/cli/semantic-validate").glob(JSON_FILES)):
         record = json.loads(path.read_text("utf-8"))
         if record["name"].startswith("contracts/fixtures/"):
             records.setdefault("cli:" + record["name"], {**record, "_path": path.relative_to(CORPUS).as_posix()})
-    for path in sorted((CORPUS / "cases/schema/validate").glob("*.json")):
+    for path in sorted((CORPUS / "cases/schema/validate").glob(JSON_FILES)):
         record = json.loads(path.read_text("utf-8"))
         key = "schema:" + record["args"][0] + ":" + record["files"]["payload.json"]
         records.setdefault(key, {**record, "_path": path.relative_to(CORPUS).as_posix()})
     return records
 
 
-def _structural(records: dict[str, dict[str, Any]], name: str, contract: str, digest: str) -> dict[str, Any]:
+def _structural(records: dict[str, dict[str, object]], name: str, contract: str, digest: str) -> dict[str, object]:
     record = records.get("cli:" + name)
     if record is not None and record["files"].get("input.json") == digest:
         payload = (record["result"].get("stdout") or {}).get("payload") or {}
@@ -144,14 +144,14 @@ def _kind(relative: str) -> str:
     return next((part for part in reversed(parts[:-1]) if part in {"valid", "invalid", *SEALED_FIXTURE_KINDS}), "")
 
 
-def _sealed(contract: str, relative: str, payload: Any) -> Any:
+def _sealed(contract: str, relative: str, payload: object) -> object:
     kind = _kind(relative)
     if contract in sealed_contract_ids() and kind in SEALED_FIXTURE_KINDS and isinstance(payload, dict):
         return seal_contract_fixture(contract, payload, kind=kind)
     return payload
 
 
-def _model_verdict(contract: str, payload: Any, validators: dict[str, Any]) -> dict[str, Any]:
+def _model_verdict(contract: str, payload: object, validators: dict[str, object]) -> dict[str, object]:
     validator = validators[contract]
     check = f"published-schema gate + {getattr(validator, '__self__', validator)}"
     if not Draft202012Validator(published_schema(contract)).is_valid(payload):
@@ -163,7 +163,7 @@ def _model_verdict(contract: str, payload: Any, validators: dict[str, Any]) -> d
     return {"full_admitted": True, "reference_check": check, "failure_class": ""}
 
 
-def _model_owners(rows: Any) -> dict[str, str]:
+def _model_owners(rows: object) -> dict[str, str]:
     """Return the owner that every retained model row of a contract shares."""
     seen: dict[str, set[str]] = {}
     for row in rows:
@@ -172,18 +172,18 @@ def _model_owners(rows: Any) -> dict[str, str]:
     return {contract: next(iter(names)) for contract, names in seen.items() if len(names) == 1}
 
 
-def _bytes(sealed: Any, raw: bytes) -> bytes:
+def _bytes(sealed: object, raw: bytes) -> bytes:
     """Return the bytes the Go owner seals: the original bytes when nothing was added."""
     return raw if sealed == json.loads(raw) else json.dumps(sealed, separators=(",", ":"), ensure_ascii=False).encode()
 
 
-def _phase_record(contract: str, payload: Any, source: str, validators: dict[str, Any]) -> dict[str, Any]:
+def _phase_record(contract: str, payload: object, source: str, validators: dict[str, object]) -> dict[str, object]:
     published = Draft202012Validator(published_schema(contract)).is_valid(payload)
     try:
         model = validators[contract](payload)
     except ValidationError, ValueError, RaesError:
         model = None
-    result: dict[str, Any] = {
+    result: dict[str, object] = {
         "contract_id": contract,
         "source_sha256": source,
         "published_schema_admitted": published,
@@ -195,8 +195,8 @@ def _phase_record(contract: str, payload: Any, source: str, validators: dict[str
 
 
 def _phase_records(
-    sources: dict[str, tuple[str, Any]], validators: dict[str, Any]
-) -> tuple[dict[str, Any], dict[str, list[dict[str, Any]]]]:
+    sources: dict[str, tuple[str, object]], validators: dict[str, object]
+) -> tuple[dict[str, object], dict[str, list[dict[str, object]]]]:
     """Add the native phase record of each new SDL phase source to the retained records."""
     header = json.loads(PHASES.read_text("utf-8"))
     shards = {name: json.loads((TESTDATA / name).read_text("utf-8")) for name in sorted(header["case_files"])}
@@ -220,62 +220,83 @@ def _phase_records(
     return header, shards
 
 
-def record(verdicts: dict[str, Any]) -> tuple[dict[str, Any], list[list[dict[str, Any]]]]:
-    retained: dict[str, dict[str, Any]] = {}
-    selectors: list[dict[str, Any]] = []
+def _record_native_fixture(relative: str, fixture: dict[str, object], validators: dict[str, object]) -> None:
+    raw = (CONTRACTS / relative).read_bytes()
+    payload = json.loads(raw)
+    sealed = _sealed(fixture["contract_id"], relative, payload)
+    verdict = _model_verdict(fixture["contract_id"], sealed, validators)
+    fixture.update(
+        input_sha256=_digest(raw),
+        published_schema_admitted=Draft202012Validator(published_schema(fixture["contract_id"])).is_valid(payload),
+        full_admitted=verdict["full_admitted"],
+        failure_class=verdict["failure_class"],
+    )
+
+
+class _FixtureRecorder:
+    """Record the verdict row of each contract fixture, collecting the SDL phase sources."""
+
+    _KEYS = ("full_admitted", "owner", "reference_check", "failure_class", "reference_kind")
+
+    def __init__(self, retained: dict[str, dict[str, object]], validators: dict[str, object]) -> None:
+        self.retained = retained
+        self.validators = validators
+        self.structural = _structural_records()
+        self.owners = _model_owners(retained.values())
+        self.phase_sources: dict[str, tuple[str, object]] = {}
+
+    def row(self, relative: str, contract: str) -> dict[str, object]:
+        raw = (CONTRACTS / relative).read_bytes()
+        name = "contracts/" + relative.removesuffix(".json")
+        payload = json.loads(raw)
+        previous = self.retained.get(relative, {})
+        row: dict[str, object] = {"name": name, "contract_id": previous.get("contract_id", contract)}
+        row.update(input_path=relative, input_sha256=_digest(raw))
+        row.update(_structural(self.structural, name, row["contract_id"], row["input_sha256"]))
+        published = Draft202012Validator(published_schema(row["contract_id"])).is_valid(payload)
+        if previous.get("reference_kind") == "contextual-reference" or (
+            previous and row["contract_id"] in _SEMANTIC_CONTEXT_REQUIRED_CONTRACTS
+        ):
+            # A trusted context owner decides these verdicts; the owners are fixed recorded inputs.
+            row.update({key: previous[key] for key in self._KEYS})
+        else:
+            self._model_row(row, relative, payload, raw, previous)
+        row["published_schema_admitted"] = published
+        return row
+
+    def _model_row(
+        self, row: dict[str, object], relative: str, payload: object, raw: bytes, previous: dict[str, object]
+    ) -> None:
+        sealed = _sealed(row["contract_id"], relative, payload)
+        row.update(_model_verdict(row["contract_id"], sealed, self.validators))
+        row["owner"] = previous.get("owner") or self.owners.get(row["contract_id"], "none")
+        if not previous and row["contract_id"] in SDL_PHASE_CONTRACTS:
+            row["owner"] = "sdl-phase"
+        if row["owner"] == "sdl-phase":
+            self.phase_sources[_digest(_bytes(sealed, raw))] = (row["contract_id"], sealed)
+        row["reference_check"] = previous.get("reference_check", row["reference_check"])
+        row["reference_kind"] = "model-reference"
+
+
+def record(verdicts: dict[str, object]) -> tuple[dict[str, object], list[list[dict[str, object]]]]:
+    retained: dict[str, dict[str, object]] = {}
+    selectors: list[dict[str, object]] = []
     for name in verdicts["case_files"]:
         for row in json.loads((TESTDATA / name).read_text("utf-8")):
             if row.get("reference_kind") == "selector-refusal":
                 selectors.append(row)
             else:
                 retained[row["input_path"]] = row
-    structural = _structural_records()
-    owners = _model_owners(retained.values())
-    phase_sources: dict[str, tuple[str, Any]] = {}
     validators = contract_validators()
     contracts, other = inventory()
     # A native SDL owner covers these fixtures in its own Go package; record their reference verdicts by name.
     native = verdicts.get("native_owner_fixtures", {})
     contracts = [(relative, contract) for relative, contract in contracts if relative not in native]
     for relative, fixture in native.items():
-        raw = (CONTRACTS / relative).read_bytes()
-        payload = json.loads(raw)
-        sealed = _sealed(fixture["contract_id"], relative, payload)
-        verdict = _model_verdict(fixture["contract_id"], sealed, validators)
-        fixture.update(
-            input_sha256=_digest(raw),
-            published_schema_admitted=Draft202012Validator(published_schema(fixture["contract_id"])).is_valid(payload),
-            full_admitted=verdict["full_admitted"],
-            failure_class=verdict["failure_class"],
-        )
-    rows: list[dict[str, Any]] = []
-    for relative, contract in contracts:
-        raw = (CONTRACTS / relative).read_bytes()
-        name = "contracts/" + relative.removesuffix(".json")
-        payload = json.loads(raw)
-        previous = retained.get(relative, {})
-        row: dict[str, Any] = {"name": name, "contract_id": previous.get("contract_id", contract)}
-        row.update(input_path=relative, input_sha256=_digest(raw))
-        row.update(_structural(structural, name, row["contract_id"], row["input_sha256"]))
-        published = Draft202012Validator(published_schema(row["contract_id"])).is_valid(payload)
-        keys = ("full_admitted", "owner", "reference_check", "failure_class", "reference_kind")
-        if previous.get("reference_kind") == "contextual-reference" or (
-            previous and row["contract_id"] in _SEMANTIC_CONTEXT_REQUIRED_CONTRACTS
-        ):
-            # A trusted context owner decides these verdicts; the owners are fixed recorded inputs.
-            row.update({key: previous[key] for key in keys})
-        else:
-            sealed = _sealed(row["contract_id"], relative, payload)
-            row.update(_model_verdict(row["contract_id"], sealed, validators))
-            row["owner"] = previous.get("owner") or owners.get(row["contract_id"], "none")
-            if not previous and row["contract_id"] in SDL_PHASE_CONTRACTS:
-                row["owner"] = "sdl-phase"
-            if row["owner"] == "sdl-phase":
-                phase_sources[_digest(_bytes(sealed, raw))] = (row["contract_id"], sealed)
-            row["reference_check"] = previous.get("reference_check", row["reference_check"])
-            row["reference_kind"] = "model-reference"
-        row["published_schema_admitted"] = published
-        rows.append(row)
+        _record_native_fixture(relative, fixture, validators)
+    recorder = _FixtureRecorder(retained, validators)
+    rows = [recorder.row(relative, contract) for relative, contract in contracts]
+    phase_sources = recorder.phase_sources
     rows.extend(selectors)
     noncontract = verdicts["noncontract_fixtures"]
     unclassified = [path for path in other if path not in noncontract]

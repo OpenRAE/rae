@@ -52,23 +52,34 @@ def _contributions(
         return {}, {}
     models: dict[str, type[BaseModel]] = {}
     streams: dict[str, type[BaseModel]] = {}
-    for node in ast.walk(tree):
-        if not isinstance(node, ast.Dict):
-            continue
-        for key, value in zip(node.keys, node.values, strict=True):
-            if not (isinstance(key, ast.Constant) and isinstance(key.value, str)):
-                continue
-            if (
-                isinstance(value, ast.Call)
-                and isinstance(value.func, ast.Name)
-                and value.func.id == "event_stream_schema"
-                and len(value.args) == 2
-            ):
-                if (item := _model(module, value.args[1])) is not None:
-                    streams.setdefault(key.value, item)
-            elif (model := _model(module, value)) is not None:
-                models.setdefault(key.value, model)
+    for key, value in _string_keyed_entries(tree):
+        if _is_event_stream(value):
+            target, item = streams, _model(module, value.args[1])
+        else:
+            target, item = models, _model(module, value)
+        if item is not None:
+            target.setdefault(key, item)
     return models, streams
+
+
+def _string_keyed_entries(tree: ast.AST) -> list[tuple[str, ast.expr]]:
+    """Return every string-keyed entry of every dictionary display in a module."""
+    return [
+        (key.value, value)
+        for node in ast.walk(tree)
+        if isinstance(node, ast.Dict)
+        for key, value in zip(node.keys, node.values, strict=True)
+        if isinstance(key, ast.Constant) and isinstance(key.value, str)
+    ]
+
+
+def _is_event_stream(value: ast.expr) -> bool:
+    return (
+        isinstance(value, ast.Call)
+        and isinstance(value.func, ast.Name)
+        and value.func.id == "event_stream_schema"
+        and len(value.args) == 2
+    )
 
 
 @cache
@@ -93,18 +104,28 @@ def contract_validators() -> dict[str, Callable[[object], object]]:
             streams.setdefault(contract_id, model)
     validators: dict[str, Callable[[object], object]] = {}
     for contract_id in sorted(published_contract_ids()):
-        title = published_schema(contract_id).get("title")
-        candidates = by_name.get(title, set()) if isinstance(title, str) else set()
-        contributed = models.get(contract_id)
-        if contract_id in streams:
-            validators[contract_id] = TypeAdapter(list[streams[contract_id]]).validate_python  # type: ignore[valid-type]
-        elif contributed is not None and contributed.__name__ == title:
-            validators[contract_id] = contributed.model_validate
-        elif len(candidates) == 1:
-            validators[contract_id] = next(iter(candidates)).model_validate
-        elif contributed is not None:
-            validators[contract_id] = contributed.model_validate
+        validator = _validator(contract_id, by_name, models.get(contract_id), streams.get(contract_id))
+        if validator is not None:
+            validators[contract_id] = validator
     return validators
+
+
+def _validator(
+    contract_id: str,
+    by_name: dict[str, set[type[BaseModel]]],
+    contributed: type[BaseModel] | None,
+    stream: type[BaseModel] | None,
+) -> Callable[[object], object] | None:
+    """Select the event stream, the titled contribution, the one titled model, or the contribution."""
+    title = published_schema(contract_id).get("title")
+    candidates = by_name.get(title, set()) if isinstance(title, str) else set()
+    if stream is not None:
+        return TypeAdapter(list[stream]).validate_python  # type: ignore[valid-type]
+    if contributed is not None and contributed.__name__ != title and len(candidates) == 1:
+        contributed = None
+    if contributed is None and len(candidates) == 1:
+        contributed = next(iter(candidates))
+    return contributed.model_validate if contributed is not None else None
 
 
 def contract_validator(contract_id: str) -> Callable[[object], object]:

@@ -19,7 +19,7 @@ from collections.abc import Callable
 from io import BytesIO
 from pathlib import Path
 from types import SimpleNamespace
-from typing import Any
+from typing import TYPE_CHECKING, cast
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "implementations/python/packages"))
@@ -65,20 +65,22 @@ from raes_runtime.runtime_trial_decisions import (  # noqa: E402
     TrialReplacementDecision,
 )
 
+if TYPE_CHECKING:
+    from raes_runtime.experiment_records import ExperimentRecordBundle
+    from raes_runtime.runtime_experiment import RuntimeExperiment
+
 TESTDATA = ROOT / "implementations/go/runtime/experiment/testdata"
 COMPILER = ROOT / "implementations/go/processor/trial/testdata/compiler-reference.json.gz"
 TOKEN = re.compile(r"sha256:[0-9a-f]{64}|[a-z][a-z-]*-[0-9a-f]{64}")
-EMBEDDED = re.compile(
-    r"sha256:[0-9a-f]{64}|[a-z][a-z-]*-[0-9a-f]{64}|attempt:[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}"
-)
+ATTEMPT = re.compile(r"attempt:[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}")
 
 
-def _load(path: Path) -> Any:
+def _load(path: Path) -> object:
     raw = path.read_bytes()
     return json.loads(gzip.decompress(raw) if path.suffix == ".gz" else raw)
 
 
-def _store(path: Path, value: Any) -> None:
+def _store(path: Path, value: object) -> None:
     text = json.dumps(value, indent=2) + "\n"
     if path.suffix == ".gz":
         path.write_bytes(gzip.compress(text.encode(), compresslevel=9, mtime=0))
@@ -89,7 +91,7 @@ def _store(path: Path, value: Any) -> None:
 class Compilation:
     """One reference compilation and the realization of each of its entries."""
 
-    def __init__(self, request_payload: dict[str, Any]) -> None:
+    def __init__(self, request_payload: dict[str, object]) -> None:
         self.request, self.stored = build_request(request_payload)
         result = compile_admitted_trial_plan(self.request)
         if result.plan is None:
@@ -97,7 +99,7 @@ class Compilation:
         self.plan: AdmittedTrialPlanModel = result.plan
         self.wire = self.plan.model_dump(mode="json")
 
-    def realization(self, entry_id: str, plan: AdmittedTrialPlanModel | None = None) -> Any:
+    def realization(self, entry_id: str, plan: AdmittedTrialPlanModel | None = None) -> object:
         backend = next(key for key in self.request.apparatus_manifests if key[0] == "backend")
         return realize_admitted_trial_entry(
             inputs=TrialRealizationInputs(
@@ -115,27 +117,30 @@ class Compilation:
         )
 
 
-def _zip_tokens(old: Any, new: Any, tokens: dict[str, str]) -> None:
+def _pair_token(old: str, new: str, tokens: dict[str, str]) -> None:
+    if old != new and TOKEN.fullmatch(old) and TOKEN.fullmatch(new) and tokens.setdefault(old, new) != new:
+        raise ValueError(f"identity {old} moves to two identities")
+
+
+def _zip_tokens(old: object, new: object, tokens: dict[str, str]) -> None:
     """Pair each identity token of an old plan with the token at the same place in the new plan."""
     if isinstance(old, str) and isinstance(new, str):
-        if old != new and TOKEN.fullmatch(old) and TOKEN.fullmatch(new):
-            if tokens.setdefault(old, new) != new:
-                raise ValueError(f"identity {old} moves to two identities")
-        return
-    if isinstance(old, list) and isinstance(new, list) and len(old) == len(new):
+        _pair_token(old, new, tokens)
+    elif isinstance(old, list) and isinstance(new, list) and len(old) == len(new):
         for left, right in zip(old, new, strict=True):
             _zip_tokens(left, right, tokens)
-        return
-    if isinstance(old, dict) and isinstance(new, dict):
+    elif isinstance(old, dict) and isinstance(new, dict):
         for key in old.keys() & new.keys():
             _zip_tokens(old[key], new[key], tokens)
 
 
-def _entries_by_coordinate(plan: dict[str, Any]) -> dict[str, dict[str, Any]]:
+def _entries_by_coordinate(plan: dict[str, object]) -> dict[str, dict[str, object]]:
     return {json.dumps(entry["coordinate"], sort_keys=True): entry for entry in plan["entries"].values()}
 
 
-def plan_tokens(old: dict[str, Any], new: dict[str, Any], experiments: tuple[str, str] | None = None) -> dict[str, str]:
+def plan_tokens(
+    old: dict[str, object], new: dict[str, object], experiments: tuple[str, str] | None = None
+) -> dict[str, str]:
     """Return the identity moves from an old compiled plan to its recompilation.
 
     Attempt identities derive from the experiment, which is the root plan of a replacement chain.
@@ -160,20 +165,31 @@ def plan_tokens(old: dict[str, Any], new: dict[str, Any], experiments: tuple[str
     return tokens
 
 
-def move(value: Any, tokens: dict[str, str]) -> Any:
+def _move_text(text: str, tokens: dict[str, str]) -> str:
+    """Move the embedded digest, prefixed and attempt identities; the two patterns never overlap."""
+
+    def moved(match: re.Match[str]) -> str:
+        return tokens.get(match.group(0), match.group(0))
+
+    return ATTEMPT.sub(moved, TOKEN.sub(moved, text))
+
+
+def move(value: object, tokens: dict[str, str]) -> object:
     """Return the value with every retained identity moved to its new identity."""
     if isinstance(value, str):
-        return EMBEDDED.sub(lambda match: tokens.get(match.group(0), match.group(0)), value)
-    if isinstance(value, list):
-        return [move(item, tokens) for item in value]
-    if isinstance(value, dict):
-        return {move(key, tokens): move(item, tokens) for key, item in value.items()}
-    return value
+        result: object = _move_text(value, tokens)
+    elif isinstance(value, list):
+        result = [move(item, tokens) for item in value]
+    elif isinstance(value, dict):
+        result = {move(key, tokens): move(item, tokens) for key, item in value.items()}
+    else:
+        result = value
+    return result
 
 
 def record_source(
     compilation: Compilation,
-    case: dict[str, Any],
+    case: dict[str, object],
     plan: AdmittedTrialPlanModel | None = None,
 ) -> ExperimentRecordSource:
     """Return the protected record source of the retained trial facts."""
@@ -197,7 +213,7 @@ def record_source(
 
 def assembled_run(
     compilation: Compilation,
-    case: dict[str, Any],
+    case: dict[str, object],
     plan: AdmittedTrialPlanModel | None = None,
 ) -> ExperimentRunModel:
     """Assemble the run that the reference runtime records for the retained trial facts."""
@@ -207,18 +223,18 @@ def assembled_run(
     )
 
 
-def run_record(compilation: Compilation, case: dict[str, Any]) -> dict[str, Any]:
+def run_record(compilation: Compilation, case: dict[str, object]) -> dict[str, object]:
     return assembled_run(compilation, case).model_dump(mode="json")
 
 
-def _processor_realization() -> tuple[dict[str, Any], Compilation]:
+def _processor_realization() -> tuple[dict[str, object], Compilation]:
     case = next(item for item in _load(COMPILER)["cases"] if item["name"] == "processor-realization")
     return case, Compilation(case["request"])
 
 
-def records_reference(reference: dict[str, Any]) -> dict[str, Any]:
+def records_reference(reference: dict[str, object]) -> dict[str, object]:
     """Record the runs of the processor-realization entry for each retained trial history."""
-    case, compilation = _processor_realization()
+    _, compilation = _processor_realization()
     tokens = plan_tokens(reference["plan"], compilation.wire)
     cases = []
     for item in reference["cases"]:
@@ -232,7 +248,7 @@ def records_reference(reference: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def _evidence(compilation: Compilation, record: dict[str, Any], content: str) -> ExperimentRunEvidenceInputs:
+def _evidence(compilation: Compilation, record: dict[str, object], content: str) -> ExperimentRunEvidenceInputs:
     evidence = ExperimentEvidenceRecordModel.model_validate(record)
     return ExperimentRunEvidenceInputs(
         capture_specs=compilation.request.capture_specs,
@@ -242,10 +258,10 @@ def _evidence(compilation: Compilation, record: dict[str, Any], content: str) ->
 
 
 SCIENCE = "scientific-record-reference.json"
-_SCIENCE: dict[str, Any] = {}
+_SCIENCE: dict[str, object] = {}
 
 
-def science_chain() -> dict[str, Any]:
+def science_chain() -> dict[str, object]:
     """Return the re-recorded scientific trial that the science references share."""
     if not _SCIENCE:
         reference = _load(TESTDATA / SCIENCE)
@@ -256,7 +272,7 @@ def science_chain() -> dict[str, Any]:
             tokens,
         )
         definition = _authored_definition(
-            SimpleNamespace(plan=compilation.plan),
+            cast("RuntimeExperiment", SimpleNamespace(plan=compilation.plan)),
             ExperimentStudyModel.model_validate(reference["definition"]),
         )
         _SCIENCE.update(
@@ -271,29 +287,33 @@ def science_chain() -> dict[str, Any]:
     return _SCIENCE
 
 
-def _science_run(chain: dict[str, Any], run_version: str) -> ExperimentRunModel:
+def _science_run(chain: dict[str, object], run_version: str) -> ExperimentRunModel:
     """Assemble the scientific run with the metadata that the reference runtime completes."""
     task = chain["compilation"].request.task
     metadata = ExperimentRunMetadata.model_validate({**chain["case"]["metadata"], "run_version": run_version})
     run = assemble_run(
         chain["source"],
-        _run_metadata(SimpleNamespace(inputs=SimpleNamespace(task=task)), metadata),
+        _run_metadata(cast("RuntimeExperiment", SimpleNamespace(inputs=SimpleNamespace(task=task))), metadata),
     )
     validate_admitted_trial_run(chain["compilation"].plan, run, list(_receipts(run)))
     return run
 
 
-def _science_study(chain: dict[str, Any], run: ExperimentRunModel, checked: ExperimentRunModel) -> dict[str, Any]:
+def _science_study(chain: dict[str, object], run: ExperimentRunModel, checked: ExperimentRunModel) -> dict[str, object]:
     """Validate the evaluation evidence and return the study snapshot over the validated run."""
     compilation = chain["compilation"]
     task, family = compilation.request.task, compilation.request.family
     content = chain["reference"]["content"]
     validate_experiment_run_against_task(task, checked, evidence=_evidence(compilation, chain["record"], content))
-    bundle = SimpleNamespace(
-        sources=(chain["source"],),
-        runs=(run,),
-        validation_records=(checked,),
-        eligible_run_ids=(run.run_id,),
+    # The study snapshot reads only these bundle fields.
+    bundle = cast(
+        "ExperimentRecordBundle",
+        SimpleNamespace(
+            sources=(chain["source"],),
+            runs=(run,),
+            validation_records=(checked,),
+            eligible_run_ids=(run.run_id,),
+        ),
     )
     study = _study_snapshot(bundle, chain["definition"])
     validate_admitted_trial_study(
@@ -309,7 +329,7 @@ def _science_study(chain: dict[str, Any], run: ExperimentRunModel, checked: Expe
     return study.model_dump(mode="json")
 
 
-def science_reference(reference: dict[str, Any]) -> dict[str, Any]:
+def science_reference(reference: dict[str, object]) -> dict[str, object]:
     """Record the validated run and the study snapshot of one scientific trial."""
     chain = science_chain()
     run, checked = accounting_validation_record(_science_run(chain, chain["case"]["metadata"]["run_version"]), None)
@@ -324,7 +344,7 @@ def science_reference(reference: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def scientific_accounting_reference(reference: dict[str, Any]) -> dict[str, Any]:
+def scientific_accounting_reference(reference: dict[str, object]) -> dict[str, object]:
     """Record added accounting that links a later run version to the exact scientific original."""
     chain = science_chain()
     original, _ = accounting_validation_record(_science_run(chain, chain["case"]["metadata"]["run_version"]), None)
@@ -339,7 +359,7 @@ def scientific_accounting_reference(reference: dict[str, Any]) -> dict[str, Any]
     }
 
 
-def _receipts(run: ExperimentRunModel) -> tuple[Any, ...]:
+def _receipts(run: ExperimentRunModel) -> tuple[object, ...]:
     return tuple(item.cleanup_receipt for item in run.execution_accounting.attempts if item.cleanup_receipt is not None)
 
 
@@ -365,10 +385,10 @@ def _replace(
 
 
 REPLACEMENT = "runtime-replacement-reference.json"
-_REPLACEMENT_CHAIN: dict[str, Any] = {}
+_REPLACEMENT_CHAIN: dict[str, object] = {}
 
 
-def replacement_chain() -> dict[str, Any]:
+def replacement_chain() -> dict[str, object]:
     """Return the re-recorded first replacement that the replacement references share."""
     if not _REPLACEMENT_CHAIN:
         reference = _load(TESTDATA / REPLACEMENT)
@@ -394,7 +414,7 @@ def replacement_chain() -> dict[str, Any]:
     return _REPLACEMENT_CHAIN
 
 
-def runtime_replacement_reference(reference: dict[str, Any]) -> dict[str, Any]:
+def runtime_replacement_reference(reference: dict[str, object]) -> dict[str, object]:
     """Record the first replacement of the retained failed parent trial."""
     chain = replacement_chain()
     first = chain["first"]
@@ -409,7 +429,7 @@ def runtime_replacement_reference(reference: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def replacement_sequence_reference(reference: dict[str, Any]) -> dict[str, Any]:
+def replacement_sequence_reference(reference: dict[str, object]) -> dict[str, object]:
     """Record the second replacement after the retained failed first child."""
     chain = replacement_chain()
     compilation, first = chain["compilation"], chain["first"]
@@ -429,7 +449,7 @@ def replacement_sequence_reference(reference: dict[str, Any]) -> dict[str, Any]:
 
 # Batch receipt fields that trial parallelism removed with scheduler isolation.
 REMOVED_RECEIPT_FIELDS = ("isolation_proof_ref", "lease_evidence_refs")
-MUTATIONS: tuple[tuple[bool, Any], ...] = (
+MUTATIONS: tuple[tuple[bool, object], ...] = (
     (True, None),
     (False, None),
     (False, []),
@@ -439,7 +459,7 @@ MUTATIONS: tuple[tuple[bool, Any], ...] = (
 MUTATIONS += ((False, "invalid"),)
 
 
-def _refused(document: dict[str, Any]) -> bool:
+def _refused(document: dict[str, object]) -> bool:
     try:
         validate_runtime_decision(document)
     except ValueError:
@@ -447,7 +467,7 @@ def _refused(document: dict[str, Any]) -> bool:
     return False
 
 
-def _boundary_document(document: dict[str, Any]) -> dict[str, Any]:
+def _boundary_document(document: dict[str, object]) -> dict[str, object]:
     """Return the current form of one retained private decision."""
     if document["schema_version"] == "runtime-trial-replacement/v1":
         chain = replacement_chain()
@@ -467,14 +487,16 @@ def _boundary_document(document: dict[str, Any]) -> dict[str, Any]:
     return validate_runtime_decision(document).model_dump(mode="json")
 
 
-def _boundary_paths(document: dict[str, Any]) -> list[tuple[str, ...]]:
+def _boundary_paths(document: dict[str, object]) -> list[tuple[str, ...]]:
     paths = [(key,) for key in document if key != "schema_version"]
     if isinstance(document.get("observation"), dict):
         paths += [("observation", key) for key in document["observation"] if key != "kind"]
     return [*paths, ("unexpected",)]
 
 
-def _mutated(document: dict[str, Any], path: tuple[str, ...], delete: bool, value: Any) -> dict[str, Any] | None:
+def _mutated(
+    document: dict[str, object], path: tuple[str, ...], delete: bool, value: object
+) -> dict[str, object] | None:
     changed = copy.deepcopy(document)
     target = changed
     for part in path[:-1]:
@@ -488,41 +510,36 @@ def _mutated(document: dict[str, Any], path: tuple[str, ...], delete: bool, valu
     return changed
 
 
-def decision_boundaries_reference(reference: dict[str, Any]) -> dict[str, Any]:
+def decision_boundaries_reference(reference: dict[str, object]) -> dict[str, object]:
     """Record each private decision and every field mutation that the source models refuse."""
     documents, cases = [], []
     for base, item in enumerate(reference["documents"]):
         document = _boundary_document(item["document"])
-        documents.append(
-            {
-                "document": document,
-                "id": validate_runtime_decision(document).decision_id,
-            }
-        )
-        for path in _boundary_paths(document):
-            for delete, value in MUTATIONS:
-                changed = _mutated(document, path, delete, value)
-                if changed is not None and _refused(changed):
-                    action = "delete" if delete else "set"
-                    name = f"{base}/{'.'.join(path)}/{action}/{json.dumps(value)}"
-                    cases.append(
-                        {
-                            "name": name,
-                            "base": base,
-                            "path": list(path),
-                            "delete": delete,
-                            "value": value,
-                        }
-                    )
+        documents.append({"document": document, "id": validate_runtime_decision(document).decision_id})
+        cases.extend(_refused_mutations(base, document))
     return {**reference, "documents": documents, "cases": cases}
 
 
-def _decision(document: dict[str, Any]) -> dict[str, Any]:
+def _refused_mutations(base: int, document: dict[str, object]) -> list[dict[str, object]]:
+    """Return each field mutation of one decision document that the source models refuse."""
+    cases = []
+    for path in _boundary_paths(document):
+        for delete, value in MUTATIONS:
+            changed = _mutated(document, path, delete, value)
+            if changed is None or not _refused(changed):
+                continue
+            action = "delete" if delete else "set"
+            name = f"{base}/{'.'.join(path)}/{action}/{json.dumps(value)}"
+            cases.append({"name": name, "base": base, "path": list(path), "delete": delete, "value": value})
+    return cases
+
+
+def _decision(document: dict[str, object]) -> dict[str, object]:
     decision = validate_runtime_decision(document)
     return {"document": decision.model_dump(mode="json"), "id": decision.decision_id}
 
 
-def decisions_reference(reference: dict[str, Any]) -> dict[str, Any]:
+def decisions_reference(reference: dict[str, object]) -> dict[str, object]:
     """Record the projection and identity of each retained private decision."""
     return {
         **reference,
@@ -530,7 +547,7 @@ def decisions_reference(reference: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def decision_defaults_reference(reference: dict[str, Any]) -> dict[str, Any]:
+def decision_defaults_reference(reference: dict[str, object]) -> dict[str, object]:
     """Record the defaulted projection and identity of each retained private decision input."""
     return {
         **reference,
@@ -538,7 +555,7 @@ def decision_defaults_reference(reference: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def lineage_case(case: dict[str, Any], experiment_id: str) -> dict[str, Any]:
+def lineage_case(case: dict[str, object], experiment_id: str) -> dict[str, object]:
     records = [validate_runtime_decision(item) for item in case["records"]]
     current = ExperimentRunModel.model_validate(case["current"])
     canonical = canonical_archival_runs(records, experiment_id)
@@ -550,7 +567,7 @@ def lineage_case(case: dict[str, Any], experiment_id: str) -> dict[str, Any]:
     }
 
 
-def record_lineage_reference(reference: dict[str, Any]) -> dict[str, Any]:
+def record_lineage_reference(reference: dict[str, object]) -> dict[str, object]:
     """Record the accounting link of each retained run to its exact scientific original."""
     experiment_id = reference["experiment_id"]
     return {
@@ -559,20 +576,20 @@ def record_lineage_reference(reference: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def compilation_case(case: dict[str, Any]) -> dict[str, Any]:
+def compilation_case(case: dict[str, object]) -> dict[str, object]:
     """Recompile one retained compilation request."""
     compilation = Compilation(case["request"])
     return {**case, "request": compilation.stored, "plan": compilation.wire}
 
 
-def retry_reference(reference: dict[str, Any]) -> dict[str, Any]:
+def retry_reference(reference: dict[str, object]) -> dict[str, object]:
     return {
         **reference,
         "cases": [compilation_case(case) for case in reference["cases"]],
     }
 
 
-RECORDS: dict[str, Callable[[dict[str, Any]], dict[str, Any]]] = {
+RECORDS: dict[str, Callable[[dict[str, object]], dict[str, object]]] = {
     "records-reference.json": records_reference,
     "retry-reference.json": retry_reference,
     SCIENCE: science_reference,
@@ -586,7 +603,7 @@ RECORDS: dict[str, Callable[[dict[str, Any]], dict[str, Any]]] = {
 }
 
 
-def _with_sources(reference: dict[str, Any]) -> dict[str, Any]:
+def _with_sources(reference: dict[str, object]) -> dict[str, object]:
     """Pin each named reference source to its current content."""
     sources = reference.get("sources")
     if isinstance(sources, dict):

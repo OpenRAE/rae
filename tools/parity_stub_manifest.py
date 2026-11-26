@@ -43,8 +43,13 @@ def record(options: tuple[bool, ...]) -> dict[str, Any]:
     return {"options": list(options), "sha256": manifest_digest(document)}
 
 
+def _version() -> str:
+    return VERSION
+
+
 def records() -> list[dict[str, Any]]:
-    stub_manifest._current_backend_version = lambda: VERSION  # The native owner names an explicit version.
+    # The native owner names an explicit version.
+    stub_manifest._current_backend_version = _version
     return [record(options) for options in itertools.product((False, True), repeat=len(OPTIONS))]
 
 

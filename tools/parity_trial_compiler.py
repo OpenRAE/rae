@@ -17,7 +17,6 @@ import sys
 from collections.abc import Callable
 from dataclasses import replace
 from pathlib import Path
-from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "implementations/python/packages"))
@@ -81,18 +80,18 @@ from raes_processor.trial_realization import (  # noqa: E402
 TESTDATA = ROOT / "implementations/go/processor/trial/testdata"
 
 
-def _digest(model: Any) -> str:
+def _digest(model: object) -> str:
     return canonical_json_digest(model.model_dump(mode="json"))
 
 
-def _manifest(key: list[str], payload: dict[str, Any]) -> BackendManifestV2Model | ProcessorManifestV2Model:
+def _manifest(key: list[str], payload: dict[str, object]) -> BackendManifestV2Model | ProcessorManifestV2Model:
     model = ProcessorManifestV2Model if key[0] == "processor" else BackendManifestV2Model
     return model.model_validate(payload)
 
 
 def build_request(
-    payload: dict[str, Any], limits: dict[str, Any] | None = None
-) -> tuple[TrialCompilationRequest, dict[str, Any]]:
+    payload: dict[str, object], limits: dict[str, object] | None = None
+) -> tuple[TrialCompilationRequest, dict[str, object]]:
     """Return the reference request and the request inputs with refreshed derived digests."""
     stored = copy.deepcopy(payload)
     family = admit_scenario_family(parse_sdl(json.dumps(stored["family"])))
@@ -142,7 +141,7 @@ def build_request(
 
 def _instantiation(
     plan: AdmittedTrialPlanModel, entry_id: str, request: TrialCompilationRequest, *, provenance: bool
-) -> dict[str, Any]:
+) -> dict[str, object]:
     instance = instantiate_admitted_trial_entry(plan=plan, plan_entry_id=entry_id, family=request.family)
     result = {"entry_id": entry_id, "snapshot_digest": canonical_instantiated_sdl_digest(instance).value}
     if provenance:
@@ -150,7 +149,7 @@ def _instantiation(
     return result
 
 
-def _realization(plan: AdmittedTrialPlanModel, entry_id: str, request: TrialCompilationRequest) -> dict[str, Any]:
+def _realization(plan: AdmittedTrialPlanModel, entry_id: str, request: TrialCompilationRequest) -> dict[str, object]:
     backend = next(key for key in request.apparatus_manifests if key[0] == "backend")
     realized = realize_admitted_trial_entry(
         inputs=TrialRealizationInputs(
@@ -175,7 +174,7 @@ def _realization(plan: AdmittedTrialPlanModel, entry_id: str, request: TrialComp
     }
 
 
-def _entry_at(plan: AdmittedTrialPlanModel, coordinate: dict[str, Any]) -> str:
+def _entry_at(plan: AdmittedTrialPlanModel, coordinate: dict[str, object]) -> str:
     """Return the entry at the retained instantiation coordinate; identities follow the refreshed inputs."""
     matches = [key for key, entry in plan.entries.items() if entry.coordinate.model_dump(mode="json") == coordinate]
     if len(matches) != 1:
@@ -183,7 +182,7 @@ def _entry_at(plan: AdmittedTrialPlanModel, coordinate: dict[str, Any]) -> str:
     return matches[0]
 
 
-def compilation_case(case: dict[str, Any]) -> dict[str, Any]:
+def compilation_case(case: dict[str, object]) -> dict[str, object]:
     request, stored = build_request(case["request"])
     result = compile_admitted_trial_plan(request)
     if result.plan is None:
@@ -205,11 +204,11 @@ def compilation_case(case: dict[str, Any]) -> dict[str, Any]:
     return recorded
 
 
-def compiler_reference(reference: dict[str, Any]) -> dict[str, Any]:
+def compiler_reference(reference: dict[str, object]) -> dict[str, object]:
     return {**reference, "cases": [compilation_case(case) for case in reference["cases"]]}
 
 
-def _diagnostics(case: dict[str, Any]) -> list[dict[str, Any]]:
+def _diagnostics(case: dict[str, object]) -> list[dict[str, object]]:
     request, stored = build_request(case["request"], case.get("limits"))
     case["request"] = stored
     result = compile_admitted_trial_plan(request)
@@ -227,7 +226,7 @@ def _diagnostics(case: dict[str, Any]) -> list[dict[str, Any]]:
     ]
 
 
-def refusal_reference(reference: dict[str, Any]) -> dict[str, Any]:
+def refusal_reference(reference: dict[str, object]) -> dict[str, object]:
     """Re-record refused compilations in the shape each reference keeps."""
     cases = []
     for item in reference["cases"]:
@@ -249,12 +248,12 @@ def _accept_feature(*_args: object) -> None:
     """The retained mixed cases are positive; the native fixture installs the same accepting owner."""
 
 
-def _pairs(rows: list[dict[str, Any]], kind: type) -> dict[tuple[str, str], Any]:
+def _pairs(rows: list[dict[str, object]], kind: type) -> dict[tuple[str, str], object]:
     adapter = TypeAdapter(kind)
     return {tuple(row["key"]): adapter.validate_python({"profile_id": row["key"][0], **row["value"]}) for row in rows}
 
 
-def _mixed_context(reference: dict[str, Any]) -> MixedCompositionResolutionContext:
+def _mixed_context(reference: dict[str, object]) -> MixedCompositionResolutionContext:
     return MixedCompositionResolutionContext(
         scenario_snapshots={
             key: ExperimentReferenceModel.model_validate(value)
@@ -286,12 +285,12 @@ def _mixed_context(reference: dict[str, Any]) -> MixedCompositionResolutionConte
     )
 
 
-def _reseal_profile(profile: dict[str, Any]) -> dict[str, Any]:
+def _reseal_profile(profile: dict[str, object]) -> dict[str, object]:
     fields = {key: value for key, value in profile.items() if key != "profile_digest"}
     return seal_mixed_composition_profile(**fields).model_dump(mode="json")
 
 
-def _replace_digests(value: Any, replacements: dict[str, str]) -> Any:
+def _replace_digests(value: object, replacements: dict[str, str]) -> object:
     text = json.dumps(value)
     for old, new in replacements.items():
         if old != new:
@@ -299,8 +298,26 @@ def _replace_digests(value: Any, replacements: dict[str, str]) -> Any:
     return json.loads(text)
 
 
-def _refresh_mixed(case: dict[str, Any]) -> dict[str, Any]:
+def _refresh_mixed(case: dict[str, object]) -> dict[str, object]:
     """Carry the refreshed scenario snapshots into the profiles, contexts and assignments that cite them."""
+    snapshots = _pure_snapshots(case)
+    replacements = {
+        ref["ref_digest"]: snapshots[ref_id]
+        for context in case["contexts"].values()
+        for ref_id, ref in context["scenario_snapshots"].items()
+        if ref_id in snapshots
+    }
+    case = _replace_digests(case, replacements)
+    for _ in range(8):
+        changed = {old: new for old, new in _reseal_profiles(case).items() if old != new}
+        if not changed:
+            return case
+        case = _replace_digests(case, changed)
+    raise ValueError("mixed profile digests do not reach a fixed point")
+
+
+def _pure_snapshots(case: dict[str, object]) -> dict[str, str]:
+    """Return the scenario snapshot digest of each entry that the request compiles without mixed profiles."""
     pure_inputs = copy.deepcopy(case["request"])
     pure_inputs["input_refs"].pop("mixed_composition_profile_refs", None)
     pure_request, _ = build_request(pure_inputs)
@@ -311,34 +328,27 @@ def _refresh_mixed(case: dict[str, Any]) -> dict[str, Any]:
     for entry in pure.plan.entries.values():
         outcomes = {selection.variation_point_id: selection.outcome for selection in entry.selections}
         selected = select_scenario_family(pure_request.family, outcomes)
-        snapshots[f"snapshot:compiler-family:{entry.coordinate.replicate_id}"] = canonical_instantiated_sdl_digest(
-            selected
-        ).value
-    replacements = {}
+        snapshot = canonical_instantiated_sdl_digest(selected).value
+        snapshots[f"snapshot:compiler-family:{entry.coordinate.replicate_id}"] = snapshot
+    return snapshots
+
+
+def _reseal_profiles(case: dict[str, object]) -> dict[str, str]:
+    """Reseal each nested and top-level profile in place; return each old digest with its new digest."""
+    profile_digests = {}
     for context in case["contexts"].values():
-        for ref_id, ref in context["scenario_snapshots"].items():
-            if ref_id in snapshots:
-                replacements[ref["ref_digest"]] = snapshots[ref_id]
-    case = _replace_digests(case, replacements)
-    for _ in range(8):
-        profile_digests = {}
-        for context in case["contexts"].values():
-            for key, nested in context["nested_profiles"].items():
-                resealed = _reseal_profile(nested)
-                profile_digests[nested["profile_digest"]] = resealed["profile_digest"]
-                context["nested_profiles"][key] = resealed
-        for key, profile in case["profiles"].items():
-            resealed = _reseal_profile(profile)
-            profile_digests[profile["profile_digest"]] = resealed["profile_digest"]
-            case["profiles"][key] = resealed
-        changed = {old: new for old, new in profile_digests.items() if old != new}
-        if not changed:
-            return case
-        case = _replace_digests(case, changed)
-    raise ValueError("mixed profile digests do not reach a fixed point")
+        for key, nested in context["nested_profiles"].items():
+            resealed = _reseal_profile(nested)
+            profile_digests[nested["profile_digest"]] = resealed["profile_digest"]
+            context["nested_profiles"][key] = resealed
+    for key, profile in case["profiles"].items():
+        resealed = _reseal_profile(profile)
+        profile_digests[profile["profile_digest"]] = resealed["profile_digest"]
+        case["profiles"][key] = resealed
+    return profile_digests
 
 
-def _mixed_request(case: dict[str, Any]) -> tuple[TrialCompilationRequest, dict[str, Any]]:
+def _mixed_request(case: dict[str, object]) -> tuple[TrialCompilationRequest, dict[str, object]]:
     request, stored = build_request(case["request"])
     return replace(
         request,
@@ -357,7 +367,7 @@ def _mixed_request(case: dict[str, Any]) -> tuple[TrialCompilationRequest, dict[
     ), stored
 
 
-def mixed_case(case: dict[str, Any]) -> dict[str, Any]:
+def mixed_case(case: dict[str, object]) -> dict[str, object]:
     case = _refresh_mixed(copy.deepcopy(case))
     request, stored = _mixed_request(case)
     result = compile_admitted_trial_plan(request)
@@ -367,8 +377,8 @@ def mixed_case(case: dict[str, Any]) -> dict[str, Any]:
 
 
 def _compiled(
-    inputs: dict[str, Any], name: str
-) -> tuple[TrialCompilationRequest, dict[str, Any], AdmittedTrialPlanModel]:
+    inputs: dict[str, object], name: str
+) -> tuple[TrialCompilationRequest, dict[str, object], AdmittedTrialPlanModel]:
     request, stored = build_request(inputs)
     result = compile_admitted_trial_plan(request)
     if result.plan is None:
@@ -376,12 +386,12 @@ def _compiled(
     return request, stored, result.plan
 
 
-def manifest_defaults(reference: dict[str, Any]) -> dict[str, Any]:
+def manifest_defaults(reference: dict[str, object]) -> dict[str, object]:
     _, stored, plan = _compiled(reference["request"], "manifest-defaults")
     return {**reference, "request": stored, "plan": plan.model_dump(mode="json")}
 
 
-def typed_replay(reference: dict[str, Any]) -> dict[str, Any]:
+def typed_replay(reference: dict[str, object]) -> dict[str, object]:
     request, stored, plan = _compiled(reference["request"], "typed-replay")
     entry_id = _entry_at(plan, reference["plan"]["entries"][reference["entry_id"]]["coordinate"])
     instance = _instantiation(plan, entry_id, request, provenance=False)
@@ -394,11 +404,11 @@ def typed_replay(reference: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def mixed_reference(reference: dict[str, Any]) -> dict[str, Any]:
+def mixed_reference(reference: dict[str, object]) -> dict[str, object]:
     return {**reference, "cases": [mixed_case(case) for case in reference["cases"]]}
 
 
-def mixed_replacement_case(case: dict[str, Any]) -> dict[str, Any]:
+def mixed_replacement_case(case: dict[str, object]) -> dict[str, object]:
     """Compile the first original slot's successor against its own freshly compiled root plan."""
     case = _refresh_mixed(copy.deepcopy(case))
     request, stored = _mixed_request(case)
@@ -423,14 +433,14 @@ def mixed_replacement_case(case: dict[str, Any]) -> dict[str, Any]:
     return {**case, "request": stored, "plan": child.model_dump(mode="json"), "origin": origin}
 
 
-def mixed_replacement_reference(reference: dict[str, Any]) -> dict[str, Any]:
+def mixed_replacement_reference(reference: dict[str, object]) -> dict[str, object]:
     return {**reference, "cases": [mixed_replacement_case(case) for case in reference["cases"]]}
 
 
 RUN_FIXTURE = ROOT / "contracts/fixtures/experiment-core/experiment-run-v1/valid/reference.json"
 
 
-def _realized_refs(request: TrialCompilationRequest, plan: AdmittedTrialPlanModel, entry_id: str) -> list[Any]:
+def _realized_refs(request: TrialCompilationRequest, plan: AdmittedTrialPlanModel, entry_id: str) -> list[object]:
     return _realization(plan, entry_id, request)["processor_plan_refs"]
 
 
@@ -507,7 +517,7 @@ def _archive(
     return ExperimentRunModel.model_validate(payload), receipt
 
 
-def _replacement_wire(result: TrialReplacementResult) -> dict[str, Any]:
+def _replacement_wire(result: TrialReplacementResult) -> dict[str, object]:
     return {
         "plan": None if result.plan is None else result.plan.model_dump(mode="json"),
         "superseded_run": None if result.superseded_run is None else result.superseded_run.model_dump(mode="json"),
@@ -526,12 +536,14 @@ def _replacement_wire(result: TrialReplacementResult) -> dict[str, Any]:
     }
 
 
-def replacement_reference(reference: dict[str, Any]) -> dict[str, Any]:
+def replacement_reference(reference: dict[str, object]) -> dict[str, object]:
     """Re-run the reference replacement scenario that each retained case names."""
     request, stored, root = _compiled(reference["request"], "replacement-root")
     root_entry = next(iter(root.entries))
 
-    def allocate(run: ExperimentRunModel, receipt: TrialCleanupReceiptModel, history: tuple = ()) -> Any:
+    def allocate(
+        run: ExperimentRunModel, receipt: TrialCleanupReceiptModel, history: tuple[TrialReplacementResult, ...] = ()
+    ) -> object:
         return compile_replacement_trial(
             request,
             original_plan=root,
@@ -547,7 +559,7 @@ def replacement_reference(reference: dict[str, Any]) -> dict[str, Any]:
     second = allocate(run1, receipt1, (first,))
     run2, receipt2 = _archive(request, second.plan)
     changed = ExperimentRunModel.model_validate({**run0.model_dump(mode="json"), "run_version": "changed"})
-    scenarios: dict[str, tuple[ExperimentRunModel, TrialCleanupReceiptModel, tuple]] = {
+    scenarios: dict[str, tuple[ExperimentRunModel, TrialCleanupReceiptModel, tuple[TrialReplacementResult, ...]]] = {
         "fresh": (run0, receipt0, ()),
         "second": (run1, receipt1, (first,)),
         "duplicate": (run0, receipt0, (first, second)),
@@ -588,7 +600,7 @@ def replacement_reference(reference: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def _treatment_valid(family: Any, treatment: dict[str, Any]) -> bool:
+def _treatment_valid(family: object, treatment: dict[str, object]) -> bool:
     try:
         ExpandedScenarioBindingTargetResolver(family).validate_selection(
             ExperimentScenarioSelectionDescriptorModel.model_validate(treatment)
@@ -598,7 +610,7 @@ def _treatment_valid(family: Any, treatment: dict[str, Any]) -> bool:
     return True
 
 
-def typed_reference(reference: dict[str, Any]) -> dict[str, Any]:
+def typed_reference(reference: dict[str, object]) -> dict[str, object]:
     """Re-record typed compilations and the treatment verdicts against the first case's family."""
     before = reference["cases"][0]["request"]["input_refs"]["scenario_family_ref"]["ref_digest"]
     cases = [compilation_case(case) for case in reference["cases"]]
@@ -613,7 +625,7 @@ def typed_reference(reference: dict[str, Any]) -> dict[str, Any]:
     return {**reference, "cases": cases, "treatments": treatments}
 
 
-RECORDS: dict[str, Callable[[dict[str, Any]], dict[str, Any]]] = {
+RECORDS: dict[str, Callable[[dict[str, object]], dict[str, object]]] = {
     "compiler-reference.json.gz": compiler_reference,
     "typed-reference.json.gz": typed_reference,
     "typed-public-reference.json.gz": compiler_reference,
@@ -630,12 +642,12 @@ RECORDS: dict[str, Callable[[dict[str, Any]], dict[str, Any]]] = {
 }
 
 
-def _load(path: Path) -> Any:
+def _load(path: Path) -> object:
     raw = path.read_bytes()
     return json.loads(gzip.decompress(raw) if path.suffix == ".gz" else raw)
 
 
-def _store(path: Path, value: Any) -> None:
+def _store(path: Path, value: object) -> None:
     text = json.dumps(value, indent=2) + "\n"
     if path.suffix == ".gz":
         path.write_bytes(gzip.compress(text.encode(), compresslevel=9, mtime=0))

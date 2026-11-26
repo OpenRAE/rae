@@ -8,6 +8,7 @@ import copy
 import json
 import sys
 import tempfile
+from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
@@ -22,6 +23,9 @@ from raes.observation_scope import resolve_safe_states  # noqa: E402
 
 OUTPUT = ROOT / "implementations/go/internal/sdl/authoring/testdata/safe-state-reference.json"
 SUBJECTS = ["nodes.first", "nodes.second", "nodes.first.services.api"]
+MAIN = "main.yaml"
+FIRST_NODE = "/nodes/first"
+DEFAULT_KINDS = ("safe-hold", "controlled-stop", "continue")
 
 
 def payload(kind: str = "safe-hold") -> dict[str, Any]:
@@ -71,7 +75,7 @@ def payload(kind: str = "safe-hold") -> dict[str, Any]:
 
 
 def single(value: dict[str, Any]) -> dict[str, str]:
-    return {"main.yaml": yaml.safe_dump(value, sort_keys=False)}
+    return {MAIN: yaml.safe_dump(value, sort_keys=False)}
 
 
 def imported(module_state: dict[str, Any], root_state: dict[str, Any] | None) -> dict[str, str]:
@@ -89,91 +93,83 @@ def imported(module_state: dict[str, Any], root_state: dict[str, Any] | None) ->
     if root_state is not None:
         root["safe_state"] = root_state
     return {
-        "main.yaml": yaml.safe_dump(root, sort_keys=False),
+        MAIN: yaml.safe_dump(root, sort_keys=False),
         "module.yaml": yaml.safe_dump(module, sort_keys=False),
     }
 
 
-def cases() -> list[tuple[str, dict[str, str], dict[str, Any] | None]]:
-    hold = payload()["safe_state"]["default"]
-    stop = {"kind": "controlled-stop", "assertion_refs": ["safe"]}
-    result: list[tuple[str, dict[str, str], dict[str, Any] | None]] = []
-    for kind in ("safe-hold", "controlled-stop", "continue"):
-        result.append((f"default-{kind}", single(payload(kind)), None))
+Case = tuple[str, dict[str, str], dict[str, Any] | None]
+
+
+def _set(path: tuple[str, ...], value: object) -> Callable[[dict[str, Any]], None]:
+    def change(document: dict[str, Any]) -> None:
+        target = document
+        for key in path[:-1]:
+            target = target[key]
+        target[path[-1]] = value
+
+    return change
+
+
+def _invalid_changes(hold: dict[str, Any]) -> dict[str, list[Callable[[dict[str, Any]], None]]]:
+    """Return each invalid variant of the base payload, in recorded order."""
+    readback = ("evidence_requirements", "readback")
+    return {
+        "declared": [_set(("propositions", "safe", "basis"), "declared_state")],
+        "precondition": [_set(("assertions", "safe", "role"), "precondition")],
+        "negative": [_set(("assertions", "safe", "polarity"), "negative")],
+        "any": [_set(("propositions", "safe", "quantifier"), "any")],
+        "subject": [_set(("propositions", "safe", "subjects"), SUBJECTS[:2])],
+        "evidence": [_set((*readback, "source_refs"), SUBJECTS[:2]), _set((*readback, "scope_refs"), SUBJECTS[:2])],
+        "field-scope": [_set(("safe_state",), {"scopes": [{"scope": f"{FIRST_NODE}/os", "state": hold}]})],
+        "missing": [_set(("safe_state", "default", "assertion_refs"), ["absent"])],
+    }
+
+
+def _single_cases(hold: dict[str, Any], stop: dict[str, Any]) -> list[Case]:
+    result: list[Case] = [(f"default-{kind}", single(payload(kind)), None) for kind in DEFAULT_KINDS]
     nearest = payload("continue")
-    nearest["safe_state"]["scopes"] = [{"scope": "/nodes/first", "state": stop}]
-    result.append(("nearest-scope", single(nearest), None))
+    nearest["safe_state"]["scopes"] = [{"scope": FIRST_NODE, "state": stop}]
     service = payload()
-    service["safe_state"] = {"scopes": [{"scope": "/nodes/first/services/api", "state": stop}]}
-    result.append(("service-scope", single(service), None))
-    for change in (
-        "declared",
-        "precondition",
-        "negative",
-        "any",
-        "subject",
-        "evidence",
-        "field-scope",
-        "missing",
-    ):
+    service["safe_state"] = {"scopes": [{"scope": f"{FIRST_NODE}/services/api", "state": stop}]}
+    result.extend([("nearest-scope", single(nearest), None), ("service-scope", single(service), None)])
+    for change, steps in _invalid_changes(hold).items():
         value = payload()
-        if change == "declared":
-            value["propositions"]["safe"]["basis"] = "declared_state"
-        elif change == "precondition":
-            value["assertions"]["safe"]["role"] = "precondition"
-        elif change == "negative":
-            value["assertions"]["safe"]["polarity"] = "negative"
-        elif change == "any":
-            value["propositions"]["safe"]["quantifier"] = "any"
-        elif change == "subject":
-            value["propositions"]["safe"]["subjects"] = SUBJECTS[:2]
-        elif change == "evidence":
-            value["evidence_requirements"]["readback"]["source_refs"] = SUBJECTS[:2]
-            value["evidence_requirements"]["readback"]["scope_refs"] = SUBJECTS[:2]
-        elif change == "field-scope":
-            value["safe_state"] = {"scopes": [{"scope": "/nodes/first/os", "state": hold}]}
-        else:
-            value["safe_state"]["default"]["assertion_refs"] = ["absent"]
+        for step in steps:
+            step(value)
         result.append((f"invalid-{change}", single(value), None))
     variable = payload()
     variable["variables"] = {"subject": {"type": "string", "default": "nodes.first"}}
     variable["propositions"]["safe"]["subjects"] = ["${subject}", *SUBJECTS[1:]]
     result.append(("deferred-variable", single(variable), None))
-    result.append(("import-default", imported({"default": hold}, None), None))
-    result.append(
+    return result
+
+
+def _import_cases(hold: dict[str, Any], stop: dict[str, Any]) -> list[Case]:
+    nested = {"scopes": [{"namespace": [], "scope": "/nodes/second", "state": stop}], "default": hold}
+    return [
+        ("import-default", imported({"default": hold}, None), None),
         (
             "import-scope-and-root-default",
-            imported(
-                {"scopes": [{"scope": "/nodes/first", "state": stop}]},
-                {"default": hold},
-            ),
+            imported({"scopes": [{"scope": FIRST_NODE, "state": stop}]}, {"default": hold}),
             None,
-        )
-    )
-    nested = {
-        "scopes": [{"namespace": [], "scope": "/nodes/second", "state": stop}],
-        "default": hold,
-    }
-    result.append(("import-nested-namespace", imported(nested, None), None))
-    result.append(
-        (
-            "import-field-scope",
-            imported({"scopes": [{"scope": "/nodes/first/os", "state": hold}]}, None),
-            None,
-        )
-    )
-    for scopes in (False, True):
-        value = payload()
-        if scopes:
-            value["safe_state"]["scopes"] = [{"scope": "/nodes/first", "state": copy.deepcopy(hold)}]
-        result.append(
-            (
-                f"rename-{'scopes' if scopes else 'default'}",
-                single(value),
-                {"target_address": "assertions.safe", "new_local_name": "verified"},
-            )
-        )
-    return result
+        ),
+        ("import-nested-namespace", imported(nested, None), None),
+        ("import-field-scope", imported({"scopes": [{"scope": f"{FIRST_NODE}/os", "state": hold}]}, None), None),
+    ]
+
+
+def _rename_cases(hold: dict[str, Any]) -> list[Case]:
+    rename = {"target_address": "assertions.safe", "new_local_name": "verified"}
+    default, scoped = payload(), payload()
+    scoped["safe_state"]["scopes"] = [{"scope": FIRST_NODE, "state": copy.deepcopy(hold)}]
+    return [("rename-default", single(default), rename), ("rename-scopes", single(scoped), rename)]
+
+
+def cases() -> list[Case]:
+    hold = payload()["safe_state"]["default"]
+    stop = {"kind": "controlled-stop", "assertion_refs": ["safe"]}
+    return [*_single_cases(hold, stop), *_import_cases(hold, stop), *_rename_cases(hold)]
 
 
 def record_case(name: str, files: dict[str, str], rename: dict[str, Any] | None) -> dict[str, Any]:
@@ -182,7 +178,7 @@ def record_case(name: str, files: dict[str, str], rename: dict[str, Any] | None)
         for file, text in files.items():
             (Path(directory) / file).write_text(text, encoding="utf-8")
         try:
-            scenario = parse_sdl_file(Path(directory) / "main.yaml")
+            scenario = parse_sdl_file(Path(directory) / MAIN)
         except SDLError as error:
             row.update(
                 accepted=False,

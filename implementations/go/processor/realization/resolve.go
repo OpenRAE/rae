@@ -85,7 +85,7 @@ func resolutionDiagnostics(requirements []Requirement, options ResolveOptions) (
 	return append(findings, envelopeFindings...), nil
 }
 
-func resolveAuthority(authority []Authority, known map[requirementIdentity]bool, decisions map[requirementIdentity]string, opened map[requirementIdentity]string) ([]Authority, error) {
+func resolveAuthority(authority []Authority, known map[requirementIdentity]bool, decisions, opened map[requirementIdentity]string) ([]Authority, error) {
 	result := make([]Authority, 0, len(authority))
 
 	for _, input := range authority {
