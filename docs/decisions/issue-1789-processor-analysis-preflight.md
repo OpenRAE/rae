@@ -31,10 +31,12 @@ The existing facade accepts a compilation plus `Options map[string]any`.
 That declaration does not supply every service's actual input or admission context.
 Satisfiability needs authored finite domains. These precede instantiation and compilation.
 Exploit analysis needs its snapshot, graph, bindings, and query.
+
 Opacity needs a carrier or transition model plus its exact profile and catalog.
 Synthesis needs pinned assertions and decisions.
 Authoring comparison needs a vector and both observed outputs.
 Do not create a dummy compilation for these inputs.
+
 Do not use arbitrary option maps as their domain model.
 Keep the declared facade. Record its typed additions and owners before code.
 Check exact native handles, including embedded handles.
@@ -52,6 +54,7 @@ This preflight does not certify it either.
 Use a private processor adapter over an existing Go C-API binding.
 The required Z3 version is `4.16.0`.
 Add no general solver framework.
+
 Keep Z3 out of contract admission and public records.
 [aclements/go-z3](https://github.com/aclements/go-z3) is a candidate binding, not an admitted dependency.
 Its README requires a C library.
@@ -62,6 +65,7 @@ The binding revision and license still need review before code.
 Its supported platforms and build/link route also need review.
 Check logic selection, assumptions, parameters, and unknown handling.
 Check version reads, context lifetime, and bounded interruption too.
+
 If the binding lacks a required operation, record an alternative.
 Explain its tradeoffs before code.
 Do not copy a binding or add custom FFI without that decision.
@@ -71,6 +75,7 @@ Apply [ADR-106](adrs/adr-106-developer-package-and-artifact-management.md) and t
 The binding belongs in reviewed `go.mod`/`go.sum` and the architecture layer's external imports.
 Native libraries, headers, compilers, and binaries need admitted build inputs.
 Record their source and build route.
+
 The artifact lock cannot grant a new artifact class.
 It cannot grant a new install action either.
 Reuse `implementations/tooling/artifacts.lock.json`, `tools.bootstrap_profile`, and existing artifact policy validators where applicable.
@@ -83,6 +88,7 @@ Record loader search paths and required notices too.
 Load only the admitted library.
 Matching versions do not prove matching bytes or origins.
 Safely refuse missing or mismatched native inputs.
+
 A no-cgo build must not silently omit analysis or substitute another algorithm.
 Keep contexts request-local and release native resources on every exit.
 Define who owns concurrent calls and cancellation.
@@ -95,9 +101,11 @@ Keep `raes-z3-finite-domain/v1`, `z3-solver`, `4.16.0.0`, and `4.16.0` correlate
 Do not widen identity fields independently.
 The schema must refuse mixed Python/Go identities.
 The only published-schema exception adds a solver profile to `scenario-satisfiability-evidence-v1`.
+
 The Python exception covers its solver model only.
 `schema_bundle()` must reproduce that schema. Python execution stays unchanged.
 Record the contract change under the current per-schema publication policy and in the delivery record.
+
 The current manifest selects `contracts/schema-publication/entries`; it no longer requires per-change content hashes.
 Use existing generators for bindings and packaged corpus.
 Keep schema generation, publication checks, and architecture commitments in agreement.
@@ -122,6 +130,7 @@ It must not weaken strict authoring comparison.
 Its UTC conversion discards monotonic information.
 Record a narrow elapsed-time/deadline seam in the existing time design.
 Tests need to inject elapsed time at that seam.
+
 Do not scatter `time.Now` calls through services.
 Do not use SDL simulation time or adjustable UTC time for the watchdog.
 Host speed still affects completion.
@@ -159,6 +168,7 @@ Operational log escaping cannot make arbitrary payload text safe.
 Do not log models, raw diagnostics, assignments, solver programs, source locators, or candidate bytes.
 Evidence may contain authored information under its contract.
 Operational logs may not copy it.
+
 The existing environment shape owner is `contract/admission/sdl_environment.go`.
 The runtime auth references remain `raes_runtime/control_plane_security.py` and `control_plane_api/_auth.py` under the Python package root.
 They keep their existing authority; analysis supplies no replacement principal shape or token path.
@@ -169,6 +179,7 @@ Exploit analysis keeps canonical breadth-first monotonic-additive search.
 It keeps exact binding admission and closed query semantics.
 Keep the initial-goal case, prerequisite checks, advancing-effect checks, state identity, and witness order.
 Keep the 4,096-state, 256-blocked-transition, 512-impossible-transition, and 64-diagnostic evidence caps.
+
 Depth exhaustion remains visible in bounded failure evidence. An invalid path is not a universal impossibility proof.
 Do not truncate evidence and claim completion.
 Do not merge this search policy into a universal graph engine.
@@ -178,10 +189,12 @@ It also includes release, coalition fusion, strategy, and order.
 Both finite-carrier and model-check services use that same kernel.
 They keep their own admission and evidence lanes.
 Keep complete secret-obligation counts, lowest-ordinal counterexamples, canonical shortest paths, coverage, and explicit non-claims.
+
 Do not infer coalition opacity from individual opacity.
 Do not merge strategies or omit order context.
 Vacuity cannot become success.
 The model schema admits up to 100,000 states and 200,000 transitions.
+
 The checker supports only 4,096 states and 65,536 transitions, fixed in its evidence schema.
 These are different boundaries.
 Larger admitted models produce the reference unsupported result.
@@ -191,7 +204,9 @@ Finite testing, complete finite-model checking, formal proof, runtime enforcemen
 Semantic comparison already has its own owner.
 Extend it only for demonstrated gaps.
 Keep presence, identity, textual, structural, semantic, dependency, provenance, and completeness axes separate.
-Request limits cannot exceed the exact admitted profile. Preserve unknown and incomplete results.
+Request limits cannot exceed the exact admitted profile.
+
+Preserve unknown and incomplete results.
 New artifact types extend the owning projection/profile seam.
 Add no generic JSON diff or caller-supplied projection callback.
 
@@ -199,6 +214,7 @@ Candidate synthesis uses the exact `concept-nodes/v1` profile coordinate and com
 Its source-neutral assertions and decisions remain separate from retrieval adapters and credentials.
 Reuse native formatting and ordinary structural/semantic re-entry.
 Success does not instantiate, compile, plan, or execute the candidate.
+
 Keep all-or-none refusals and construct contribution owners.
 Keep exact bytes, semantic digest, and derivation digest distinct.
 No guessed relations, defaults, placeholders, or source-specific dispatch may fill unresolved meaning.
@@ -209,12 +225,15 @@ Authoring comparison follows `specs/conformance/authoring-adapters.md` and its r
 Its behavior reference also includes `raes_conformance/authoring_adapters.py` and `_authoring_observations.py`.
 Use native SDL validation/rename and `processor/comparison`.
 Reuse `authoring.Parser.FormatContext` and `Parser.Transform` through their proper owner.
-Declare any missing public seam. Do not copy internal methods into analysis.
+Declare any missing public seam.
+
+Do not copy internal methods into analysis.
 Add no second validation or comparison workflow.
 Keep strict rejecting migration, self-contained inputs, fixed parser ceilings, corpus containment, and nonempty case sets.
 Preserve the diagnostic semantic multiset, including multiplicity, without inventing a diagnostic DTO.
 Recheck source-admission refusals and transformation-report requirements.
 A claimed operation is not evidence it ran.
+
 Keep artifact, diagnostic, provenance, and semantic dispositions independent, including the bound semantic companion result.
 Two identical wrong outputs cannot pass.
 Each observation must match the fixed oracle.
@@ -233,10 +252,12 @@ The current runner inventory has no satisfiability or exploit-path command runne
 Existing schema and processor parity therefore does not establish analysis coverage.
 Register real service runners and required inventory keys through the incumbent harness.
 Never hand-edit golden expectations or let product code read them. Corpus recording remains CI-only.
+
 Changing the solver identity also changes `solver_configuration_digest` and any enclosing digest that binds it.
 Any parity allowance must name exact identity paths.
 Validate both profiles independently. Recompute their dependent digests.
 Do not ignore all digests or erase whole solver configurations.
+
 Do not weaken production replay across profiles.
 The Python solver-model exception also affects corpus provenance and generated bindings.
 Use the existing CI recording route.
@@ -247,6 +268,7 @@ Trace every scoped Python input limit, security check, error, recovery, and defe
 Start with the satisfiability/exploit service and CLI tests, opacity issue #961/#962 tests, candidate-synthesis tests, and authoring-adapter tests.
 Include the semantic comparison defects under #1210 and relationship/candidate parity under #1339.
 Follow behavior and helper dependencies beyond filenames.
+
 Runtime/proof tests do not put their implementation in scope automatically.
 Add failure-path coverage for native identity, unknown results, deadline edges, cleanup, concurrency, and schema profile cross-products.
 Use controlled time for budget assertions.
@@ -256,6 +278,7 @@ Reuse `.ground-control.yaml`, `.gc/plan-rules.md`, `tools/policy/adr_policy.yaml
 Keep `implementations/.golangci.yml`, `implementations/.gremlins.yaml`, locks, generators, and `.github/workflows/canonical-verification.yml` authoritative.
 Do not invent a formal requirement UID for this requirement-free issue.
 Local verification uses explicit cases and changed-path prose/policy checks.
+
 CI owns full test, race, coverage, mutation, fuzz, corpus, and regression gates under their existing scheduling rules.
 Regression naming retains ADR-123's merge-base failure rule.
 Port parity tests are not automatically new-defect regressions.

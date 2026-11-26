@@ -1,4 +1,4 @@
-"""The Quick Example in the SDL reference page must stay valid SDL."""
+"""The Quick example in the SDL reference page must stay valid SDL."""
 
 from __future__ import annotations
 
@@ -14,11 +14,11 @@ SDL_REFERENCE = REPO_ROOT / "docs" / "explain" / "sdl" / "index.md"
 
 
 def _quick_example() -> str:
-    """Return the one YAML block of the page's "Quick Example" section."""
+    """Return the one YAML block of the page's "Quick example" section."""
     page = SDL_REFERENCE.read_text(encoding="utf-8")
-    section = page.partition("\n## Quick Example\n")[2].partition("\n## ")[0]
+    section = page.partition("\n## Quick example\n")[2].partition("\n## ")[0]
     blocks = re.findall(r"^```yaml\n(.*?)^```$", section, flags=re.DOTALL | re.MULTILINE)
-    assert len(blocks) == 1, f"expected one yaml block in the Quick Example section, found {len(blocks)}"
+    assert len(blocks) == 1, f"expected one yaml block in the Quick example section, found {len(blocks)}"
     return blocks[0]
 
 

@@ -15,6 +15,7 @@ A delivery invocation can host tool actions without an autonomous policy.
 Delivery, control acceptance, invocation dispatch and each tool action remain separate facts.
 A delivery receipt is not a tool action grant.
 Each child requires exact binding, current authority, crossing and temporal checks before dispatch.
+
 Each dispatch grant can be consumed only once.
 Each admitted child retains its own identity, outcome and behavior history.
 Unknown effects remain fenced until explicit resolution.
@@ -30,6 +31,7 @@ ADR-104 supplies the single runtime owner and profiled store guarantees.
 ADR-108 supplies independent action permission and exact-cut evaluation.
 ADR-110 separates control occurrences from concrete effects.
 ADR-112 separates delivery from world execution.
+
 ADR-113 supplies bounded execution adapters under runtime semantic authority.
 ADR-118 supplies injected wall timestamps.
 ADR-121 supplies package dependency direction.
@@ -40,6 +42,7 @@ ADR-121 supplies package dependency direction.
 The request names a retained delivery operation and an implementation manifest and selection.
 The runtime resolves all other coordinates through installed compiler context and retained records.
 It checks the delivery's original actor and audience, the live episode, and current authority.
+
 An exact request key returns its retained receipt without invoking again.
 A different request under that key conflicts.
 A delivery can establish only one invocation in its original scope.
@@ -75,6 +78,7 @@ The installed resolver supplies control order, active grants, scope and evidence
 Its request reference must name this exact child.
 Crossing evidence remains distinct from the authority cut.
 The existing crossing and final sink owners evaluate the exact child request.
+
 Admission and dispatch use distinct, content-bound crossing references.
 They retain one child action identity; dispatch includes the actual dwell evidence.
 A transformed request is revalidated.
@@ -100,6 +104,7 @@ A leaf state lock protects only local port bookkeeping.
 It never spans an installed resolver or executable callback.
 Concurrent operations on one port are bounded and conflicting state transitions refuse.
 The parent and child handlers use the existing bounded execution and store adapters.
+
 They create no private executor or unbounded work queue.
 Cut revision and scope liveness are checked again after foreign callbacks.
 A late callback cannot publish after the invocation scope closes.
@@ -110,6 +115,7 @@ The temporal compiler supplies the exact bindings of each authored child action.
 The runtime derives child-specific contexts from authoritative clock state at admission.
 The port returns the bound request so temporal evidence can name that exact context.
 Pre-dispatch checks use current clock state and the declared bounds.
+
 Dwell evidence must establish the bound condition before dispatch.
 Each terminal child observation carries runtime-owned assessments against retained clock history.
 No wall timestamp or native success substitutes for shared logical-time evidence.
@@ -118,6 +124,7 @@ V2 history context names the invocation and its delivery operation.
 It does not claim that delivery was an outer participant action.
 Each child retains the existing ordered three-event action history.
 The runtime commits settled child history together with its terminal record and audit.
+
 History publication uses current authoritative state and history-head checks.
 No outer result can replace it with a stale snapshot.
 Withheld and unknown outcomes retain their actual native disposition.
@@ -162,6 +169,7 @@ The design retains ADR-104's single state owner and ADR-113's bounded execution 
 The new private child scope must not become a general mutation bypass.
 ADR-121's contract, protocol, compiler and runtime layers remain in force.
 The existing import policy enforces package direction without a new policy gate.
+
 V2 extends the invocation composition specification and public support documentation.
 Published shape changes require fixtures, publication change records and schema generator equality.
 Release Please retains version and changelog ownership.

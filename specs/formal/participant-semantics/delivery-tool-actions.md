@@ -7,10 +7,10 @@ inject delivery with independently admitted participant tool actions. The
 composition requires positive tool-affordance support and finite invocation
 limits. It does not require an autonomous execution policy.
 
-The runtime MUST admit an invocation against a retained successful delivery,
-its installed compiler context, the caller's authority, an exact participant
-implementation selection, a live episode, and the delivery's shared-time
-window. It MUST assign the invocation its own execution scope and the current
+The runtime MUST admit an invocation against a retained successful delivery, its
+installed compiler context, and the authority of the caller. The admission MUST
+also be against an exact participant implementation selection, a live episode,
+and the shared-time window of the delivery. It MUST assign the invocation its own execution scope and the current
 runtime execution generation. A delivery is not an action contract. The
 invocation MUST NOT invent an enclosing action contract or scheduler policy.
 

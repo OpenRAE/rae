@@ -149,10 +149,10 @@ that cannot disclose residual state cannot claim reusable-state support.
 Backend-private cleanup mechanics remain implementation details and cannot
 satisfy admission without the portable declaration and receipt.
 
-`require_cleanup_plan_capability()` is the fail-closed admission helper. It
-rejects a plan when the backend omits cleanup capability, lacks a required
-action or verification method, cannot support declared reusable state, or
-cannot disclose residual state for required cleanup.
+`require_cleanup_plan_capability()` is the fail-closed admission helper. It rejects a plan
+when the backend omits cleanup capability, or lacks a required action or
+verification method. It also rejects a plan when the backend cannot support
+declared reusable state, or cannot disclose residual state for required cleanup.
 
 ## Trial control admission
 
@@ -160,6 +160,7 @@ Trial compilation shall check every entry before it returns any executable plan.
 The check shall use each entry's selected, digest-bound backend manifests.
 Mixed compositions shall include every selected backend in reachable stages.
 Replacement compilation shall apply the same checks to the replacement entry.
+
 An empty backend selection shall fail admission.
 Unused manifests shall supply no support.
 Each selected backend shall satisfy the requirements on its own.
@@ -180,6 +181,7 @@ All other cases add no operation guarantee.
 `abort` and `cleanup-and-fail` shall not imply rollback or cessation.
 The authored cancellation response shall remain unchanged.
 Cleanup admission shall still check required actions, required probes, and initial-state probes.
+
 It shall check reusable-state support and residual-state disclosure for required cleanup.
 Best-effort cleanup shall keep its weaker support rules.
 Reset and compensation joins shall retain the retry-safety rules above.
@@ -189,6 +191,7 @@ The block shall contain a non-empty `name` of at most 256 characters.
 Its optional `guarantees` array shall default to empty.
 The array shall contain at most five unique `OperationGuarantee` terms:
 `cancellation`, `effect-observation`, `cessation-evidence`, `partial-effects`, and `external-fencing`.
+
 A non-null block shall require all four backend operation contracts:
 `backend-operation-request-v1`, `backend-operation-capabilities-v1`,
 `backend-operation-control-v1`, and `backend-operation-response-v1`.

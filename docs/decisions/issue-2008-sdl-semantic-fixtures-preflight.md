@@ -121,6 +121,7 @@ The canonical Go CI job still calls `parity_authoring_vectors.py --semantic --ch
 Publication must replace that maintenance dependency with native integrity and behavior checks.
 Other callers include `tools/parity_shared_rule_vectors.py` and `implementations/python/tests/test_issue_1783_semantic_recorder.py`.
 They must not retain a competing authoritative corpus or become required to maintain this family.
+
 The recorder's formatter, imports, selection, and temporary MCP oracle modes remain separate concerns.
 Do not remove those checks wholesale; issue #1872 owns the wider tool removal.
 Keep `RAES_SEMANTIC_ORACLE` separate from this published manifest.

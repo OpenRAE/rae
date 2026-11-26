@@ -9,7 +9,9 @@ address too.
 A parameter with no finite domain compiles as a processor-origin literal for
 the selected binding. It grants no right to choose another string. A finite
 whole-field parameter keeps its full domain. A string with one finite input
-keeps the finite set of outputs. Repeated uses of that input stay correlated.
+keeps the finite set of outputs.
+
+Repeated uses of that input stay correlated.
 Multiple independent finite inputs fail closed until a contract can express
 their joint relation. The compiler does not expand a Cartesian product.
 
@@ -21,7 +23,9 @@ against silent approximation still apply.
 This note explains how to implement `SEM-218`. It is guidance, **not normative**.
 The spec defines the rules, phase roles, binding gates and realization status:
 {download}`specs/formal/realization/explicitness-and-realization.md <../../../specs/formal/realization/explicitness-and-realization.md>`.
-The spec governs any conflict with this note. Details absent from the spec
+The spec governs any conflict with this note.
+
+Details absent from the spec
 remain guidance. The `SEM-200` coverage table in
 [`shared-semantic-integrity.md`](shared-semantic-integrity.md) tracks status.
 The realization-and-disclosure family in
@@ -77,13 +81,16 @@ Issue #1200 preserves mixed constraints in the portable plan. A weakest-child
 summary cannot replace them as comparison authority. The optional typed
 `structure` entry records exact/open leaves, record additions and required keyed
 members without duplicating operation values. The compiler uses authored explicitness provenance.
+
 Defaults added during normalization do not become author constraints. Package manager/name selectors leave an omitted
 architecture open by design. Ambiguous partial identities reject before mutation.
 
 Both direct apply and serialized/control-plane readmission consume this
 descriptor. The shared structural matcher checks required members.
 Observation order does not affect matching. Canonical concern projection still owns
-typed shape, excluded fields and sensitive-value commitments. Unknown or missing observations do not prove satisfaction.
+typed shape, excluded fields and sensitive-value commitments.
+
+Unknown or missing observations do not prove satisfaction.
 The owning model keeps numeric DNS extension codes exact in their context.
 See `test_issue_1200_mixed_runtime_constraints.py` for the positive/negative
 apply pairs and `test_issue_1066_runtime_resource_limits.py` for retained
@@ -92,7 +99,9 @@ existing actionable authority-bound diagnostic. This creates no new evidence dem
 
 An open scope lets a backend choose an omitted scalar. This holds even when
 every enclosing record and collection is closed. The plan reports this authority as
-`constrained`, and its recursive document delegates that scalar. Authored sibling values stay fixed. Closed collections keep the same members. An open scalar scope does
+`constrained`, and its recursive document delegates that scalar. Authored sibling values stay fixed.
+
+Closed collections keep the same members. An open scalar scope does
 not open the whole runtime family or any unrelated omitted concern. Preparation
 checks the selected value against the original document. Completion checks that
 the backend delivered the admitted selection.
@@ -169,9 +178,9 @@ Each changed layer must pass its checks:
   portable snapshot/result/provenance envelopes. Do not persist secrets,
   bearer tokens, credentials, backend-native objects, or unredacted tracebacks.
 - host/OS exposure gate: exact requirement values, credentials, and backend
-  tokens must not be passed through process argv, logs, audit details,
-  diagnostics, JSON fixtures, or semantic-profile artifacts when they may carry
-  sensitive material.
+  tokens must not go through process argv, logs, audit details or diagnostics
+  when they may carry sensitive material. The same applies to JSON fixtures and
+  semantic-profile artifacts.
 
 ## Extensibility seam
 
@@ -195,6 +204,7 @@ The `process-resource-limits` concern applies SEM-218 to the complete
 `Node.runtime.operational_policy.resource_limits.process_limits` collection.
 Its identity is `(resource, normalized subject, scope)`. Descriptions
 and native backend spellings are excluded. Exact comparison requires the same set of records.
+
 Missing, substituted, or excess records fail. A constrained soft/hard variable keeps its finite `allowed-values` domain.
 Instantiation preserves it. Compilation preserves it too. The realized leaf must
 belong to it.
@@ -209,6 +219,7 @@ existing `RealizationSupportDeclaration`, not through the free-form
 `constraints` map. Each entry bounds one portable resource. It names the process or subtree scope.
 It sets minimum and maximum finite values. It also states whether `unlimited`
 is supported.
+
 Exact and constrained planning checks every compiled demand against that
 domain. Open planning also requires authored open permission,
 `OPEN_REALIZATION`, and a non-empty typed apparatus domain. The selected
@@ -219,6 +230,7 @@ Support advertised for one backend mode cannot authorize another mode.
 Each accepted result needs a `process-resource-limits` observation capability.
 It also needs a matching runtime observation with no raw values. Its scope must
 be configuration. Its source constraint must be exactly `guest-observed`.
+
 This reports effective values read from inside the workload. Desired-payload echo, runtime inspect output, VM
 allocation, cgroup capacity, or datastore `memory_locked` state is insufficient.
 A backend must both deliver and read back the effective values.
@@ -230,6 +242,7 @@ The canonical node kinds are `compute` and `switch`. `compute` describes what
 the scenario needs structurally. It does not select a virtual machine,
 container, physical device, or emulator. Mechanism intent is instead an
 addressed `compute-substrate` entry in `Scenario.realization.constraints`.
+
 Omitting that entry keeps the compute node portable. Exact and constrained
 entries retain their governed domain through instantiation, compilation, and a
 separate plan constraint. `supported_node_types` remains only the provisioner's
@@ -237,7 +250,9 @@ resource-kind claim.
 
 Runtime selection is a separate observation. The backend must bind the observed governed mechanism to its operation.
 It must also bind the selected envelope and configuration. A
-plan echo or provisioner handle is not evidence. Native modes use daemon
+plan echo or provisioner handle is not evidence.
+
+Native modes use daemon
 readback. An in-process test double reports an extension term.
 It makes no claim of native isolation. Before saving a snapshot, the runtime gate rejects missing readback.
 It also rejects weak evidence for bounded demand, envelope/domain mismatch,
@@ -294,7 +309,9 @@ envelopes, or experiment-core contracts.
 The compiler and planner must preserve classifier output as runtime-model
 metadata. Its owner is `raes_processor.models.RuntimeModel`.
 The `raes_processor.compiler` package emits it. The planner should consume that compiled
-metadata directly. It must not re-walk SDL YAML or rerun the classifier.
+metadata directly.
+
+It must not re-walk SDL YAML or rerun the classifier.
 Backend capability failures do not imply exactness. The backend manifest
 does not supply author intent.
 
@@ -335,16 +352,17 @@ the generic exact capability, the exact concern-kind token, and a matching
 observation capability. Open and constrained concerns use the same manifest and envelope
 admission path. These declarations do not replace independent readback.
 A backend that can only echo submitted plan values remains unsupported.
+
 The operational policy sets the required `presence` or `configuration` scope.
 It normally allows either authoritative daemon-native or guest-native readback. Driver self-attestation alone does not prove the claim.
 A claim that inherently depends on a particular vantage, such as effective
 in-workload process limits, carries an exact source constraint instead. Source categories cannot always substitute for each other.
 
 Closed collection authority covers the managed projection that matters to the
-scenario. It does not cover the whole native operating-system inventory. Base-image
-packages, transitive dependencies, incidental daemons, native handles, and
-measurement apparatus remain on their existing substrate or evidence owners
-unless deliberately promoted into the corresponding runtime concern.
+scenario. It does not cover the whole native operating-system inventory. Base-image packages,
+transitive dependencies, incidental daemons, native handles, and measurement
+apparatus remain on their existing substrate or evidence owners. A deliberate
+promotion can move one into the corresponding runtime concern.
 
 ## Gotchas and anti-patterns
 
@@ -375,6 +393,7 @@ It does not itself define exact-requirement-kind vocabularies or change
 manifest payloads — those are governed by the spec and by the
 controlled-vocabulary / reference-model authorities. The SEM-218 coverage row is `active`. The classifier, typed scoped
 designation cascade, compiler carrier, and planner gate work together.
+
 So do the runtime non-approximation/disclosure gate and snapshot provenance
 delivery. Use this note as guidance for those surfaces. The spec is the binding contract.
 
@@ -384,6 +403,7 @@ delivery. Use this note as guidance for those surfaces. The spec is the binding 
 and value evaluation. The evaluator builds a temporary tree of decoded scope
 tokens for each call. Inherited closure and closed-scope child checks share that
 tree. Tree construction and lookup consume the evaluation operation budget.
+
 This avoids scanning all scopes for each application route or nested container.
 The default limits remain unchanged. Exhausted work returns `limit-exceeded`.
 Matching input values do not bypass exact constraints or scope checks.

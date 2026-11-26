@@ -115,7 +115,7 @@ Its address is the binding position, and its message never repeats a subject, sc
 
 `profile.Load` reads all 28 packaged profiles, with the same ingress, schema check and damaged-build rule.
 No published schema covers the two semantic-comparison profiles.
-The owner checks them with the rules of the reference comparison-profile model: the closed literals, the complete dependency-rule set, every owner projection version and the comparison limits.
+The owner checks them with the rules of the reference comparison-profile model. These rules cover the closed literals, the complete dependency-rule set, every owner projection version and the comparison limits.
 The `Profiles` methods give these typed operations.
 
 | Operation | Reference behavior that it keeps |
@@ -159,7 +159,7 @@ A failed input check returns an `InvalidInput` fault and no report.
 Structural validation uses `validation.CheckInertSchema`, the pinned Draft 2020-12 engine of #1780.
 That function refuses retrieval, unsafe keywords, recursive references and work above the limits.
 It now returns one fault code for each reference outcome: `contract-profile-limit-exceeded`, `contract-profile-unsupported-keyword`, `contract-profile-schema-invalid` and `contract-profile-value-invalid`.
-Its checks run in the reference order: the schema budget, the schema walk, the supported keywords, the value budget, the combined work bound, the meta-schema and then the value.
+Its checks run in the reference order. The order is the schema budget, the schema walk, the supported keywords, the value budget, the combined work bound, the meta-schema and then the value.
 The admission resource-profile rule now calls the domain-profile operations, as the reference does.
 
 The model rules move from `admission` to `internal/contract/domainprofile` without a change in behavior.
@@ -222,6 +222,7 @@ A profile whose owner model is a published schema definition uses `validation.Ch
 That check applies the definition, the local invariants within it and the existing admission model rules at each instance.
 A profile whose owner model has no published definition uses a Go port of the reference model rules.
 A port checks a closed object: each required member is present, each member has its declared type and no other member occurs.
+
 A nested model with a published definition uses that definition.
 For example, the execution authority binds its cleanup template to the fixed compiler identities and checks the bound `trial-cleanup-plan-v1` document, as the reference model does.
 A union with a discriminator requires the tag, and the tag selects the definition.

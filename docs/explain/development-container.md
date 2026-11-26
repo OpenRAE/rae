@@ -151,10 +151,11 @@ no setup steps again, as this page describes.
 - A non-root `raes` account with no `sudo`.
 
 The image contains no checkout, credentials, tokens, SSH material, virtual
-environment, or payload cache. uv, CPython, Go, and the CLI tools are downloaded
-into the cache volume by the repository's verified installers. uv is
-forbidden from downloading any interpreter the lock did not admit, and
-`GOTOOLCHAIN=local` stops Go from downloading a toolchain the lock did not admit.
+environment, or payload cache. The verified installers of the repository
+download uv, CPython, Go, and the CLI tools into the cache volume. The uv
+configuration forbids the download of any interpreter that the lock did not
+admit. `GOTOOLCHAIN=local` stops Go from downloading a toolchain that the lock
+did not admit.
 
 The artifact lock owns the base digest and verified bootstrap payloads.
 `.devcontainer/Dockerfile` owns native packages, account setup and environment;

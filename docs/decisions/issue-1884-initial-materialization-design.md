@@ -28,7 +28,7 @@ flowchart LR
 ```
 
 The dependency directions stay those of the existing executable import-boundary
-model in `tools/policy/adr_policy.yaml`: contracts have no processor/runtime
+model in `tools/policy/adr_policy.yaml`. Contracts have no processor/runtime
 dependency, compiler calls semantics, and runtime calls planner admission.
 No new package boundary, service, storage destination or trust authority is added.
 
@@ -55,11 +55,11 @@ and cleanup checks. Check the standalone issue reproduction against workspace
 packages. Run file-local policy checks before and after changes and mutation
 checks against the new admission/reporting decisions. CI owns broad verification.
 
-Verification completed: the standalone issue reproduction accepts both forms;
-49 focused admission, public-runtime and positive conformance cases pass, as do
-55 existing materialization/origin/inventory/source-bound cases. The three
+Verification completed: the standalone issue reproduction accepts both forms. 49
+focused admission, public-runtime and positive conformance cases pass, and 55
+existing materialization/origin/inventory/source-bound cases also pass. The three
 published plan schemas match the generated reference and their change ledgers.
-Five targeted mutations are rejected by tests: accepting unequal nodes, omitting
-the initial report, dropping the all-phase default, skipping later augmentation
-reports, and removing concern-owner projection. File-local policy and changed
+Tests reject five targeted mutations. The mutations accept unequal nodes, omit
+the initial report, drop the all-phase default, skip later augmentation reports,
+and remove concern-owner projection. File-local policy and changed
 Python lint pass.

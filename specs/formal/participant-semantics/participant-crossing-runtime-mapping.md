@@ -25,11 +25,13 @@ The public `RuntimeControlPlane` entry points own admission, projection, and eff
 Installed resolvers and providers supply bounded synthetic inputs.
 The real runtime owns identity authorization, validation, ordering, and durable outcomes.
 Embedded identities are supplied by the trusted host; HTTP authentication is a separate boundary.
+
 The store retains snapshots, operation records, and audit events.
 Offline test helpers observe these facts around each public call and at existing owner seams.
 They compare them with the independent concrete transition authority.
 Read-only wrappers observe identity, policy, support, decision, preparation, and commit functions.
 Each wrapper calls its original function once and retains the result.
+
 The checker consumes the observed order without inserting hidden events.
 Each witness has an ordinal and belongs to a recorded witness count.
 A missing witness produces an observation gap.
@@ -67,11 +69,13 @@ Caller input crosses the runtime identity and authorization boundary.
 Provider output crosses the runtime validation boundary.
 Persistence crosses the transaction boundary.
 The observer crosses an assurance boundary when it interprets runtime records.
+
 No observed payload, credential, or host path enters published case evidence.
 Runtime safety checks apply before model compatibility is considered.
 They compare the full expected snapshot, operation record, revision, and audit event at each observed commit.
 The integrity checker preserves every pre-call operation record except its witnessed owning transition.
 Each commit and final readback must retain the exact earlier audit prefix.
+
 They preserve all existing history rows and reject changes to another participant during refusal.
 A safety failure stops evidence publication, even when the operation is also incompatible with the model.
 A stale-cut marker never exempts a refused call's effects or state changes.
@@ -102,13 +106,15 @@ Mapping validation allows only the five hidden mediation classes declared by the
 It retains visible errors and additional outcomes as incompatibilities.
 It does not merge extra runtime decisions into one model decision.
 It does not infer an observation from a returned view.
+
 Intermediate phases need observed evidence, not a path reconstructed from expected successors.
 Each case reports a match, a demonstrated incompatibility, an observation gap, or an unexercised obligation.
 Expected model choices do not prove that the runtime enables those choices.
 
-Public execution must cover v2 surface admission with forwarded `ParticipantSubmissionOptions`,
-installed API-424 providers through effect composition and actual owner dispatch,
-and final-sink success/refusal through participant retrieval.
+Public execution must cover v2 surface admission with forwarded
+`ParticipantSubmissionOptions`. It must cover installed API-424 providers
+through effect composition and actual owner dispatch. It must also cover
+final-sink success/refusal through participant retrieval.
 Effect-owner operations, fresh ingress after a transform, and permit-then-final-refusal paths
 can exceed this carrier; they remain explicit incompatibilities where no mapping exists.
 No gate can be disabled to make them fit.
@@ -119,6 +125,7 @@ Protected assets are identity bindings, state cuts, audit integrity, and assuran
 A false identity alias could hide an authorization failure.
 Exact binding checks and negative public API cases address this threat.
 A partial commit could claim an outcome absent from durable state.
+
 Snapshot, operation, and audit comparisons address this threat.
 A refusal could change protected participant state.
 Before and after comparisons exclude only the permitted refusal evidence.
@@ -127,6 +134,7 @@ Projection could erase an error, a second operation, or a controller change.
 Such facts produce incompatibility rather than hidden transitions.
 Timing-sensitive requests cannot receive an untimed mapping result.
 Instrumented stub execution provides no concrete backend claim.
+
 An authorized backend can return an unsuccessful result and commit a failed operation.
 This is an additional model outcome, not proof of a crossing refusal.
 The mapping retains that failure as an incompatibility and checks its authorization and commit independently.
@@ -145,13 +153,15 @@ No runtime authorization policy or deployment architecture changes.
 Future mapping checks must enforce these boundaries with existing canonical JSON,
 bounded JSON/file ingress, contextual validators, store transactions, and redacted error envelopes.
 Portable diagnostic shape validation does not sanitize callback exception messages.
+
 The v2 rejection boundary must use a fixed diagnostic for untrusted callback errors.
 Regression evidence must check the caller response and durable diagnostic.
 Mapping adds no production observer, policy engine, exception hierarchy, public DTO, or service.
 
-The extension seam is an offline case binding with exact profile/model/projection pins,
-runtime identity/cut bindings, public entry and sink, store profile, final-sink setting,
-installed support, and exclusions. A separately governed profile uses distinct evidence;
+The extension seam is an offline case binding with exact
+profile/model/projection pins, runtime identity/cut bindings, and public entry
+and sink. It also has a store profile, final-sink setting, installed support,
+and exclusions. A separately governed profile uses distinct evidence;
 it does not edit rev2 or inherit a result from these cases.
 
 ## Evidence and review
@@ -190,6 +200,7 @@ The exporter builds the mapping bundle on each run and commits nothing.
 Its manifest binds the source inventory, profile, model artifacts, and observed cases.
 The source inventory includes runtime packages, contracts, test drivers, formal code, configuration, and the Python lockfile.
 The test drivers are the mapping test modules and the local test modules that they import.
+
 Other tests do not produce the observed cases.
 It excludes historical schema tombstones, which the live mapping does not consume.
 The manifest reports that exclusion; the active schema publication manifest remains pinned.

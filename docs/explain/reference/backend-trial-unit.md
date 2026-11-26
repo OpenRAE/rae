@@ -26,6 +26,7 @@ The processor calls `realize_admitted_trial_entry()` first.
 The caller passes three processor plans into `TrialUnitRequest`.
 The caller also passes the instantiated SDL digest.
 The request carries the complete admitted plan and exact entry ID.
+
 It also carries a distinct execution attempt ID.
 Request construction reconstructs the complete plan before entry lookup.
 The request exposes the entry controls and bound cleanup plan.
@@ -52,6 +53,7 @@ The trial unit chooses no batch order, parallelism, replacement, or fresh run id
 Cleanup has not yet changed that state.
 It is distinct from the instantiated SDL digest in the request.
 The adapter keeps partial observations when execution fails.
+
 Operation receipts acknowledge submission.
 They do not prove that a workflow finished.
 Typed execution evidence accompanies the receipts and snapshot.
@@ -62,6 +64,7 @@ Cleanup evidence accompanies that receipt, including failed or unverified cleanu
 It also checks the attempt identity.
 It checks receipt target/run scopes and evidence run identities.
 Every cleanup evidence reference must identify a record in `cleanup_evidence`.
+
 These checks do not read evidence content.
 They do not prove that native effects stopped.
 The adapter checks snapshots with existing runtime validators.
@@ -75,6 +78,7 @@ This check covers all entries before the compiler returns a plan.
 It does not add trial-derived guarantees to native operation requests.
 Caller timeout does not prove backend cessation.
 Unknown effects retain their reservations until the runtime's release checks pass.
+
 Cleanup retains its own obligation budgets after execution timeout.
 Cleanup failure does not erase execution evidence.
 A successful trial does not imply successful cleanup.
@@ -112,6 +116,7 @@ Their representations omit carried configurations, plans, snapshots, and evidenc
 Nested portable models retain their existing validators.
 Collections have finite item bounds.
 Each result collection permits at most 4096 items.
+
 The shared runtime value limits bound both aggregates before copying.
 Secrets remain non-sensitive references until an authorized backend sink resolves them.
 Adapters must not log payloads, exception input, native output, or resolved secrets.
@@ -125,6 +130,7 @@ Trusted embedders retain P0 authorization responsibilities.
 [ADR-113](../../decisions/adrs/adr-113-reusable-execution-machinery.md) retains shared runtime authority in local composition.
 [ADR-115](../../decisions/adrs/adr-115-concrete-backends-owned-outside-raes.md) assigns native realization to backend distributions.
 These decisions need no amendment.
+
 Existing policy enforces package boundaries; this interface adds no policy mechanism.
 Python protocols and neutral request/result values express the architecture in code.
 No published schema or operation kind changes.

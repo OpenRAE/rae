@@ -14,6 +14,7 @@ The [preflight](issue-1866-node-identity-absence-preflight.md) defines the bound
 `Node.os_distribution` and `Node.architecture` use `None` for absent values.
 `NodeRuntime` keeps those values through compilation.
 `resource_payload()` uses the existing dataclass projection.
+
 The desired resource and submitted operation therefore contain JSON `null` for an absent identity.
 Explicit values retain their canonical form.
 `os_version` keeps its existing empty string default.
@@ -75,6 +76,7 @@ ADR-105 already defines recursive value semantics.
 ADR-036 and ADR-121 define the package boundaries.
 No new ADR, schema, policy rule, or deployment component is required.
 Existing plan payload schemas permit JSON null.
+
 Existing models and constraint tests supply the architecture checks.
 No stored plan, historical digest, or version file changes in place.
 Old refused plans must be compiled again.

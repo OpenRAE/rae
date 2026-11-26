@@ -11,11 +11,13 @@ Extend the existing invocation tool-action composition to a runtime-owned
 participant delivery turn. Keep `RuntimeControlPlane` and `RuntimeRunContext`
 as the owners under ADR-104. Reuse the port, child operation ledger, action
 results, crossing records and behavior history. No new controller, tool journal,
-MCP transport, workflow engine or exception family is needed. ADR-095, ADR-108,
-ADR-110 and ADR-112 already establish the semantic boundaries. Extending the
-autonomous-only composition in ADR-092 section 10 needs an in-band amendment
-and matching `adr-index.yaml` pin under ADR-059 when that support ships; it
-does not require a new ADR or changing the accepted decision during preflight.
+MCP transport, workflow engine or exception family is needed.
+
+ADR-095, ADR-108,
+ADR-110 and ADR-112 already establish the semantic boundaries. An extension of the
+autonomous-only composition in ADR-092 section 10 needs an in-band amendment and
+a matching `adr-index.yaml` pin under ADR-059 when that support ships. It does
+not require a new ADR or a change to the accepted decision during preflight.
 Read this alongside the [#1740 preflight](issue-1740-active-invocation-tool-actions-preflight.md)
 and [delivery preflight](issue-1368-directed-inject-occurrence-preflight.md).
 
@@ -28,8 +30,8 @@ native effects. A delivery permission is not a child action permission, and a
 proposal or external direction is not execution success.
 
 The public seam must bind the active turn to its retained delivery, participant,
-episode, selected implementation, execution scope/generation, enclosing live
-operation and authenticated actor/target/run. Resolve these through installed
+episode, selected implementation and execution scope/generation. It must also
+bind the enclosing live operation and the authenticated actor/target/run. Resolve these through installed
 compiler context and owner records, not caller-supplied parent IDs or role names.
 Open the port before the matching invocation, activate only during its dispatch,
 and close on every terminal path. Each child still needs separate admission,
@@ -71,15 +73,16 @@ carrier's policy fields do not justify a synthetic autonomous policy.
 
 Calling `require_live_control_proposal()` alone does not establish current
 control permission: it returns without a check when `validated_selection` is
-absent. Delivery admission uses `participant_inject_control.py` to establish
-its accepted occurrence, policy and live authority; each child must carry the
+absent. Delivery admission uses `participant_inject_control.py` to establish its
+accepted occurrence, policy and live authority. Each child must carry the
 applicable linkage and recheck its own permission through those incumbent
 owners. Admission and dispatch can be separated by revocation, cancellation,
 or a clock transition: consume no grant from a stale prepared cut.
+
 The executor must receive the exact governed selection after a transform.
 The current decision/receipt carries an action identity, not transformed
-arguments; if the approved subject cannot be conveyed and executed faithfully,
-refuse dispatch rather than record a transform and execute the original call.
+arguments. If the approved subject cannot be conveyed and executed faithfully,
+refuse dispatch. Do not record a transform and then execute the original call.
 
 ## Shared time, progress and durable history
 
@@ -109,7 +112,9 @@ replay. Cover withheld, rejected, interrupted and indeterminate settlements too.
 `assess_temporal_result` currently edits the last history event: preserve exact
 child ownership when reusing it across outer/peer settlement.
 The history validator also derives `native_execution` from the attempt's
-admission disposition. An admitted child withheld before dispatch and a child
+admission disposition.
+
+An admitted child withheld before dispatch and a child
 whose dispatched effects are unknown are distinct facts. Keep that distinction
 in the owning assessment/history contracts; do not forge a rejected admission,
 reported native work or temporal evidence to satisfy the validator. Snapshot
@@ -122,9 +127,11 @@ Use the injected `WallClock` only for wall timestamps (ADR-118).
 The port currently has a leaf lock and promises no callback into the manager or
 control plane while the outer invocation waits. Crossing/control resolvers need
 an authoritative cut and may call installed external code. This is a real
-progress boundary: do not call ordinary `admit_participant_action()` recursively
+progress boundary. Do not call ordinary `admit_participant_action()` recursively
 from the port, disable extension guards, hold its lock over foreign callbacks,
-or dispatch through supervisory authority. Compose through the incumbent
+or dispatch through supervisory authority.
+
+Compose through the incumbent
 `RuntimeMutationAuthority`, bounded `LocalExecutionAdapter` and operation
 reservation owners. Preserve an explicit owner handoff and exact-cut recheck;
 the waiting invocation must not occupy the only capacity its children need.
@@ -152,7 +159,7 @@ the existing proof policy, not raw payload retention or guessable secret hashes.
 
 A store error or timeout can follow a successful write. Resolve an ambiguous
 acknowledgement through authoritative readback under the same identity and
-revision rules; it cannot free a consumed grant or conflicting-effect
+revision rules. It cannot free a consumed grant or conflicting-effect
 reservation, or authorize another dispatch.
 
 Use `participant_tool_action_events` and existing behavior/temporal/crossing
@@ -162,7 +169,9 @@ admission/history order does not prove physical effect order. Child history
 must survive invalid, raised or cancelled outer results and must not be
 overwritten by their stale snapshots. Keep existing atomic history publication
 with the enclosing operation; account explicitly for earlier durable child
-settlements if the enclosing commit fails or the process crashes. Do not claim
+settlements if the enclosing commit fails or the process crashes.
+
+Do not claim
 that a terminal ledger row alone proves behavior history committed. Keep stale
 episode/generation work in its original scope, never attach it to a new episode.
 Recovery retains uncertainty and never replays native calls. Cover all admitted
@@ -171,13 +180,15 @@ memory/SQLite/PostgreSQL profiles and their existing lease/private-path rules.
 ## Extension, compatibility and delivery evidence
 
 The extension seam is the existing invocation port bound to a trusted active
-turn, with installed behavior/tool relations, per-child crossing/temporal
+turn. It has installed behavior/tool relations, per-child crossing/temporal
 context and finite limits. Separate that context from autonomous cadence and
 scheduler counters. This admits another delivery trigger or tool adapter without
-hardcoding MCP methods, participant colors or a second action lifecycle. Keep
-composition support explicit; change a version/claim only when needed to express
-new support, and never reinterpret retained v1 evidence or infer new support
-from an old autonomous-only claim. Resource-governed v3 remains unsupported
+hardcoding MCP methods, participant colors or a second action lifecycle.
+
+Keep composition
+support explicit. Change a version/claim only when needed to express new
+support. Never reinterpret retained v1 evidence or infer new support from an old
+autonomous-only claim. Resource-governed v3 remains unsupported
 unless its complete budget accounting is separately admitted.
 
 Respect ADR-121: neutral data/validators in `raes_contracts`, executable protocols
@@ -193,17 +204,20 @@ and keep `raes_schemas.schema_bundle()` identical to publication under
 
 Required qualification builds on `test_issue_1740_invocation_tool_actions.py`,
 `test_issue_1368_inject_delivery.py`, `test_api_423_participant_crossing_contracts.py`
-and `test_act_614_temporal_*` under `implementations/python/tests/`. Exercise the
-public runtime owner with a non-base-class backend: real governed delivery turn,
-per-child permit/deny/transform, zero calls on refusal, time evidence and expiry,
-stale/revoked control, same-identity replay/conflict, concurrent/unknown effects,
-outer failure/cancellation, store-write failures and reopen/recovery. Include
+and `test_act_614_temporal_*` under `implementations/python/tests/`. Exercise the public
+runtime owner with a non-base-class backend. Cover a real governed delivery
+turn, per-child permit/deny/transform, zero calls on refusal, time evidence and
+expiry, and stale/revoked control. Also cover same-identity replay/conflict,
+concurrent/unknown effects, outer failure/cancellation, store-write failures and
+reopen/recovery.
+
+Include
 temporal/crossing validator replay and disclosure/error leakage checks; a port
 unit test alone does not establish the composed behavior.
-Include a delivery-only manifest/scenario with no autonomous policy, control
-without `validated_selection`, a cut change between admission and dispatch,
-and retained completed children after a crash before the enclosing history
-commit. Update `docs/public/guides/invocation-tool-actions.md` and its public
+Include a delivery-only manifest/scenario with no autonomous policy, and control
+without `validated_selection`. Also include a cut change between admission and
+dispatch, and retained completed children after a crash before the enclosing
+history commit. Update `docs/public/guides/invocation-tool-actions.md` and its public
 index alongside the formal support description; the existing guide promises
 an autonomous-only port with no manager callback.
 
@@ -211,15 +225,18 @@ Use `.ground-control.yaml`, `.gc/plan-rules.md`, `.pre-commit-config.yaml`,
 `tools/policy/import_contracts.toml` and the canonical nox graph. Local checks
 remain targeted; full, integration and fuzz suites belong to CI. Do not invent
 a requirement UID. Release Please owns version/changelog edits; the eventual
-runtime-feature PR needs a release-producing `feat:`/`fix:` title. Issue #1829
-also requires the released Python distribution, not merely a merged change:
-retain the published version/artifact evidence from the existing
+runtime-feature PR needs a release-producing `feat:`/`fix:` title.
+
+Issue #1829 also
+requires the released Python distribution, not merely a merged change. Retain
+the published version/artifact evidence from the existing
 `.github/workflows/release-please.yml` and its exact-commit verification gates.
 This preflight neither merges nor publishes anything.
 
-Non-goals: Go work, a new transport service or credential scheme,
-new authoring language, generic policy interpreter, arbitrary nested invocation
-trees, universal v3/distributed support, backend-native execution semantics,
-external hosting and exactly-once claims about native effects. Do not bypass
+Non-goals are Go work, a new transport service or credential scheme, new
+authoring language, a generic policy interpreter and arbitrary nested invocation
+trees. Other non-goals are universal v3/distributed support, backend-native
+execution semantics, external hosting and exactly-once claims about native
+effects. Do not bypass
 manual shared-time submission guards or weaken generic snapshot/history
 conflict checks to make this composition pass.

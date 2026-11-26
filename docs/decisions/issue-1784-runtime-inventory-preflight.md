@@ -57,6 +57,7 @@ It also states whether empty values are skipped.
 Some families share an owner-wide namespace; others require collection-local uniqueness.
 Datastore plugin and endpoint IDs participate in the whole datastore service namespace, including children under different nodes.
 Native names, paths, PID selectors, and package tuples must retain their own identity rules.
+
 The next nested child uses the existing reference descriptor tree and traversal.
 It needs no new address parser.
 That tree does not decide comparison order, closure, or execution eligibility.
@@ -109,6 +110,7 @@ Authored formatting requires construction; materialized formatting requires sema
 Portable contract checks do not grant native phase admission.
 Retain the `SDLPhaseOwner` commitment checks.
 Do not relax finite work limits or apply snapshot ceilings to all authoring input.
+
 Reuse existing default-aware portable-value checks where the phase requires them.
 Reuse the existing byte-quantity, integer, boolean, timestamp, and port parsers.
 Keep their exact coercions and bounds.
@@ -143,6 +145,7 @@ No new ADR, schema, package, external dependency, or exported API is required by
 `implementations/architecture.json` remains the sole Go architecture model.
 This guidance changes no model declaration or source-bound architecture evidence.
 The implementation design must declare changed packages, imports, and APIs before coding.
+
 It must then pass `archcheck -design` under ADR-124.
 Review private-only changes against the existing owners too.
 A passing model does not prove behavioral coverage.
@@ -160,6 +163,7 @@ Each scoped Python input limit and security check needs a Go test.
 Cover every error, recovery path, and issue-named defect in scope.
 Trace tests by behavior.
 Test filenames alone do not define scope.
+
 Relevant defect sources include #847, #1043, #1066, #1074, #1078, #1206, and #1759; this list is not exhaustive.
 Also retain the cross-family invariants in `test_runtime_family_invariants.py` and redaction cases in `test_runtime_observed_values.py`.
 Do not copy Python class-name conventions into Go drift tests.

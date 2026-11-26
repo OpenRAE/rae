@@ -9,9 +9,9 @@ The existing `tools.nox_support.test_lanes._run_docs` entry point owns the
 documentation checks. `tools.nox_support.config.PUBLIC_DOCS_EXAMPLE_TESTS`
 selects their tests. Extend those owners rather than adding a runner or service.
 
-The existing public-documentation test apparatus reads checked-in guide blocks,
-supplies local fixture files in a temporary directory, and invokes public Python
-APIs and the Typer application. Expected output and success assertions check
+The existing public-documentation test apparatus reads checked-in guide blocks
+and supplies local fixture files in a temporary directory. It then invokes
+public Python APIs and the Typer application. Expected output and success assertions check
 the documented results. Mark host-dependent fragments with their missing
 prerequisites; the inventory test reports those skips and rejects new untested
 sample pages. Mutation cases restore the broken rename and removal targets and

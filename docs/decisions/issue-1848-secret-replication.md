@@ -16,6 +16,7 @@ An absent or null policy makes no replication claim.
 It never means automatic.
 Automatic mode has no replica list.
 User-managed mode needs a nonempty list with distinct locations.
+
 An automatic policy can name a native KMS key.
 Each managed replica can name its own key.
 An automatic key must use `global`.
@@ -37,6 +38,7 @@ The model registry and existing pipeline retain the nested value.
 This covers imports, compilation, plans and stored snapshots.
 Native names are inert; imports do not rewrite them as SDL references.
 The exact runtime-platform application concern still owns backend admission.
+
 It refuses unsupported intent before effects.
 Result checks detect a missing or changed policy.
 No backend gains cloud support through this change.
@@ -58,6 +60,7 @@ The parser and runtime checks remain trust boundaries.
 Closed models reject unknown policies and conflicting fields.
 Exact result checks prevent lost replicas or keys.
 Native key names are inert strings.
+
 RAES does not discover credentials, fetch keys, call a cloud API or use an SDK.
 The backend owns live provider checks and immutable-policy handling.
 A valid policy gives no right to replace an existing secret.

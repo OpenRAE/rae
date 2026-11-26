@@ -3,12 +3,14 @@
 The [repository split](../../decisions/issue-1891-runtime-repository-boundary.md) moves the shared engine and live adapters to a new runtime owner at the common #1804 Go launch.
 `OpenRAE/rae` keeps SDL, the processor and trial compiler.
 It keeps the contracts, portable backend interfaces, stubs and authoring services.
+
 Runtime uses those released public APIs.
 `rae` product modules and `raes-mcp` do not import runtime.
 Only runtime publishes the combined `raes` executable.
 It imports authoring commands through the #1825 public API.
 The Python path below stays the reference until cutover.
 The split keeps existing HTTP, CLI, MCP, store and security behavior.
+
 It adds no required service or backend.
 Each run keeps its fixed scope.
 The split grants no new rights to a caller.
@@ -138,6 +140,7 @@ The [Go consumer API](../../decisions/issue-1825-public-go-api.md) fixes the pla
 RAE retains SDL, compilation and planning.
 It also owns contract bindings and admission, portable backend interfaces and pure checks.
 The future runtime module owns `runtime/control` and `runtime/provider`.
+
 It also owns `runtime/execution`, `runtime/temporal`, `runtime/result` and the existing profile declarations in `runtime/profile`.
 It imports released public RAE packages; RAE product code and `raes-mcp` never import runtime.
 Coldlight and LilRAE embed the shared control plane through those interfaces.

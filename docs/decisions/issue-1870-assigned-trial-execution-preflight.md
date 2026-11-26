@@ -8,18 +8,22 @@ source inspection does not certify that those prerequisites are delivered.
 
 ## Decision and boundaries
 
-Extend the public runtime composition to select an entry, bind its authorized
-attempt to an execution owner, advance that entry independently, and ingest
-checked observations/results. Keep one original experiment admission and its
+Extend the public runtime composition to select an entry and bind its authorized
+attempt to an execution owner. It must also advance that entry independently,
+and ingest checked observations/results. Keep one original experiment admission and its
 allocation. An execution host owns scoped run execution; it does not admit a
-new experiment. The coordinator's admitted runtime retains attempt, cancellation,
+new experiment.
+
+The coordinator's admitted runtime retains attempt, cancellation,
 retry, replacement and aggregate accounting decisions. Each scope has one state
 writer. Transport delivery and host allocation supply no semantic authority.
 
-No new ADR is needed. ADR-036/117 govern module ownership and public interfaces;
-ADR-104/113 govern shared runtime authority and supervised execution; ADR-115
-keeps concrete backends downstream; ADR-065/068 govern archival identity and
-replacement lineage; ADR-116 governs errors and logging. Build on the existing
+No new ADR is needed. ADR-036/117 govern module ownership and public interfaces.
+ADR-104/113 govern shared runtime authority and supervised execution. ADR-115
+keeps concrete backends downstream.
+
+ADR-065/068 govern archival identity and
+replacement lineage. ADR-116 governs errors and logging. Build on the existing
 [#1629 shared runtime design](issue-1629-shared-runtime-design.md) and
 [#1630 accounting design](issue-1630-run-accounting-design.md).
 
@@ -48,13 +52,14 @@ Package paths below start at `implementations/python/packages/`.
 | `raes_runtime/runtime_trial_unit.py`, `runtime_trial_services.py`, `runtime_run_driver.py`, `runtime_module_step.py` | Reuse configuration, native execution phases, observation, capture-before-teardown, cleanup and retry preparation. Installed services apply/observe/verify; they do not choose run IDs, attempts or scenario ordering. |
 | `raes_processor/trial_scheduler.py`, `raes_contracts/contracts/batch_execution.py` | Own canonical dispatch coordinates, admitted ceiling, allocator decision carriage and receipt joins. Host ownership and live lease proof remain downstream. |
 | `raes_runtime/runtime_experiment_progress.py`, `runtime_experiment_replacement.py` | Local and assigned paths must share terminal, retry, archive and replacement decisions. Do not fork their workflow rules into an external executor. |
-| `raes_runtime/runtime_experiment_records.py`, `runtime_record_assembly.py`, `runtime_record_validation.py`, `runtime_record_publication.py` | Both execution paths feed existing record production, content checks, immutable versions and exact archive readback. Records are derived from retained facts, not just returned terminal results. |
+| `raes_runtime/runtime_experiment_records.py`, `runtime_record_assembly.py`, `runtime_record_validation.py`, `runtime_record_publication.py` | Both execution paths feed existing record production, content checks, immutable versions and exact archive readback. Records are derived from retained facts, not only returned terminal results. |
 
 ## Binding, ownership and concurrency invariants
 
 The binding identifies the complete sealed plan and digest, exact entry and
-entry commitment, preallocated run ID, admitted attempt and original deadline,
-hydrated scenario and processor commitments, and assigned execution owner.
+entry commitment, preallocated run ID, and admitted attempt and original
+deadline. It also identifies the hydrated scenario and processor commitments,
+and the assigned execution owner.
 Retain the original actor's authority separately from the execution owner's
 authority. Distinguish experiment, entry, run, trial attempt, native invocation,
 operation, delivery and ownership generation. An assignment ID is not a secret,
@@ -64,7 +69,9 @@ The worker reconstructs and validates this binding before effects. It checks
 the exact original entry, applied participant settings, task/capture requirements,
 manifests, realization envelope, execution controls and cleanup obligations.
 A newly sealed edited plan is still a different admission. A digest that checks
-itself is not proof of derivation or authorization. Preserve target/run and
+itself is not proof of derivation or authorization.
+
+Preserve target/run and
 instantiation scopes in the processor projections and generated-value bindings.
 Host placement must not silently change a logical target or configuration
 commitment. An incompatible installed target must refuse before effects.
@@ -72,8 +79,9 @@ commitment. An incompatible installed target must refuse before effects.
 The current `RuntimeTrialUnit` constructor requires an experiment and attempt
 already registered with its engine. Its `execute_trial()` cannot independently
 reconstruct a remote admission. Add the supported binding at the public
-composition boundary; do not fake registry membership, copy private dictionaries,
-call `admit_experiment()` on every worker, or construct a one-entry plan slice.
+composition boundary. Do not fake registry membership, copy private
+dictionaries, call `admit_experiment()` on every worker, or construct a
+one-entry plan slice.
 Reconstructing the selected admitted entry is not permission to enumerate,
 randomly select, normalize participant settings again, reseed, or allocate a run.
 
@@ -88,7 +96,7 @@ experiment-wide progress lock that blocks unrelated entries.
 same target, including unknown effects. `RuntimeResourceClaim` also binds backend
 components and ledger ownership. Preserve both protections. Independently owned
 execution hosts can use separately scoped runtime compositions under the same
-experiment admission; merely opening two runs in one reserved target does not
+experiment admission. Two runs in one reserved target do not by themselves
 provide independence. Do not remove exclusion or treat distinct target names,
 threads or stores as proof of isolated host resources.
 
@@ -121,7 +129,9 @@ work still owes stop observation, capture and cleanup under admitted policy.
 The existing experiment cancel method reaches local contexts only: the assigned
 path must expose the retained cancellation to its execution owner through the
 public composition. Downstream transport delivers controls; this issue adds no
-transport. An acknowledgement never proves cessation. A late valid result must
+transport.
+
+An acknowledgement never proves cessation. A late valid result must
 reconcile the original attempt without erasing cancellation or contradicting a
 committed outcome. Failed cleanup must not block ingestion of another independent
 entry's facts, or become evidence that the failed host is reusable.
@@ -138,36 +148,43 @@ Reuse these released carriers rather than defining parallel child schemas:
 | Checked execution state and native work | `RuntimeSnapshotEnvelopeModel`, `OperationReceiptModel`, `OperationStatusModel`, existing operation admission/binding/request/response and effect-evidence contracts where native invocations are involved |
 | Experimental facts and cleanup | `ExperimentEvidenceRecordModel`, `TrialCleanupReceiptModel`, `BatchExecutionReceiptModel`, existing provenance and run accounting contracts |
 
-The genuinely missing portable composition is the assignment's binding to the
-original admission and authorized attempt, plus the correlated lifecycle facts
-needed to reconstruct its outcome/accounting. Reuse existing identity, digest,
+The genuinely missing portable composition is the binding of the assignment to
+the original admission and authorized attempt. It also needs the correlated
+lifecycle facts that reconstruct its outcome/accounting. Reuse existing identity, digest,
 budget and reference types. Carry a field only if the existing children or
-trusted retained admission do not supply it. Keep runtime targets, resolver
+trusted retained admission do not supply it.
+
+Keep runtime targets, resolver
 functions, credentials, locks, stores, engine objects and private decisions out
 of this carrier. No pickle, generic object dump or unversioned metadata bag.
 Artifact references must resolve through explicitly installed authorized readers.
 
 `TrialUnitResult` requires a cleanup receipt and cannot alone describe work lost
 before cleanup. It also does not carry every configuration/capture observation,
-observed timestamp, native status or cessation fact consumed by #1630. Preserve
-those original facts through existing child contracts and the smallest missing
-portable fields; do not fabricate a result, receipt or terminal timestamp for an
-incomplete attempt. Explicit absent/partial/indeterminate facts must remain
+observed timestamp, native status or cessation fact consumed by #1630. Preserve those
+original facts through existing child contracts and the smallest missing
+portable fields. Do not fabricate a result, receipt or terminal timestamp for an
+incomplete attempt.
+
+Explicit absent/partial/indeterminate facts must remain
 recordable. `TrialOutcome` has no `indeterminate` member: use unresolved accounting
 without inventing a terminal cleanup receipt or overloading a failure outcome.
 Do not publish `TrialObservationDecision` or the durable store codec
 as an integration format. Keep trial outcome, capture, scientific evaluation,
 cleanup and operation status separate.
 
-At ingestion, reconstruct nested carriers, join them to the retained assignment,
-and verify the original plan/configuration/projection commitments, exact attempt,
-owner/generation, target/run, operation request commitments and evidence versions.
+At ingestion, reconstruct nested carriers and join them to the retained
+assignment. Then verify the original plan/configuration/projection commitments,
+exact attempt, owner/generation, target/run, operation request commitments and
+evidence versions.
 `validate_trial_unit_result()` checks structural joins; it explicitly does not
 prove authorization, evidence content, cessation or snapshot transitions.
 Reuse the native result/effect validators and trusted evidence owners for those
-claims, including failed, partial and late work. A final snapshot alone cannot
+claims, including failed, partial and late work.
+
+A final snapshot alone cannot
 prove all intermediate transitions. Preserve the native validation provenance
-and evidence necessary to check the claim; never mark runtime state valid merely
+and evidence necessary to check the claim. Never mark runtime state valid merely
 because a remote runtime says it is valid. Only the receiving state owner commits
 accepted semantic facts. No worker write credentials for the coordinator ledger.
 
@@ -185,7 +202,7 @@ workers cannot allocate replacement entries or lower the planned population.
 
 | Layer | Canonical gate and required fit |
 | --- | --- |
-| Untrusted bytes and mutable models | `json_ingress.parse_bounded_json_object()`, `parse_admitted_trial_plan_json()`, `revalidate_admitted_trial_plan()`, `ContractModel`, canonical digest helpers and `runtime_value_limits.py`. Bound the whole aggregate before copy/hash, then reconstruct children; reject duplicate JSON members, non-finite numbers, coercible identities/booleans, unknown fields, excessive depth/items/bytes and changed nested models. Whole-plan validation precedes lookup. Do not use a detached-entry parser or duplicate its validation. |
+| Untrusted bytes and mutable models | `json_ingress.parse_bounded_json_object()`, `parse_admitted_trial_plan_json()`, `revalidate_admitted_trial_plan()`, `ContractModel`, canonical digest helpers and `runtime_value_limits.py`. Bound the whole aggregate before copy/hash, then reconstruct children. Reject duplicate JSON members, non-finite numbers, coercible identities/booleans, unknown fields, excessive depth/items/bytes and changed nested models. Whole-plan validation precedes lookup. Do not use a detached-entry parser or duplicate its validation. |
 | Installed composition, SDL and config shapes | `RuntimeTarget`, `registry_target_validation.py`, `ControlPlaneConfiguration`, `control_plane_composition.py`, `control_plane_profiles.py`, `runtime_experiment_admission.py::admit_trial()`, `require_trial_control_capability()` and native plan/policy admission. Recheck component call shapes, manifest compatibility, declared guarantees, scoped resolvers, explicit `run:<allocated-id>`, store/profile capabilities and contextual willingness on the assigned host. Structural SDL admission does not replace semantic admission. Preserve unsupported mixed-composition refusal. No discovery fallback, backend-name switch or silent profile upgrade. |
 | Actor and execution authority | `operation_actor_scope()`, `control_plane_admission.py`, `control_plane_plan_authorization.py`, runtime owner/generation checks and the invocation claim/reconciliation machinery. P0 is a trusted embedder boundary; never deserialize caller-supplied actor fields as an authenticated identity. Dispatch, ingestion, cancellation, cleanup and evidence access retain appropriate scope. `operation_worker_authority.py` is the incumbent for native remote invocation claims, not permission to repurpose a native operation as an entire trial. This issue requires no HTTP route or new auth system. Existing HTTP embedding must retain `ControlPlaneSecurityConfig.strict_defaults()`, `_auth.py` route/target/subject checks, sealed app composition, request/offload bounds and no-store responses. |
 | Secrets, environment bindings and information flow | `SecretReferenceId`, sealed participant configuration value kinds/manifest owners, `runtime_fact_binding_policy.py`, `runtime_fact_dispatch.py`, participant crossing and `participant_flow_sink.py`. Resolve references only at authorized sinks with run-local provenance, audience and freshness. Reuse `raes/runtime_environment.py`, `runtime_configuration.py`, `runtime_generated_value.py` and semantic validation: valid unique env names, sensitivity/provenance, literal versus `value_from` exclusivity and no generated value claiming `operator_secret`. Do not flatten settings into an env dictionary or propagate ambient credentials. A handoff may contain protected configuration/evidence; authorize its complete contents before downstream transfer. |
@@ -198,9 +215,9 @@ workers cannot allocate replacement entries or lower the planned population.
 
 ## Extensibility and repository constraints
 
-The extension seam is explicit assignment to a scoped installed execution owner,
-with injected `RuntimeTarget`, trial services, evidence readers, durable store
-factory, allocator decision and finite deployment budgets. Backend/participant
+The extension seam is explicit assignment to a scoped installed execution owner.
+The owner has an injected `RuntimeTarget`, trial services, evidence readers,
+durable store factory, allocator decision and finite deployment budgets. Backend/participant
 revision, host placement and narrower capacity are inputs; they must not require
 editing a central backend switch or changing the sealed scientific allocation.
 Keep carrier versions independent of transport so another transport can use the
@@ -230,8 +247,11 @@ Relevant incumbents are #1627 trial-unit, #1629 experiment/decision/guarantee,
 #1630 record/recovery, SCE-006 scheduler/cleanup, #1396 replacement, #1359 API
 trust-boundary and #1362 supervision/lost-ack tests. Required behavior includes
 two independent synthetic owners, out-of-order results, duplicate/concurrent
-delivery, wrong-entry/attempt/actor/owner refusal, changed commitments,
-cancellation races, capacity exhaustion and recovery with uncertain effects.
+delivery and wrong-entry/attempt/actor/owner refusal.
+
+It also includes changed
+commitments, cancellation races, capacity exhaustion and recovery with uncertain
+effects.
 Include incomplete work in record export. Negative tests must demonstrate no
 extra dispatch, attempt, run, capacity release or evidence substitution; targeted
 mutation checks should challenge those invariants. Targeted unit/policy checks
@@ -243,7 +263,7 @@ hand-edit either or invent a requirement UID. Consumer documentation must explai
 ownership, uncertainty and supported carrier versions, without publishing this
 internal preflight through the curated `docs/public` boundary.
 
-Non-goals: VM/SSH/cloud operations, host leases, transport/auth implementations,
-new listeners, distributed schedulers or workflow engines, SDL syntax, scoring
-rules, universal rollback, automatic mixed-backend support, Go migration and
-exactly-once external-effect claims. This preflight changes guidance only.
+Non-goals are VM/SSH/cloud operations, host leases, transport/auth
+implementations, new listeners, distributed schedulers or workflow engines, and
+SDL syntax. Other non-goals are scoring rules, universal rollback, automatic
+mixed-backend support, Go migration and exactly-once external-effect claims. This preflight changes guidance only.

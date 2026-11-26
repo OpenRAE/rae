@@ -24,6 +24,7 @@ fourteen retained evidence records. Rebinding artifact, observation, or manifest
 metadata cannot authorize a replacement schema or an unrecorded historical
 artifact. Computed checks verify model, graph, configuration, snapshot and witness
 digest joins, source/authored joins, core references, and recorded witness steps.
+
 The finite corpus pins also preserve the original records' remaining invariants.
 It uses an empty external-reference registry and never invokes current artifact
 models, analyzers, solvers, or CLI replay for historical evidence. Shape admission

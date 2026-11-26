@@ -2,6 +2,7 @@
 
 This note records guardrails. It is not a plan or an approved package design.
 Issue #1785 is the delivery contract. It has no formal requirement UID.
+
 Inspection baseline: `17bf4515bf12747af69c8598a2fc82d73e9651b9`.
 The issue's `036d1af96` findings describe an older tree. The owners below describe this checkout.
 
@@ -27,7 +28,9 @@ This note adds boundaries for these operations.
 
 Local composition already exists. Extend its owner instead of adding another expander behind the public facade.
 Keep registry transport, verification and cache ownership together. Composition consumes verified source bytes and descriptor facts.
-Contract packages must not import SDL. SDL must not import runtime, backend execution, adapters or tooling.
+Contract packages must not import SDL.
+
+SDL must not import runtime, backend execution, adapters or tooling.
 Generated transport records do not grant semantic admission. Output layout data is not a second schema.
 Use typed domain views and closed variants. Do not build a generic rule engine over maps.
 
@@ -51,9 +54,11 @@ flowchart LR
 Keep authored, expanded, selected, instantiated, snapshot and materialized values distinct.
 Materialized descriptions are not authored inputs. Instantiation does not acquire or realize resources.
 Preserve recursive partial-description meaning under ADR-105. Absence must not become an inferred capability or execution promise.
+
 Each changed value needs fresh admission. A copied validation flag cannot grant it.
 Nor can a prior digest or caller-supplied provenance.
 Caller data must not set the private `Document.validated` state.
+
 Check the full instantiated payload. A producer's claim that it passed does not replace this gate.
 `SDLPhaseOwner` already connects portable contracts to their native SDL owner without a reverse import.
 Keep its source commitment, copied request bytes and exact projection check.
@@ -69,6 +74,7 @@ Never run both old and new checks to claim a complete result.
 Binding preserves whole-field types. Match the reference's embedded-string conversion, including Boolean and number behavior.
 Do not substitute mapping keys or pinned control-context assets.
 Keep required/default/undeclared handling and bounded derivations.
+
 Keep binding origins, explicitness and capability constraints.
 Binding and structural edits must retain imported identities and source ranges.
 They must also retain declaration order and provenance.
@@ -77,6 +83,7 @@ Composition must preserve export visibility, private names, collision refusals a
 Selection applies recorded outcomes against the unchanged admitted family. Check complete coverage and valid target/domain identities.
 Reuse existing family satisfiability checks. They do not themselves produce a recorded selection.
 Keep ordering and conflict checks from `selected_scenario.py` and `selected_structure.py`.
+
 Keep their rules for reconciling provenance.
 Where stream draws apply, use existing profiles and address grammar. Preserve exhaustion behavior.
 `random_value.py` describes backend-generated unpredictable values. It does not authorize generating secrets during deterministic SDL selection.
@@ -92,6 +99,7 @@ Use the owning projection before serialization. Keep these byte identities separ
 Use one signer-payload builder for publishing and verification. Use standard-library Ed25519.
 Do not replace signed or pinned bytes with JCS or `json.Marshal` output.
 Nor may YAML output or normalized source bytes replace them.
+
 Do not merge manifest, content, export, semantic and cache-tree digests into one identity.
 Test Unicode exports and entrypoint changes. Test altered bytes and malformed signatures as well as valid modules.
 
@@ -114,7 +122,9 @@ Test Unicode exports and entrypoint changes. Test altered bytes and malformed si
 The reference inventories archives without extraction, then separately materializes a verified cache tree.
 Keep cache publication, containment and recovery checks.
 Verification-only inventory must not create files. Publishing creates the existing local OCI layout; it does not imply a remote registry push.
-The module owner writes locks, caches and layouts. It does not use runtime stores or workflow engines.
+The module owner writes locks, caches and layouts.
+
+It does not use runtime stores or workflow engines.
 Keep filesystem and HTTP access explicit and replaceable for tests. Library calls must not discover ambient authority.
 Review redirect, proxy and TLS behavior when selecting Go HTTP transport. Do not silently widen the approved registry boundary.
 
@@ -123,7 +133,9 @@ Review redirect, proxy and TLS behavior when selecting Go HTTP transport. Do not
 Transformations remain pure and deterministic. Return an admitted output and linked artifacts or an atomic refusal report.
 Reuse `artifact-transformation-report-v1` and its admission rules.
 Keep sorted report fields and explicit loss authorization.
-Rename/remove operations use canonical addresses and reference ownership. Do not replace strings recursively.
+Rename/remove operations use canonical addresses and reference ownership.
+
+Do not replace strings recursively.
 Re-admit changed linked concept bindings before reporting success.
 Use exact subjects and pinned snapshots.
 Keep source, policy, derivation and target digests under their named profiles.
@@ -166,7 +178,9 @@ It includes `raes_cli/sdl.py` and `raes_cli/semantic.py`.
 Cover import safety and instantiated admission flags in regression tests.
 Cover structural/dependent variation, transformations, semantic migration and linked binding preservation.
 Map every in-scope Python limit, security check, failure, recovery and issue-named defect to a Go test.
-The corpus inventories retain test origins. Passing available runners does not prove unimplemented surfaces or unmapped defects.
+The corpus inventories retain test origins.
+
+Passing available runners does not prove unimplemented surfaces or unmapped defects.
 Compare exact command envelopes, diagnostics and output files through existing runners.
 Do not rewrite golden expectations or invoke Python from Go product code.
 Local checks select relevant cases. Full corpus, race, coverage, mutation, fuzz and regression suites remain in CI.

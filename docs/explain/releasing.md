@@ -302,11 +302,13 @@ It also checks the exact wheel and sdist, admits their evidence, and runs the OI
 Use this for a draft created by an older run that failed **before** PyPI
 publication. It preserves the bound tag, commit, and numeric Release identity.
 It applies the current publication gates instead of a stale workflow definition.
-Never use manual dispatch for a version already on PyPI:
-it rebuilds instead of reusing the original admitted artifacts, even if the
+Never use manual dispatch for a version already on PyPI.
+
+Manual dispatch
+rebuilds and does not reuse the original admitted artifacts, even if the
 resulting bytes happen to match. Re-run failed jobs on the original run while
-its artifacts remain available and its workflow can complete publication;
-otherwise stop and cut a new patch release.
+its artifacts remain available and its workflow can complete publication.
+Otherwise, stop and cut a new patch release.
 Manual dispatch is not a verification bypass and never builds from the current
 branch head.
 

@@ -21,6 +21,7 @@ Coldlight embeds the shared runtime from its planned new repository owner.
 [The consumer API reference](../decisions/issue-1825-public-go-api.md) names their package owners, operations, command composition and compatibility policy.
 The nine packages that #1892 moved are downstream-importable at their public paths.
 These are `base/fault`, `base/ingress`, `base/canonjson`, `base/digest`, `base/address`, `base/clock`, `contract/binding`, `contract/validation` and `contract/admission`.
+
 Implemented SDL, processor and shared contract packages also expose their declared public APIs.
 Other base helpers and product implementation details stay below `internal`.
 The `public` flag is for layers.
@@ -76,6 +77,7 @@ The [source decoder](../decisions/issue-1782-source-loading-design.md) now lives
 It bounds YAML work, collects key conflicts, retains source ranges and emits YAML presentation.
 It returns decoded source, without granting model, semantic or import admission.
 The native authoring owner performs those checks through the public `sdl` facade.
+
 The processor compiles admitted scenarios into one typed model.
 Planning, realization and semantic comparison use their declared processor owners.
 Trial compilation remains planned.
@@ -84,6 +86,7 @@ Consumers need bounded SDL reads.
 They also need checks, edits, errors, locks and digests.
 They also include normalized contract round trips, artifact admission, compilation, planning and runtime result admission.
 Diagnostics preserve code, pointer, source range, stage and severity.
+
 Typed handles and caller validators cannot be replaced with JSON-only shims.
 RAES owns semantic admission, defaults, schemas, vocabulary and address grammar.
 Consumer adapters must not call Python.
@@ -176,6 +179,7 @@ The model's `consumer_api` section declares the public imports.
 The other base helpers and `contract/corpus` stay below `internal`.
 The model's `public` flag does not override Go `internal` visibility.
 Pure conformance, authoring services and MCP remain in `rae`; live conformance, execution services, HTTP and combined `raes` publication belong with runtime.
+
 The current model graph below still describes this checkout before extraction.
 Its layer descriptions and bound split decision define future ownership.
 The generated consumer tables show the public package plan and the sole executable publishers.
@@ -198,12 +202,14 @@ Do not copy shared helpers.
 Use the owner listed above.
 Keep source limits in place.
 Keep secrets out of logs.
+
 It records typed APIs and updates the owning design's API commitment.
 It reviews this overview when source commitments change.
 `archcheck -view` prints the generated section for review; it does not overwrite the overview.
 `archcheck -api` prints actual interfaces for comparison; it does not approve them.
 The existing go-architecture CI job checks documentation and code changes.
 Before running the architecture checker or its consumer API tests, run `go -C implementations/go mod download`.
+
 This prepares the pinned product dependencies for offline type inspection.
 The tooling test job and architecture job run this preparation before their checks.
 Contract admission's independent model tests retain their recorded inputs in `admission/testdata/retained-model-inputs`.

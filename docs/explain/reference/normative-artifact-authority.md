@@ -1,4 +1,4 @@
-# Normative Artifact Authority Guardrails
+# Normative artifact authority guardrails
 
 Contributor-facing guardrails for `ASR-517`. This note is explanatory; the
 canonical authority boundary lives at
@@ -15,7 +15,7 @@ codifies that decision in a single machine-readable seam; `ADR-019` is the
 canonical-seam decision that governs the YAML. This note remains as
 contributor-facing reading material.
 
-## Architecture Decisions
+## Architecture decisions
 
 - `specs/` is the home for normative prose. Explanatory material belongs under
   `docs/`, and examples remain non-normative worked examples.
@@ -33,7 +33,7 @@ contributor-facing reading material.
   the implementation must still describe it as a checked-in contract artifact,
   not as authority owned by the generator.
 
-## Cross-Cutting Concerns
+## Cross-cutting concerns
 
 Reuse these existing surfaces before adding anything new:
 
@@ -58,7 +58,7 @@ Reuse these existing surfaces before adding anything new:
   `noxfile.py`, `tools/check_repo_policy.py`,
   `tools/check_requirement_governance.py`, and `tools/verify_all.py`
 
-## Security And Validation Gates
+## Security and validation gates
 
 The authority-boundary work is mostly documentation and contract governance,
 but it still passes through these gates:
@@ -77,37 +77,37 @@ but it still passes through these gates:
   `contracts/schemas/` are the hand-governed normative authority. A contract
   change is an edit to the published schema. A new schema also adds its record
   under `contracts/schema-publication/entries/`, and a deletion adds an
-  independent tombstone record;
-  `tools/check_generated_schemas.py` proves the reference implementation
-  (`schema_bundle()`) still generates an identical bundle (into a throwaway
-  directory — it never overwrites the published authority).
+  independent tombstone record. `tools/check_generated_schemas.py` proves that
+  the reference implementation (`schema_bundle()`) still generates an identical
+  bundle. It generates into a throwaway directory and never overwrites the
+  published authority.
 - Requirement governance: changed governed paths must carry the `ASR-517`
   context through the branch name or `RAES_REQUIREMENT_UID`, and Ground Control
   traceability must stay aligned.
 - Secret and host exposure: authority docs, fixtures, diagnostics, command-line
-  examples, and generated artifacts must not include bearer tokens,
-  credentials, private keys, environment secrets, or instructions that place
-  secrets in process arguments.
+  examples, and generated artifacts must not include bearer tokens, credentials,
+  private keys or environment secrets. They must not include instructions that
+  place secrets in process arguments.
 - Error-envelope leakage: any added tool or CLI surfaced by this work should
   reuse existing diagnostics/error patterns and avoid raw tracebacks or
   environment dumps.
 
-## Extensibility Seam
+## Extensibility seam
 
 The seam is the artifact family plus versioned `contract_id`, not a Python
 class name, generator function, path convention, or profile-local table.
 
-Adding an authoritative family should require a clear artifact location,
-schema/profile/fixture registration where applicable, and one validation hook
-in the existing manifest or contract-validation machinery. It should not
+Adding an authoritative family should require a clear artifact location and
+schema/profile/fixture registration where applicable. It should also require one
+validation hook in the existing manifest or contract-validation machinery. It should not
 require re-editing unrelated consumers or copying a new authority list across
 the repo.
 
-Keep loader paths parameterized where they already are, such as
-`fixtures_root`, `profiles_root`, and catalog roots used by contract helpers,
-while keeping the defaults pointed at the checked-in `contracts/` authority.
+Keep loader paths parameterized where they already are, such as `fixtures_root`,
+`profiles_root`, and catalog roots used by contract helpers. Keep the defaults
+pointed at the checked-in `contracts/` authority.
 
-## Gotchas And Anti-Patterns
+## Gotchas and anti-patterns
 
 Avoid:
 
@@ -133,7 +133,7 @@ Avoid:
 - making invalid fixtures multi-concern when one focused fixture can prove the
   contract rule
 
-## Scope And Non-Goals
+## Scope and non-goals
 
 This page is contributor-facing reading material that accompanies the
 shipped implementation of `ASR-517`. The actual authority boundary is

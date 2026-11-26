@@ -8,6 +8,7 @@ Issue: #1831. The normative owner is `specs/sdl/cloud-resource-access.md`.
 ADR-115 assigns concrete realization to backend distributions.
 This design sets the contract that those distributions must implement.
 RAES does not select its semantics from a concrete backend's current capabilities.
+
 Provider identity describes the scenario domain; it does not select a backend implementation.
 Native names are contract data, not provider API calls or backend imports.
 The field layout does not impose GCP log categories on other providers.
@@ -20,6 +21,7 @@ Each record has `audit_log_id`, `service`, `log_type`, and optional `exempted_pr
 The record ID is local to its scope.
 The service and log type retain native spelling and provider meaning.
 They are not endpoint references or portable enumerations.
+
 Each service and log-type pair occurs at most once per scope.
 Exemptions name exact identity subjects, including subjects from other scopes.
 An omitted or empty collection adds no recording requirement.
@@ -30,6 +32,7 @@ The public model lives in `raes.runtime_identity_resources`.
 The directory-identity and runtime-configuration facades export it.
 The runtime-family registry supplies nested collection identity and exact addresses.
 The cloud validator checks exemption references.
+
 The cloud composition helper rewrites only those references.
 The existing `runtime-identity-authorities` concern retains every setting.
 Compilation, plan transport, snapshot storage, and materialized descriptions use existing carriers.
@@ -39,6 +42,7 @@ RAES runtime admission checks contract support declarations before effectful inv
 It also consumes validation diagnostics through the existing protocol.
 A protocol rejection prevents invocation; a general support claim does not erase authored constraints.
 RAES result validation checks returned configuration against the binding requirements.
+
 Missing rules or changed exemptions must not pass as a matching result.
 This contract defines conformance obligations, not a concrete backend's current support.
 Readback checks do not request traffic generation or log retrieval.
@@ -84,12 +88,14 @@ The #1653 cloud design supplies ownership and lifecycle patterns.
 The registry, cloud validator, and composition helper remain the reference owners.
 The realization concern registry and runtime admission remain the execution owners.
 Published schemas remain authority under ADR-009.
+
 Their publication entries record each changed hash and contract summary.
 The model generator must produce identical schemas.
 Existing parser and schema checks supply policy as code.
 Portable schemas reject blank native names and repeated exemption references.
 The scope publishes its uniqueness rules through the existing semantic-invariant profile.
 The invariant calls the public scenario model validator, which checks each scope.
+
 The typed models and registry supply architecture as code.
 No new structural gate or requirement UID is introduced.
 ADRs 032, 105, 115, 117, and 121 retain their current meaning.

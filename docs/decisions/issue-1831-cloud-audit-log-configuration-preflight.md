@@ -11,6 +11,7 @@ The user's responsibility clarification supersedes capability-based acceptance w
 [Hub issue 3](https://github.com/OpenRAE/hub/issues/3) and ADR-115 assign RAES semantics, contracts, conformance, and portable runtime enforcement.
 RAES sets the contract; concrete backend distributions depend on and implement it.
 References below to support or refusal describe protocol conformance, not downstream delivery requirements.
+
 Provider documentation explains domain concepts; it is not a backend architecture to copy into RAES.
 The current issue and design define acceptance at RAES-owned boundaries.
 Native execution methods and live integration qualification remain outside this work.
@@ -31,7 +32,9 @@ per service. Give records stable scope-local identity and reject duplicate or
 conflicting declarations of the same service/log-type pair, even under different
 record IDs. Optional principal exemptions belong to the applicable log-type
 record, not to an authority-wide permission binding. If included, use exact
-references to existing `RuntimeIdentitySubject` declarations; do not duplicate
+references to existing `RuntimeIdentitySubject` declarations.
+
+Do not duplicate
 principals, resolve native emails by spelling, or require their ownership scope
 to equal the logging scope. Provider-specific eligibility remains backend work.
 Do not quietly omit exemptions when admitting or realizing a declaration.
@@ -90,15 +93,18 @@ also defines inherited settings and exemptions. AWS's
 [CloudTrail event selectors](https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_EventSelector.html)
 distinguish management/data events and read/write selection. Azure's
 [diagnostic settings](https://learn.microsoft.com/en-us/azure/azure-monitor/data-collection/diagnostic-settings)
-use resource categories and destinations. These are distinct contracts, not
-three spellings of GCP's three log types. The design inference is to parameterize
-native service and log-type identity within the existing provider-qualified
-scope, rather than publish a universal three-value enum or provider switch.
+use resource categories and destinations.
+
+These are distinct contracts, not
+three spellings of GCP's three log types. The design inference is to
+parameterize native service and log-type identity within the existing
+provider-qualified scope. It does not publish a universal three-value enum or
+provider switch.
 
 A provider that needs an undeclared destination, selector or unsupported
 exemption must refuse rather than approximate or create implicit infrastructure.
 Later native refinements can use the existing governed, admitted profile seam
-when its host and operations apply; this feature does not create a universal
+when its host and operations apply. This feature does not create a universal
 runtime profile bag. Native wildcards remain inert unless their exact semantics
 are supported. Core must not expand a wildcard by querying a service catalog.
 
@@ -116,9 +122,10 @@ Reconcile `specs/sdl/runtime-inventory.md`, `specs/sdl/references.md` and
 Published schemas under `contracts/schemas/` remain authority (ADR-009/061).
 Keep owner contributions (`raes.schema_contributions`, and processor evidence)
 and `raes_schemas.schema_bundle()` identical to the governed publication.
+
 Affected embedded definitions include authoring input, instantiated scenario,
 instantiated snapshot, materialized scenario and satisfiability evidence.
-Trace the actual bundle rather than updating just the authoring schema.
+Trace the actual bundle rather than updating only the authoring schema.
 Maintain `contracts/schema-publication/entries/` content hashes and `last_change`
 records through the existing publication tooling/manifest convention, plus
 semantic-invariant and catalog parity checks. Do not copy the SDL model into
@@ -132,12 +139,14 @@ new portable enum or a new concept family. Keep authority-boundary,
 concept-governance, generated-schema and schema-publication checks intact.
 
 Acceptance evidence should extend the #1653 cloud model/reference/lifecycle
-tests and fixtures. It must cover a positive service/log-type statement;
-multiple types/services; omission and explicit closure; duplicate/blank/unknown
-shape refusal; exemptions and wrong-kind/dangling references when supported;
-repeated imports and post-binding collisions; all affected published schemas;
-compile/projection/codec/durable round trips; and materialized-result mismatch.
+tests and fixtures. It must cover a positive service/log-type statement,
+multiple types/services, omission and explicit closure, and
+duplicate/blank/unknown shape refusal. It must cover exemptions and
+wrong-kind/dangling references when supported, and repeated imports and
+post-binding collisions. It must also cover all affected published schemas,
+compile/projection/codec/durable round trips, and materialized-result mismatch.
 Exercise RAES admission with declared support and protocol rejection fixtures.
+
 Assert zero effectful calls when RAES rejects admission, including direct submitted plans.
 No concrete backend implementation or native logging behavior is required.
 An accepting fixture must preserve settings and use the existing configuration
@@ -153,13 +162,14 @@ run. Release-please owns versions and changelog: the eventual consumer-visible
 change needs a release-producing Conventional Commit/PR classification under
 the repository rules. A documentation-only preflight does not ship the feature.
 
-Non-goals are concrete cloud backends/SDKs, a complete cross-cloud logging model,
-automatic discovery, effective IAM/audit inheritance evaluation, credential
-transport, sink provisioning, retention/export controls, log retrieval, SIEM
-connectors, detection rules, new workflow/persistence machinery and live-provider
-qualification. Avoid vendor JSON as semantic authority, audit meaning hidden in
-settings, permission bindings reused as logging rules, fabricated evidence,
-optimistic capability claims and duplicate validators outside the owning layers.
+Non-goals are concrete cloud backends/SDKs, a complete cross-cloud logging
+model, automatic discovery, effective IAM/audit inheritance evaluation and
+credential transport. Other non-goals are sink provisioning, retention/export
+controls, log retrieval, SIEM connectors, detection rules, new
+workflow/persistence machinery and live-provider qualification. Avoid vendor JSON as semantic authority, audit meaning hidden in
+settings, and permission bindings reused as logging rules. Also avoid fabricated
+evidence, optimistic capability claims and duplicate validators outside the
+owning layers.
 Final field names and schema layout remain implementation design choices within
 these boundaries. No source, schema or normative contract changes accompany
 this preflight.

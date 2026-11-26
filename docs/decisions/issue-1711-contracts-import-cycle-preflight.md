@@ -58,9 +58,9 @@ These are compatibility decisions, not ordinary import rewrites.
 
 Implementation needs a design that preserves these existing calls and their
 checks while enforcing the dependency direction. This preflight has not
-established such a design for these APIs. If resolving the conflict requires
-changing SDL ownership or an observable contract, retain the affected code and
-ask the maintainer under the issue's explicit stop rule. This note grants no
+established such a design for these APIs. A conflict resolution can require a
+change to SDL ownership or an observable contract. In that case, retain the
+affected code and ask the maintainer under the explicit stop rule of the issue. This note grants no
 exception to zero reverse imports or public-path stability.
 Do not make a runtime import dynamic, resolve it through `sys.modules`, inject
 attributes into another package, or rely on startup order to disguise the edge.
@@ -71,7 +71,7 @@ All package paths below are under `implementations/python/packages/`.
 An AST inventory finds 57 reverse import statements in 39 contracts files,
 including the two `TYPE_CHECKING` imports in evidence refinement. The live
 function-local totals are 152 imports in 67 contracts files and 56 in 26 SDL
-files; not every deferred import exists only to break a cycle. Grimp places
+files. Not every deferred import exists only to break a cycle. Grimp places
 404 modules in the cross-package strongly connected component when it excludes
 `TYPE_CHECKING` imports and 410 when it includes them.
 
@@ -86,9 +86,9 @@ files; not every deferred import exists only to break a cycle. Grimp places
 | Canonicalization, bytes and diagnostics | Reuse `raes_contracts.canonical`, `digests`, `json_serialization`, `json_pointer`, `diagnostics`, `addressing`, `planning` and `versions`. The shared-primitives work is already present at this revision. `raes.canonical` adds SDL phase/admission rules; a raw JSON digest is not its replacement. |
 
 Use direct public imports of owning modules internally. Existing public paths
-may explicitly re-export a name from a lower owner; preserve object identity
-instead of subclasses, copied enums, copied constrained aliases or wrappers
-with different exception behavior. Do not merge `SDLModel` and `ContractModel`:
+may explicitly re-export a name from a lower owner. Preserve object identity
+instead of subclasses, copied enums, copied constrained aliases or wrappers with
+different exception behavior. Do not merge `SDLModel` and `ContractModel`:
 the former has `populate_by_name=True`; phase records also have frozen and
 serialization rules. Retain the effective model configuration and validators
 when extracting a genuinely shared value. A base-class change can alter
@@ -139,7 +139,7 @@ through all existing public paths. Consider observable qualified names and
 Pydantic reference collisions when moving classes; do not blanket-rewrite
 `__module__` or install pickle/import hooks. Validate cold imports in different
 orders, direct module imports, runtime type-hint resolution and installed-wheel
-imports, rather than relying on a test session that already loaded SDL.
+imports. Do not rely on a test session that already loaded SDL.
 `raes_contracts.__init__` stays inert. Its bootstrap closure with `errors` and
 `operational_logging` remains standard-library-only and Python 3.12 compatible;
 normal application code targets Python 3.14.
@@ -159,6 +159,7 @@ Use its existing config shape and ADR-117's `tools/policy/import_contracts.toml`
 layer order. Remove resolved exact import ignores and drain affected entries
 in `structural_baseline.json`. Never rebaseline new cycle/private-import/class
 identities, weaken analyzer settings, or use the exceptions file to waive them.
+
 The direct AST boundary check includes `TYPE_CHECKING`; grimp's configured
 graph excludes it but includes function-local imports. Both are necessary.
 Review dynamic imports separately. Do not add a parallel import checker or
@@ -171,17 +172,18 @@ seam is `collection_name`, `id_field`, nested `child_refs` and explicit
 `reference_policy`; SDL module/export bindings stay above it. A new family
 must not require editing a second schema-only catalog. Schema transforms keep
 their existing explicit `contract_id` and schema inputs. If the maintainer
-approves separating SDL bundle assembly, its composition input should be
-explicit owned schema contributions, without global registration; this does
-not resolve or waive the current zero-argument API compatibility decision.
+approves separate SDL bundle assembly, its composition input should be explicit
+owned schema contributions, without global registration. This does not resolve
+or waive the current zero-argument API compatibility decision.
 
-Whole-repo consumers in scope for compatibility are all ten packaged roots,
-the wheel/sdist configuration and corpus build hook in `implementations/python`,
-`contracts/schemas/` and the publication manifest, `tools/generate_contract_schemas.py`,
-`tools/check_generated_schemas.py`, `tools/check_schema_publication.py`,
-`tools/check_repo_policy.py`, the structural configs above, `.ground-control.yaml`,
-`.gc/plan-rules.md`, `noxfile.py`, `tools/nox_support/`, repository hooks and
-`.github/workflows/`. No replacement build, policy or workflow is needed.
+The whole-repo consumers in scope for compatibility are all ten packaged roots,
+and the wheel/sdist configuration and corpus build hook in
+`implementations/python`. They also include `contracts/schemas/` and the
+publication manifest, `tools/generate_contract_schemas.py`,
+`tools/check_generated_schemas.py`, `tools/check_schema_publication.py` and
+`tools/check_repo_policy.py`. The other consumers are the structural configs
+above, `.ground-control.yaml`, `.gc/plan-rules.md`, `noxfile.py`,
+`tools/nox_support/`, repository hooks and `.github/workflows/`. No replacement build, policy or workflow is needed.
 Accepted ADRs remain governed by `tools/check_adr_immutability.py`; this note
 does not amend ADR-036 or authorize moving SDL ownership wholesale.
 

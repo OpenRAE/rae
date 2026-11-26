@@ -1,4 +1,4 @@
-# Realization Envelopes and Observation Provenance
+# Realization envelopes and observation provenance
 
 This page explains how RAES states, per backend configuration, **which scenario
 concerns it can realize and where its proof for each one comes from**. It is
@@ -13,11 +13,12 @@ It is the backend-facing companion to
 ## The problem
 
 "The backend realized the scenario" is not a single claim. A backend can create
-a named object at the hypervisor and report success while the guest never
-booted, got the wrong address, or is missing the file the scenario asked for.
+a named object at the hypervisor and report success. Meanwhile the guest never
+booted, got the wrong address, or is missing the file that the scenario asked
+for.
 Honest portability needs each backend to disclose, per concern, *what* it
-realizes and *how independently that realization is observed* — and to be unable
-to claim more than it can show.
+realizes and *how independently that realization is observed*. The backend must
+also be unable to claim more than it can show.
 
 ## Observation provenance
 
@@ -31,7 +32,7 @@ provenance alternatives rather than a total order. The vocabulary is closed
 | `none` | Not observed (the concern is `unsupported` for this configuration). |
 | `driver-reported` | The driver asserts it; no independent readback. |
 | `daemon-observed` | Read back from the hypervisor/daemon (e.g. libvirt domain/network XML), ownership-checked. Proves the object exists and is configured at the daemon boundary. |
-| `guest-observed` | Read from **inside the realized guest** (its own `/proc`, `/sys`, `/etc`, link/file/account/service state). Proves the running system *is* what was requested, not just that an object exists. |
+| `guest-observed` | Read from **inside the realized guest** (its own `/proc`, `/sys`, `/etc`, link/file/account/service state). Proves the running system *is* what was requested, not only that an object exists. |
 
 A concern's **disposition** (`realized`, `transformed`, `descriptor-only`,
 `unsupported`) says whether and how it is realized; the source says how it is
@@ -39,7 +40,7 @@ proven. Sufficiency is claim-specific: coverage scope, value and execution
 binding, freshness, declared capability, and any explicit boundary or
 independence constraint matter independently of source. When an author leaves
 the source unconstrained, either daemon-native or guest-native readback may
-corroborate the claim if it satisfies those other conditions; `driver-reported`
+corroborate the claim if it satisfies those other conditions. `driver-reported`
 self-attestation alone is not authoritative corroboration. An `unsupported`
 concern must claim `none` — a configuration cannot disclose observation for
 something it does not realize.
@@ -47,9 +48,9 @@ something it does not realize.
 Source provenance is separate from visibility and collection effect. Closed
 realization scope allows non-mutating native readback, but does not authorize an
 in-world probe or sidecar; a claim that cannot otherwise be proved is rejected.
-Open scope permits only the available sufficient method with the least effect
-on the environment and participants, and any added apparatus is disclosed as
-part of the realized form and through the existing augmentation carrier.
+Open scope permits only the available sufficient method with the least effect on
+the environment and participants. Any added apparatus is disclosed as part of
+the realized form and through the existing augmentation carrier.
 
 ## Concerns
 

@@ -3,6 +3,7 @@
 ## Scope and ownership
 
 Issue #1859 extends ADR-124. The `arch` package owns all checks.
+
 The `archcheck` command remains the public command interface.
 `Model.CheckDesign`, `Model.CheckDocuments`, and `Model.CheckAPI` separate the three checks.
 `LoadAPI` reads actual type information. `Model.View` renders the current model.
@@ -14,6 +15,7 @@ Model version 2 records build configurations and each package's intended API.
 The API records the declared package name.
 It uses standard `go/types` object and type strings, sorted by identity.
 Constants include exact values. Variables include inferred types.
+
 Types include aliases, generic constraints, exported fields, tags, and embedded members.
 Reachable private types and exported pointer/value method sets are included.
 Dependency-owned types reached through aliases and embedded fields are included.
@@ -25,6 +27,7 @@ The digest covers every declared build configuration.
 Use Go encoding/json.Marshal bytes, including its default HTML escaping.
 A snapshot update without that design commitment fails.
 The design check needs only the model and design files, never product code.
+
 The normal check loads each configuration with the admitted Go package loader.
 Go resolution is offline and read-only. No proposed code runs.
 Every production source file must appear in a supported configuration.
@@ -39,6 +42,7 @@ The current overview is `docs/develop/go-architecture.md`.
 Its generated block contains layers, package ownership, status and dependency edges.
 The checker compares that block with deterministic output, without writing it.
 Source commitments bind authored trust views to contracts, ADRs and threat evidence.
+
 Changed or missing evidence fails until its binding and the view are reviewed.
 Issue #1825 owns all downstream API decisions. Those operations remain planned.
 The overview distinguishes consumer importability from internal layer visibility.
@@ -49,7 +53,9 @@ The protected asset is the CI architecture verdict.
 Repository metadata and proposed source are untrusted inputs.
 Rooted file access prevents references from escaping through symlinks or traversal.
 Model input is bounded to 4 MiB and 128 nesting levels. Duplicate keys fail.
-References must name clean relative files. They cannot trigger commands or downloads.
+References must name clean relative files.
+
+They cannot trigger commands or downloads.
 API extraction uses Go's parser/type checker, not a new signature language.
 Findings carry a stable rule, location, problem and fix.
 Read failures return errors and fail the command.

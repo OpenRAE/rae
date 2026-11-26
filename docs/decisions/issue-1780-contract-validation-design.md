@@ -42,6 +42,7 @@ The generator reads the publication inventory and normative corpus.
 It emits one transport root for each of the 148 published contracts.
 There is no second hand-kept list of contract IDs.
 The embedded ZIP has fixed byte output and bounded hexadecimal pieces.
+
 The loader decodes each piece before reading the same archive bytes.
 Each decoded piece is at most 128 KiB; at most 64 pieces are allowed.
 Hexadecimal storage avoids treating compressed bytes as live identity text.
@@ -79,6 +80,7 @@ The regular-expression adapter uses Go's bounded engine.
 It supports the published Unicode digit and whitespace classes.
 It retains Python's final-newline rule for the dollar assertion.
 It handles the published terminal lookahead and Unicode escapes without editing schema bytes.
+
 Unsupported syntax fails compilation.
 Format annotations remain annotations, as in the recorded schema results.
 Domain-profile schema admission stays with its own owner.
@@ -120,6 +122,7 @@ Default views are fresh copies.
 They add only published defaults after the original input passes its schema.
 They cannot insert a required field to make bad input pass.
 They retain the original branch choice and refuse conflicting defaults.
+
 Recursive expansion is bounded.
 Object-fragment defaults use the same walk and reachable compiled definitions.
 They expose no mutable schema and grant no admission.
@@ -134,6 +137,7 @@ Vocabulary metadata can contain Python regular-expression syntax.
 A syntax parser checks those expressions without running them.
 It checks groups, references, repetition, flags and fixed-width lookbehind.
 Unicode names come from the pinned text library and Unicode 16 data.
+
 The parser bounds nesting. Model checks retain no caller data.
 Schema patterns keep their existing linear-time matcher.
 
@@ -142,6 +146,7 @@ Issue #1963 exposes that same syntax owner for Go repository tools.
 The result retains only the named-character escapes used by that expression.
 `NamedCharacter` returns a rune and presence flag; callers receive no mutable map or parser state.
 Names retain the parser's Unicode 16 spelling and alias rules.
+
 The zero value has no resolved names. Separate parses do not share caller facts.
 This API validates syntax only. It never compiles or runs an expression.
 The tooling module consumes it through a pinned public module version.
@@ -300,18 +305,22 @@ The [regression crosswalk](../../specs/conformance/contract-validation-regressio
 links reference limits and defect tests to Go tests.
 Participant manifests and provenance also check model rules with no schema annotation.
 These rules check compatibility, governed terms, declarations, selections and exposure.
+
 Manifest capability checks also bind cleanup, observation, time and participant support to declared contracts.
 Autonomous execution needs complete finite limits and compatible bindings.
 Tool support needs its typed capacities and exact feature declarations.
 Resource-budget checks retain canonical identities, exact quantities and pool limits.
 Policy parents form an acyclic graph with bounded child totals.
+
 Private resource measures need exact offline profile resolution and declared semantic support.
 `validation.CheckInertSchema` owns their structural checks.
 Its `InertLimits` sets byte, depth, node, scalar, reference and evaluation budgets.
 The checker accepts explicit supported keywords and counts reference keyword work.
+
 It retains source member order for the budget trace and uses the pinned engine's offline meta-schemas.
 The reference wraps callbacks until a declared dialect selects the standard validator.
 The Go counter keeps that boundary, including the shared schema and value budget.
+
 Caller IDs never enter the trusted meta-schema registry.
 Atomic assertions and the complete private schema compile under a private ID.
 The maintained engine checks the complete schema after the bounded work trace.
@@ -323,6 +332,7 @@ Reduced ratio checks apply to every schema-owned `ExactRatioModel`, including ti
 Clock comparisons use private coordinate views.
 They fill absent segment and microstep fields with zero, as the Python model does.
 The required tick and supplied values remain intact.
+
 History links, final state and transitions compare these views.
 Ordering and mapped coordinates use the same defaults.
 The original input bytes remain the admitted evidence.
@@ -354,11 +364,13 @@ The generated binding surface is larger than the 4 MiB model bound.
 The model may declare `api_files` instead of an inline `api` for a package.
 `arch.Package.APIFiles` maps each build configuration to ordered snapshot paths.
 The existing `arch.Load` interface expands those files before design and API checks.
+
 The files live under `implementations/architecture-api/` and contain string arrays.
 Each file is bounded to 500 KiB; at most 64 files are allowed per package.
 All expanded files share a 32 MiB read budget.
 The model keeps its current 4 MiB bound.
 Inline and file-backed snapshots cannot be combined for one package.
+
 Unsafe paths, missing or malformed files and exhausted bounds fail loading.
 The complete typed declarations still drive API equality and design commitments.
 The owning design commits to the expanded content, not the list of filenames.
@@ -385,6 +397,7 @@ Semantic-profile phases reuse that inventory and the existing manifest scope rul
 They check unique contracts, families, binding scopes and assumption IDs.
 Satisfiability records check canonical scalar order, graph references, outcome selection and digest joins.
 A satisfiable witness uses the existing `MaterializationCompiler` as its native SDL admission owner.
+
 The owner supplies typed phase data for the exact source bytes.
 Go retains the source binding, supplied-field comparison and canonical witness digest check.
 Missing, nil, changed or failing owners cannot grant witness admission.
@@ -395,11 +408,13 @@ Local model regressions also check study factor declarations and allocation memb
 Blocking factors need declared levels and a governed blocking kind.
 Condition assignments must name declared factors and levels.
 Envelope digest views include the reference model's null defaults, including an omitted witness seed.
+
 The SDL content owner retains its documented `service-content` profile default when that profile selector is absent.
 That exception applies only to the content service-materialization schema; other missing discriminators still fail.
 These default views preserve the supplied evidence bytes.
 Integer singleton intervals use the reference model's integer witness when checking subset membership.
 Their float-serialized endpoints do not change the declared integer kind.
+
 Snapshot entries retain exact map-key and embedded-address agreement.
 Stored execution-service records use the same typed state checks as standalone service-state admission.
 Manifest configuration targets retain key, alias and value-kind constraints.
@@ -409,13 +424,15 @@ Configuration target checks also preserve the reference model’s alias namespac
 
 Supplemental local models also enforce participant lifecycle phase coupling, proposition polarity and lineage claim/notice joins. The published schemas continue to own shape and enum checks; these additions reuse the local model visitor without introducing owner authority or new public APIs.
 
-The capture-media rule visits each declared requirement in its enclosing specification. Study references, snapshot archive identities, and participant manifest configuration aliases use their respective local model checks. Integral JSON numbers retain their published integer type even when the Python binding validator distinguishes a float carrier; the regression record keeps that reference verdict separately from the requested integer admission result.
+The capture-media rule visits each declared requirement in its enclosing specification. Study references, snapshot archive identities, and participant manifest configuration aliases use their respective local model checks. Integral JSON numbers retain their published integer type even when the Python binding validator distinguishes a float carrier. The regression record keeps that reference verdict separately from the requested integer admission result.
 
 ## SDL phase admission owner
 
 Full admission of `sdl-authoring-input-v1`, `instantiated-scenario-v1`, `materialized-scenario-v1` and `instantiated-scenario-snapshot-v1` requires the configured SDL compiler owner. The contract package owns the `SDLPhaseOwner`, `SDLPhaseRequest` and `SDLPhaseAdmission` port types. `Validator.Validate` reaches that port after schema and local contract rules pass. The owner admits the complete native phase, including native resource bounds, identities and parameter derivations. It returns the phase contract ID, the SHA-256 commitment to the exact source bytes, and its admitted supplied-field JSON projection.
 
-The contract package copies the request source, rejects mutation, checks the returned phase and commitment, schema-checks the admitted projection and compares its values with the submitted document. Integral JSON numbers compare by exact value; other scalar kinds stay distinct. Owner failures and panics return a value-free refusal. An absent owner cannot produce a full admission value. Portable checks remain explicitly local and do not establish native SDL admission. The existing compiler port continues to own compiled resources for execution and archive checks; this phase port grants no materialization, archive, or runtime-inventory decision.
+The contract package copies the request source, rejects mutation, and checks the returned phase and commitment. It then schema-checks the admitted projection and compares its values with the submitted document. Integral JSON numbers compare by exact value; other scalar kinds stay distinct. Owner failures and panics return a value-free refusal.
+
+An absent owner cannot produce a full admission value. Portable checks remain explicitly local and do not establish native SDL admission. The existing compiler port continues to own compiled resources for execution and archive checks; this phase port grants no materialization, archive, or runtime-inventory decision.
 
 Focused model comparisons additionally enforce nested inject occurrence/outcome identity joins, materialization-parent canonical references, ordered exploit-witness observations and prerequisites, and participant time-management claim/mode coupling. These remain local contract/model checks in the existing admission package and visitor; they add no public API or external authority.
 
@@ -453,6 +470,7 @@ The SDL formatter uses this boundary for resolution-header validation without cl
 It checks only the packaged authored and materialized SDL model views.
 The views omit the two Node OS dependency clauses, which Python runs in semantic validation.
 A fixed digest pins the exact omitted clauses.
+
 Changed clauses fail construction of the validator until their stage assignment is reviewed.
 The published schemas, their compiled maps, and their entry points remain unchanged.
 The admission owner supplies stock local rules and nested model predicates.
@@ -466,6 +484,7 @@ The materialized formatter uses this operation after strict source reparsing, th
 The construction view preserves the reference model's field-pattern semantics.
 A packaged compatibility record names the published model, field, scalar or item path, and exact reference pattern.
 The schema owner copies only those field views. It checks each target before compiling the copied view.
+
 Its bounded RE2 adapter preserves strict end anchors and the reference field engine's Unicode classes.
 Other published patterns retain their existing schema semantics.
 The published schemas, normal validation operations and phase-admission gates stay unchanged.

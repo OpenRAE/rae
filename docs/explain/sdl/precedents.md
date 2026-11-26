@@ -1,4 +1,4 @@
-# SDL Design Precedents
+# SDL design precedents
 
 ## Design-intent correction in progress
 
@@ -7,8 +7,10 @@ requirement that every author specify or capture their full contents.
 [#1201](https://github.com/OpenRAE/rae/issues/1201) deliberately corrects the
 tendency to promote backend recipes and captured specimens into mandatory SDL
 detail or core catalogs. Open scopes delegate unspecified descendants to the
-backend while explicit constraints stay binding; abstract models can already
-be complete; observation/reporting demand is independent of scenario detail.
+backend while explicit constraints stay binding. Abstract models can already be
+complete.
+
+Observation/reporting demand is independent of scenario detail.
 Required-profile guards in the historical tables are remediation candidates,
 not universal authoring guidance. See [clarified design intent](../../research/language-extensibility/design-intent.md)
 and [scope inventory](../../research/language-extensibility/scope-inventory.md).
@@ -41,14 +43,14 @@ The tables below are design-rationale summaries: they identify the plane on
 which a source informed comparison or adaptation. They are not a parallel
 provenance registry.
 
-Each source table adds an **Influence plane** column: *syntax* means the
-author-facing shape was compared or adapted, *semantics* means the source
-informed meaning or behavior, and *both* means both kinds of design work. These
+Each source table adds an **Influence plane** column. *syntax* means the
+author-facing shape was compared or adapted, and *semantics* means the source
+informed meaning or behavior. *both* means both kinds of design work. These
 labels do not assert copying, conformance, or compatibility. The ledger's claim
 plane, classification, exact source boundary, and divergence are authoritative.
 The "Deliberate Omissions" table carries no influence-plane column.
 
-## Core Structure (from Open Cyber Range SDL)
+## Core structure (from Open Cyber Range SDL)
 
 The base sections have syntax and translated-model ancestry in
 [OCR SDL v0.21.2](https://github.com/Open-Cyber-Range/SDL-parser/tree/fe83e8281fc4b954967fbaa5a0d099007ddcb06c),
@@ -77,7 +79,7 @@ Cyber Range.
 | Source | `Source` (name + version) | Syntax | Made provider-neutral |
 
 
-## Extensions by Source
+## Extensions by source
 
 ### From CybORG CAGE Challenge
 
@@ -93,7 +95,7 @@ Cyber Range.
 | `Agent.interactive_access` | `Agents.*.starting_sessions[]` in CybORG v3.0 | Semantics | Adapted participant-local explicit host/channel association; RAES uses stable authored ids and references, not established simulator sessions, usernames, or copied syntax |
 
 
-### From Newer Participant And Benchmark Ecosystems
+### From newer participant and benchmark ecosystems
 
 These sources inform the newer participant-, benchmark-, and exposure-related
 ecosystem surfaces. In many cases they are precedents for concerns the
@@ -110,7 +112,7 @@ full shape directly.
 | Swappable participant implementations | Agent benchmark stacks, provider/model-selectable eval systems | Semantics | Concrete agent/policy/script/human-control implementations are treated as apparatus surfaces distinct from SDL roles, processors, and backends |
 
 
-### Participant Semantics Theory
+### Participant semantics theory
 
 Issue #71 adds a formal participant-semantics design in
 `specs/formal/participant-semantics/` and ADR-022. These precedents inform that
@@ -135,9 +137,10 @@ design without becoming the RAES runtime API or authoring syntax.
 
 For the `SEM-209` implementation slice, RAES represents framework-neutral
 joint-action declarations and realized-order provenance. PettingZoo/OpenSpiel
-inform participant-local histories and joint behavior, Lamport informs ordering
-without causal overclaim, and cyber-agent systems motivate explicit target and
-shared-state references without making framework/tool APIs the SDL authority.
+inform participant-local histories and joint behavior, and Lamport informs
+ordering without causal overclaim. Cyber-agent systems motivate explicit target
+and shared-state references, without making framework/tool APIs the SDL
+authority.
 
 
 ### From CyRIS
@@ -150,7 +153,7 @@ shared-state references without making framework/tool APIs the SDL authority.
 | `Agent.interactive_access` | `guest_settings[].entry_point` and tunnel selection in CyRIS 1.2 | Semantics | Adapted explicit entry-host eligibility but rejected OS-to-channel inference, tunnel/port mechanics, and generated credentials |
 
 
-### From Identity, Directory, And Access-Control Sources
+### From identity, directory, and access-control sources
 
 The `runtime.identity_authorities` surface is a neutral runtime inventory
 surface. It borrows concepts from standards and literature, but does not adopt
@@ -158,7 +161,7 @@ one provider schema as the SDL schema.
 
 | SDL Element | Source Class | Influence plane | What We Adapted |
 | ----------- | ------------ | --- | --------------- |
-| `RuntimeIdentityAuthority` | LDAP/X.500 naming contexts, Kerberos realms, SAML/OIDC issuers, SCIM/IAM tenants, NIST SP 800-63C-4 federation guidance | Semantics | An authority boundary with stable RAES id plus observed namespace facts such as domain, realm, issuer, tenant, and base DN; all authority-local stable ids share one namespace |
+| `RuntimeIdentityAuthority` | LDAP/X.500 naming contexts, Kerberos realms, SAML/OIDC issuers, SCIM/IAM tenants, NIST SP 800-63C-4 federation guidance | Semantics | An authority boundary with stable RAES id plus observed namespace facts such as domain, realm, issuer, tenant, and base DN. All authority-local stable ids share one namespace |
 | `RuntimeIdentityService` | LDAP/Kerberos/SAML/OIDC/SCIM/IAM protocol endpoints and same-node `Node.services` transport bindings | Semantics | Protocol/API endpoint inventory without treating the endpoint as the directory contents |
 | `RuntimeIdentitySubject` | LDAP entries, SCIM Users/Groups, AD users/groups/computers/service principals, SAML/OIDC subjects/clients, IAM roles/applications | Semantics | Identity-bearing subjects with stable RAES ids, observed names/principals, provider identifiers as data, and bounded attributes |
 | `RuntimeIdentityPolicy` | NIST SP 800-162 ABAC, RBAC, group policy, Kerberos/domain policy, conditional-access/MFA policy concepts | Semantics | Portable policy records with `applies_to_refs` rather than provider-specific policy-object cloning |
@@ -168,13 +171,13 @@ one provider schema as the SDL schema.
 This surface depends on industry standards for protocol/object terminology and
 on academic/security literature for the subject-policy-authority separation.
 BloodHound/OpenGraph, OCSF, UCO, CASE, LDAP dumps, Graph API payloads, and
-backend inspect output are treated as downstream/evidence sources, not as the
+backend inspect output are downstream/evidence sources. They are not the
 canonical authored SDL shape.
 
 The `runtime.app_authorizations` surface is the application-internal RBAC
-counterpart: it models the in-app authorization store of search clusters,
-key-value stores, dashboards, and platforms, distinct from the wire-protocol
-directory above and from database engine GRANTs.
+counterpart. It models the in-app authorization store of search clusters,
+key-value stores, dashboards, and platforms. It is distinct from the
+wire-protocol directory above and from database engine GRANTs.
 
 | SDL Element | Source Class | Influence plane | What We Adapted |
 | ----------- | ------------ | --- | --------------- |
@@ -185,8 +188,9 @@ directory above and from database engine GRANTs.
 | `RuntimeAppAuthorizationTenant` | OpenSearch/Kibana tenants, platform namespace scopes | Semantics | Namespace/tenancy scopes within the authorization store |
 
 This surface depends on the RBAC/ABAC standards for the role-permission-subject
-spine and on product RBAC implementations for recurring facts; it does not adopt
-any one product's security configuration as the canonical authored SDL shape.
+spine and on product RBAC implementations for recurring facts. It does not adopt
+the security configuration of any one product as the canonical authored SDL
+shape.
 
 
 ### From STIX 2.1
@@ -210,7 +214,7 @@ any one product's security configuration as the canonical authored SDL shape.
 | `Workflow` | workflow-step graph patterns | Syntax (graph shape; execution semantics from the workflow-systems table) | Branching/parallel objective composition with SDL-only step types |
 
 
-### Control-Flow Semantics from Mature Workflow Systems
+### Control-flow semantics from mature workflow systems
 
 These sources do not define the YAML keys directly, but they strongly inform
 how the runtime interprets workflow behavior after parsing.
@@ -221,10 +225,10 @@ how the runtime interprets workflow behavior after parsing.
 | Parallel branch execution and convergence | AWS Step Functions `Parallel`, W3C SCXML `parallel`, Argo DAG fan-out/fan-in patterns | Semantics | Parallel branches are explicit, joins are explicit barriers, and foreign entry into a join is rejected |
 | Retry and terminal outcome meaning | AWS Step Functions `Retry`/`Catch`, Argo retry strategy | Semantics | Retry behavior is part of workflow semantics rather than a hidden adapter loop |
 | Observable step state | Step Functions execution-visible state, SCXML completion semantics | Semantics | Only selected step kinds expose portable lifecycle/outcome state for predicates and backend results |
-| Workflow semantics as a first-class assurance surface | SCXML state-machine model, Kepler FM guidance for workflows/state machines | Semantics | Workflow changes are treated as `FM3` state-machine work, not just parser changes |
+| Workflow semantics as a first-class assurance surface | SCXML state-machine model, Kepler FM guidance for workflows/state machines | Semantics | Workflow changes are treated as `FM3` state-machine work, not only parser changes |
 
 
-### Runtime Boundary and Contract Precedents
+### Runtime boundary and contract precedents
 
 These sources inform the runtime/result contract rather than the SDL YAML
 surface.
@@ -237,7 +241,7 @@ surface.
 | Distinct apparatus declaration surfaces | OpenRange episode/runtime split, OpenBench model/provider configuration, benchmark registries | Semantics | Processor, backend, and participant-implementation declaration surfaces remain distinct so the same scenario can be run under different apparatus honestly |
 
 
-### From Time, Simulation, and Co-Simulation Systems
+### From time, simulation, and co-simulation systems
 
 These sources inform the emerging time-model requirements. They are not a
 claim that RAES adopts one simulator's worldview wholesale. They are precedents
@@ -257,7 +261,7 @@ co-simulation sources.
 | Simultaneous mixed realization | [NIST UCEF](https://www.nist.gov/ctl/smart-connected-systems-division/iot-devices-and-infrastructures-group/how-does-ucef-work), [ACTING EDL-FG](https://arxiv.org/abs/2605.12170), [HELICS dynamic federations](https://docs.helics.org/en/latest/user-guide/advanced_topics/dynamic_federations.html) | Semantics | A trial may admit simulated, emulated/operational, and hardware components together, but every allocation, topology edge, authority, clock mapping, loss, and failure remains explicit |
 | Component composition topology | [NIST integrated HLA federations](https://www.nist.gov/publications/integrating-multiple-hla-federations-effective-simulation-based-evaluations-cps), [ISO 23247-6:2026](https://www.iso.org/standard/87426.html) | Semantics | Integrated, unified, and bridged/federated composition are distinct topology profiles; topology does not imply policy or compatibility |
 | Ordering and causality beyond raw timestamps | Time Warp, DEVS, distributed-simulation time-management literature | Semantics | Event order, causality guarantees, and temporal windows/deadlines must be modeled separately from the existence of timestamps |
-| Reset, replay, and episode-local temporal semantics | OpenRange episode model, benchmark/task systems, simulation literature | Semantics | Episode boundaries, reset semantics, and replayability are temporal concerns, not just lifecycle bookkeeping |
+| Reset, replay, and episode-local temporal semantics | OpenRange episode model, benchmark/task systems, simulation literature | Semantics | Episode boundaries, reset semantics, and replayability are temporal concerns, not only lifecycle bookkeeping |
 | Inter-trial and phase-bounded realization changes | [CyGIL](https://arxiv.org/abs/2304.01244), [HELICS dynamic federations](https://docs.helics.org/en/latest/user-guide/advanced_topics/dynamic_federations.html) | Semantics | Cross-trial changes use new linked plan/run identities; within-run membership changes are finite and admitted before execution |
 | Interface parity versus transfer evidence | [CybORG](https://arxiv.org/abs/2108.09118), [CyGIL](https://arxiv.org/abs/2304.01244) | Evidence | A common action/observation seam does not establish equivalence; retain simulation-only observations, unrealizable actions, unknown transitions, and bounded transfer results |
 | Realized-time disclosure and provenance | OpenRange run/training-data records, co-simulation timing literature | Semantics | Runs need explicit disclosure of the realized time model when results are compared across backends or replayed |
@@ -272,7 +276,7 @@ co-simulation sources.
 | `ServicePort` | `NetworkEndpoint` | Both | Simplified port/protocol/name; named bindings become first-class refs |
 
 
-### From Docker / Deployment Patterns
+### From Docker / deployment patterns
 
 
 | SDL Element | Source | Influence plane | What We Adapted |
@@ -281,22 +285,23 @@ co-simulation sources.
 | `Condition.timeout/retries/start_period` | Docker health check fields | Both | Direct mapping |
 
 
-## Deliberate Omissions
+## Deliberate omissions
 
 These concerns have been considered against the scenario/delivery boundary.
-The current rule is semantic, not syntax-based: state that exists on a realized
-range node and can be invoked, observed, depended on, or affected by
-participants is scenario/runtime state even when Docker, Compose, a harness, or
-another backend exposes the evidence. The delivery layer is the orchestrator,
+The current rule is semantic, not syntax-based. Participants can invoke,
+observe, depend on, or affect some state on a realized range node. That state is
+scenario/runtime state even when Docker, Compose, a harness, or another backend
+exposes the evidence. The delivery layer is the orchestrator,
 host kernel, container runtime, backend adapter, control plane, build executor,
 and host-local machinery that creates or controls the range. See
 [ADR-033](../../decisions/adrs/adr-033-scenario-delivery-boundary-for-runtime-node-state.md).
 
 This table is checked against the current RAES runtime/source models and the
-downstream [Brad-Edwards/aptl#339](https://github.com/Brad-Edwards/aptl/issues/339)
-Kali inventory evidence class: Compose service slices, Docker inspect output,
-runtime mount/network/capability observations, and image provenance are evidence
-to classify, not schema authority. The APTL inventory is motivating downstream
+downstream
+[Brad-Edwards/aptl#339](https://github.com/Brad-Edwards/aptl/issues/339) Kali
+inventory evidence class. Compose service slices, Docker inspect output, runtime
+mount/network/capability observations, and image provenance are evidence to
+classify, not schema authority. The APTL inventory is motivating downstream
 evidence; it is not a claim that all APTL artifacts already satisfy the RAES
 redaction contract. The table is a current RAES disposition, not a complete
 taxonomy of container, orchestrator, or host-security concerns.
@@ -323,12 +328,12 @@ taxonomy of container, orchestrator, or host-security concerns.
 | SIEM/security-monitoring manager runtime inventory (manager modules, listeners, enrolled agents/groups, detection content sets, parsed detection definitions, bounded settings, API/control-plane posture) | Log-management/security-monitoring runtime inventory and loaded-definition manifests, not transport bindings, process/unit state, raw config, raw events, alert telemetry, or rule-engine execution | `Node.runtime.security_monitoring_managers` when observed; manager, content-set, and detection-definition refs may be targeted through qualified runtime refs; see ADR-040 and ADR-045 |
 | Application-internal RBAC store (principals, roles, resource-scoped permission grants, role mappings, tenants) | Application-internal authorization runtime state, not a wire-protocol directory or database engine GRANT surface | `Node.runtime.app_authorizations` when observed; the resource-scoped `permission_grant` is the defining addition; raw credentials are never stored; see ADR-046 |
 | Recurring scheduled-job cadence and run-state | Product-neutral cadence runtime state, not systemd unit lifecycle or forwarder input/output authoring | `Node.runtime.scheduled_jobs` when observed; cadence + run-state only; systemd lifecycle remains `runtime.service_manager_units`; see ADR-047 |
-| Non-relational datastore logical state (search clusters, structured index mapping/template manifests, wide-column stores, key-value stores, partitions, replication geometry, persistence posture, transport security, settings) plus per-node engine provenance (version/build hash/build type), JVM/process memory posture (heap byte bounds, mlockall), a typed per-node engine-plugin inventory with per-plugin version, and a product-neutral client/peer node-endpoint inventory | Participant-observable non-relational datastore runtime state, not the relational engine/GRANT surface, transport bindings, raw backend mapping/template bodies, or software component identity; node endpoints are engine-published topology, not OS-bind or host-publication proof | `Node.runtime.datastore_services` when observed; the open `data_model` discriminator drives a required-profile guard; mappings/templates are bounded manifests with refs, counts, summaries, digests, and evidence refs; service and child refs (including nested node plugins/endpoints) may be targeted through qualified runtime refs; node plugin/endpoint ids join the service-wide stable-id namespace; internal RBAC is delegated via `authorization_ref`; explicit redaction classifications omit raw setting values; see ADR-048 (amended by ADR-058) and ADR-057 |
+| Non-relational datastore logical state: search clusters, structured index mapping/template manifests, wide-column stores, key-value stores, partitions, replication geometry, persistence posture, transport security and settings. Also per-node engine provenance (version/build hash/build type) and JVM/process memory posture (heap byte bounds, mlockall). Also a typed per-node engine-plugin inventory with per-plugin version, and a product-neutral client/peer node-endpoint inventory | Participant-observable non-relational datastore runtime state. Not the relational engine/GRANT surface, transport bindings, raw backend mapping/template bodies, or software component identity. Node endpoints are engine-published topology, not OS-bind or host-publication proof | `Node.runtime.datastore_services` when observed; the open `data_model` discriminator drives a required-profile guard. Mappings/templates are bounded manifests with refs, counts, summaries, digests, and evidence refs. Service and child refs (including nested node plugins/endpoints) may be targeted through qualified runtime refs. Node plugin/endpoint ids join the service-wide stable-id namespace. Internal RBAC is delegated via `authorization_ref`. Explicit redaction classifications omit raw setting values; see ADR-048 (amended by ADR-058) and ADR-057 |
 | Platform-application runtime inventory with composable functional capabilities | Declared application identity and provider-neutral roles, not a product taxonomy, configuration-completeness claim, HTTP route surface, raw content body, distribution policy, or playbook execution semantics | `Node.runtime.platform_applications`; one application may declare several stable, targetable capabilities. TOSCA/CAMP separation of capability, requirement, artifact, and configuration and ADR-032's provider-neutral identity design are precedents only. `platform_kind` and `content_objects` remain deprecated compatible input; initial content remains under top-level `content`/service materialization; internal RBAC remains delegated via `authorization_ref`; see ADR-049 and ADR-088 |
-| Forwarding / intel-sync agent runtime inventory (sources, transforms, ship targets, buffer policy, reload channels, settings for log forwarders and intel-sync co-processes) | Participant-observable agent-side shipping state, not SIEM manager inventory, detection-engine consumer state, scheduled-job cadence, systemd lifecycle, or a fake scenario node for an infrastructure-only sidecar | `Node.runtime.forwarding_agents` when the agent is node-hosted; top-level `forwarding_agents` when the forwarder is off-node infrastructure realization; the open `agent_kind` discriminator drives a required-profile guard; ship-target node/service refs resolve at scenario scope; enrollment identities use a closed classification lattice and settings use explicit redaction classifications; the inter-node trust edge is a relationship forwarding edge; see ADR-050 and ADR-057 |
+| Forwarding / intel-sync agent runtime inventory (sources, transforms, ship targets, buffer policy, reload channels, settings for log forwarders and intel-sync co-processes) | Participant-observable agent-side shipping state, not SIEM manager inventory, detection-engine consumer state, scheduled-job cadence, systemd lifecycle, or a fake scenario node for an infrastructure-only sidecar | `Node.runtime.forwarding_agents` when the agent is node-hosted; top-level `forwarding_agents` when the forwarder is off-node infrastructure realization. The open `agent_kind` discriminator drives a required-profile guard. Ship-target node/service refs resolve at scenario scope. Enrollment identities use a closed classification lattice, and settings use explicit redaction classifications. The inter-node trust edge is a relationship forwarding edge; see ADR-050 and ADR-057 |
 | Container-spawn orchestration-authority runtime inventory (engine, scope, spawn templates, lifecycle policy, realized children, privilege class referencing a control-interface shell) | Participant-observable container-spawn authority state, not the control-interface shell itself, software component identity, or workflow execution semantics | `Node.runtime.orchestration_authorities` when observed; the open `privilege_class` discriminator drives a required-profile guard; `control_interface_ref` resolves to a same-node `RuntimeControlInterface` (host-root-equivalent requires a read-write docker socket); the control-interface shell is referenced, never duplicated; see ADR-051 |
 | Vendor-specific AD DS/LDAP/SCIM/IAM/SAML/OIDC schema clone | Provider coupling and false portability | Neutral `Node.runtime.identity_authorities` inventory when observed; provider identifiers remain data; see ADR-032 |
-| Service-manager unit identity and selected systemd state | Portable stable identity plus optional exact native names; systemd lifecycle remains distinct from installed software, transport services, live processes, container init, restart policy, and authored conditions | `Node.runtime.service_manager_units` uses `unit_id` as the comparison key; native names are preserved without fabricated suffixes, and only explicit systemd selection activates the flat lifecycle-state contract; raw manager output remains evidence; see ADR-035 |
+| Service-manager unit identity and selected systemd state | Portable stable identity plus optional exact native names. Systemd lifecycle remains distinct from installed software, transport services, live processes, container init, restart policy, and authored conditions | `Node.runtime.service_manager_units` uses `unit_id` as the comparison key. Native names are preserved without fabricated suffixes, and only explicit systemd selection activates the flat lifecycle-state contract. Raw manager output remains evidence; see ADR-035 |
 | Framework-specific participant APIs | Framework coupling | Integration adapters outside the core SDL/runtime |
 | Terraform module composition            | Import, version, namespace, parameter, locking, and packaging patterns | Implemented as deterministic SDL module/import expansion with OCI packaging, lockfiles, and trust policy |
 | Full CACAO workflow surface             | Current SDL covers decisions, switch/case routing, reusable workflow calls, retries, explicit joins, cancel/timeout lifecycle contracts, and explicit compensation targets/order | Not implemented: richer exception control and compensation-of-compensation semantics |

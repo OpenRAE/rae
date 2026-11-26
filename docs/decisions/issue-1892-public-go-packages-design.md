@@ -28,6 +28,7 @@ Each package keeps its owning design, layer, files and complete typed API.
 Only the import path in the API snapshots changes.
 The other base helpers stay below `internal`, because no consumer signature needs their identity.
 `contract/corpus` also stays below `internal`.
+
 It keeps the single embedded schema and vocabulary authority.
 The product module path stays `github.com/OpenRAE/rae/implementations/go`.
 No new module, repository or contracts package is necessary.
@@ -62,7 +63,7 @@ ARCH-015 compares each implemented signature with its declaration.
 | `AssociatedArtifactSetDigest` | Derives the published set identity with the same projection that the existing invariant uses |
 | `ValidateAssociatedManifest` | Refuses invalid limits and declared sizes above the caller's limits, then runs full admission with the admitted parent and the caller's readers |
 | `MaterializationArchive` | Admits the typed inventory under the execution context, inserts it, applies the published defaults and admits the serialized record |
-| `RestoreMaterializationArchive` | Checks the bounds and schema of the archive bytes before the owner reads them, admits them, then returns the record, its schema-checked inventory and the admitted value |
+| `RestoreMaterializationArchive` | Checks the bounds and schema of the archive bytes before the owner reads them, then admits them. Returns the record, its schema-checked inventory and the admitted value |
 
 `MaterializationArchive` refuses a record that already supplies its inventory.
 Thus a consumer does not construct or decode the nested raw JSON.
@@ -77,6 +78,7 @@ The fixture module `example.com/raeconsumer` is in `implementations/go/testdata/
 The product module and the architecture check ignore `testdata`.
 The fixture requires a pinned pseudo-version of a pushed `rae` commit.
 Its `go.sum` pins the module and its dependencies.
+
 It has no `replace` directive and needs no sibling checkout or workspace.
 The `go` CI job checks it with `GOWORK=off` and read-only module resolution.
 That step also runs `golangci-lint`, `raesvet` and the tests. It fails when verification changes `go.mod` or `go.sum`.

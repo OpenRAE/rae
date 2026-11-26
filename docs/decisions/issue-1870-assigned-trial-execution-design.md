@@ -14,6 +14,7 @@ The assignment grants no access and holds no secret.
 The host receives the original inputs through the existing source carriers.
 It builds only the selected entry through `realize_admitted_trial_entry()`.
 It checks the whole plan and all processor commitments before effects.
+
 It installs one scoped trial binding. It creates no new experiment.
 `AssignedTrial.advance()` advances that binding through the existing trial lifecycle.
 `AssignedTrial.outcome()` exports retained facts, including incomplete work.
@@ -23,6 +24,7 @@ It installs one scoped trial binding. It creates no new experiment.
 An installed outcome verifier reads the original run records and evidence.
 The existing owners must confirm the native checks, stopped work, and cleanup.
 Matching JSON or a worker claim cannot prove these facts.
+
 Trial evidence and result checks remain required.
 Accepted facts feed the existing run and study producer.
 Terminal, retry, archive, and replacement decisions remain in the coordinator.
@@ -40,6 +42,7 @@ The existing decision store gains an atomic append with an expected decision set
 The memory, SQLite, and PostgreSQL stores keep their existing transactions.
 Assignment admission saves the attempt and owner together.
 The same transaction checks cancellation, the current owner, and used capacity.
+
 The admitted schedule and allocator grant bound capacity.
 Unknown work and unverified cleanup retain their capacity.
 Canonical entry order controls assignment admission.
@@ -49,12 +52,16 @@ An assignment has one execution owner. Its generation cannot change.
 This interface does not reassign an uncertain attempt.
 Duplicate delivery reads the original attempt and deadline.
 Host recovery restores completion from the retained terminal decision.
+
 Later retry preparation cannot rewrite that decision.
 Each assignment has its own lock. Readers see only fully attached bindings.
 Outcome export includes native operations that have not settled. Export changes no state.
+
 Changed content under the same identity is refused.
 New outcomes extend the saved facts. They cannot change earlier observations.
-Cancellation closes new admission. Hosts can read it through a public control query.
+Cancellation closes new admission.
+
+Hosts can read it through a public control query.
 The host uses the existing stop and cleanup path when it receives cancellation.
 Stop acknowledgement does not release capacity.
 Retry preparation uses an explicit control under the existing retry policy.
@@ -64,6 +71,7 @@ The coordinator holds no experiment lock during evidence or archive calls.
 Short ledger transactions serialize decisions.
 Shared queries find attempts, assignments, and cancellation. They change no records.
 Separate steps check admission and capacity, then save outcomes. They use the existing atomic store operation.
+
 Separate checks verify fact bindings, cleanup, and each operation owner.
 Each host keeps its target reservation and run store.
 Separate assignments cannot share reserved native resources.
@@ -113,6 +121,7 @@ No external effect has an exactly-once guarantee.
 Typed bindings, closed carriers, and atomic store operations enforce these rules in code.
 Existing package boundaries and structure checks still apply.
 Published schemas need catalog entries. Generated content must match.
+
 No SDL syntax, native operation kind, deployment service, or ADR changes are needed.
 ADR-104/113 already assign execution and result authority to the shared runtime.
 ADR-065/068 already assign run identity, archival validation, and replacement lineage.

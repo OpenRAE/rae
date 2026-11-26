@@ -14,9 +14,10 @@ The inspected working tree is based on `dev` at
 `origin/go-cutover`, inspected at `52979ff95d6c5574ec604307a6c679c7b5decbc6`,
 contains the #1808 triggers and the Go standards, architecture, and parity gates.
 References to Go artifacts below mean that revision, not files present on `dev`.
+
 Neither local ref establishes the current remote tip or current repository rules.
-Find final contexts from the live target-branch workflows and their actual
-PR check runs before configuring enforcement; do not backport the Go port into
+Find final contexts from the live target-branch workflows and their actual PR
+check runs before you configure enforcement. Do not backport the Go port into
 `dev` merely to configure its integration branch.
 
 ## Decisions and canonical owners
@@ -27,8 +28,8 @@ tag controls unchanged. Reconcile any existing target rule rather than creating
 overlapping copies. Native GitHub rules are the enforcement authority; workflow
 triggers and a checked-in description cannot enforce branch admission.
 No checked-in branch-rule provisioning owner was found under the repository's
-tooling or workflows; reuse the existing maintainer-owned settings boundary
-rather than introducing a credentialed reconciliation service.
+tooling or workflows. Reuse the existing maintainer-owned settings boundary
+instead of a new credentialed reconciliation service.
 
 Require PRs and successful applicable checks while retaining manual maintainer
 merges. [GOVERNANCE.md](../../GOVERNANCE.md) and
@@ -39,7 +40,9 @@ Preserve the incumbent force-push/deletion safeguards without weakening them.
 
 Bypass rights differ from normal merge rights.
 Record the rule actors, roles, bypass modes, and scope. State the intended emergency use.
-Do not assume that admins can bypass the rule. Do not assume that they cannot. Prefer the narrowest incumbent authority, with
+Do not assume that admins can bypass the rule.
+
+Do not assume that they cannot. Prefer the narrowest incumbent authority, with
 PR-only bypass when sufficient; do not silently grant an always-bypass actor.
 Test the normal path without bypass rights.
 
@@ -65,7 +68,7 @@ collide across workflows, and do not infer names from workflow titles.
 
 | Candidate context | What it covers |
 | --- | --- |
-| `verify` | `canonical.gate-outcome` plus `runtime-supervision`. The reusable gate requires test shards, integration, static/policy/contracts/docs checks, proof, model checks, coverage reduction, the entire Go module matrix, Go architecture, and parity corpus. |
+| `verify` | `canonical.gate-outcome` plus `runtime-supervision`. The reusable gate requires test shards, integration, static/policy/contracts/docs checks, proof, model checks and coverage reduction. It also requires the entire Go module matrix, Go architecture, and parity corpus. |
 | `sonar` | Independent quality outcome, consuming Python and Go coverage; a passing `verify` cannot stand in for it. |
 | `supply-chain` | Networked vulnerability scanning, outside the reusable aggregate. |
 | `fuzz` | Separate Python fuzz lane; Go fuzz targets run inside the Go matrix. |
@@ -74,23 +77,25 @@ collide across workflows, and do not infer names from workflow titles.
 
 Go mutation coverage reaches `verify` through `go` -> reusable `gate` -> caller
 join, not a separate context named "mutation". The two-module Go matrix checks
-dependencies, lint/analyzers, race tests, 90% statement coverage, bounded fuzzing,
-changed-line gremlins thresholds, and new regression tests against the comparison
-base. `go-architecture` and `parity-corpus` independently feed the same aggregate.
+dependencies, lint/analyzers, race tests, 90% statement coverage and bounded
+fuzzing. It also checks changed-line gremlins thresholds, and new regression
+tests against the comparison base. `go-architecture` and `parity-corpus` independently feed the same aggregate.
 Document bounded parity coverage honestly: it does not prove the full port complete.
 
 Keep aggregate jobs unconditional with `always()` and explicit success checks for
 every required dependency. Missing output, cancellation, failure, or an unexpected
 skip must not become a green aggregate. GitHub accepts some skipped/neutral job
-conclusions, while a workflow omitted by branch/path filters can remain pending;
-the aggregate must enforce the stronger internal contract. See GitHub's
+conclusions, while a workflow omitted by branch/path filters can remain pending.
+The aggregate must enforce the stronger internal contract. See GitHub's
 [required-check troubleshooting](https://docs.github.com/en/pull-requests/how-tos/merge-and-close-pull-requests/troubleshooting-required-status-checks).
 
 Audit event and path coverage for every required context. The Release Please
 `paths-ignore` exception is existing release bookkeeping, not a general Go-branch
 exemption. The target revision includes Go PR triggers for both guards, but
-Sonar push guards still name only `main` and `dev`; a green Go push `sonar` join
-can therefore represent a scan that did not run. Same-repository PRs have
+Sonar push guards still name only `main` and `dev`. A green Go push `sonar` join
+can therefore represent a scan that did not run.
+
+Same-repository PRs have
 a different trust path. Preserve explicit fork/Dependabot limitations; do not
 expose secrets to make every event green. Do not require advisory
 `fast-feedback`, post-merge finalization, scheduled Scorecard, release publication,
@@ -122,7 +127,9 @@ active rules, as documented in the [GitHub rules API](https://docs.github.com/en
 
 Use a real PR targeting `go-cutover`. Record its head and test merge SHA.
 Record the workflow run, attempt, required check names, and App identities.
-Record pending or failed conclusions. Show that the API merge state blocks the normal merge path. Wait for an unknown merge state to settle. Conflicts,
+Record pending or failed conclusions. Show that the API merge state blocks the normal merge path.
+
+Wait for an unknown merge state to settle. Conflicts,
 draft state, or missing review alone do not demonstrate check blocking. Do not
 attempt a merge or direct push as a probe, forge successful contexts, or mistake
 an administrator's ability to bypass for absence of enforcement. Local workflow
@@ -135,9 +142,10 @@ branch conditions are the seam for future integration branches. If a small check
 Use native API responses. Do not create a general ruleset manager or a second check registry.
 Do not hard-code per-module required contexts.
 
-Non-goals: implementing the Go port; changing contracts or runtime architecture;
-rewriting the verification graph; modifying `main`/`dev` protection or release
-policy; adding a second reviewer, auto-merging, or publishing data elsewhere.
+Non-goals are an implementation of the Go port, changes to contracts or runtime
+architecture, and a rewrite of the verification graph. Other non-goals are
+changes to `main`/`dev` protection or release policy, a second reviewer,
+auto-merge, and data publication elsewhere.
 This preflight introduces no executable behavior, so mutation testing is not
 applicable to this document. Subsequent workflow changes reuse focused incumbent
 tests locally; full regression, Go mutation, integration, and fuzz stay in CI.

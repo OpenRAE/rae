@@ -28,6 +28,7 @@ A backend capability string cannot fill that gap.
 The language must retain the requirement, and planning must refuse it before effects.
 For example, an author asks for custody.
 A backend says it can do that.
+
 The current result contract cannot prove that it did.
 RAE must refuse before the backend changes the experiment.
 A file hash does not fill that gap.
@@ -49,6 +50,7 @@ The existing runtime invalid-plan gates enforce that refusal.
 `contracts.evidence_satisfaction` keeps its public validation interface and checks integrity metadata before artifact I/O.
 Checksum and SHA-256 requirements retain their existing meaning.
 An authored `none` adds no integrity constraint to backend admission.
+
 The artifact response still satisfies its existing content and checksum contract.
 An explicit `none` must not count as stronger integrity in scoped refinement.
 Signature, custody, timestamp, and unknown modes remain unsupported in this scientific response contract.
@@ -73,6 +75,7 @@ The backend interface is the effect boundary.
 The result handoff ends RAE's responsibility for downstream custody.
 Existing authenticated adapters, protected runtime stores, and error boundaries retain their owners.
 No validator fetches an artifact locator or opens an external archive.
+
 The new checks add no endpoint, credential source, persisted record type, or public schema field.
 ADR-064, ADR-065, ADR-066, ADR-116, and ADR-117 already govern these boundaries.
 Their decisions need no replacement.
@@ -90,6 +93,7 @@ Tests exercise the public planner, runtime submission gate, capture-spec admissi
 Full-path tests resolve exact capture-spec pins at the installed owner's admission and capture calls.
 They verify retention refusal before effects and reject changed bytes in returned evidence.
 Targeted mutation checks remove the refusal gate and confirm that regression tests detect the bypass.
+
 The supported-mode table supplies the small checkable semantic model.
 No state machine is added because this change introduces no new lifecycle.
 Published schemas and their ledger remain unchanged.

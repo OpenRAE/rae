@@ -24,9 +24,9 @@ the original concern with the converted concern through `structure_matches`.
 descriptor projector, so `project_realization_concern` currently returns it
 unchanged. Shared `json_equal` then rejects the tuple/list difference.
 
-A local read-only probe reproduced both the supplied minimal refusal and the
-same refusal from the existing controller-placement compiler fixture, including
-node, account and controller-placement carriers. It also confirmed a second
+A local read-only probe reproduced the supplied minimal refusal. It also
+reproduced the same refusal from the existing controller-placement compiler
+fixture, including node, account and controller-placement carriers. It also confirmed a second
 trap: current same-type tuple comparison accepts `(1,)` versus `(True,)` through
 Python equality, while list comparison correctly rejects `[1]` versus `[True]`.
 Moving a type check alone is insufficient; supported arrays need recursive,
@@ -81,7 +81,7 @@ Package paths below are relative to `implementations/python/packages/`.
 | Layer and canonical incumbents | Required boundary |
 | --- | --- |
 | Authored topology: `raes.semantics.domain_topology`, compiler `addresses`, `provisioning`, `placement`, `realization_requirements` | Keep the existing analyzer, typed binding, canonical addresses and exact processor-derived authority on nodes, domain accounts and controller placements. Topology context is distinct from controller-bootstrap instructions and runtime directory evidence. |
-| Typed topology and graph admission: `raes_backend_protocols.domain_topology.DomainTopologyBinding.from_mapping`, `domain_topology_plan_diagnostics`; planner `core`; runtime `control_plane_submission` | Reuse closed field parsing, string/address checks, non-empty unique controllers, roles, supported domain profiles, matching node/account/placement bindings and ordering/refresh dependencies across operations, resources and predecessor state. Generic portable-value validation does not replace this graph validation. No second topology model or validator. |
+| Typed topology and graph admission: `raes_backend_protocols.domain_topology.DomainTopologyBinding.from_mapping`, `domain_topology_plan_diagnostics`; planner `core`; runtime `control_plane_submission` | Reuse closed field parsing, string/address checks, non-empty unique controllers, roles and supported domain profiles. Also reuse matching node/account/placement bindings and ordering/refresh dependencies across operations, resources and predecessor state. Generic portable-value validation does not replace this graph validation. No second topology model or validator. |
 | Transport/config shapes: `contracts.backend_preparation`, `contracts.plan_operation`, `contracts.realization_plans`, `contracts.plan_projection`, `contracts.realization_preparation` | Retain closed response/operation models, strict success boolean, bounded diagnostics/inventory, unique addresses, actions and dependency identities. Preserve request/predecessor digests, execution policy, profile bindings and canonical digest algorithms. The payload's generic dictionary type is not a topology schema. No published shape/version change is expected. |
 | Authentication and authority: runtime `control_plane_api` package, `control_plane_api_guards.RequestSizeLimitMiddleware`, `ControlPlaneSecurityConfig`, `RuntimePlanAuthorizationMixin`, `backend_preparation` | Preserve bounded HTTP parsing, authenticated target/role admission, planner registration, manifest/configuration commitment and request/predecessor matching before selection. Equal payload digests do not authenticate a plan. Retain operation-authority, prepared collection, capability, envelope and backend `validate` gates; normalization grants no added operation or topology membership. |
 | Profile configuration: runtime `backend_profiles`, `ControlPlaneConfiguration`; contracts `domain_profiles`, `realization_profiles` | Existing legacy and typed domain-profile forms remain owned here. Keep closed configuration options, negotiated target context, profile/configuration digests, resource ownership and installed `validate_profiles` checks. Do not strip typed profile fields to make equality pass or introduce new settings. |
@@ -99,7 +99,9 @@ Existing fixtures and patterns live in `test_authored_domain_topology.py`,
 `test_issue_1204_result_shapes.py` and `test_issue_1200_mixed_runtime_constraints.py`.
 Include node/account/controller-placement carriers and nested residual carriers;
 check direct and serialized preparation, detached copies, unchanged readback and
-changed readback. Prove altered controller membership/order, topology fields,
+changed readback.
+
+Prove altered controller membership/order, topology fields,
 missing/extra fields, invalid carriers and nested boolean/integer substitutions
 still fail. Refused proposals must never call apply or publish candidate state.
 Use focused mutation checks for removed type/value/ordering gates when practical.

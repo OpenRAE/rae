@@ -11,6 +11,7 @@ The [preflight](issue-1865-domain-topology-equality-preflight.md) identifies the
 `raes_processor.semantics.realization_comparison` owns the portable conversion through `portable_realization_value`.
 The planner preparation boundary uses that public helper for comparison values.
 Its public interfaces remain `prepared_realization_violation` and `prepared_delivery_violation`.
+
 The existing `project_realization_concern` interface also uses the helper for processor-derived concerns without descriptor projectors.
 This keeps original-authority readback consistent with preparation admission.
 `raes_contracts.realization_structure` retains strict JSON equality and recursive evaluation.
@@ -67,6 +68,7 @@ The existing tests provide a machine-checkable comparison and admission model.
 Focused mutations check transport adaptation, scalar type checks, and sequence order.
 The preparation specification documents portable comparison behavior.
 ADRs 082 and 105 already define exact topology and preparation authority.
+
 No new decision, schema, policy rule, or import dependency direction is required.
 The existing release workflow remains authoritative.
 Release publication is outside this comparison change.

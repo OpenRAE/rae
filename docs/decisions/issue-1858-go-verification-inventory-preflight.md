@@ -11,6 +11,7 @@ Each module has a directory and module path.
 Its display name and category do not define its identity.
 The existing `arch` package owns model parsing and module discovery.
 Reuse `Load`, `CheckDesign`, `LoadCode`, and `CheckCode`.
+
 Do not add a second discovery method or architecture schema parser.
 Keep the existing exclusions for `testdata`, dot prefixes, and underscore prefixes.
 Keep nested module discovery.
@@ -71,6 +72,7 @@ Keep read-only tokens, immutable action pins, and `persist-credentials: false`.
 Preserve the exact Sonar trust condition and token binding.
 Never run new inventory code with the Sonar token.
 Use fixed argv and quoted environment bindings for commands.
+
 Never splice module strings into shell source.
 Validate artifact names and single-line Actions outputs.
 Do not print malformed document contents, environment maps, or credentials.
@@ -96,6 +98,7 @@ Add negative fixtures for a new modeled module missing from CI or scanning.
 Test coverage omission, duplicate identities, unsafe paths, and missing lanes.
 ADR-124 version 2 rejects declared package cycles in `archcheck`.
 A code import cycle must fail the common compiler command of each module.
+
 A missing dependency or broken fixture does not prove cycle rejection.
 Keep fixtures in temporary repositories or `testdata`.
 Run focused tests locally. Full module, fuzz, and mutation verification stays in CI.

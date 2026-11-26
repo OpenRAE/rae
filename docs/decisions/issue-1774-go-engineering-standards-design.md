@@ -95,6 +95,7 @@ The required architecture job reconciles declared and discovered Go modules.
 It then runs `tools.check_go_module_inventory`.
 This check requires equal module inventories in the Go matrices, OSV, and coverage consumers.
 Each module step must reach each module in a required job.
+
 Each matrix module runs `go build ./...` before the other quality gates.
 `GOWORK=off` prevents a workspace from replacing the module dependency closure.
 See [the coverage design](issue-1858-go-module-verification-design.md).

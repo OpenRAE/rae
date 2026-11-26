@@ -43,7 +43,9 @@ uv run --project implementations/python --frozen python -m tools.research_captur
 The command prints a new manifest path. It copies the snapshot without a change
 to its observations. It derives the directory name from the document pins.
 If the analysis refers to the prepared snapshot path, the recorder changes only
-that reference to `@snapshot`. Formal validation reads this token as the snapshot
+that reference to `@snapshot`.
+
+Formal validation reads this token as the snapshot
 that the manifest pins. Thus the directory name, which is a hash, does not refer
 to itself. Other evidence references stay the same, and you must commit their files.
 Keep the new capture directory and its `capture-records` receipt. You do not

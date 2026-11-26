@@ -1,11 +1,11 @@
 # Independent multi-operation crossing construction
 
 Issue [#1395](https://github.com/OpenRAE/rae/issues/1395) adds
-`participant-crossing-multi-operation-dpbb-finite-v1@rev1`. The
-[governed rules](../../../specs/formal/participant-semantics/participant-crossing-multi-operation-models.md)
-define at most two fresh identities, complete synthetic requests, separate
-history/policy coordinates, cached-result observations and bounded response
-loss with clean P1 restart. It introduces no runtime retry or enforcement change,
+`participant-crossing-multi-operation-dpbb-finite-v1@rev1`. The [governed
+rules](../../../specs/formal/participant-semantics/participant-crossing-multi-operation-models.md)
+define at most two fresh identities, complete synthetic requests and separate
+history/policy coordinates. They also define cached-result observations and
+bounded response loss with clean P1 restart. It introduces no runtime retry or enforcement change,
 mandatory author annotation, author-time proof or production checker dependency.
 
 ## Construction and independence
@@ -25,10 +25,11 @@ independent derivation. The mandatory pre-publish construction review examines
 these authorities. Construction is not an equivalence check or an independent
 reproduction of a positive theorem.
 
-The manifest that
-`python -m implementations.formal.participant_crossing --profile multi` builds from the current sources records exact state/semantic-transition/projected-transition/initial counts,
-all domain cardinalities, identity mapping, profile/catalog/projection pins,
-runtime/contract source inventory and artifact digests. Both graphs are complete
+`python -m implementations.formal.participant_crossing --profile multi` builds
+the manifest from the current sources. The manifest records exact
+state/semantic-transition/projected-transition/initial counts, all domain
+cardinalities, and identity mapping. It also records profile/catalog/projection
+pins, runtime/contract source inventory and artifact digests. Both graphs are complete
 reachable fixed points, with unlimited visible retry cycles and a fixed fresh
 operation budget. No sampled schedule, depth truncation, saturation or wraparound
 is used. The private ledger is a formal coordinate, not a production store.
@@ -41,8 +42,8 @@ is used. The private ledger is a formal coordinate, not a production store.
 | Concrete API-423/RUN-319 rev1 | 52,334 | 68,269 | 1 |
 
 The finite base domains include two keys/operations/receipts, two policy cuts,
-six input classes, two request-body commitments, three crossing heads, three
-effect counts and four knowledge masks. The manifest enumerates every domain.
+six input classes and two request-body commitments. They also include three
+crossing heads, three effect counts and four knowledge masks. The manifest enumerates every domain.
 
 Use a fresh interpreter in the trusted delivery checkout, whose sources remain
 unchanged during collection:
@@ -64,6 +65,7 @@ AUT is stored in ordered line-aligned `.part` artifacts to respect the existing
 `aut_parts` in order yields the complete standard AUT byte stream, whose digest,
 byte length and readback counts are separately pinned. An individual fragment
 is not a complete model. Original semantic edges have ordered JSON pages.
+
 State maps retain column names and original values; their ledger column indexes
 the model's digest-bound ledger dictionary. Pages include their first ordinal.
 This is lossless nonsemantic encoding, not a state-space quotient.
@@ -94,11 +96,12 @@ writers. Preparation callbacks can precede incumbent resolution; replay makes
 no zero-callback or exactly-once external-effect claim.
 
 Uncovered realization paths include transformed-ingress revalidation, actual
-multi-commit action authorization/terminalization, final-sink flow control,
-opacity/modular control, mixed-runtime composition heads, supervisory handoff,
-retrieval projection, directed delivery and inject dispatch, P2 authorization
-and HTTP envelopes, admission denials, ephemeral/legacy retry proofs, concurrent
-providers, interrupted effects, uncertain commits, indeterminate reconciliation,
+multi-commit action authorization/terminalization, final-sink flow control and
+opacity/modular control. They include mixed-runtime composition heads,
+supervisory handoff, retrieval projection, directed delivery and inject
+dispatch. They include P2 authorization and HTTP envelopes, admission denials,
+ephemeral/legacy retry proofs and concurrent providers. They also include
+interrupted effects, uncertain commits, indeterminate reconciliation,
 status-read response loss and P0 run loss. Existing action/restart fixtures disable
 final-sink flow control; they are runtime behavior anchors for that fixture,
 not evidence of default governed enforcement.

@@ -21,6 +21,7 @@ The Python implementation and published schemas remain unchanged.
 
 `versions.py` names schemas. It does not compare versions.
 The published schemas remain the authority. Issue #1780 owns their Go bindings.
+
 Go has no Pydantic base class. Closed Go structs and strict decoding replace that class.
 Unknown fields and unknown digest carriers remain forbidden.
 
@@ -45,7 +46,9 @@ Record accepted values and refusals through Python reference cases. Keep
 compatibility changes already approved for ingress explicit in corpus outcomes.
 Use exact numeric comparison and independent implemented-command coverage.
 Port the timestamp/leap-second/offset, software-version, pointer, graph, logging,
-input-bound and digest regression cases. Run targeted tests locally in the
+input-bound and digest regression cases.
+
+Run targeted tests locally in the
 network-free, credential-free sandbox. CI owns complete suites, mutation and
 fuzz campaigns. Collect fixes before one consolidated push.
 
@@ -59,6 +62,7 @@ go-deb-version narrows digit runs to machine integers.
 This loses values in the governed 256-character domain.
 Overflow can change the result.
 Debian ordering follows the Debian Policy algorithm instead.
+
 It compares normalized digit strings by length, then lexical order.
 It never narrows digit runs to machine integers.
 The RPM adapter compares epochs exactly before it calls the installed library.

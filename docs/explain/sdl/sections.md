@@ -1,4 +1,4 @@
-# SDL Sections Reference
+# SDL sections reference
 
 Cloud projects and accounts use resource scopes within `runtime.identity_authorities`.
 The same owner describes workload identity use and resource-policy attachment.
@@ -24,15 +24,14 @@ Canonical `imports.source` classes are:
 - `oci:...` for remote OCI-packaged modules
 - `locked:...` for lockfile-resolved concrete imports
 
-## Section Overview
+## Section overview
 
 ### OCR-derived core
 
-The OCR scoring pipeline sections (`metrics`, `evaluations`, `tlos`, `goals`)
-were removed from the SDL by
-[ADR-073](../../decisions/adrs/adr-073-scoring-reward-language-scope.md); graded
-scoring, reward, and evaluation outputs now live in the experiment/evaluator
-plane (ADR-055/064/069). Declarative `conditions` remain.
+[ADR-073](../../decisions/adrs/adr-073-scoring-reward-language-scope.md) removed
+the OCR scoring pipeline sections (`metrics`, `evaluations`, `tlos`, `goals`)
+from the SDL. Graded scoring, reward, and evaluation outputs now live in the
+experiment/evaluator plane (ADR-055/064/069). Declarative `conditions` remain.
 
 | Section | Type | Purpose |
 |---------|------|---------|
@@ -78,8 +77,8 @@ family, `os_distribution` is the governed distribution or product line, and
 a distribution requires a family. Backends admit distribution/version pairs as
 coupled compatibility rows; they must not infer support by cross-pairing values
 from different rows. Runtime proof for these fields is guest-observed evidence
-bound to the executing operation and selected realization envelope—not an image
-tag, boot success, or a copied plan/snapshot value.
+bound to the executing operation and selected realization envelope. It is not an
+image tag, boot success, or a copied plan/snapshot value.
 
 ```yaml
 nodes:
@@ -761,9 +760,9 @@ node kind, and runtime evidence records the mechanism actually selected.
 Historical `type: vm` is accepted only by explicit migration, where it becomes
 `type: compute` plus an exact `virtual-machine` constraint.
 
-For **compute** nodes, `resources` remain optional at the SDL layer to preserve abstract specifications, but a compute node without `resources` emits a non-fatal advisory because many deployment backends will need explicit sizing or well-defined defaults.
+For **compute** nodes, `resources` remain optional at the SDL layer to preserve abstract specifications. But a compute node without `resources` emits a non-fatal advisory, because many deployment backends will need explicit sizing or well-defined defaults.
 
-**Target-node architecture:** `architecture` is the CPU architecture the target node or guest requires. Canonical values are `x86_64` and `aarch64`; case-insensitive aliases (`amd64`, `x64`, `x86-64`, `arm64`) normalize to them, and a custom architecture uses the governed `x-<owner>:<term>` extension form. It is distinct from a runtime package's artifact architecture and from a backend host's architecture. Absence means the scenario imposes no target-node architecture requirement; it never implies the host, runner, or image architecture. When a node declares `architecture`, every architecture-constrained runtime package on that node must resolve to the same canonical value, and a node without `architecture` may not carry an architecture-constrained package.
+**Target-node architecture:** `architecture` is the CPU architecture the target node or guest requires. Canonical values are `x86_64` and `aarch64`; case-insensitive aliases (`amd64`, `x64`, `x86-64`, `arm64`) normalize to them, and a custom architecture uses the governed `x-<owner>:<term>` extension form. It is distinct from a runtime package's artifact architecture and from a backend host's architecture. Absence means the scenario imposes no target-node architecture requirement; it never implies the host, runner, or image architecture. When a node declares `architecture`, every architecture-constrained runtime package on that node must resolve to the same canonical value. A node without `architecture` may not carry an architecture-constrained package.
 
 **Feature list shorthand:** `features: [nginx, php]` expands to `{nginx: "", php: ""}` (no role binding required).
 
@@ -785,7 +784,7 @@ field present there requires exact state, constrains acceptable state, or marks
 an explicitly open realization point. A value does not become an SDL
 requirement merely because Docker, a scanner, or a participant-visible probe
 reported it. Captured facts stay in a source evidence bundle and
-`ExperimentEvidenceRecordModel`; an author must deliberately promote a fact to
+`ExperimentEvidenceRecordModel`. An author must deliberately promote a fact to
 the smallest semantically correct SDL field before it can affect compilation.
 Model defaults are likewise not proof of author declaration: explicitness is
 tracked through `model_fields_set` and SEM-218, not inferred from
@@ -793,48 +792,57 @@ tracked through `model_fields_set` and SEM-218, not inferred from
 
 Some historical runtime type and field names describe the observation that
 motivated the surface. Their carrier semantics are nevertheless declarative:
-presence in authored `Node.runtime` makes the value contract state. Mounts
-describe required filesystem attachments, including filesystem type,
-propagation, stability, whether a backend may generate the source, and
+presence in authored `Node.runtime` makes the value contract state. Mounts describe
+required filesystem attachments, including filesystem type, propagation,
+stability, and whether a backend may generate the source. They also include
 sensitivity classifications for the source and option strings. Mount sources
 or options classified as
-`redacted` or `operator_secret` must omit the raw value. This sensitivity
+`redacted` or `operator_secret` must omit the raw value.
+
+This sensitivity
 vocabulary is an RAES runtime contract, not an adopted taxonomy from Docker,
 Compose, or the cited scenario-language precedents. `filesystem_inventory` records
 runtime-observed filesystem entries with absolute path, entry type, ownership,
 UID/GID, mode, size, digest algorithm/value pairs, source-package path,
 provenance, stability, and sensitivity classification.
 `local_control_interfaces` describe path-local control APIs such as Unix
-sockets; host-side bind sources use `bind_source_sensitivity` and must omit
-`bind_source` when classified as `redacted` or `operator_secret`; `processes`
+sockets. Host-side bind sources use `bind_source_sensitivity` and must omit
+`bind_source` when classified as `redacted` or `operator_secret`. `processes`
 records the supervised or load-bearing process set, including the primary
-execution identity; `environment` records observed runtime environment
-variables with provenance and value classification, where redacted and
-operator-secret values omit raw data and `secret_fixture` is the explicit
-exercise-fixture disclosure; `linux_capabilities` records container/Linux
-capability policy; `operational_policy` records restart policy and required
-resource policy. Its `memory`, `memory_swap`, `cpu`, and `pids` fields govern
-node/container capacity. Its `process_limits` collection separately governs
+execution identity. `environment` records observed runtime environment variables
+with provenance and value classification.
+
+Redacted and operator-secret values
+omit raw data, and `secret_fixture` is the explicit exercise-fixture disclosure.
+`linux_capabilities` records container/Linux capability policy.
+`operational_policy` records restart policy and required resource policy. Its `memory`, `memory_swap`, `cpu`, and `pids` fields govern
+node/container capacity.
+
+Its `process_limits` collection separately governs
 portable soft/hard process limits: `open_file_descriptors` counts descriptors
 and `locked_memory_bytes` counts bytes; each value is a non-negative integer,
 `unlimited`, or a whole-field variable. Every record selects a declared
 `runtime.processes` identity and states whether the limit applies only to that
 process or to its subtree. All populated selector fields must match the same
-declared process. A redacted command must be omitted and paired with another
-stable selector such as name, role, user, or working directory; command content
+declared process.
+
+A redacted command must be omitted and paired with another
+stable selector such as name, role, user, or working directory. Command content
 cannot be authored and then discarded from identity. Native names such as
 `nofile`/`memlock`, Docker
 `ulimits`, systemd directives, and raw `/proc` data are backend dialect or
 evidence, not SDL. An authored empty collection requires exact absence, while
 omission creates no closed requirement unless a `realization` designation
 explicitly opens or constrains the concern. `container` records observed
-host/container configuration and
-namespace/security facts, including `seccomp_profile` (the portable seccomp
-posture — `default`, `unconfined`, a named profile, or a profile path) and
-`security_opt` (the bounded list of backend-native engine security options
-such as `seccomp:unconfined` or `no-new-privileges`); a seccomp posture is a
-distinct security control from `privileged`, so it is recorded separately (see
-[ADR-028](../../decisions/adrs/adr-028-container-seccomp-security-options-surface.md));
+host/container configuration and namespace/security facts. These include
+`seccomp_profile` (the portable seccomp posture — `default`, `unconfined`, a
+named profile, or a profile path).
+
+They also include `security_opt` (the bounded
+list of backend-native engine security options such as `seccomp:unconfined` or
+`no-new-privileges`). A seccomp posture is a distinct security control from
+`privileged`, so it is recorded separately (see
+[ADR-028](../../decisions/adrs/adr-028-container-seccomp-security-options-surface.md)).
 `packages` records package-manager rows. A package without `repository` is
 obtained from the target's ordinary configured sources. The optional
 `repository` child declares required final repository state through a closed,
@@ -862,7 +870,9 @@ digest pins the exact public OpenPGP bytes, and `format` states whether those
 bytes are `openpgp-ascii-armored` or `openpgp-binary`; a backend must not infer
 the format from content. `suite` and the non-empty, duplicate-free
 `components` collection are structured APT values, not fragments of a `deb`
-line. The package manager must be exactly `apt`, matching the profile. Backend
+line. The package manager must be exactly `apt`, matching the profile.
+
+Backend
 implementations own dedicated keyring/source-list paths and safe fetching,
 digest verification, rendering, locking, installation, and independent
 readback. The SDL cannot supply a `signed-by` path, an options map, a command,
@@ -871,11 +881,10 @@ label and `purl` remains package identity metadata; neither is parsed as a
 repository or executable value. New acquisition semantics use optional pinned
 domain profiles; they do not extend the legacy APT options surface.
 
-`software_components` records
-node-local software identity at component granularity with stable RAES ids,
-component type, version, purl/CPE/hash identifiers, package or manifest
-lineage, and runtime paths when required; and `dependency_manifests` records
-required manifest files. Software components are required final state, not
+`software_components` records node-local software identity at component
+granularity with stable RAES ids, component type, version, and purl/CPE/hash
+identifiers. It also records package or manifest lineage, and runtime paths when
+required. `dependency_manifests` records required manifest files. Software components are required final state, not
 invocation surfaces, process snapshots, HTTP route inventory, or scanner
 capture method (see
 [ADR-056](../../decisions/adrs/adr-056-runtime-observed-values-and-credential-posture.md)
@@ -950,11 +959,13 @@ See the normative [software requirement contract](../../../specs/sdl/software-re
 for version relation identities, compatibility, support and security boundaries.
 
 Container health results are evidence, not `runtime` fields. Put the authored
-healthcheck definition in `conditions`, bind it through `Node.conditions`, and
-record status, failing streak, timestamps, exit codes, and output separately;
-the valid portable fixture
+healthcheck definition in `conditions` and bind it through `Node.conditions`.
+Record status, failing streak, timestamps, exit codes, and output separately.
+The valid portable fixture
 [`runtime-health-observation.json`](../../../contracts/fixtures/experiment-core/experiment-evidence-record-v1/valid/runtime-health-observation.json)
-shows that carrier. Scanner identity/version/database, scan time, raw findings,
+shows that carrier.
+
+Scanner identity/version/database, scan time, raw findings,
 and advisory snapshot state likewise belong in evidence. Derived severity
 counts belong in `ExperimentDerivedMeasureModel`; they do not automatically
 become native weakness facts. Authored classifications use standalone external concept bindings.
@@ -967,18 +978,23 @@ suffix, so OpenRC or private names such as `nginx` remain valid. Omitted
 manager/name leaves preserve partial knowledge and inherited open-scope
 delegation; explicit `unknown` is a knowledge state, not delegation.
 
-An explicitly selected `systemd` manager enables the existing lifecycle
-profile: a suffixed native name, `unit_type` (`service`/`socket`/`target`/`timer`/`path`/
-`mount`/`automount`/`swap`/`device`/`slice`/`scope`/`other`), and the
-participant-observable state quadruple `load_state` (loaded/not_found/masked/
-error/merged/stub/bad_setting/unknown), `active_state` (active/reloading/
-inactive/failed/activating/deactivating/unknown), bounded free-form `sub_state`
-(e.g. `running`/`exited`/`dead`), and `enabled_state` (enabled/enabled_runtime/
+An explicitly selected `systemd` manager enables the existing lifecycle profile.
+The profile has a suffixed native name and `unit_type`
+(`service`/`socket`/`target`/`timer`/`path`/
+`mount`/`automount`/`swap`/`device`/`slice`/`scope`/`other`). It also has the
+participant-observable state quadruple. The quadruple is `load_state`
+(loaded/not_found/masked/ error/merged/stub/bad_setting/unknown) and
+`active_state` (active/reloading/
+inactive/failed/activating/deactivating/unknown). It also contains bounded
+free-form `sub_state` (e.g. `running`/`exited`/`dead`), and `enabled_state`
+(enabled/enabled_runtime/
 disabled/static/alias/masked/generated/indirect/transient/unknown). The last
 run is classified via `result` (success/exit_code/signal/timeout/watchdog/
 oom_kill/core_dump/start_limit_hit/resources/protocol/other/unknown) with
 optional `exit_code` (only valid when `result` is `exit_code`) and a short
-`status_text` for evidence like `226/NAMESPACE`. Optional fields capture the
+`status_text` for evidence like `226/NAMESPACE`.
+
+Optional fields capture the
 `main_pid` when a live process exists, the `unit_file_path` (cross-checked
 against `runtime.filesystem_inventory` when that inventory is non-empty), and
 a redactable `exec_start` (`command_kind` `absolute_path` / `redacted`, with
@@ -988,14 +1004,16 @@ pointing at the same-node `Node.services[].name` (bare or
 launches. Private manager identity does not authorize use of the systemd state
 fields; richer non-systemd state requires an exact admitted domain profile.
 The historical omitted-manager default remains readable, but does not become
-authored systemd intent. This surface is observed WHAT-IS state: it is not
-`Node.services` (transport bindings), not `conditions` (authored
-monitoring/readiness intent), not `runtime.processes` (live processes — a
-failed, disabled, static, or active/exited unit may have no live process),
-not `runtime.container.init_process` (container PID-1/init configuration),
-not `runtime.operational_policy.restart` (orchestrator restart policy), not
-`runtime.ssh_servers` (sshd policy — `sshd.service` lifecycle is the unit,
-sshd directives are the SSH surface), and not package/software/filesystem
+authored systemd intent. This surface is observed WHAT-IS state.
+
+It is not
+`Node.services` (transport bindings) and not `conditions` (authored
+monitoring/readiness intent). It is not `runtime.processes` (live processes — a
+failed, disabled, static, or active/exited unit may have no live process). It is
+not `runtime.container.init_process` (container PID-1/init configuration) and
+not `runtime.operational_policy.restart` (orchestrator restart policy). It is
+not `runtime.ssh_servers` (sshd policy — `sshd.service` lifecycle is the unit,
+sshd directives are the SSH surface). It is also not package/software/filesystem
 inventory. Raw `systemctl`, `journalctl`, unit-file text, and backend
 inspector payloads are not portable schema; secret-bearing `ExecStart` values
 must be classified `redacted` and omit the raw command (see
@@ -1021,7 +1039,7 @@ distinct from the `infrastructure` topology declaration. `hostname`,
 `domainname`, aliases/DNS names, addresses, prefix, gateway, MAC, backend
 configuration, and published bindings are contract facts when authored.
 Docker network IDs, endpoint IDs, generated DNS names, and incidental inspect
-output are not accepted by the SDL schema; preserve them in evidence and the
+output are not accepted by the SDL schema. Preserve them in evidence and the
 inventory mapping ledger instead. The valid portable fixture
 [`docker-network-endpoint-observation.json`](../../../contracts/fixtures/experiment-core/experiment-evidence-record-v1/valid/docker-network-endpoint-observation.json)
 demonstrates the evidence side. `published_ports` keeps container port, host IP,
@@ -1031,9 +1049,9 @@ host port, and protocol distinct from the authored `services` declaration and im
 
 `runtime.network_sensors` records observed passive or inline NSM/IDS sensor
 posture hosted by the node. Each entry has a stable `network_sensor_id`, bounded
-implementation/kind/posture/capture-mode fields, capture interfaces such as
-`any`, and `monitored_network_refs` naming the declared switch-backed networks
-whose traffic the sensor observes. Monitoring scope is distinct from network
+implementation/kind/posture/capture-mode fields, and capture interfaces such as
+`any`. It also has `monitored_network_refs`, which names the declared
+switch-backed networks whose traffic the sensor observes. Monitoring scope is distinct from network
 attachment: `runtime.network.endpoints` can show that a node is multi-homed,
 while `runtime.network_sensors` states that the node observes those networks.
 Configuration, log, and evidence refs are checked against
@@ -1043,19 +1061,21 @@ participate in relationships, generic reference validation, and module import
 rewriting (see
 [ADR-042](../../decisions/adrs/adr-042-network-sensor-runtime-monitoring.md)).
 
-`runtime.service_listeners` records known in-node listener facts. A stable
-listener id is required; transport protocol, port or Unix socket path, bind
-address or interface, address family, listener scope, optional same-node
-service ref, optional process owner ref/name, readiness evidence, provenance,
-evidence refs, and typed correlations to `runtime.network.published_ports` may
-be supplied independently. Missing endpoint facts remain missing and must be
+`runtime.service_listeners` records known in-node listener facts. A stable listener id
+is required. Some fields may be supplied independently: transport protocol, port
+or Unix socket path, bind address or interface, address family, and listener
+scope. Others are an optional same-node service ref, an optional process owner
+ref/name, readiness evidence, provenance, and evidence refs. Typed correlations
+to `runtime.network.published_ports` may also be supplied independently.
+
+Missing endpoint facts remain missing and must be
 completed or rejected by a backend operation that requires an admitted
 endpoint. The surface is
 distinct from `Node.services` (authored service identity), from
 `runtime.network.published_ports` (host publication), and from
 protocol-specific runtime inventories such as HTTP applications, DNS, mail, and
 database services. A wildcard address such as `0.0.0.0` or `::` is a wildcard
-inside the node namespace; a partial or wildcard description grants no access,
+inside the node namespace. A partial or wildcard description grants no access,
 and host exposure remains a published-port fact. Fully
 qualified refs such as
 `nodes.web.runtime.service_listeners.gunicorn-http-ipv4` participate in
@@ -1063,12 +1083,14 @@ relationships, generic reference validation, and module import rewriting (see
 [ADR-043](../../decisions/adrs/adr-043-runtime-service-listener-surface.md)).
 
 `runtime.network_detection_engines` records observed IDS/NDR detection-engine
-state hosted by the node: engine identity, parser families, rule-source
-inventories, network zoning/address-set variables, output streams,
-reload/control channels, and evidence refs. It is distinct from passive sensor
+state hosted by the node. This state is engine identity, parser families,
+rule-source inventories and network zoning/address-set variables. It also
+includes output streams, reload/control channels, and evidence refs. It is distinct from passive sensor
 posture (`runtime.network_sensors`), SIEM manager inventory
 (`runtime.security_monitoring_managers`), software component identity, raw
-filesystem evidence, HTTP applications, and transport services. Each engine
+filesystem evidence, HTTP applications, and transport services.
+
+Each engine
 has a stable `network_detection_engine_id`; child collections use stable ids for rule sources,
 network sets, output streams, and control channels. File/path refs are checked
 against `runtime.filesystem_inventory` when that inventory is non-empty, and
@@ -1080,54 +1102,66 @@ rewriting (see
 [ADR-044](../../decisions/adrs/adr-044-network-detection-engine-runtime-inventory.md)).
 
 `runtime.applications` records the participant-observable HTTP application
-route/API/UI surface — what an adversary, defender, agent, scanner, or evaluator
-can observe of the web application itself, distinct from the transport-level
-`services` binding and from the host exposure in `runtime.network`. Each entry
+route/API/UI surface. This is what an adversary, defender, agent, scanner, or
+evaluator can observe of the web application itself. It is distinct from the
+transport-level `services` binding and from the host exposure in
+`runtime.network`. Each entry
 is a `RuntimeApplicationSurface` with a stable `application_id`, an optional
 `service` referencing the owning same-node `Node.services[].name` (bare name or
 the qualified `nodes.<node>.services.<name>` form), a `protocol`/`framework`
-classification, and an optional `base_path`. Each `routes` entry carries a
-stable `route_id` (the route `path` is data, never a mapping key, and may carry
-path variables and be shared across methods), normalized HTTP `methods`,
-observable `auth_required`/`session_required`/`auth_scheme`, typed `parameters`
-located by `path`/`query`/`header`/`cookie`/`form`/`json_body`/`uploaded_file`,
-`responses` with status code and content type, `templates`/`static_assets`
-associations resolving to the node's observed file inventory,
-`redirects`, observable error/disclosure behavior in
-`disclosures`, and `exposed_fields` for route-visible fixture secrets or
-intentionally exposed diagnostic fields classified with the shared runtime
-sensitivity vocabulary — `redacted` and `operator_secret` fields omit their raw
-value, while `secret_fixture` fields may carry deliberate exercise fixture
-values (see
+classification, and an optional `base_path`.
+
+Each `routes` entry carries a
+stable `route_id`. The route `path` is data, never a mapping key, and may carry
+path variables and be shared across methods. The entry also carries normalized
+HTTP `methods` and observable `auth_required`/`session_required`/`auth_scheme`.
+It carries typed `parameters` located by
+`path`/`query`/`header`/`cookie`/`form`/`json_body`/`uploaded_file`, and
+`responses` with status code and content type. It carries
+`templates`/`static_assets` associations that resolve to the observed file
+inventory of the node, and `redirects`.
+
+It carries observable error/disclosure
+behavior in `disclosures`. It also carries `exposed_fields` for route-visible
+fixture secrets or intentionally exposed diagnostic fields. These fields are
+classified with the shared runtime sensitivity vocabulary. `redacted` and
+`operator_secret` fields omit their raw value, while `secret_fixture` fields may
+carry deliberate exercise fixture values (see
 [ADR-026](../../decisions/adrs/adr-026-application-http-surface-inventory.md)
 and
 [ADR-057](../../decisions/adrs/adr-057-runtime-secret-name-classifier-boundaries.md)).
 
-`runtime.database_services` records the participant-observable database
-logical state — what an adversary, defender, agent, scanner, or evaluator can
-observe of a database itself, distinct from the transport-level `services`
+`runtime.database_services` records the participant-observable database logical
+state. This is what an adversary, defender, agent, scanner, or evaluator can
+observe of a database itself. It is distinct from the transport-level `services`
 binding, the host exposure in `runtime.network`, and the HTTP surface in
-`runtime.applications`. Each entry is a `RuntimeDatabaseService` with a stable
+`runtime.applications`.
+
+Each entry is a `RuntimeDatabaseService` with a stable
 `database_service_id`, an optional `service` referencing the owning same-node
 `Node.services[].name`, and distinct `engine`/`protocol`/`version` facts — a
 PostgreSQL service is never modelled as `protocol: other`. `listeners` record
 what the database process listens on (the wildcard `*`, an IP, a hostname, or a
 Unix socket path) and are not host publication, which remains
 `runtime.network.published_ports`. `databases` carry typed `schemas` and
-`tables`; `roles` are database-local authorization principals, not OS accounts
-or top-level `accounts`; and every database, schema, table, and role has a
-stable `*_id` symbol kept separate from its observed `name`, plus an `origin`
-classification so engine built-ins (`template0`, `postgres`) are not mistaken
+`tables`. `roles` are database-local authorization principals, not OS accounts
+or top-level `accounts`.
+
+Every database, schema, table, and role has a stable
+`*_id` symbol kept separate from its observed `name`. Each also has an `origin`
+classification, so engine built-ins (`template0`, `postgres`) are not mistaken
 for scenario-authored objects. `grants` are typed privilege facts structured by
 grantee role, target object, and privileges. `settings` carry a `provenance`
 (introspection, configuration file, image default, operator override, runtime
-default) and a value classification reusing the shared runtime sensitivity
-vocabulary — `redacted`/`operator_secret` settings omit their raw value, so
-PostgreSQL secret areas such as `primary_conninfo`, password attributes, and
-TLS key material never enter the model. An application-to-database access edge
-reuses the top-level `relationships` graph: the relationship endpoints resolve
-to the runtime application and the database service or logical database, and a
-typed `database_access` block keeps the access `role_ref` and `auth_method`
+default).
+
+They also carry a value classification that reuses the shared runtime
+sensitivity vocabulary. `redacted`/`operator_secret` settings omit their raw
+value. So PostgreSQL secret areas such as `primary_conninfo`, password
+attributes, and TLS key material never enter the model. An application-to-database access edge
+reuses the top-level `relationships` graph. The relationship endpoints resolve
+to the runtime application and the database service or logical database. A typed
+`database_access` block keeps the access `role_ref` and `auth_method`
 structurally validated (see
 [ADR-029](../../decisions/adrs/adr-029-database-logical-state-runtime-surface.md)).
 
@@ -1141,18 +1175,20 @@ TLS-termination posture, which must agree with the route's own
 `upstream_target`). See
 [ADR-052](../../decisions/adrs/adr-052-typed-runtime-relationship-subtypes.md).
 
-`runtime.dns_services` records observed DNS logical and protocol state hosted
-by the node: authoritative zones, RRsets, typed common RDATA, resolver policy,
-forwarders, DNSSEC validation posture, dynamic-update posture, logging posture,
-bounded settings, and evidence refs. It is distinct from `Node.services`
+`runtime.dns_services` records observed DNS logical and protocol state hosted by
+the node. This state is authoritative zones, RRsets, typed common RDATA,
+resolver policy, forwarders and DNSSEC validation posture. It also includes
+dynamic-update posture, logging posture, bounded settings, and evidence refs. It is distinct from `Node.services`
 (transport listeners such as UDP/TCP 53), `runtime.container` resolver client
 options, `runtime.network` endpoint aliases/generated DNS names, HTTP
-applications, filesystem evidence, and generic relationships. Each service has
+applications, filesystem evidence, and generic relationships.
+
+Each service has
 a stable `dns_service_id` and optional same-node `service` ref. Zones use
-stable `zone_id` values and observed DNS names. `rrsets` group records by
-owner, class, type, and TTL; typed payloads exist for SOA, MX, SRV, TXT, A,
-and AAAA, with target/rdata fields and an `other` + `type_code` path for
-additional IANA RR types. `configuration_file_refs`, `log_file_refs`, and
+stable `zone_id` values and observed DNS names. `rrsets` group records by owner,
+class, type, and TTL. Typed payloads exist for SOA, MX, SRV, TXT, A, and AAAA,
+with target/rdata fields. An `other` + `type_code` path carries additional IANA
+RR types. `configuration_file_refs`, `log_file_refs`, and
 `zone_file_refs` are checked against `runtime.filesystem_inventory` when that
 inventory is non-empty. Fully qualified refs such as
 `nodes.dns.runtime.dns_services.bind.zones.corp.rrsets.web-a` participate in
@@ -1160,25 +1196,29 @@ relationships, generic reference validation, and module import rewriting (see
 [ADR-039](../../decisions/adrs/adr-039-dns-service-runtime-inventory.md)).
 
 `runtime.security_monitoring_managers` records observed SIEM and
-security-monitoring manager state hosted by the node: manager identity,
-same-node transport ownership, listeners, manager modules/components, enrolled
-agents, agent groups, detection or monitoring content sets, parsed detection
-definitions, bounded settings, and evidence refs. It is distinct from
+security-monitoring manager state hosted by the node. This state is manager
+identity, same-node transport ownership, listeners, manager modules/components,
+enrolled agents and agent groups. It also includes detection or monitoring
+content sets, parsed detection definitions, bounded settings, and evidence refs. It is distinct from
 `Node.services` transport bindings, `runtime.processes` process snapshots,
 `runtime.service_manager_units` lifecycle state, filesystem evidence, raw logs,
-alert telemetry, and raw vendor rule/config payloads. Each manager has a stable
+alert telemetry, and raw vendor rule/config payloads.
+
+Each manager has a stable
 `security_monitoring_manager_id`; child collections use stable ids for listeners, components,
 agents, groups, content sets, detection definitions, and settings.
 `content_sets` is corpus/file inventory, while `detection_definitions` is the
 typed manifest of loaded parsed definitions from that corpus. Detection
 definitions preserve portable engine/kind, native id, source file/span,
-canonical digest, loaded/parser-accepted state, level/severity, predicates,
-decoder constraints, correlation refs, tags, MITRE/compliance mappings, and
-optional target refs. Agent group member refs resolve to manager-local agents,
-agent `group_refs` resolve to manager-local groups, setting `component_ref`
-values resolve to manager-local components, detection `content_set_ref` values
-resolve to manager-local content sets, and detection correlation refs resolve
-to manager-local definitions. File refs and setting source paths are checked
+canonical digest, loaded/parser-accepted state and level/severity. They also
+preserve predicates, decoder constraints, correlation refs, tags,
+MITRE/compliance mappings, and optional target refs. Agent group member refs resolve to manager-local agents,
+and agent `group_refs` resolve to manager-local groups.
+
+Setting `component_ref`
+values resolve to manager-local components. Detection `content_set_ref` values
+resolve to manager-local content sets, and detection correlation refs resolve to
+manager-local definitions. File refs and setting source paths are checked
 against `runtime.filesystem_inventory` when that inventory is non-empty. Fully
 qualified refs such as
 `nodes.siem.runtime.security_monitoring_managers.wazuh.agents.001` participate
@@ -1192,54 +1232,59 @@ and
 state, distinct from transport-level `services`, host publication in
 `runtime.network`, HTTP application routes, filesystem evidence, and top-level
 scenario accounts. Each entry is a `RuntimeMailService` with a stable
-`mail_service_id`, optional same-node `Node.services[].name` reference,
-engine/version/name data, and typed child records for components, listeners,
-domains, mailbox stores, mailboxes, aliases, routing rules, queues, and
-settings. `listeners` bind SMTP/ESMTP, submission, IMAP/IMAPS, POP3, LMTP,
-Sieve, or other mail protocols to same-node transport services and carry
+`mail_service_id`, an optional same-node `Node.services[].name` reference, and
+engine/version/name data. It also has typed child records for components,
+listeners, domains, mailbox stores, mailboxes, aliases, routing rules, queues,
+and settings. `listeners` bind SMTP/ESMTP, submission, IMAP/IMAPS, POP3, LMTP,
+Sieve, or other mail protocols to same-node transport services.
+
+They carry
 advertised capabilities, banners, AUTH mechanisms, and TLS/STARTTLS posture.
 `mailboxes` are service-local runtime records with address, domain/store refs,
-role/status, authentication mechanisms, and credential-strength classification;
-raw passwords and hashes are not representable on mailbox records. `settings`
+role/status, authentication mechanisms, and credential-strength classification.
+Raw passwords and hashes are not representable on mailbox records. `settings`
 carry provenance and source paths; explicit `redacted`/`operator_secret`
 classifications omit raw values, while credential-shaped names remain scenario
-content under ADR-057. Mail
-client, DNS, logging/SIEM, relay, and similar edges stay in top-level
-`relationships`; a typed `mail_access` block records mail protocol/auth/TLS and
-mailbox/domain/listener refs when an edge needs mail-specific semantics (see
+content under ADR-057. Mail client, DNS, logging/SIEM, relay, and similar edges
+stay in top-level `relationships`. When an edge needs mail-specific semantics, a
+typed `mail_access` block records mail protocol/auth/TLS and
+mailbox/domain/listener refs (see
 [ADR-038](../../decisions/adrs/adr-038-runtime-mail-service-logical-state.md)).
 
 `runtime.identity_authorities` records observed directory, domain, realm,
 identity-provider, cloud-IAM, authorization-system, and federation state. It is
 not a provisioning command surface and it is not an Active Directory, LDAP,
 SCIM, SAML, OIDC, or IAM schema clone. Each authority has a stable
-`identity_authority_id`; optional namespace facts such as `domain_name`, `realm`,
-`issuer`, `tenant_id`, and `base_dn`; protocol/API services that may reference
-same-node `Node.services[].name` transport bindings; identity-bearing
-subjects; policies; and typed relationships for membership, trust,
-federation, delegation, ownership, synchronization, and association. Stable
+`identity_authority_id` and optional namespace facts such as `domain_name`,
+`realm`, `issuer`, `tenant_id`, and `base_dn`. It has protocol/API services that
+may reference same-node `Node.services[].name` transport bindings,
+identity-bearing subjects, and policies. It also has typed relationships for
+membership, trust, federation, delegation, ownership, synchronization, and
+association. Stable
 RAES ids (`identity_authority_id`, `service_id`, `subject_id`, `policy_id`, and
 `relationship_id`) are the portable reference surface and must be unique across
-the owning authority's local namespace. Provider-stable object identifiers
-remain observed data: use the specific field when one exists
-(`distinguished_name`, `principal_name`, `service_principal_names`,
-`issuer`, `tenant_id`, `base_dn`) or a bounded `attributes` entry for values
+the owning authority's local namespace.
+
+Provider-stable object identifiers
+remain observed data. Use the specific field when one exists
+(`distinguished_name`, `principal_name`, `service_principal_names`, `issuer`,
+`tenant_id`, `base_dn`). Otherwise use a bounded `attributes` entry for values
 such as AD `objectGUID`/SID, LDAP `entryUUID`, SCIM `id`/`externalId`, SAML
 NameID, or the OIDC `iss` + `sub` pair. Attribute and policy setting values use
 the runtime sensitivity vocabulary: explicit `redacted`/`operator_secret`
 classifications omit raw values, and credential-shaped names do not force
 omission under ADR-057.
 Local authority references resolve against all stable ids in the owning
-authority; fully qualified references such as
+authority. Fully qualified references such as
 `nodes.ad.runtime.identity_authorities.corp-domain.subjects.alice` participate
 in top-level relationships, objectives, module import rewriting, and generic
 reference validation (see
 [ADR-032](../../decisions/adrs/adr-032-directory-domain-identity-runtime-surface.md)).
 
-`runtime.app_authorizations` records observed application-internal
-role-based access control stores — the in-app RBAC of a search cluster,
-key-value store, dashboard, threat-intel platform, or case-management
-application, distinct from the wire-protocol directory state in
+`runtime.app_authorizations` records observed application-internal role-based
+access control stores. This is the in-app RBAC of a search cluster, key-value
+store, dashboard, threat-intel platform, or case-management application. It is
+distinct from the wire-protocol directory state in
 `runtime.identity_authorities` and from database engine GRANTs in
 `runtime.database_services`. Each entry is a `RuntimeAppAuthorization` with a
 stable `app_authorization_id`, an open `resource_vocabulary` spine
@@ -1248,20 +1293,24 @@ discriminator (`index_pattern`, `cql_resource`, `redis_acl`, `app_resource`,
 `auth_enabled` flag. Tier placement (storage RBAC for OpenSearch/Cassandra/Redis
 versus presentation RBAC for dashboards, Cortex, Shuffle, and TheHive) is
 derived from which spine references the authorization, never declared on the
-model. `principals` are users, service accounts, API keys, or backend roles
-with `reserved`/`hidden` flags; a principal never stores a raw bcrypt hash,
-API key, or password — its credential posture is recorded purely via a
-`credential_classification` (`none`, `redacted`, `operator_secret`), and a
-secret-shaped principal name alone does not force a redaction classification.
+model. `principals` are users, service accounts, API keys, or backend roles with
+`reserved`/`hidden` flags.
+
+A principal never stores a raw bcrypt hash, API key,
+or password. A `credential_classification` (`none`, `redacted`,
+`operator_secret`) records its credential posture. A secret-shaped principal
+name alone does not force a redaction classification.
 `roles` are named local roles. The defining addition over a directory is the
 resource-scoped `permission_grants` entry (role reference → `actions` →
-`resource_patterns`) with an `allow`/`deny` effect and a `resource_kind`; the
-grant's `resource_kind` is the single author-settable source of truth for the
-resource vocabulary, while the authorization's `resource_vocabulary` is the
+`resource_patterns`) with an `allow`/`deny` effect and a `resource_kind`.
+
+The
+`resource_kind` of the grant is the single author-settable source of truth for
+the resource vocabulary. The `resource_vocabulary` of the authorization is the
 declared set validated against the grants. `role_mappings` bind backend roles,
-users, or hosts onto a local role, and `tenants` model namespace scopes. An
-authorization that declares a concrete (non-`unknown`) `resource_vocabulary`
-must carry at least one permission grant with a matching `resource_kind`, and
+users, or hosts onto a local role, and `tenants` model namespace scopes. An authorization
+that declares a concrete (non-`unknown`) `resource_vocabulary` must carry at
+least one permission grant with a matching `resource_kind`.
 `permission_grants`/`role_mappings` `role_ref` values resolve to roles declared
 within the same authorization. Fully qualified refs such as
 `nodes.indexer.runtime.app_authorizations.opensearch-security.roles.admin`
@@ -1269,40 +1318,45 @@ participate in relationships, generic reference validation, and module import
 rewriting (see
 [ADR-046](../../decisions/adrs/adr-046-app-authorization-runtime-inventory.md)).
 
-`runtime.scheduled_jobs` records observed recurring scheduled jobs hosted by
-the node as a cadence-plus-run-state primitive only, distinct from
-`runtime.service_manager_units` (systemd-scoped lifecycle, including the
-`timer` unit kind) and from the forwarding/sync inputs and outputs that belong
-to the referencing forwarding agent. Each entry is a `RuntimeScheduledJob` with
+`runtime.scheduled_jobs` records observed recurring scheduled jobs hosted by the
+node as a cadence-plus-run-state primitive only. It is distinct from
+`runtime.service_manager_units` (systemd-scoped lifecycle, including the `timer`
+unit kind). It is also distinct from the forwarding/sync inputs and outputs that
+belong to the referencing forwarding agent. Each entry is a `RuntimeScheduledJob` with
 a stable `scheduled_job_id`, an `enabled` flag, an optional `command_ref`, an
 optional `schedule`, and an optional `run_state`. The `schedule` carries a
 closed structural `kind` (`interval`, `cron`, `calendar`) and an opaque `spec`
 string; the recurrence vocabulary is fixed (POSIX crontab / RFC 5545 RRULE /
-fixed interval) and therefore carries neither `unknown` nor `other`. The
+fixed interval) and therefore carries neither `unknown` nor `other`.
+
+The
 `run_state` records observed `last_run`/`next_run` timestamps and an open
 `last_result` outcome (`success`, `failure`, `pending`, `unknown`, `other`).
-Inputs, outputs, and trigger targets are intentionally absent — a bare-container
+Inputs, outputs, and trigger targets are intentionally absent. A bare-container
 ENTRYPOINT cadence loop is encoded here, while what the loop ships is the
-referencing forwarding agent's concern and an event trigger is a relationship,
+concern of the referencing forwarding agent. An event trigger is a relationship,
 not a recurrence. Fully qualified refs such as
 `nodes.sync.runtime.scheduled_jobs.misp-pull` participate in relationships,
 generic reference validation, and module import rewriting (see
 [ADR-047](../../decisions/adrs/adr-047-scheduled-job-runtime-inventory.md)).
 
 `runtime.datastore_services` records the participant-observable logical state of
-a node's *non-relational* datastore — the OpenSearch/Elasticsearch search
-cluster, the Cassandra wide-column store, and the Redis key-value store that the
-irreducibly-relational `runtime.database_services` cannot shape. Each entry is a
+the *non-relational* datastore of a node. Examples are the
+OpenSearch/Elasticsearch search cluster, the Cassandra wide-column store, and
+the Redis key-value store. The irreducibly-relational
+`runtime.database_services` cannot shape these. Each entry is a
 `RuntimeDatastoreService` with a stable `datastore_service_id`, an optional
 `service` referencing the owning same-node `Node.services[].name`, an open
 `engine` fact, and an open `data_model` spine discriminator (`search_index`,
 `wide_column`, `key_value`, `relational`, `unknown`, `other`). The discriminator
-drives a required-profile guard so an under-populated instance fails validation:
-a `search_index` requires at least one `partition` with `kind: index` carrying
-shard/replica geometry; a search cluster may also record native UUID,
-node/shard/document aggregate counts, and byte-normalized store size, while each
-index partition may record native UUID, live and deleted document counts,
-byte-normalized store size, creation timestamp, and open/closed status. A
+drives a required-profile guard, so an under-populated instance fails
+validation.
+
+A `search_index` requires at least one `partition` with `kind:
+index` that carries shard/replica geometry. A search cluster may also record
+native UUID, node/shard/document aggregate counts, and byte-normalized store
+size. Each index partition may record native UUID, live and deleted document
+counts, byte-normalized store size, creation timestamp, and open/closed status. A
 `wide_column` store requires at least one `keyspace`
 partition with a `replication_strategy` and `replication_factor`; and a
 `key_value` store requires a `persistence` profile and rejects relational
@@ -1310,24 +1364,30 @@ object-tree (`keyspace`/`column_family`) partitions. `cluster`, `persistence`,
 and `transport_security` are single nested postures, while `nodes`,
 `partitions`, `templates`, `mappings`, and `settings` are id-bearing child
 collections. `templates` and `mappings` are bounded manifests rather than raw
-engine payloads: templates carry index patterns, selected settings, optional
-mapping refs, digests, and evidence refs; mappings carry partition refs,
+engine payloads.
+
+Templates carry index patterns, selected settings, optional
+mapping refs, digests, and evidence refs. Mappings carry partition refs,
 field-count/type census, dynamic policy, dynamic-template count, date-detection
 posture, schema digests, and evidence refs. A concrete `search_index` service
 must carry at least one structured mapping manifest. `aliases`,
 `lifecycle_policies`, `ingest_pipelines`, `pubsub_channels`, `queues_streams`,
 and `backup_targets` remain bare reference-name lists. Each `node` additionally
-carries product-neutral engine
-provenance and runtime posture (`engine_version`, `build_hash`, `build_type`,
-initial/maximum `heap_init_bytes`/`heap_max_bytes` byte bounds, and
-`memory_locked`), a typed per-node `plugins` inventory
-(`RuntimeDatastoreEnginePlugin{plugin_id, name, version}` — retaining the
-per-plugin version the former service-level `engine_plugins` list dropped), and a
-typed `endpoints` inventory
-(`RuntimeDatastoreNodeEndpoint{endpoint_id, role, protocol, address, port}`)
-whose open `client`/`peer` role taxonomy distinguishes the participant-facing
-listener from the inter-node one without naming any engine's protocol (replacing
-the single ambiguous node `address`). Node plugin and endpoint ids share the
+carries product-neutral engine provenance and runtime posture.
+
+This is
+`engine_version`, `build_hash`, `build_type`, initial/maximum
+`heap_init_bytes`/`heap_max_bytes` byte bounds, and `memory_locked`. Each `node`
+also carries a typed per-node `plugins` inventory
+(`RuntimeDatastoreEnginePlugin{plugin_id, name, version}`). This inventory
+retains the per-plugin version that the former service-level `engine_plugins`
+list dropped. Each `node` also carries a typed `endpoints` inventory
+(`RuntimeDatastoreNodeEndpoint{endpoint_id, role, protocol, address, port}`).
+Its open `client`/`peer` role taxonomy distinguishes the participant-facing
+listener from the inter-node one without naming the protocol of any engine. It
+replaces the single ambiguous node `address`.
+
+Node plugin and endpoint ids share the
 datastore service-wide stable-id namespace and are targetable as nested refs
 (see
 [ADR-058](../../decisions/adrs/adr-058-datastore-node-engine-provenance-and-endpoints.md)
@@ -1373,27 +1433,31 @@ rewriting (see
 [ADR-049](../../decisions/adrs/adr-049-platform-application-runtime-inventory.md)).
 
 `runtime.forwarding_agents` records observed forwarding / intel-sync agent state
-hosted by the node: the agent-side `(source, transform, ship-target, buffer)`
-shipping spine that the SIEM/security-monitoring *manager* half
+hosted by the node. This is the agent-side `(source, transform, ship-target,
+buffer)` shipping spine. The SIEM/security-monitoring *manager* half
 (`runtime.security_monitoring_managers`) and the detection-engine *consumer*
-(`runtime.network_detection_engines`) cannot shape. Each entry is a
+(`runtime.network_detection_engines`) cannot shape it. Each entry is a
 `RuntimeForwardingAgent` with a stable `forwarding_agent_id`, an open
 `agent_kind` spine discriminator (`log_forwarder`, `content_sync`, `unknown`,
 `other`), and typed children: `sources` (tailed path, API pull, queue, or listening-socket inputs),
 `transforms` (`passthrough`/`parse`/`ioc_to_rule`), `ship_targets` (downstream
 event-ingest and/or enrollment endpoints), an optional `buffer_policy`
 (queue/back-pressure posture), `reload_channels` (downstream rule-reload sockets),
-and bounded `settings`. The discriminator drives a required-profile guard:
-`log_forwarder` requires a `buffer_policy` and at least one `ship_target` carrying
-an ingestion endpoint and rejects any `ioc_to_rule` transform; `content_sync`
-requires at least one `api_pull` source, one `ioc_to_rule` transform, and one
-`reload_channel`, and rejects a `buffer_policy` and any `ship_target` enrollment
-endpoint. A ship target's `target_node_ref`, when concrete, resolves to a defined
+and bounded `settings`.
+
+The discriminator drives a required-profile guard.
+`log_forwarder` requires a `buffer_policy` and at least one `ship_target` that
+carries an ingestion endpoint, and rejects any `ioc_to_rule` transform.
+`content_sync` requires at least one `api_pull` source, one `ioc_to_rule`
+transform, and one `reload_channel`. It rejects a `buffer_policy` and any
+`ship_target` enrollment endpoint. A ship target's `target_node_ref`, when concrete, resolves to a defined
 node, and a `target_service_ref` resolves to a service on the referenced node
-(or, absent a node ref, on the owning node). Ship-target enrollment identities
-use the closed `none`/`redacted`/`operator_secret` lattice and carry no raw value
-field; forwarding settings use explicit redaction classifications to omit raw
-values, not name-derived omission. Cadence composes a `runtime.scheduled_jobs` entry
+(or, absent a node ref, on the owning node).
+
+Ship-target enrollment identities
+use the closed `none`/`redacted`/`operator_secret` lattice and carry no raw
+value field. Forwarding settings use explicit redaction classifications to omit
+raw values, not name-derived omission. Cadence composes a `runtime.scheduled_jobs` entry
 and the inter-node trust edge composes a relationship forwarding edge — neither is
 re-typed here. Fully qualified refs such as
 `nodes.sensor.runtime.forwarding_agents.wazuh-sidecar.ship_targets.manager`
@@ -1409,12 +1473,14 @@ agent has no owning node, any concrete `target_service_ref` on its ship target
 must also name a concrete `target_node_ref`.
 
 `runtime.orchestration_authorities` records observed container-spawn
-orchestration-authority state hosted by the node: the authority to *spawn*
-containers/workloads through a control interface — a SOAR orchestrator or an
-analyzer engine holding `docker.sock` read-write. `RuntimeControlInterface`
+orchestration-authority state hosted by the node. This is the authority to
+*spawn* containers/workloads through a control interface. An example is a SOAR
+orchestrator or an analyzer engine that holds `docker.sock` read-write. `RuntimeControlInterface`
 (`runtime.local_control_interfaces`) types the docker.sock *shell* — a present
-read-write Unix socket — but carries no field for what the holder is authorized to
-*do*; this family carries the spawn contract. Each entry is a
+read-write Unix socket. It carries no field for what the holder is authorized to
+*do*. This family carries the spawn contract.
+
+Each entry is a
 `RuntimeOrchestrationAuthority` with a stable `orchestration_authority_id`, an open
 `engine` taxonomy (`docker`/`containerd`/`podman`/`kubernetes`/`cri_o`), an optional
 `scope`, typed `spawn_templates` (image + purpose), an optional `lifecycle_policy`,
@@ -1422,10 +1488,10 @@ typed `realized_children` (observed spawned workloads), and an open
 `privilege_class` discriminator (`host_root_equivalent`, `namespaced`, `unknown`,
 `other`). The `control_interface_ref` is the `control_interface_id` of a same-node
 `RuntimeControlInterface` — referenced, never duplicated — and resolves at scenario
-scope. The discriminator drives a required-profile guard: a `host_root_equivalent`
-authority requires a concrete `control_interface_ref` (model-local), and at
-scenario scope that interface must resolve to a read-write docker socket (a
-read-write `unix_socket` whose path ends in `docker.sock`). Fully qualified refs
+scope. The discriminator drives a required-profile guard. A
+`host_root_equivalent` authority requires a concrete `control_interface_ref`
+(model-local). At scenario scope, that interface must resolve to a read-write
+docker socket (a read-write `unix_socket` whose path ends in `docker.sock`). Fully qualified refs
 such as
 `nodes.soar.runtime.orchestration_authorities.shuffle-orborus.spawn_templates.worker`
 participate in relationships, generic reference validation, and module import
@@ -1434,23 +1500,28 @@ rewriting (see
 
 `source` identifies the node's artifact by provider-neutral `name` and
 `version`. When that artifact is a custom-built container image, the optional
-`source.build` block records its observable build/provenance facts without
-making any container engine the normative deployment model. `build` captures
-the `base_image` and `base_image_digest`; the `dockerfile_path` and structured
-`instructions` (typed `instruction` kind plus tokenized `arguments` — raw
-recipe text is intentionally not stored, since `${...}` in shell/Dockerfile
-syntax would collide with SDL variable substitution); the `layers` chain with
-per-layer `digest`, `created_by`, `size`, and `empty` flag; `build_args` with a
-`value_classification` so secret build arguments are redacted rather than
-recorded, except for explicitly disclosed `secret_fixture` exercise values;
-`copied_sources` mapping build-context `source_path` to in-image
-`destination_path`; `config` recording image *defaults* (entrypoint, command,
-working directory, exposed ports, native-keyed `labels`, and
-`default_environment`); `source_inputs` mapping source-package inputs to
-runtime destinations with optional checksums; and `attestation`, which records
-attestation `status` (availability) separately from `verification` (result) so
-that "no registry-visible attestation" is a distinct, falsifiable fact rather
-than an inferred verification failure. Image-default `config` facts are kept
+`source.build` block records its observable build/provenance facts. It does not
+make any container engine the normative deployment model. `build` captures the
+`base_image` and `base_image_digest`. It captures the `dockerfile_path` and
+structured `instructions` (typed `instruction` kind plus tokenized `arguments`).
+
+Raw recipe text is intentionally not stored, because `${...}` in
+shell/Dockerfile syntax would collide with SDL variable substitution. It
+captures the `layers` chain with per-layer `digest`, `created_by`, `size`, and
+`empty` flag.
+
+It captures `build_args` with a `value_classification`, so secret
+build arguments are redacted and not recorded, except for explicitly disclosed
+`secret_fixture` exercise values. `copied_sources` maps build-context
+`source_path` to in-image `destination_path`. `config` records image *defaults*
+(entrypoint, command, working directory, exposed ports, native-keyed `labels`,
+and `default_environment`). `source_inputs` maps source-package inputs to
+runtime destinations with optional checksums. `attestation` records attestation
+`status` (availability) separately from `verification` (result).
+
+So "no
+registry-visible attestation" is a distinct, falsifiable fact and not an
+inferred verification failure. Image-default `config` facts are kept
 separate from runtime-effective facts under `runtime.container`; the same value
 may appear in both with different meanings. See
 [ADR-023](../../decisions/adrs/adr-023-container-image-build-provenance-surface.md).
@@ -1517,14 +1588,14 @@ features:
     environment: ["ELASTICSEARCH_HOST=10.0.0.5"]
 ```
 
-Feature dependencies are hard same-node prerequisites at runtime. If a node
-binds a feature whose declared dependency is not also bound on that same node,
-runtime compilation emits a diagnostic and the plan is invalid rather than
-silently ignoring the missing prerequisite.
+Feature dependencies are hard same-node prerequisites at runtime. A node can bind a
+feature whose declared dependency is not also bound on that same node. In that
+case, runtime compilation emits a diagnostic and the plan is invalid.
+Compilation does not silently ignore the missing prerequisite.
 
 ---
 
-## Conditions, Propositions, and Assertions
+## Conditions, propositions, and assertions
 
 `conditions` describe executable probe implementations. They do not define
 portable truth by themselves. A condition may bind to a proposition that says
@@ -1603,17 +1674,17 @@ sections are no longer SDL surfaces.
 
 `conditions` remain first-class probe definitions, but backend-neutral truth is
 expressed through `propositions` and role-constrained `assertions` (see
-[Objectives](#objectives)). When a scenario genuinely needs a graded
-score, cumulative reward, pass/fail evaluation, or a leaderboard value, that
-concern lives in the experiment/evaluator plane — experiment-core contracts
-(`experiment-task-v1` metric definitions, `experiment-study-v1` analysis plans;
-[ADR-055](../../decisions/adrs/adr-055-experiment-core-contract-boundary.md)),
-the evidence/measure contracts (`experiment-evidence-record-v1`,
+[Objectives](#objectives)). A scenario can genuinely need a graded score,
+cumulative reward, pass/fail evaluation, or a leaderboard value. That concern
+lives in the experiment/evaluator plane, never in authored SDL. The plane has
+experiment-core contracts (`experiment-task-v1` metric definitions,
+`experiment-study-v1` analysis plans;
+[ADR-055](../../decisions/adrs/adr-055-experiment-core-contract-boundary.md)).
+It has the evidence/measure contracts (`experiment-evidence-record-v1`,
 `experiment-derived-measure-v1`;
-[ADR-064](../../decisions/adrs/adr-064-experiment-evidence-and-measure-contract-boundary.md)),
-and the backend Evaluator
-([ADR-069](../../decisions/adrs/adr-069-cage-2-replication-architecture.md)) —
-never as authored SDL.
+[ADR-064](../../decisions/adrs/adr-064-experiment-evidence-and-measure-contract-boundary.md)).
+It also has the backend Evaluator
+([ADR-069](../../decisions/adrs/adr-069-cage-2-replication-architecture.md)).
 
 ---
 
@@ -1643,7 +1714,7 @@ Nested entities are referenced via dot-notation: `blue-team.alice`.
 
 ---
 
-## Orchestration: Injects, Events, Scripts, Stories
+## Orchestration: injects, events, scripts, stories
 
 Entity endpoints are optional but must be paired when present; they do not
 declare participants or select physical execution targets. Ordinary injects
@@ -1767,11 +1838,11 @@ The portable semantic set also includes `full-text`, `integer`, `temporal`, and
 backend-private configuration. A profile claim admits the operation; only fresh
 native readback projected to the declared portable fields proves it.
 
-The interface profile does not describe product APIs. It requires the backend
-to reconcile the ordinary content through the named service, reject
-unowned-item collisions, preserve declared tenant/reset ownership, and return
-independent digest readback that can satisfy the observed-state postcondition
-and participant projection. Backend profile support is separate from ordinary
+The interface profile does not describe product APIs. It requires the backend to
+reconcile the ordinary content through the named service, reject unowned-item
+collisions, and preserve declared tenant/reset ownership. The backend must also
+return independent digest readback that can satisfy the observed-state
+postcondition and participant projection. Backend profile support is separate from ordinary
 `file`/`dataset`/`directory` support. The normative contract is
 `specs/sdl/initial-service-state.md`.
 
@@ -1820,8 +1891,8 @@ applications, and federation subjects belong in
 `nodes.<node>.runtime.identity_authorities` when they are observed
 identity-authority inventory. A top-level account may intentionally mirror one
 of those subjects when the scenario needs a provisioned or participant starting
-credential, but that is a second authored resource rather than the directory
-model itself.
+credential. But that is a second authored resource, not the directory model
+itself.
 
 Credential bindings are nested under their owning account. Fixture literals
 are deliberate authoritative scenario content; operator secrets are represented
@@ -1832,7 +1903,7 @@ authorizes disclosure of one exact fixture binding. See the normative
 
 ---
 
-## Identity Domains
+## Identity domains
 
 Authored identity-domain realization intent. This is separate from observed
 `nodes.*.runtime.identity_authorities` inventory.
@@ -1869,9 +1940,9 @@ relationships:
       controller_refs: [dc]
 ```
 
-Every domain has a compute node controller, joins list explicit same-domain controller
-candidates, the authority account lives on a controller, and domain-bound
-accounts live on participating nodes. SPNs require `domain_ref`; the domain is
+Every domain has a compute node controller, and joins list explicit same-domain
+controller candidates. The authority account lives on a controller, and
+domain-bound accounts live on participating nodes. SPNs require `domain_ref`; the domain is
 never inferred from the SPN or node operating system. See the
 {download}`normative topology specification <../../../specs/sdl/authored-domain-topology.md>`.
 
@@ -1938,39 +2009,19 @@ Types: `authenticates_with`, `trusts`, `federates_with`, `connects_to`,
 `depends_on`, `manages`, `replicates_to`, `domain_controller_for`, and
 `joins_domain`.
 
-Relationship endpoints resolve against the scenario's named elements,
-including top-level section keys, nested entity dot-paths, variables, other
-relationships, content item `name` values, named service bindings
-(`nodes.<node>.services.<service_name>`), runtime service listener refs
-(`nodes.<node>.runtime.service_listeners.<listener_id>`), runtime
-identity-authority refs
-(`nodes.<node>.runtime.identity_authorities.<identity_authority_id>` and nested
-`.services.<service_id>`, `.subjects.<subject_id>`, `.policies.<policy_id>`,
-or `.relationships.<relationship_id>` refs), runtime DNS refs
-(`nodes.<node>.runtime.dns_services.<dns_service_id>` and nested
-`.zones.<zone_id>` or `.zones.<zone_id>.rrsets.<rrset_id>` refs), named
-network sensor refs
-(`nodes.<node>.runtime.network_sensors.<network_sensor_id>`), named
-network detection-engine refs
-(`nodes.<node>.runtime.network_detection_engines.<network_detection_engine_id>` and nested
-`.rule_sources.<source_id>`, `.network_sets.<set_id>`,
-`.output_streams.<stream_id>`, or `.control_channels.<channel_id>` refs), named
-security-monitoring manager refs
-(`nodes.<node>.runtime.security_monitoring_managers.<security_monitoring_manager_id>` and nested
-`.listeners.<listener_id>`, `.components.<component_id>`,
-`.agents.<agent_id>`, `.agent_groups.<group_id>`,
-`.content_sets.<content_id>`, or `.settings.<setting_id>` refs), named datastore
-service refs
-(`nodes.<node>.runtime.datastore_services.<datastore_service_id>` and nested
-`.nodes.<node_id>`, `.partitions.<partition_id>`, or `.settings.<setting_id>`
-refs), named platform application refs
-(`nodes.<node>.runtime.platform_applications.<platform_application_id>` and
-nested `.capabilities.<capability_id>`, `.organizations.<organization_id>`,
-`.tenants.<tenant_id>`,
-`.content_objects.<content_object_id>`, `.markings.<marking_id>`,
-`.upstream_bindings.<binding_id>`, `.connectors.<connector_id>`, or
-`.settings.<setting_id>` refs), and named ACL
-rules (`infrastructure.<infra>.acls.<acl_name>`).
+Relationship endpoints resolve against the named elements of the scenario. These elements are:
+
+- top-level section keys, nested entity dot-paths, variables, other relationships, and content item `name` values
+- named service bindings (`nodes.<node>.services.<service_name>`)
+- runtime service listener refs (`nodes.<node>.runtime.service_listeners.<listener_id>`)
+- runtime identity-authority refs (`nodes.<node>.runtime.identity_authorities.<identity_authority_id>` and nested `.services.<service_id>`, `.subjects.<subject_id>`, `.policies.<policy_id>`, or `.relationships.<relationship_id>` refs)
+- runtime DNS refs (`nodes.<node>.runtime.dns_services.<dns_service_id>` and nested `.zones.<zone_id>` or `.zones.<zone_id>.rrsets.<rrset_id>` refs)
+- named network sensor refs (`nodes.<node>.runtime.network_sensors.<network_sensor_id>`)
+- named network detection-engine refs (`nodes.<node>.runtime.network_detection_engines.<network_detection_engine_id>` and nested `.rule_sources.<source_id>`, `.network_sets.<set_id>`, `.output_streams.<stream_id>`, or `.control_channels.<channel_id>` refs)
+- named security-monitoring manager refs (`nodes.<node>.runtime.security_monitoring_managers.<security_monitoring_manager_id>` and nested `.listeners.<listener_id>`, `.components.<component_id>`, `.agents.<agent_id>`, `.agent_groups.<group_id>`, `.content_sets.<content_id>`, or `.settings.<setting_id>` refs)
+- named datastore service refs (`nodes.<node>.runtime.datastore_services.<datastore_service_id>` and nested `.nodes.<node_id>`, `.partitions.<partition_id>`, or `.settings.<setting_id>` refs)
+- named platform application refs (`nodes.<node>.runtime.platform_applications.<platform_application_id>` and nested `.capabilities.<capability_id>`, `.organizations.<organization_id>`, `.tenants.<tenant_id>`, `.content_objects.<content_object_id>`, `.markings.<marking_id>`, `.upstream_bindings.<binding_id>`, `.connectors.<connector_id>`, or `.settings.<setting_id>` refs)
+- named ACL rules (`infrastructure.<infra>.acls.<acl_name>`)
 
 Bare refs like `webapp` are valid when they are unambiguous. Any top-level section key may also be referenced explicitly as `<section>.<name>`, for example `nodes.webapp`, `features.postgres`, `accounts.db-admin`, or `infrastructure.dmz-net`. Content items may be referenced as `content.<content_name>.items.<item_name>` when a bare item `name` would collide with some other named element.
 
@@ -1978,11 +2029,10 @@ Bare refs like `webapp` are valid when they are unambiguous. Any top-level secti
 
 ## Agents
 
-Role-neutral scenario participants. Adapted from CybORG CAGE Challenge. This
-section is also the SDL-authoring surface for declarative participant framing
-(ACT-601, ADR-020) — it covers all five framing facets the language
-guarantees: identity, role, starting conditions, authority anchors, and
-operating scope.
+Role-neutral scenario participants. Adapted from CybORG CAGE Challenge. This section is also
+the SDL-authoring surface for declarative participant framing (ACT-601,
+ADR-020). It covers all five framing facets that the language guarantees:
+identity, role, starting conditions, authority anchors, and operating scope.
 
 ```yaml
 agents:
@@ -2021,7 +2071,9 @@ The `agents` map key is participant identity. `affiliations` is optional and
 references distinct flattened `entities` names; shared affiliation never merges
 participants. One declaration may denote a composite autonomous subject without
 listing components. Direct `role` wins; otherwise exactly one affiliation may
-supply its entity role. Zero or multiple affiliations supply no inherited role.
+supply its entity role.
+
+Zero or multiple affiliations supply no inherited role.
 See [ADR-109](../../decisions/adrs/adr-109-participant-identity-and-objective-assignment.md)
 and the [migration guide](../../migration/participant-identity.md).
 `initial_knowledge.hosts` references compute node names, `subnets`
@@ -2035,17 +2087,18 @@ surface a declarative hook for participant-relevant starting state without
 equating a probe command with truth. `authority_anchors`
 references any declared scenario element (entities, relationships, content,
 nodes, …) that anchors what the participant is allowed or expected to do in
-scenario meaning — these are SDL-level anchors, not control-plane
-authentication or bearer-token identity. `operating_scope` references
-targetable named scenario elements (subnets, hosts, services, content) that
-define the boundary of where the participant may act or observe; it
-generalises `allowed_subnets`, which remains restricted to switch-backed
-infrastructure.
+scenario meaning. These are SDL-level anchors, not control-plane authentication
+or bearer-token identity. `operating_scope` references targetable
+named scenario elements (subnets, hosts, services, content) that define the
+boundary of where the participant may act or observe. It generalises
+`allowed_subnets`, which remains restricted to switch-backed infrastructure.
 
 `interactive_access` is a keyed registry of authored access-carrier
 availability. Each value is closed. `target_ref` resolves to a compute node.
 `channel` is `ssh`, `rdp`, a typed domain-profile binding, or a whole-field variable
-before instantiation. Any other string is a parse error. An optional `account_ref`
+before instantiation. Any other string is a parse error.
+
+An optional `account_ref`
 resolves to an account on that compute node that is already in the participant's
 `starting_accounts`. A typed channel uses the owner of
 [ADR-120](../../decisions/adrs/adr-120-owned-and-admitted-typed-descriptor-profiles.md):
@@ -2060,8 +2113,8 @@ meaning.
 Absence means no authored interactive access. The SDL never infers this field
 from OS, role, image, services, listeners, ACLs, ports, accounts, or
 credentials. A declaration is not a hostname, URL, port, credential, caller
-authentication rule, operating-scope grant, tool/action contract, runtime
-session, or evidence that a backend realized access.
+authentication rule or operating-scope grant. It is also not a tool/action
+contract, a runtime session, or evidence that a backend realized access.
 
 Each of `starting_assertions`, `authority_anchors`, and `operating_scope`
 accepts `${var}` placeholders that resolve through the declared `variables`
@@ -2092,7 +2145,7 @@ remain separate apparatus surfaces.
 
 ---
 
-## Forwarding Agents
+## Forwarding agents
 
 The top-level `forwarding_agents` list declares scenario-scoped logical
 forwarders. Each element carries a stable `forwarding_agent_id`; relationship
@@ -2100,7 +2153,7 @@ subtypes may reference it from a `forwarding_edge`. This list is distinct from
 `nodes.<node>.runtime.forwarding_agents`, which places the same logical family
 on one node.
 
-## Action Contracts
+## Action contracts
 
 `action_contracts` describe participant-visible actions as declared behavior:
 their applicability, intended and side effects, failure classes, interactions,
@@ -2117,7 +2170,7 @@ action_contracts:
     realization_profile: backend-declared
 ```
 
-## Observation Boundaries
+## Observation boundaries
 
 `observation_boundaries` define an information projection for a participant:
 what begins observable or hidden, what may become discovered, and which evidence
@@ -2133,7 +2186,7 @@ observation_boundaries:
     evidence_refs: [content.terminal-output]
 ```
 
-## Outcome Interpretation Rules
+## Outcome interpretation rules
 
 `outcome_interpretation_rules` state how participant action outcomes,
 observations, objective results, and evidence claims are interpreted. They keep
@@ -2148,7 +2201,7 @@ outcome_interpretation_rules:
     interpretation_basis: retained terminal evidence supports the local outcome
 ```
 
-## Behavior Specifications
+## Behavior specifications
 
 First-class participant behavior specifications name, version, and validate an
 aggregate over existing participant behavior surfaces. They do not replace
@@ -2183,14 +2236,16 @@ behavior_specifications:
         note: behavior spec reviewed for the exercise package
 ```
 
-Refs fail closed: participants must resolve to declared `agents`, roles must
-match roles of agent-bound entities, action contracts and observation
-boundaries must resolve to their registries, outcome rules must resolve to
-`outcome_interpretation_rules`, and `authority_scope_refs` must resolve to
-eligible authority scopes: participants, organizations, resources,
+Refs fail closed. Participants must resolve to declared `agents`, and roles must
+match roles of agent-bound entities. Action contracts and observation boundaries
+must resolve to their registries, and outcome rules must resolve to
+`outcome_interpretation_rules`. `authority_scope_refs` must resolve to eligible
+authority scopes. These are participants, organizations, resources,
 relationships, or behavior surfaces such as action contracts and observation
-boundaries, never propositions, assertions, conditions, narrative entries, or
-variation points. `behavior_mode` is validated against the
+boundaries.
+
+They are never propositions, assertions, conditions, narrative
+entries, or variation points. `behavior_mode` is validated against the
 governed `participant-decision-surface-modes` vocabulary.
 External behavior classifications use standalone concept binding documents.
 ATT&CK, ATLAS and NIST CSF remain optional pinned source catalogs, not governed
@@ -2209,6 +2264,7 @@ missing or ambiguous targets fail validation. `participant_role_refs` selects
 all matching participants across that scenario, including unexported ones.
 Use explicit `participant_refs` when a reusable tool binding must select only
 the unit's own participants. Namespacing does not silently narrow a role.
+
 Authored refs must use exported names; `__private` is reserved for composition.
 Behavior `semantic_version` labels must be nonblank. See the
 [composition decision and migration guidance](../../decisions/issue-297-behavior-authoring.md).
@@ -2219,7 +2275,7 @@ live runtime authorization.
 
 The binding reference `behavior_specifications.<spec>.tool_affordances.<id>`
 must be explicitly classified by each referenced observation boundary.
-Presence means authored availability only: visibility, apparatus support,
+Presence means authored availability only. Visibility, apparatus support,
 eligibility, admission, realization, effects, constraints, and evidence remain
 on their existing contracts and do not follow from the binding.
 
@@ -2298,23 +2354,26 @@ links to the participant behavior, action contract, observation boundary, and
 outcome-rule runtime addresses. Each nested affordance compiles independently
 at `participant.behavior-specification.<name>.tool-affordance.<id>` with raw
 refs and resolved content/action/observation addresses. A scoped binding also
-records its raw selector refs and resolved participant addresses; an unscoped
-binding records empty selector fields and reaches its specification's scope
+records its raw selector refs and resolved participant addresses. An unscoped
+binding records empty selector fields and reaches the scope of its specification
 through the specification address.
 
 `participant_inject_deliveries` is a closed, keyed mapping for explicit
 participant-directed delivery. Each binding has exactly one `participant_ref`
 and preserves the original orchestration `inject_ref` plus its
 `occurrence.event_ref`, `occurrence.script_ref`, and `occurrence.story_ref`.
-It also names the governed source/result item, the participant's observation
-boundary, a revisioned delivery policy with audience, exposure, visibility,
-and disclosure bases, the fixed
+It also names the governed source/result item and the observation boundary of
+the participant. It names a revisioned delivery policy with audience, exposure,
+visibility, and disclosure bases.
+
+It also names the fixed
 `orchestration-occurrence-and-shared-time` order basis, temporal constraints,
 evidence requirements, and the fail-closed `reject-no-delivery` disposition.
 `external-direction` and `intervention` deliveries additionally bind a
-compatible local `mixed_control` transition plus an explicit controller,
-authority scope, effective order, validity interval, and control-evidence
-basis; ordinary `disclosure` deliveries must not carry those fields. Admission
+compatible local `mixed_control` transition. They also bind an explicit
+controller, authority scope, effective order, validity interval, and
+control-evidence basis. Ordinary `disclosure` deliveries must not carry those
+fields. Admission
 requires these coordinates to agree with the selected transition and target
 controller state. The effective order must also fall inside the delivery's
 bounded temporal constraints, and its control evidence must be covered by the
@@ -2326,7 +2385,9 @@ delivery instead carries one closed nested `control` block. The block names
 `controller_ref`, `authority_scope_refs`, and `evidence_refs`. It excludes the
 flat `control_*` fields, and a disclosure must not carry it. The controller is
 the permitted transition's source-state controller. The scope may narrow that
-state's scope but never widen it. The evidence must lie within the transition
+state's scope but never widen it.
+
+The evidence must lie within the transition
 and source-state evidence, and the named requirements must cover it. The block
 pins the control policy; `delivery_policy.policy_revision` pins the delivery
 policy. The two revisions are never compared. The block names a permission,
@@ -2344,24 +2405,26 @@ addresses. Required source and result items must each project to exactly one
 runtime address; otherwise compilation reports a diagnostic and withholds the
 delivery record.
 The trusted occurrence-policy projection uses the compilation declaration index
-to resolve each authority and scope reference individually. It retains canonical
+to resolve each authority and scope reference individually.
+
+It retains canonical
 semantic-only anchors alongside runtime addresses, including when both occur in
 one field; authored aliases do not become distinct authority identities.
 The temporal and evidence declarations must bind the delivery declaration
 itself. Environment-only injects remain orchestration input and do not create a
 delivery implicitly. Compilation retains canonical participant, inject,
 occurrence, item, boundary, time, evidence, controller, authority, order,
-validity, and control-transition identities but never copies the inject body
-or `environment` commands into participant metadata.
+validity, and control-transition identities. It never copies the inject body or
+`environment` commands into participant metadata.
 Runtime delivery, receipts, persistence, backend realization, and proof of
 observation remain downstream contracts.
 
 For `behavior_mode: mixed-control`, authors must also provide a closed
 `mixed_control` declaration. It binds one controlled participant, explicit
 controller states, fail-closed disposition rules, and ordered control facts.
-Controller-state and transition mapping keys are portable local identifiers;
-external participant, authority, scope, and evidence refs are rewritten by
-module composition while local state/transition refs remain local.
+Controller-state and transition mapping keys are portable local identifiers.
+Module composition rewrites external participant, authority, scope, and evidence
+refs, while local state/transition refs remain local.
 
 ```yaml
 mixed_control:
@@ -2483,7 +2546,9 @@ mixed_control:
 A permitted transition is a reusable permission (MC-01). It names a kind,
 source and destination states, an order window, and evidence. It has no fixed
 state revision, effective order, or proposal identity. Each permission compiles
-to one child, not one child per visit. Only an `external-direction` edge lists
+to one child, not one child per visit.
+
+Only an `external-direction` edge lists
 `target_kinds`; every other kind uses its fixed MC-05 target set. Only a
 `handoff` edge requires `completion_evidence_refs`, and only a handoff may
 change the resolved controller. Every state an edge enters must hold active
@@ -2506,7 +2571,9 @@ resulting states. Every accepted kind advances the state revision by exactly
 one, same-state kinds included (MC-03). Its `occurrence_revision` is a
 participant-wide position, not a state revision. It carries the acting source
 controller, authority basis, and scope (MC-04), and an `accepted` or
-`rejected` disposition. An accepted occurrence also carries its admitted
+`rejected` disposition.
+
+An accepted occurrence also carries its admitted
 `effective_order` and its evaluated bounds, `valid_from_order` and
 `valid_until_order`. The bounds are the inclusive intersection of the edge,
 step, source-state, and destination-state order windows, and they contain the
@@ -2525,7 +2592,7 @@ author decision.
 
 ---
 
-## Evidence Requirements
+## Evidence requirements
 
 `evidence_requirements` are portable capture obligations authored with the
 scenario. They state sources, scope, trigger or boundary, channel, artifact
@@ -2593,7 +2660,9 @@ objectives:
 Every objective must declare `owner`, `assigned_participant`, or both. Ownership
 references an entity; assignment references a participant key. Neither identifies
 who actually acted or implies a beneficiary. Every `actions` entry must name a
-declared action contract, including on unassigned objectives. When assigned,
+declared action contract, including on unassigned objectives.
+
+When assigned,
 the actions must also be available to that participant. Shared affiliation never
 assigns an objective; unassigned organizational intent creates no runtime work.
 `success` is required and must reference at least one declared invariant or
@@ -2603,7 +2672,9 @@ resource, relationship, proposition, or assertion
 ([reference purposes and eligibility](../../../specs/sdl/references.md#7-reference-purposes-and-eligibility)).
 Conditions, narrative entries, behavior surfaces such as action contracts,
 variation points, and support declarations such as variables, objectives, and
-workflows are refused. Bare target refs work when unambiguous;
+workflows are refused.
+
+Bare target refs work when unambiguous;
 otherwise use a qualified ref such as `nodes.web-server`, `features.app-to-db`,
 or `content.mailbox.items.invoice.eml`. A bare name that a refused declaration
 shares, such as a node and a condition both named `web`, stays ambiguous.
@@ -2611,9 +2682,9 @@ shares, such as a node and a condition both named `web`, stays ambiguous.
 referenced stories/scripts/events/workflows must exist and remain internally
 consistent. Workflow steps use qualified refs of the form `<workflow>.<step>`.
 
-`depends_on` is an ordering relation, not just commentary. It defines a partial order over objectives: downstream objectives are not considered ready until their predecessors have been satisfied. Objective dependency cycles are rejected.
+`depends_on` is an ordering relation, not only commentary. It defines a partial order over objectives: downstream objectives are not considered ready until their predecessors have been satisfied. Objective dependency cycles are rejected.
 
-This section is intentionally declarative. It says who is trying to do what, against what, during which window, and how success is interpreted. It does **not** embed backend-specific probes such as Wazuh queries or command-output checks. These objectives are scenario-local declarations; experiment-core task records live outside SDL and bind a scenario or scenario snapshot to an evaluation protocol, apparatus constraints, and study context.
+This section is intentionally declarative. It says who is trying to do what, against what, during which window, and how success is interpreted. It does **not** embed backend-specific probes such as Wazuh queries or command-output checks. These objectives are scenario-local declarations. Experiment-core task records live outside SDL and bind a scenario or scenario snapshot to an evaluation protocol, apparatus constraints, and study context.
 
 ---
 
@@ -2710,13 +2781,12 @@ when:
 
 Workflow-visible step state is an immutable execution history. In v1, predicates may only inspect step outcomes and attempt counts; they may not inspect backend-specific failure classes. Step-state predicates must reference steps whose state is guaranteed to be known before the predicate executes.
 
-After a `join`, downstream predicates may inspect executable branch steps from that fanout, but only when those steps are guaranteed on every path within their own branch before the join. Branch-local step state does not leak across sibling branches before the join, and a `parallel.on-failure` bypass does not expose abandoned branch state.
+After a `join`, downstream predicates may inspect executable branch steps from that fanout. They may do so only when those steps are guaranteed on every path within their own branch before the join. Branch-local step state does not leak across sibling branches before the join, and a `parallel.on-failure` bypass does not expose abandoned branch state.
 
-Workflow graphs remain acyclic. Every referenced step must exist, every step
-must be reachable from `start`, joins must be referenced by exactly one
-`parallel` step, every explicit branch path from a `parallel` step must
-converge on its declared join, and workflow call graphs must also remain
-acyclic. Workflow names may use canonical namespace-style dots, but workflow
+Workflow graphs remain acyclic. Every referenced step must exist, and every step
+must be reachable from `start`. Joins must be referenced by exactly one
+`parallel` step. Every explicit branch path from a `parallel` step must converge
+on its declared join. Workflow call graphs must also remain acyclic. Workflow names may use canonical namespace-style dots, but workflow
 step names may not because objective window refs use `<workflow>.<step>`
 syntax and split on the final `.`.
 
@@ -2753,23 +2823,23 @@ variables:
 
 Variables are referenced as `${var_name}` in other sections. They are **not resolved at parse time** — resolution happens at instantiation.
 
-Full-value placeholders are currently supported in ordinary string fields,
-common scalar fields (counts, booleans, scores, timings, RAM/CPU, ports), many
-reference values, and selected leaf enum-backed property fields such as
-`accounts.*.password_strength`, `entities.*.role`, `nodes.*.os`,
-`nodes.*.asset_value.*`, `nodes.*.runtime.identity_authorities.*.kind`,
-identity-authority subject/policy/relationship kinds, identity-authority ports
-and enabled flags, `nodes.*.runtime.dns_services.*.implementation`, DNS
-service roles, DNS zone kinds/purposes/classes, DNS record
-classes/types/provenance, DNS resolver booleans and DNSSEC validation modes,
-network detection-engine implementation/kind fields, parser, rule,
-network-set, output, and control classifications, output booleans, rule counts, and control
-capability fields,
-security-monitoring manager implementation/kind fields, security-monitoring
-listener/component/agent/content/setting classifications, security-monitoring
-booleans and file counts, runtime service listener protocol, address-family,
-scope, and provenance fields, `infrastructure.*.acls[*].action`, and
-`objectives.*.success.mode`. The semantic validator checks that `${var_name}`
+Full-value placeholders are currently supported in these fields:
+
+- ordinary string fields
+- common scalar fields (counts, booleans, scores, timings, RAM/CPU, ports)
+- many reference values
+- selected leaf enum-backed property fields such as `accounts.*.password_strength`, `entities.*.role`, `nodes.*.os`, `nodes.*.asset_value.*`, and `nodes.*.runtime.identity_authorities.*.kind`
+- identity-authority subject/policy/relationship kinds, and identity-authority ports and enabled flags
+- `nodes.*.runtime.dns_services.*.implementation`, DNS service roles, and DNS zone kinds/purposes/classes
+- DNS record classes/types/provenance, DNS resolver booleans, and DNSSEC validation modes
+- network detection-engine implementation/kind fields, and parser, rule, network-set, output, and control classifications
+- network detection-engine output booleans, rule counts, and control capability fields
+- security-monitoring manager implementation/kind fields, and security-monitoring listener/component/agent/content/setting classifications
+- security-monitoring booleans and file counts
+- runtime service listener protocol, address-family, scope, and provenance fields
+- `infrastructure.*.acls[*].action` and `objectives.*.success.mode`
+
+ The semantic validator checks that `${var_name}`
 refers to a declared variable, and the repo-owned instantiation phase
 substitutes concrete values before compilation/runtime planning. User-defined
 mapping keys and discriminant/schema-shaping enum fields such as section
@@ -2782,7 +2852,7 @@ Think of variables as parameterizing **properties of declared objects**, not the
 
 ---
 
-## Objectives, Conditions, and Runtime Checks
+## Objectives, conditions, and runtime checks
 
 The SDL carries:
 
@@ -2801,7 +2871,7 @@ Experiment-core task, run, apparatus-context, and study records are separate
 contracts. They may reference SDL scenarios or scenario snapshots, but they are
 not SDL sections.
 
-Backend-specific auto-validation mechanics still live outside the SDL. The runtime may use Wazuh queries, command probes, file checks, or other adapters to determine whether an SDL-declared objective or observable condition has been satisfied, but those probe details are not the language itself.
+Backend-specific auto-validation mechanics still live outside the SDL. The runtime may use Wazuh queries, command probes, file checks, or other adapters to determine whether an SDL-declared objective or observable condition is satisfied. But those probe details are not the language itself.
 
 ## Participant control context
 

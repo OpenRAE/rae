@@ -59,6 +59,7 @@ It does not establish that RAES implements that interface.
 **Limits and next investigation.** A valid plan does not prove that an
 environment exists. It does not prove equal timing or outcomes.
 Compare one declared concern against native readback from two named backend setups.
+
 Native readback checks state through the backend's owning interface.
 Keep the same scenario, envelope, and observation rule.
 The hypothesis is that these controls help explain the selected difference.
@@ -88,6 +89,7 @@ They include memory, allowed strategies, observation order, and time.
 [finite opacity tests][opacity-tests]. It compares two possible points with
 the same observation and different secret labels.
 A possible point combines a modeled run, observer, state boundary, and declared assumptions.
+
 Then read `test_one_equal_history_pair_does_not_cover_another_secret_point`.
 Its third point exposes a secret case without an indistinguishable alternative.
 The [checker kernel][opacity-kernel] implements the comparison.
@@ -95,6 +97,7 @@ The [checker kernel][opacity-kernel] implements the comparison.
 **Demonstrated behavior.** The first case finds no counterexample within its
 declared finite inputs. The second finds one.
 A counterexample is an admitted case that violates the selected condition.
+
 The tests select the historical `participant-opacity-baseline-v1@sem-231/rev2`
 profile. Do not substitute the current profile without examining the difference.
 The [design criteria][opacity-research] explain the observer choices and primary literature.
@@ -110,6 +113,7 @@ That result motivates explicit observation assumptions; it does not certify RAES
 answer different questions. The [Isabelle/HOL theorem][opacity-theorem] has a
 [proof evidence record][opacity-proof] with pinned dependencies and assumptions.
 Isabelle/HOL is a proof assistant for higher-order logic.
+
 The theorem establishes its conditional abstract result.
 It does not establish correspondence with the Python checker or a concrete backend.
 Compare those exclusions before reusing a proof claim.
@@ -143,6 +147,7 @@ Provenance identifies origins and relationships.
 [fixture missing a content checksum][evidence-invalid].
 Both name a content location; only the first supplies the required checksum.
 The [raw-content model][capture-code] rejects a content URI without its checksum.
+
 The [evidence-record model][evidence-code] also requires loss disclosure for
 redacted or withheld evidence. A checksum identifies bytes. It does not establish truth.
 
@@ -166,6 +171,7 @@ to experiment design and interpretation.
 its evidence references to supplied content.
 Check its capture window, source, redaction, and loss disclosure.
 Record anything unavailable without publishing restricted material.
+
 Whether the measurement supports your intended construct remains an open question.
 Use the [citation guide](citation.md) to identify the exact artifacts you examined.
 Successful parsing, validation, or replay alone does not establish scientific reproducibility.

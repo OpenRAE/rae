@@ -22,8 +22,10 @@ Keep these boundaries separate:
 
 Extend `arch`. Do not add a second framework.
 Use package directories as owner keys. Use module paths as Go identities.
+
 Every package needs an intended API and an owning design, including private-to-layer packages.
 Use standard Go type data or declarations. Do not create a signature language.
+
 Cover functions, receiver method sets, aliases, fields, tags and embedded members.
 Cover promoted API, interfaces, type constraints, variables and exact constants.
 Include private types reached through the API. Exclude unrelated private code changes.
@@ -31,6 +33,7 @@ Keep one intended interface list, not two editable copies.
 
 The design must commit to the exact API. A link or file touch is insufficient.
 A source-only API change must fail. A snapshot-only change must also fail.
+
 Generation prints a candidate. It must not approve an interface change.
 Snapshots prove structure, not semantics, human approval or design timing.
 
@@ -38,6 +41,7 @@ The pre-code check must work before product files exist.
 Version the new model shape. Update strict loading and fixtures together.
 API extraction must cover explicit platform and tag contexts.
 Reject unknown or uncovered contexts. Do not merge exclusive platform types.
+
 Keep tests out of the product API. Preserve test import checks.
 Use Go's parser and type checker. Keep dependency loading offline and read-only.
 Do not run proposed code, generators, or commands from metadata.
@@ -53,6 +57,7 @@ The compiler remains an independent check of actual cycles and internal access.
 Until that design lands, show its boundary as planned.
 Do not invent a facade or move internals here.
 Show environment packs, LilRAE and Coldlight outside the Go module boundary.
+
 Future public APIs need usable public types and downstream compile tests.
 Do not strand callers on inaccessible internal types.
 The checker must not need a switch for each new consumer package.
@@ -64,6 +69,7 @@ The old checker diagram remains tooling evidence.
 Show actual package edges separately from allowed layer edges.
 State which code exists and which layers remain planned.
 Show embedders, transports, shared services, admission, processor, runtime and store.
+
 Show injected backend and provider boundaries.
 Include untrusted input, validated values, actor-bound operations and backend effects.
 Keep authoritative state, evidence, audit and value-free logs distinct.
@@ -73,6 +79,7 @@ P0/P1/P2 reference behavior is not Go delivery. P3 remains a nonclaim.
 Derive mechanical views from the model. Compare output without overwriting reviewed files.
 Bind authored views to stable model components and local evidence by content.
 Check missing sources, new components, stale status and changed edges.
+
 A timestamp, valid link or model hash alone does not prove view freshness.
 Review still checks whether the security explanation is true.
 Use the existing go-architecture CI gate, including for documentation changes.
@@ -83,7 +90,9 @@ No hosted renderer or external upload is needed.
 Use the existing loader, findings, graph traversal and command.
 Use the admitted standard libraries and x/tools facilities.
 Keep new code in the tooling module. Do not import product internals from it.
-Bound parsing. Reject unknown fields, duplicate keys, bad paths and excessive depth.
+Bound parsing.
+
+Reject unknown fields, duplicate keys, bad paths and excessive depth.
 Use rooted file access. Lexical paths and `os.DirFS` alone do not contain symlinks.
 Read failures are errors. Policy violations are findings with a fix.
 
@@ -116,6 +125,7 @@ The #1778 parity harness owns behavioral evidence. API snapshots do not replace 
 Keep the existing toolchain locks, lint settings, mutation setup and CI graph.
 Do not add a second workflow. Keep `GOTOOLCHAIN=local` and read-only module flags in CI.
 No runtime schema or release/version changes are needed.
+
 An ADR-124 edit needs an amendment and a matching ADR index pin.
 Update the rule registry and its fixtures with the rule table.
 Use MOD-001 and maintain code/test trace links.
@@ -124,6 +134,7 @@ Tests must reject changed exports, signatures, fields, constants and missing des
 Test snapshot updates without matching design commitments.
 Test private-only stability, tagged exports, cycles, stale evidence and escaping references.
 Assert command failures include a rule, location and fix.
+
 Use targeted tests and file-local policy checks locally.
 CI owns full, race, fuzz and full mutation suites.
 Keep all discovered real failures as repair obligations.

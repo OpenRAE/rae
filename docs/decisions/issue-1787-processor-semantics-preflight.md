@@ -11,6 +11,7 @@ Compilation, planning, reconciliation and compiled semantics stay in `rae`.
 The [runtime split](issue-1891-runtime-repository-boundary.md) changes no plan format or behavior.
 Apply [ADR-008](adrs/adr-008-processor-layer-and-execution-artifact-boundaries.md) with ADR-036's module boundaries.
 The [profile](../../specs/sdl/plan-realization-profiles.md), [preparation](../../specs/sdl/backend-realization-preparation.md) and [recursive constraint](../../specs/sdl/recursive-realization-constraints.md) specs govern the handoff.
+
 Keep all non-trial contracts under root `contracts/schemas/plans/` in scope.
 Authored runtime inventory is distinct from the compiled runtime model and live snapshot.
 Templates and metadata need a binding to become planned resources.
@@ -36,7 +37,9 @@ Paths are relative to `implementations/go/`, except where stated otherwise.
 These consumer APIs are planned. The model has no processor code package yet.
 Do not copy the Python package tree or dataclass hierarchy.
 Do not rebuild its v1/v2 conversion layers.
-Generated transport records serve the wire boundary. They must not become a second compiled domain model.
+Generated transport records serve the wire boundary.
+
+They must not become a second compiled domain model.
 Typed maps keyed by canonical identity are appropriate. Arbitrary published payload data stays at its declared boundary.
 Do not pass `Document()` maps or JSON between compiler stages. Planning must also consume the typed model.
 
@@ -61,6 +64,7 @@ Resolve these gaps in the owning design and machine-readable model before implem
 Keep private implementation details private, but make every downstream signature usable without `internal` imports.
 Sealed handles mark admitted phases and planner origin. They do not authenticate callers or grant cryptographic authority.
 Declare changed packages, imports, exported identifiers and typed API commitments in `implementations/architecture.json`.
+
 Pass `archcheck -design` before code, under ADR-124.
 Update the existing system views when the design changes their parts or trust boundaries.
 This preflight changes neither the model nor its commitments and does not certify the forthcoming design.
@@ -99,10 +103,12 @@ The plan command's published payload can carry authored credentials/content. Pre
 One realization owner must supply projections for compilation, comparison and downstream safe observation handling.
 Use its concern descriptor's authored path, payload path, collection identity, projection and validation policy.
 A new typed concern extends that owner. A profile-defined nested collection supplies its identity/profile metadata at its own boundary.
+
 It does not add an arbitrary extension to a global leaf registry.
 Generic recursive semantics stay in the contract relation owner.
 Do not add parallel compiler, planner and runtime registries. No universal resource/configuration framework is needed.
 Keep the declared `ConstraintLimits` fields and defaults.
+
 Bound depth, nodes, operations and members. Bound identity work, reference hops, scalar bytes and diagnostics.
 Keep total scalar-byte budgets too. Refuse zero or negative limits.
 
@@ -132,7 +138,9 @@ Do not reduce native callback/service handles or transient observations to publi
 
 Reuse `internal/parity`, its runner inventory and corpus provenance from #1778.
 The current map has no processor or semantic-compile runner. Existing parity success does not cover this issue.
-Wire real Go operations into that harness. Product code never calls Python or reads expected results.
+Wire real Go operations into that harness.
+
+Product code never calls Python or reads expected results.
 Validate emitted plans against their published schemas and the applicable semantic owners.
 Retain exact exposed envelopes, defaults, nulls, array order, digests and diagnostics.
 Do not replace the distinct `canonjson.JCS` and `Sorted` profiles with ordinary JSON marshaling.
@@ -148,6 +156,7 @@ Use `.ground-control.yaml` and `.gc/plan-rules.md` for workflow rules.
 Use `tools/policy/adr_policy.yaml`, `implementations/architecture.json` and the existing architecture checker.
 Keep the existing `.golangci.yml`, `.gremlins.yaml`, module/tool locks and `.github/workflows/canonical-verification.yml`.
 The lint/mutation configs are under `implementations/`.
+
 Local checks select explicit cases or file-local policy/prose checks.
 CI owns full test, race, coverage, mutation, fuzz, regression and corpus runs.
 This requirement-free issue needs no invented requirement UID or alternate workflow.
@@ -157,7 +166,9 @@ This requirement-free issue needs no invented requirement UID or alternate workf
 This preflight implements no issue behavior and changes no ADR, API declaration or architecture commitment.
 The issue changes no Python implementation, published schema, SDL meaning or golden expectation.
 Trial compilation/contracts belong to #1788; satisfiability, exploit-path and opacity analysis belong to #1789.
-Decision-surface and exposure-authority modules belong to #1794. Shared compiled participant facts still retain their existing checks.
+Decision-surface and exposure-authority modules belong to #1794.
+
+Shared compiled participant facts still retain their existing checks.
 Do not pull these modules into scope merely because Python re-exports them from `models`.
 Do not introduce a compiler RPC service, runtime import, controller, store, plugin loader, execution engine or second command/workflow stack.
 The repository split permits necessary ownership/API changes only. It authorizes no source transfer or unrelated behavioral improvement.

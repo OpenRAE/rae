@@ -30,6 +30,7 @@ Each operation value must reproduce its retained recursive binding.
 A changed value with its old binding must fail admission.
 The processor must not rebuild trusted bindings from changed payloads.
 Modes, provenance, bounds, pointers, envelope identity, and explicitness retain their meaning.
+
 Open authority still requires source integrity.
 A backend uses preparation for a later permitted choice.
 It cannot substitute that choice into the submitted source.
@@ -38,6 +39,7 @@ Existing ADRs cover this correction.
 ADR-105 and the [recursive constraint contract](../../specs/sdl/recursive-realization-constraints.md) distinguish values, presence, defaults, and delegation.
 ADR-036 and ADR-121 own package boundaries.
 ADR-070 owns configuration-bound realization.
+
 ADR-115 assigns concrete backends to separate distributions.
 The [architecture preflight for #674](issue-674-target-node-cpu-architecture-preflight.md) prohibits host-derived target architecture.
 No new ADR is needed.
@@ -108,6 +110,7 @@ Null intent must not admit an unsupported or mismatched concrete OS tuple.
 `os_family` also converts absence to an empty string.
 The Linux reproduction supplies that field.
 Record any analogous failure found during this work.
+
 Do not treat all identity fields as one sentinel migration.
 `os_version` has an authored empty string default.
 Package architecture has a separate empty sentinel.
@@ -124,6 +127,7 @@ Cover both fields omitted and each field omitted alone.
 Cover supported values and aliases.
 Keep the original binding when testing a substituted supported value.
 Check source, resource, operation, binding, and portable JSON round trips.
+
 Test public realization followed by public experiment admission.
 `ExecutionPlan.is_valid` alone does not prove runtime admission.
 Test that refusal causes no backend apply or admission record.
@@ -142,6 +146,7 @@ Full, integration, installed-distribution, and fuzz suites run in CI/CD.
 Keep policy, review, CI, and release gates.
 Use a release-triggering `fix:` title.
 Release Please owns versions and `CHANGELOG.md`.
+
 Add no fragments or second package.
 Follow RAE's published compatibility and release policies.
 No schema change is expected.
