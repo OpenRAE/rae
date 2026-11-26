@@ -253,6 +253,7 @@ def test_changed_prose_check_propagates_git_failure(prose_check) -> None:
         "THIRD_PARTY_NOTICES.md",
         "docs/decisions/adrs/adr-014-nox-as-canonical-verification-graph.md",
         "docs/research/experiment-core/issue-233-exp-707-capture-spec-preflight-guardrails.md",
+        "docs/requirements/DSL-438/requirement.md",
     ],
 )
 @pytest.mark.integration
@@ -262,6 +263,14 @@ def test_changed_prose_check_preserves_release_and_legal_records(prose_check, pa
     assert not prose_check.state["calls"]
     assert path in result.stdout
     assert "manual" in result.stdout.lower()
+
+
+@pytest.mark.parametrize("path", ["docs/requirements/DSL-438/notes.md", "docs/requirements/requirement.md"])
+@pytest.mark.integration
+def test_changed_prose_check_lints_other_requirement_prose(prose_check, path: str) -> None:
+    result = prose_check.run(path, "# Check a file\n\nUtilize the tool.\n")
+    assert result.returncode != 0
+    assert "DocTools.PlainWords" in result.stdout
 
 
 @pytest.mark.parametrize(

@@ -14,6 +14,7 @@ from yaml import YAMLError
 
 from tools.check_adr_immutability import ADR_DIR, _coerce_manifest
 from tools.check_adr_immutability import MANIFEST_PATH as ADR_PIN_PATH
+from tools.check_contract_requirement_tracing import REQUIREMENTS_ROOT
 from tools.check_identity_cutover import _load_historical_records
 from tools.documentation_tools import (
     ensure_doc_tools,
@@ -317,6 +318,16 @@ def _frozen_adr_paths(selected: list[str]) -> set[str]:
     return frozen
 
 
+def _requirement_record_paths(selected: list[str]) -> set[str]:
+    """Return selected requirement records. Ground Control owns their wording."""
+    records: set[str] = set()
+    for path in selected:
+        candidate = Path(path)
+        if candidate.name == "requirement.md" and candidate.parent.parent.as_posix() == REQUIREMENTS_ROOT:
+            records.add(path)
+    return records
+
+
 def _protected_prose_paths(selected: list[str]) -> set[str]:
     """Read exact protected identities through the existing catalog validators."""
     try:
@@ -331,6 +342,7 @@ def _protected_prose_paths(selected: list[str]) -> set[str]:
     protected = {"CHANGELOG.md", "THIRD_PARTY_NOTICES.md", *records, *generated}
     protected.update(entry["path"] for entry in adrs)
     protected.update(_frozen_adr_paths([path for path in selected if path not in protected]))
+    protected.update(_requirement_record_paths(selected))
     return protected
 
 
