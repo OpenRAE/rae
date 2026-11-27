@@ -27,7 +27,7 @@ func RuntimeFamilies() []RuntimeCollection {
 		{"applications", "application_id", nil},
 		{"database_services", "database_service_id", []RuntimeCollection{{"databases", "database_id", nil}}},
 		{"dns_services", "dns_service_id", []RuntimeCollection{{"zones", "zone_id", []RuntimeCollection{{"rrsets", "rrset_id", nil}}}}},
-		{"identity_authorities", "identity_authority_id", []RuntimeCollection{{"services", "service_id", nil}, {"subjects", "subject_id", nil}, {"policies", "policy_id", nil}, {"relationships", "relationship_id", nil}, {"resource_scopes", "scope_id", nil}, {"identity_uses", "use_id", nil}, {"access_observations", "observation_id", nil}}},
+		{"identity_authorities", "identity_authority_id", []RuntimeCollection{{"services", "service_id", nil}, {"subjects", "subject_id", nil}, {"policies", "policy_id", nil}, {"relationships", "relationship_id", nil}, {"resource_scopes", "scope_id", []RuntimeCollection{{"audit_logs", "audit_log_id", nil}}}, {"identity_uses", "use_id", nil}, {"access_observations", "observation_id", nil}}},
 		{"file_services", "file_service_id", []RuntimeCollection{{"shares", "share_id", nil}, {"principals", "principal_id", nil}, {"access_rules", "rule_id", nil}, {"access_observations", "observation_id", nil}}},
 		{"mail_services", "mail_service_id", []RuntimeCollection{{"components", "component_id", nil}, {"listeners", "listener_id", nil}, {"domains", "domain_id", nil}, {"mailbox_stores", "store_id", nil}, {"mailboxes", "mailbox_id", nil}, {"aliases", "alias_id", nil}, {"routing_rules", "rule_id", nil}, {"queues", "queue_id", nil}, {runtimeSettings, runtimeSettingID, nil}}},
 		{"network_sensors", "network_sensor_id", nil},

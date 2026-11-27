@@ -1,0 +1,22 @@
+{
+  "args": [
+    "processor",
+    "plan",
+    "input/techvault-defensive-min.sdl.yaml",
+    "--manifest",
+    "input/leaky-manifest.json",
+    "--format",
+    "json"
+  ],
+  "command": "processor plan",
+  "files": {
+    "input/leaky-manifest.json": "sha256:5cf7be197565d420771a8a61ed331f05aef0d5848b43de0158ae81acc21209c8",
+    "input/techvault-defensive-min.sdl.yaml": "sha256:66f0ec5bbe399cb94575eea850740f35b2adcf2fffcf445a67cdada2b76fcc6d"
+  },
+  "name": "regression/adbcb5d8713386ce5c1f5f434156f76efd531b969d888a98bcdca224591af23e",
+  "result": {
+    "exit_code": 2,
+    "stdout": null
+  },
+  "surface": "cli"
+}

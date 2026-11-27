@@ -2,7 +2,6 @@ package admission
 
 import (
 	"encoding/json"
-	"os"
 	"strings"
 	"testing"
 
@@ -11,7 +10,7 @@ import (
 
 func profileAuthorityFixture(t *testing.T) (binding.PlanRealizationProfilesV1, binding.DomainProfileResolutionContextV1, map[string]any) {
 	t.Helper()
-	raw, err := os.ReadFile("../../../../contracts/fixtures/plans/plan-realization-profiles-v1/valid/resource-label-authority.json")
+	raw, err := repoFixtureBytes(t, "../../../../contracts/fixtures/plans/plan-realization-profiles-v1/valid/resource-label-authority.json")
 	if err != nil {
 		t.Fatal(err)
 	}

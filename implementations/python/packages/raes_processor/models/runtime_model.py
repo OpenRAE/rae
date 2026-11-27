@@ -17,6 +17,7 @@ from raes_contracts.observation_demand import EffectiveObservationDemand
 from raes_contracts.planning import EvaluationPlan, OrchestrationPlan, ProvisioningPlan, RuntimeDomain
 from raes_contracts.realization_profiles import PlanProfileAuthority
 from raes_contracts.runtime_state import RuntimeSnapshot
+from raes_contracts.safe_state import ResolvedSafeState
 from raes_contracts.vocabulary import Closure
 
 from raes_processor.semantics.realization import CompiledRealizationAuthority, CompiledRealizationRequirement
@@ -35,6 +36,7 @@ from .behavior_resources import (
     StoryRuntime,
     WorkflowRuntime,
 )
+from .participant_episode_resources import ParticipantEpisodePolicyRuntime
 from .resources import (
     AccountPlacement,
     AssertionRuntime,
@@ -114,6 +116,7 @@ class RuntimeModel:
     """
 
     scenario_name: str
+    safe_states: tuple[ResolvedSafeState, ...] = field(default=(), kw_only=True)
     execution_policies: dict[str, tuple[EffectiveExecutionPolicy, ...]] = field(default_factory=dict)
     feature_templates: dict[str, RuntimeTemplate] = field(default_factory=dict)
     condition_templates: dict[str, RuntimeTemplate] = field(default_factory=dict)
@@ -147,6 +150,7 @@ class RuntimeModel:
     behavior_specifications: dict[str, ParticipantBehaviorSpecificationRuntime] = field(default_factory=dict)
     tool_affordances: dict[str, ParticipantToolAffordanceRuntime] = field(default_factory=dict)
     participant_inject_deliveries: dict[str, ParticipantInjectDeliveryRuntime] = field(default_factory=dict)
+    participant_episode_policies: dict[str, ParticipantEpisodePolicyRuntime] = field(default_factory=dict)
     events: dict[str, EventRuntime] = field(default_factory=dict)
     scripts: dict[str, ScriptRuntime] = field(default_factory=dict)
     stories: dict[str, StoryRuntime] = field(default_factory=dict)
@@ -193,6 +197,7 @@ class RuntimeModel:
             "behavior_specifications",
             "tool_affordances",
             "participant_inject_deliveries",
+            "participant_episode_policies",
             "events",
             "scripts",
             "stories",

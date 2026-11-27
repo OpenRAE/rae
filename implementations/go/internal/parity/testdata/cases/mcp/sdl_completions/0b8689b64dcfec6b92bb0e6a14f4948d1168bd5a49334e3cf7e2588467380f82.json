@@ -2,7 +2,7 @@
   "args": [],
   "command": "sdl_completions",
   "files": {
-    "arguments.json": "sha256:a35c777eb6f3dfafd9456e1bb85f9823deb121c17508c043f88807298e869611"
+    "arguments.json": "sha256:89a8221f86e04e5b7b00e0df9c343ad526b2ab85c155e9b30762e8a94a5238bc"
   },
   "name": "examples/library/templates/scenario/minimal-validated-scenario.yaml",
   "result": {
@@ -22,6 +22,12 @@
               "insert_text": "description: ",
               "kind": "field",
               "label": "description"
+            },
+            {
+              "detail": "top-level SDL key",
+              "insert_text": "trial_parallelism: ",
+              "kind": "field",
+              "label": "trial_parallelism"
             },
             {
               "detail": "top-level SDL key",
@@ -205,6 +211,12 @@
             },
             {
               "detail": "top-level SDL key",
+              "insert_text": "safe_state: ",
+              "kind": "field",
+              "label": "safe_state"
+            },
+            {
+              "detail": "top-level SDL key",
               "insert_text": "execution_policy: ",
               "kind": "field",
               "label": "execution_policy"
@@ -309,6 +321,12 @@
             "insert_text": "description: ",
             "kind": "field",
             "label": "description"
+          },
+          {
+            "detail": "top-level SDL key",
+            "insert_text": "trial_parallelism: ",
+            "kind": "field",
+            "label": "trial_parallelism"
           },
           {
             "detail": "top-level SDL key",
@@ -489,6 +507,12 @@
             "insert_text": "evidence_requirements: ",
             "kind": "field",
             "label": "evidence_requirements"
+          },
+          {
+            "detail": "top-level SDL key",
+            "insert_text": "safe_state: ",
+            "kind": "field",
+            "label": "safe_state"
           },
           {
             "detail": "top-level SDL key",

@@ -69,16 +69,25 @@ func bindingTargets(v any) error {
 	return require(unique(ids) && unique(targets))
 }
 func selectionIdentity(i validation.Invocation) error {
-	v := i.Instance
-	target := targetTuple(at(v, "target"))
-	if target == nil {
-		return invalid()
-	}
-	actual, err := jsonDigest([]any{at(v, "source_condition_id"), at(v, "source_factor_id"), target})
+	expected, err := expectedSelectionID(i.Instance)
 	if err != nil {
 		return err
 	}
-	return require(stringAt(v, "selection_id") == "selection-"+strings.TrimPrefix(actual, "sha256:"))
+	return require(stringAt(i.Instance, "selection_id") == expected)
+}
+
+// expectedSelectionID derives a selection identifier from its condition,
+// factor and target.
+func expectedSelectionID(v any) (string, error) {
+	target := targetTuple(at(v, "target"))
+	if target == nil {
+		return "", invalid()
+	}
+	actual, err := jsonDigest([]any{at(v, "source_condition_id"), at(v, "source_factor_id"), target})
+	if err != nil {
+		return "", err
+	}
+	return "selection-" + strings.TrimPrefix(actual, "sha256:"), nil
 }
 func studyRequired(i validation.Invocation) error {
 	v := i.Instance

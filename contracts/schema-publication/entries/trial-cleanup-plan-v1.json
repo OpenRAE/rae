@@ -1,10 +1,5 @@
 {
   "contract_id": "trial-cleanup-plan-v1",
   "schema_path": "contracts/schemas/plans/trial-cleanup-plan-v1.json",
-  "stability": "draft",
-  "content_hash": "351693d5c73da295db64be3f9a6e1b1f3154c58e1ddfa5692949e95e472350c6",
-  "last_change": {
-    "content_hash": "351693d5c73da295db64be3f9a6e1b1f3154c58e1ddfa5692949e95e472350c6",
-    "summary": "Remove the Python validator paths from the semantic invariants (#1776)."
-  }
+  "stability": "draft"
 }

@@ -128,7 +128,16 @@ RUNTIME_SERVICE_FAMILIES: tuple[RuntimeServiceFamily, ...] = (
             RuntimeReferenceChild("subjects", "subject_id", reference_policy=RuntimeReferencePolicy.RESOURCE),
             RuntimeReferenceChild("policies", "policy_id", reference_policy=RuntimeReferencePolicy.RESOURCE),
             RuntimeReferenceChild("relationships", "relationship_id", reference_policy=RuntimeReferencePolicy.RESOURCE),
-            RuntimeReferenceChild("resource_scopes", "scope_id", reference_policy=RuntimeReferencePolicy.RESOURCE),
+            RuntimeReferenceChild(
+                "resource_scopes",
+                "scope_id",
+                children=(
+                    RuntimeReferenceChild(
+                        "audit_logs", "audit_log_id", reference_policy=RuntimeReferencePolicy.RESOURCE
+                    ),
+                ),
+                reference_policy=RuntimeReferencePolicy.RESOURCE,
+            ),
             RuntimeReferenceChild("identity_uses", "use_id", reference_policy=RuntimeReferencePolicy.RESOURCE),
             RuntimeReferenceChild(
                 "access_observations", "observation_id", reference_policy=RuntimeReferencePolicy.RESOURCE

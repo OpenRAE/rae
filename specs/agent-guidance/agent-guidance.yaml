@@ -1,8 +1,9 @@
-# Agent-Usable Guidance Profile (AUT-811)
+# Agent guidance reference (AUT-811)
 #
-# Canonical machine-readable guidance for agentic contributors and operators.
-# The profile is intentionally static data: MCP tools and docs may expose or
-# explain it, but this YAML is the source of truth for the rule ids.
+# This profile defines the machine-readable rule identities and guidance.
+# MCP tools and documentation can expose or explain it.
+# The YAML remains the authority for rule ids.
+# The statements below keep their exact conditions and obligations.
 
 profile: raes-agent-guidance
 version: 1

@@ -1,0 +1,48 @@
+{
+  "args": [
+    "semantic",
+    "transform",
+    "input/scenario.sdl.yaml",
+    "--contract",
+    "sdl-yaml/v1",
+    "--transform",
+    "canonical",
+    "--output",
+    "json"
+  ],
+  "command": "semantic transform",
+  "files": {
+    "input/scenario.sdl.yaml": "sha256:bf2b1416fa2117a7e0a49a616f480f9ceb6853db6d2080b5856b209e58ac70a5"
+  },
+  "name": "regression/8dce3a7be22a9fce1480b9024567500c19026ee34e9d1f971010c97deb1ae53b",
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "contract_id": "sdl-yaml/v1",
+      "diagnostics": [],
+      "migration_policy": "reject",
+      "normalization_profile": "raes-sdl-semantic/v2",
+      "operation": "transform",
+      "payload": {
+        "content": "{\"module_node_variable_refs\":{},\"module_variable_specs\":{},\"profile\":\"raes-sdl-semantic/v2\",\"scenario\":{\"description\":\"A small network with one Linux host.\",\"infrastructure\":{\"lab-network\":{\"count\":1,\"properties\":{\"cidr\":\"10.0.0.0/24\",\"gateway\":\"10.0.0.1\"}},\"web\":{\"count\":1,\"links\":[\"lab-network\"]}},\"name\":\"first-scenario\",\"nodes\":{\"lab-network\":{\"type\":\"switch\"},\"web\":{\"os\":\"linux\",\"resources\":{\"cpu\":1,\"ram\":2147483648},\"type\":\"compute\"}}}}",
+        "digest": {
+          "algorithm": "sha256",
+          "profile": "raes-sdl-semantic/v2",
+          "value": "sha256:3409f967490f6e76b122781872c5ccbcad59f8a612e6a32c8301eb876217a087"
+        },
+        "phase": "transformed",
+        "root_type": "object"
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": "sdl-yaml/v1",
+      "status": "success",
+      "transform_profile": "canonical",
+      "validation_strength": "semantic"
+    }
+  },
+  "surface": "cli"
+}

@@ -54,10 +54,11 @@ records dispatch, applied outcome, and the actual neutral snapshot. This keeps
 the observation within its existing authority: recovery may not invent a
 provisioning plan or authorize new resource/realization state from an observer's
 assertion. Existing rejection cases cover semantically invalid applied results.
+
 The logical snapshot revision still changes only with the atomic terminal cut.
-Per-family entry-point tests and store tests over every `OperationKind` complement
-this common mutation-path crash matrix; they are not separate end-to-end crash
-claims for every possible participant or backend operation.
+Per-family entry-point tests and store tests over every `OperationKind`
+complement this common mutation-path crash matrix. They are not separate
+end-to-end crash claims for every possible participant or backend operation.
 
 Test results are finite evidence for the named composition, case, and platform.
 Report platform skips, selected lanes and failures explicitly. Process termination
@@ -79,9 +80,9 @@ code, conformance cases, and operator guidance behind it. Code paths are
 relative to `implementations/python/packages/raes_runtime/`, and test paths to
 `implementations/python/tests/`.
 
-A P1 core, and so the P2 server over it, can select one of two durable stores:
-the SQLite store (`control_plane_store_local.py`) or the PostgreSQL ledger
-(`control_plane_store_postgresql.py`). Both declare every store capability
+A P1 core, and so the P2 server over it, can select one of two durable stores.
+These are the SQLite store (`control_plane_store_local.py`) and the PostgreSQL
+ledger (`control_plane_store_postgresql.py`). Both declare every store capability
 that P1 requires. The rows also cite the supervised-execution path that
 issue #1362 added. Each row holds every `raes_runtime` code file, test and
 document that an API-404 trace line names for that clause.
@@ -106,42 +107,40 @@ Each property #8 names is checked on every profile that guarantees it:
   (`test_issue_1435_profile_clause_verification.py::test_selected_p0_store_cannot_be_rebound_to_another_run`).
   A P1 or P2 SQLite store refuses both
   (`test_issue_1187_control_plane_profiles.py::test_profile_lease_scope_and_restore_keep_receipts_and_claims`).
-  A selected P1 core refuses a PostgreSQL ledger bound to another target or
-  run at admission, before it reads an operation or changes the ledger
+  A selected P1 core refuses a PostgreSQL ledger bound to another target or run
+  at admission. It refuses before it reads an operation or changes the ledger
   (`test_issue_1435_profile_clause_verification.py::test_selected_p1_refuses_a_postgresql_ledger_for_another_scope`).
   The ledger also refuses a record for another target or run before it writes
   (`test_issue_1362_postgresql_store.py::test_postgresql_mutation_admits_exact_record_scope_before_writing`).
   On every profile, an evaluation plan for another run that carries no
   operations or observation demands leaves no record, effect, audit or revision
-  change. The same plan for the admitted run adds one record, one terminal
-  audit and one evaluator start in the backend-effect witness, and moves the
+  change. The same plan for the admitted run adds one record, one terminal audit
+  and one evaluator start in the backend-effect witness. It also moves the
   snapshot revision from 0 to 1
   (`test_issue_1435_profile_clause_verification.py::test_request_for_another_run_changes_nothing`).
   On P2, the provisioning, orchestration and evaluation routes check planner
-  authorization for a plan that carries operations or observation demands,
-  before the core's run check (`control_plane_api/_operation_routes.py`). So P2
+  authorization for a plan that carries operations or observation demands. They
+  do this before the run check of the core
+  (`control_plane_api/_operation_routes.py`). So P2
   refuses an unregistered evaluation plan for another run that carries an
   operation with 403 and the route's `planner-authorization-mismatch` denial
   audit. P0 and P1 refuse it on the run check with no audit. No profile adds a
   record or effect, and the revision stays 0
   (`test_issue_1435_profile_clause_verification.py::test_plan_with_operations_for_another_run_leaves_no_record_or_effect`).
-  The run refusal itself is not an admission denial, which the
-  [CP-2 preflight](../../decisions/issue-1181-unified-control-plane-mutations-preflight.md)
-  defines as an `accepted=False` receipt plus the bounded denial audit and no
-  stored operation. P0 and P1 raise `ValueError` and P2 answers 409, with no
-  receipt. The
-  [CP-5 preflight](../../decisions/issue-1183-store-ownership-lease-preflight.md)
-  requires a request for another run to fail before claim or disclosure, and
-  `operation_admission_context()` refuses it before building the operation
-  context that the core's admission-denial audit records.
+  The run refusal itself is not an admission denial. The [CP-2
+  preflight](../../decisions/issue-1181-unified-control-plane-mutations-preflight.md)
+  defines an admission denial as an `accepted=False` receipt plus the bounded
+  denial audit and no stored operation. P0 and P1 raise `ValueError` and P2 answers 409, with no
+  receipt. The [CP-5
+  preflight](../../decisions/issue-1183-store-ownership-lease-preflight.md)
+  requires a request for another run to fail before claim or disclosure.
+  `operation_admission_context()` refuses it before it builds the operation
+  context that the admission-denial audit of the core records.
 - **Atomic state and audit.** Every operation kind commits its terminal state
   with exactly one actor-bound audit on P0 and P1
-  (`test_issue_1187_control_plane_lifecycle_properties.py::test_each_operation_kind_commits_one_immutable_actor_bound_terminal_cut`),
-  and so does an HTTP submission on P2
+  (`test_issue_1187_control_plane_lifecycle_properties.py::test_each_operation_kind_commits_one_immutable_actor_bound_terminal_cut`).
+  An HTTP submission on P2 does the same
   (`test_issue_1187_control_plane_profiles.py::test_profile_scoped_retry_status_audit_and_cache_coherence`).
-  With the PostgreSQL ledger, an operation delivered through the HTTP server
-  keeps exactly one terminal audit after a duplicate delivery
-  (`test_issue_1362_distributed_integration.py::test_real_delivery_control_and_reopening_preserve_the_consumed_fence`).
 - **Retained idempotency.** P1 and P2 with the SQLite store keep receipts and
   claims across restore
   (`test_issue_1187_control_plane_profiles.py::test_profile_lease_scope_and_restore_keep_receipts_and_claims`).
@@ -182,10 +181,12 @@ the HTTP cases.
 `test_issue_1435_profile_clause_verification.py` derives each clause's profiles
 from `profile_declaration()`: the available profiles whose guarantees include
 the clause's identifiers, or every available profile for C4. It fails if that
-set, this table and an independently written expectation disagree. It also
-fails if an Implementation or Conformance cell holds an entry that is not a
-cited file, if the section cites a file or test that does not exist, or if a
-link names a missing page or heading. An API-404 trace line that names clauses
+set, this table and an independently written expectation disagree. It also fails if an
+Implementation or Conformance cell holds an entry that is not a cited file.
+
+It
+fails if the section cites a file or test that does not exist, or if a link
+names a missing page or heading. An API-404 trace line that names clauses
 must appear in each named row. Its code file must be in the Implementation
 cell, its test in the Conformance cell, and its documentation in the Operator
 guidance cell. The check reads code under `raes_runtime`, tests under

@@ -115,6 +115,7 @@ const (
 
 const (
 	termConformant         = "conformant"
+	termLimitExceeded      = "limit-exceeded"
 	termRuntimeEnvironment = "runtime-environment"
 	termUnknown            = "unknown"
 )

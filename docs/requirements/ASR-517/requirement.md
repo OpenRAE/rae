@@ -28,6 +28,6 @@ Normative authority must be explicit so ecosystem contracts and semantics are no
 - TESTS → TEST `implementations/python/tests/test_authority_boundary.py` (Tests for the authority-boundary structural gate)
 - IMPLEMENTS → GITHUB_ISSUE `69` (Normative artifact authority boundary (ASR-517))
 - IMPLEMENTS → CODE_FILE `tools/check_generated_schemas.py` (Schema compatibility-proof checker (ADR-009 §7))
-- IMPLEMENTS → POLICY `tools/policy/conftest/repo_policy.rego` (schema-change-missing-manifest policy rule)
+- IMPLEMENTS → POLICY `tools/policy/conftest/repo_policy.rego` (Legacy top-level root and concept-authority path policy rules)
 - TESTS → TEST `implementations/python/tests/test_repo_policy_tools.py` (Compatibility-proof + schema-authority gate tests)
-- TESTS → TEST `tools/policy/conftest/repo_policy_test.rego` (schema-change-missing-manifest Rego rule tests)
+- TESTS → TEST `tools/policy/conftest/repo_policy_test.rego` (Legacy top-level root and concept-authority Rego rule tests)

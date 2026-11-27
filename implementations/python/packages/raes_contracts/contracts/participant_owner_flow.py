@@ -8,18 +8,26 @@ authority. This module neither loads code nor executes release operations.
 from __future__ import annotations
 
 from collections.abc import Mapping
-from dataclasses import dataclass
 from typing import TYPE_CHECKING, ClassVar, Literal
 
 from pydantic import ConfigDict, Field
 
 from ..canonical import canonical_json_digest
 from .base import ContractModel, NonEmptyString
+from .participant_flow_control_context import (
+    ParticipantFlowControlValidationContext,
+    ParticipantFlowSinkCoordinate,
+)
+from .participant_flow_control_context import (
+    ParticipantFlowObligationAuthorityCoordinate as _ParticipantFlowObligationAuthorityCoordinate,
+)
+from .participant_flow_control_context import (
+    ParticipantOwnerFlowSinkResolution as _ParticipantOwnerFlowSinkResolution,
+)
 from .participant_flow_control_semantics import ParticipantBoundaryFlowPolicyProfileModel
 
 if TYPE_CHECKING:
     from .participant_flow_control import ParticipantFlowControlRelationModel
-    from .participant_flow_control_context import ParticipantFlowControlValidationContext
     from .participant_flow_control_semantics import ParticipantEffectiveFlowLabelModel, ParticipantFlowRelease
 
 OWNER_FLOW_PROFILE_ID = "participant-owner-flow-policy-v1"
@@ -45,23 +53,6 @@ class ParticipantOwnerFlowPolicyProfileModel(ParticipantBoundaryFlowPolicyProfil
     variability_revision: Literal["ifc-profile-variability/rev1"]
     memory: Literal["retain-across-episodes"]
     owner_clauses: tuple[ParticipantOwnerFlowClauseModel, ...] = Field(min_length=2, max_length=2)
-
-
-@dataclass(frozen=True)
-class ParticipantFlowObligationAuthorityCoordinate:
-    """Independently authorized owner/clause for the complete exact release."""
-
-    release_digest: str
-    owner_ref: str
-    obligation_ref: str
-
-
-@dataclass(frozen=True)
-class ParticipantOwnerFlowSinkResolution:
-    """Trusted principal resolution and policy posture of one exact final sink."""
-
-    readers: frozenset[str]
-    accepts_untrusted_integrity: bool
 
 
 def validate_owner_flow_context(
@@ -103,15 +94,15 @@ def _validate_owner_releases(
         for token, owner in _discharged_owner_obligations(release, confidentiality, integrity):
             if (
                 owner is None
-                or ParticipantFlowObligationAuthorityCoordinate(digest, owner, token)
+                or _ParticipantFlowObligationAuthorityCoordinate(digest, owner, token)
                 not in context.owner_release_authorities
             ):
                 raise ValueError("owner release authority must cover each exact discharged obligation")
 
 
-def _require_owner_sink_resolution(sink: object, known_readers: frozenset[str]) -> ParticipantOwnerFlowSinkResolution:
+def _require_owner_sink_resolution(sink: object, known_readers: frozenset[str]) -> _ParticipantOwnerFlowSinkResolution:
     if (
-        not isinstance(sink, ParticipantOwnerFlowSinkResolution)
+        not isinstance(sink, _ParticipantOwnerFlowSinkResolution)
         or type(sink.accepts_untrusted_integrity) is not bool
         or type(sink.readers) is not frozenset
         or not sink.readers
@@ -123,7 +114,7 @@ def _require_owner_sink_resolution(sink: object, known_readers: frozenset[str]) 
 
 def _expected_owner_sink_results(
     label: ParticipantEffectiveFlowLabelModel,
-    sink: ParticipantOwnerFlowSinkResolution,
+    sink: _ParticipantOwnerFlowSinkResolution,
     clauses: Mapping[str, frozenset[str]],
     endorsed: set[str],
 ) -> tuple[str, str]:
@@ -140,8 +131,6 @@ def _validate_owner_sinks(
     profile: ParticipantOwnerFlowPolicyProfileModel,
     context: ParticipantFlowControlValidationContext,
 ) -> None:
-    from .participant_flow_control_context import ParticipantFlowSinkCoordinate
-
     labels = {label.label_id: label for label in document.labels}
     clauses = {clause.confidentiality_obligation_ref: frozenset(clause.reader_refs) for clause in profile.owner_clauses}
     endorsed = {clause.endorsed_integrity_obligation_ref for clause in profile.owner_clauses}

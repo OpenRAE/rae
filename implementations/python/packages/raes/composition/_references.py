@@ -5,9 +5,10 @@ from __future__ import annotations
 from collections.abc import Mapping
 from typing import Any
 
-from .._base import VARIABLE_TOKEN_RE, is_variable_ref
+from raes_contracts.identifiers import QualifiedName
+from raes_contracts.variable_references import VARIABLE_TOKEN_RE, is_variable_ref
+
 from .._errors import SDLValidationError
-from .._identifiers import QualifiedName
 from .._reference_targetability import purpose_for_domain
 from ..variation import COLLECTION_TARGET_SPECS, REFERENCE_TARGET_SPECS, STRUCTURAL_TARGET_SPECS, TIMING_TARGET_SPECS
 
@@ -24,10 +25,16 @@ def _private_prefix(namespace: str, name: str) -> str:
     return QualifiedName.parse(name).prefixed(namespace, private=True).render()
 
 
-def _maybe_rename(name: str, name_map: Mapping[str, str]) -> str:
+def rename_reference(name: str, name_map: Mapping[str, str]) -> str:
+    """Rename a known reference while preserving unresolved variable tokens."""
+
     if not name or is_variable_ref(name):
         return name
     return name_map.get(name, name)
+
+
+# Existing callers retain their spelling while new callers use the public interface.
+_maybe_rename = rename_reference
 
 
 def _rewrite_section_ref(name: str, section: str, name_map: Mapping[str, str]) -> str:

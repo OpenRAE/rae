@@ -8,6 +8,177 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 PRs do **not** edit this file directly. release-please maintains it from the
 Conventional Commit history on `main` (#684).
 
+## [12.0.0](https://github.com/OpenRAE/rae/compare/v11.0.2...v12.0.0) (2026-11-15)
+
+
+### ⚠ BREAKING CHANGES
+
+* **runtime:** dispatch workflow steps from the runtime ([#2045](https://github.com/OpenRAE/rae/issues/2045))
+* add authored safe-state declarations and retained proof ([#2021](https://github.com/OpenRAE/rae/issues/2021))
+
+### Features
+
+* add authored safe-state declarations and retained proof ([#2021](https://github.com/OpenRAE/rae/issues/2021)) ([58e847c](https://github.com/OpenRAE/rae/commit/58e847c330a95323d92ce67383093e5ce25d104b))
+* deprecate the raes Python distribution before the Go cutover ([#1835](https://github.com/OpenRAE/rae/issues/1835)) ([e64ef30](https://github.com/OpenRAE/rae/commit/e64ef3030f158e1cd5979df427e57423ead6ec2d))
+* **runtime:** dispatch workflow steps from the runtime ([#2045](https://github.com/OpenRAE/rae/issues/2045)) ([94e0767](https://github.com/OpenRAE/rae/commit/94e0767e838349ca49d9d2ea160d4448e5c0d1f5))
+* **runtime:** share PostgreSQL databases across run ledgers ([#2047](https://github.com/OpenRAE/rae/issues/2047)) ([53b7096](https://github.com/OpenRAE/rae/commit/53b70969d0079d8dc65c319f4de60416cf40bac5))
+* **sdl:** add authored participant episode policies to behavior specifications ([#1463](https://github.com/OpenRAE/rae/issues/1463)) ([b16b3b0](https://github.com/OpenRAE/rae/commit/b16b3b0b5bf0aff528ea9d245ca72349d55e11e3))
+
+
+### Bug Fixes
+
+* return the Ground Control configuration to schema version 1 ([#1971](https://github.com/OpenRAE/rae/issues/1971)) ([b62c7fd](https://github.com/OpenRAE/rae/commit/b62c7fd57f1cbf3cd23eded832de78b171d8ee1a))
+* return the Ground Control configuration to schema version 1 ([#1971](https://github.com/OpenRAE/rae/issues/1971)) ([20dd892](https://github.com/OpenRAE/rae/commit/20dd892b97fb4e20af8a73c61dd04ef645dae307)), closes [#1970](https://github.com/OpenRAE/rae/issues/1970)
+* **runtime:** compare account placements value-free in materialization admission ([#2006](https://github.com/OpenRAE/rae/issues/2006)) ([3a483b9](https://github.com/OpenRAE/rae/commit/3a483b978ed33fcc6cecf49c8a82ae984e2ca128))
+* **runtime:** compare keyed collections by identity in the delivery check ([#1997](https://github.com/OpenRAE/rae/issues/1997)) ([86c8f45](https://github.com/OpenRAE/rae/commit/86c8f4560f163966a8384456aca3e282c1b55f57))
+* **runtime:** compare materialized inventory without artifact satisfaction evidence ([#2003](https://github.com/OpenRAE/rae/issues/2003)) ([bbae090](https://github.com/OpenRAE/rae/commit/bbae090b258b70bd59341a862da9968b4b579bd6))
+* **runtime:** compare realization payloads as portable values ([#2001](https://github.com/OpenRAE/rae/issues/2001)) ([9b58843](https://github.com/OpenRAE/rae/commit/9b588439086fe83facd05cbc3c4b193bf89a77c2)), closes [#2000](https://github.com/OpenRAE/rae/issues/2000)
+* **runtime:** hold a backend only to values its prepared completion contains ([#1994](https://github.com/OpenRAE/rae/issues/1994)) ([d46bd0e](https://github.com/OpenRAE/rae/commit/d46bd0e36607160a1dc9af9d2dc812d8079ddc00))
+* **runtime:** judge and persist realization concerns through portable payloads ([#1457](https://github.com/OpenRAE/rae/issues/1457)) ([99f69f5](https://github.com/OpenRAE/rae/commit/99f69f5ea536182eaae87ac35b15b822a4431c97))
+* **runtime:** raise and stream backend details byte budget ([6a8d43e](https://github.com/OpenRAE/rae/commit/6a8d43e1e947b4c14f29f2c83241780753e15913))
+* **runtime:** raise backend details limit and count JSON incrementally ([#2043](https://github.com/OpenRAE/rae/issues/2043)) ([6a8d43e](https://github.com/OpenRAE/rae/commit/6a8d43e1e947b4c14f29f2c83241780753e15913))
+* **runtime:** refuse provisioning results that bind an envelope the plan never selected ([#1456](https://github.com/OpenRAE/rae/issues/1456)) ([c7d4999](https://github.com/OpenRAE/rae/commit/c7d499979eb32e16d9a2c46ca10b5aa1403b4511))
+* **runtime:** restore value-free account material in the live inventory context ([#1999](https://github.com/OpenRAE/rae/issues/1999)) ([1130e9d](https://github.com/OpenRAE/rae/commit/1130e9d371780722460ff3e503f528e477533716)), closes [#1998](https://github.com/OpenRAE/rae/issues/1998)
+* **sdl:** admit imports in lock resolution and expansion as the parser does ([#2034](https://github.com/OpenRAE/rae/issues/2034)) ([dc6f9ed](https://github.com/OpenRAE/rae/commit/dc6f9eda3240722893b852bc028260aba62f9674))
+* **sdl:** fetch oci modules from public registries through the anonymous token flow ([#1480](https://github.com/OpenRAE/rae/issues/1480)) ([3fa7a6d](https://github.com/OpenRAE/rae/commit/3fa7a6d46836ec8c216e581f50eabf5ba6b93715))
+* **sdl:** unify posture and closure semantics ([#2033](https://github.com/OpenRAE/rae/issues/2033)) ([bf50831](https://github.com/OpenRAE/rae/commit/bf508312436cbfb01babb2ec0bbf8e7bf59044f5))
+* **workflows:** define transitions and order workflow validation ([#2024](https://github.com/OpenRAE/rae/issues/2024)) ([7fcd338](https://github.com/OpenRAE/rae/commit/7fcd338fc0cac724976e739305a79366e20fb0cb))
+
+## [11.0.2](https://github.com/OpenRAE/rae/compare/v11.0.1...v11.0.2) (2026-11-06)
+
+
+### Bug Fixes
+
+* pass content placements to prepared-node generated-artifact validation ([#1966](https://github.com/OpenRAE/rae/issues/1966)) ([bce1629](https://github.com/OpenRAE/rae/commit/bce1629771b4c7b42ffa051373a735d59fe98528))
+* refuse control-plane stores whose operation claim columns do not match their records ([#1962](https://github.com/OpenRAE/rae/issues/1962)) ([4230f55](https://github.com/OpenRAE/rae/commit/4230f557b224ab88ef0ea75419f2724814ab46f9))
+
+## [11.0.1](https://github.com/OpenRAE/rae/compare/v11.0.0...v11.0.1) (2026-11-06)
+
+
+### Bug Fixes
+
+* admit bounded verification work for large secret plans ([#1959](https://github.com/OpenRAE/rae/issues/1959)) ([faa91c5](https://github.com/OpenRAE/rae/commit/faa91c5096d2b989783dbaa543e5b65d3104fcfc))
+
+## [11.0.0](https://github.com/OpenRAE/rae/compare/v10.8.0...v11.0.0) (2026-11-06)
+
+
+### ⚠ BREAKING CHANGES
+
+* let trial_parallelism set the trial limit and remove the isolation proof ([#1942](https://github.com/OpenRAE/rae/issues/1942))
+
+### Bug Fixes
+
+* keep absent switch identity absent through selection and planning ([#1941](https://github.com/OpenRAE/rae/issues/1941)) ([c3f5636](https://github.com/OpenRAE/rae/commit/c3f5636e6a71468d2d3380b5b51c2db6ad4b0b27))
+* let trial_parallelism set the trial limit and remove the isolation proof ([#1942](https://github.com/OpenRAE/rae/issues/1942)) ([2a5e410](https://github.com/OpenRAE/rae/commit/2a5e4102fe7949a226f49e9d483a0f82fc94b436))
+* remove hand-managed derived values from the repository ([#1949](https://github.com/OpenRAE/rae/issues/1949)) ([80b089b](https://github.com/OpenRAE/rae/commit/80b089b55b1f09ce594657d9c81cfa1f9a05e8a7))
+
+## [10.8.0](https://github.com/OpenRAE/rae/compare/v10.7.3...v10.8.0) (2026-11-05)
+
+
+### Features
+
+* configure Ground Control design checks ([#1924](https://github.com/OpenRAE/rae/issues/1924)) ([3adbd20](https://github.com/OpenRAE/rae/commit/3adbd20835f787b6729e10f3e061a72b01626ea0))
+* declare model configuration in SDL software components ([#1921](https://github.com/OpenRAE/rae/issues/1921)) ([75d9606](https://github.com/OpenRAE/rae/commit/75d9606ae0dba46f2f9398a55d7914185a3d75b9))
+* declare parallel trial capacity in SDL ([#1915](https://github.com/OpenRAE/rae/issues/1915)) ([af6079f](https://github.com/OpenRAE/rae/commit/af6079f8e51224703f0a6cf9ecf1252ffc81d65a))
+
+
+### Bug Fixes
+
+* admit full-size materialization source and reports ([#1923](https://github.com/OpenRAE/rae/issues/1923)) ([6f51f2d](https://github.com/OpenRAE/rae/commit/6f51f2d9cf7ff455ad328797f2e06e9082e6db18))
+* preserve omitted capabilities during scenario selection ([#1918](https://github.com/OpenRAE/rae/issues/1918)) ([9dd78ba](https://github.com/OpenRAE/rae/commit/9dd78ba65344b2eb5fcaf1a008bf108c9b84880e))
+
+## [10.7.3](https://github.com/OpenRAE/rae/compare/v10.7.2...v10.7.3) (2026-11-04)
+
+
+### Bug Fixes
+
+* admit materialized SDL against projected runtime snapshots ([#1904](https://github.com/OpenRAE/rae/issues/1904)) ([93e9703](https://github.com/OpenRAE/rae/commit/93e9703c13d213816bc595b73d96b7058f40ab2f))
+
+## [10.7.2](https://github.com/OpenRAE/rae/compare/v10.7.1...v10.7.2) (2026-11-04)
+
+
+### Bug Fixes
+
+* admit bounded full-size cloud runtime authorities ([#1900](https://github.com/OpenRAE/rae/issues/1900)) ([6d3b286](https://github.com/OpenRAE/rae/commit/6d3b2869e5cdf722aeed9c2850f63b06d9486a15))
+* preserve scalar-only open realization authority ([#1899](https://github.com/OpenRAE/rae/issues/1899)) ([7181348](https://github.com/OpenRAE/rae/commit/71813480a97c231886ba1e05cf66dac63daa47eb))
+
+## [10.7.1](https://github.com/OpenRAE/rae/compare/v10.7.0...v10.7.1) (2026-11-04)
+
+
+### Bug Fixes
+
+* preserve evidence integrity semantics (EXP-717) ([#1887](https://github.com/OpenRAE/rae/issues/1887)) ([b7af42e](https://github.com/OpenRAE/rae/commit/b7af42e4b0d036c618da3630f47c0892d9d8efc9))
+
+## [10.7.0](https://github.com/OpenRAE/rae/compare/v10.6.1...v10.7.0) (2026-11-03)
+
+
+### Features
+
+* expose assigned single-trial execution ([#1877](https://github.com/OpenRAE/rae/issues/1877)) ([d03fd62](https://github.com/OpenRAE/rae/commit/d03fd6276231c6c5f3d8dfc00a91c1c165cb4fbe))
+
+## [10.6.1](https://github.com/OpenRAE/rae/compare/v10.6.0...v10.6.1) (2026-11-03)
+
+
+### Bug Fixes
+
+* preserve absent node identity in plan authority ([#1871](https://github.com/OpenRAE/rae/issues/1871)) ([8571b36](https://github.com/OpenRAE/rae/commit/8571b36b4f5be7ae56d5c26e1b2c14d689ac810b))
+* **runtime:** preserve domain topology through preparation ([#1867](https://github.com/OpenRAE/rae/issues/1867)) ([2753ca1](https://github.com/OpenRAE/rae/commit/2753ca101993d659e78f51fc6c940acf1f806c95))
+
+## [10.6.0](https://github.com/OpenRAE/rae/compare/v10.5.0...v10.6.0) (2026-11-02)
+
+
+### Features
+
+* declare provider-qualified secret replication policies ([#1853](https://github.com/OpenRAE/rae/issues/1853)) ([bd0a004](https://github.com/OpenRAE/rae/commit/bd0a0043a7e9d028ebc4cc9b307415107a242493))
+
+
+### Bug Fixes
+
+* admit larger application constraints within existing limits ([#1856](https://github.com/OpenRAE/rae/issues/1856)) ([3e77219](https://github.com/OpenRAE/rae/commit/3e772194b084a7c5217d589f4695228e72757103))
+* **release:** include older-dated commits merged after the last release ([#1860](https://github.com/OpenRAE/rae/issues/1860)) ([8b7238c](https://github.com/OpenRAE/rae/commit/8b7238c0abef5f2b7eb4ff53d1de911ec4d6f25a))
+* remove the Isabelle mirror locator that returns HTTP 404 ([#1855](https://github.com/OpenRAE/rae/issues/1855)) ([51c6c6c](https://github.com/OpenRAE/rae/commit/51c6c6cb4395e8c801765e4757797316016c548a))
+
+## [10.5.0](https://github.com/OpenRAE/rae/compare/v10.4.0...v10.5.0) (2026-11-02)
+
+
+### Features
+
+* **sdl:** add a forwarding source kind for a listening socket ([#1837](https://github.com/OpenRAE/rae/issues/1837)) ([5d95087](https://github.com/OpenRAE/rae/commit/5d9508782b8f652679c2c511143e92eb5df9a03d))
+
+
+### Bug Fixes
+
+* **runtime:** allow empty open concerns without proof of absence ([#1845](https://github.com/OpenRAE/rae/issues/1845)) ([8ef22b9](https://github.com/OpenRAE/rae/commit/8ef22b9dda7c4cf71180f80255ba912615ff01df))
+
+## [10.4.0](https://github.com/OpenRAE/rae/compare/v10.3.0...v10.4.0) (2026-11-01)
+
+
+### Features
+
+* deprecate the raes Python distribution before the Go cutover ([#1815](https://github.com/OpenRAE/rae/issues/1815)) ([effa1b0](https://github.com/OpenRAE/rae/commit/effa1b06e32f2c43abbe8175832e786032cbff34)), closes [#1777](https://github.com/OpenRAE/rae/issues/1777)
+* **runtime:** admit participant tools in delivery invocations ([#1834](https://github.com/OpenRAE/rae/issues/1834)) ([46345c4](https://github.com/OpenRAE/rae/commit/46345c452b6bbb7290f9b80f6371e90cbb61fe41))
+* **sdl:** declare cloud audit log configuration ([#1832](https://github.com/OpenRAE/rae/issues/1832)) ([6f3f6a4](https://github.com/OpenRAE/rae/commit/6f3f6a4df3ba99352094a940c6364ec174e936df))
+
+
+### Bug Fixes
+
+* align open concern runtime checks and identity-keyed comparison ([#1830](https://github.com/OpenRAE/rae/issues/1830)) ([927cfb7](https://github.com/OpenRAE/rae/commit/927cfb7935740f76f0dc13d60a054239cfa4de7c))
+
+## [10.3.0](https://github.com/OpenRAE/rae/compare/v10.2.0...v10.3.0) (2026-11-01)
+
+
+### Features
+
+* publish the reproduced finite participant-crossing bisimulation result ([#1806](https://github.com/OpenRAE/rae/issues/1806)) ([4120ee7](https://github.com/OpenRAE/rae/commit/4120ee77a49e89dfe273016e7721b52b3b1b7dfd))
+
+
+### Bug Fixes
+
+* bound application evaluation and shrink evidence requirements ([#1807](https://github.com/OpenRAE/rae/issues/1807)) ([9e048e6](https://github.com/OpenRAE/rae/commit/9e048e62e7d553f9c97d0f3fa15b1e834d6c2746))
+* **evidence:** record combined-source research captures for dev ([#1818](https://github.com/OpenRAE/rae/issues/1818)) ([de53c08](https://github.com/OpenRAE/rae/commit/de53c081a1ec3ca03363fb39476525ad9454ca42))
+* reject omitted open concern runtime reports ([#1809](https://github.com/OpenRAE/rae/issues/1809)) ([66f2058](https://github.com/OpenRAE/rae/commit/66f205806e6d60e360d732c6bf49d4e44e5ccc00))
+* **sdl:** own and admit typed descriptor profile bindings ([#1770](https://github.com/OpenRAE/rae/issues/1770)) ([33265ac](https://github.com/OpenRAE/rae/commit/33265ac0e22e1fe0dee8056e98b14743378f929a))
+
 ## [10.2.0](https://github.com/OpenRAE/rae/compare/v10.1.0...v10.2.0) (2026-10-31)
 
 

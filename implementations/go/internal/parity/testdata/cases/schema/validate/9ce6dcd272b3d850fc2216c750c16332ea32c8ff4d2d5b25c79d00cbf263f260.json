@@ -1,0 +1,14 @@
+{
+  "args": [
+    "participant-delivery-invocation-outcome-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:3eb989870d26ff268142a78672fc850748c5bdda4069ac86208d25dbcceaf85d"
+  },
+  "name": "participant-delivery-invocation-outcome-v1/routed/contracts/fixtures/participant-runtime/participant-delivery-invocation-outcome-v1/valid/example.json",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

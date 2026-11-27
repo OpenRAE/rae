@@ -384,3 +384,13 @@ const (
 	termOrderingDependencies = "ordering_dependencies"
 	termProvisioning         = "provisioning"
 )
+
+// Shared literal terms of this package.
+const (
+	statusCompleted              = "completed"
+	termDefinitionDigest         = "definition_digest"
+	modelDifficultyPolicy        = "DifficultyPolicyModel"
+	termProfileDigest            = "profile_digest"
+	termSummary                  = "summary"
+	contractWorkflowStepDispatch = "workflow-step-dispatch-v1"
+)

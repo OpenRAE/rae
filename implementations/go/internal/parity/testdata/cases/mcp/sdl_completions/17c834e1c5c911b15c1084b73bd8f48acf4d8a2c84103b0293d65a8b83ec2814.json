@@ -2,7 +2,7 @@
   "args": [],
   "command": "sdl_completions",
   "files": {
-    "arguments.json": "sha256:78270d1f702f5c986d4fb05bbe941c682d363ad113c129b31873479286907ee6"
+    "arguments.json": "sha256:1a811ac828cf71c93b7fdafaff5ff2377112ab76078bc3b0eae2bfabeedf6d57"
   },
   "name": "examples/scenarios/participant-tools/twice-imported.sdl.yaml",
   "result": {
@@ -22,6 +22,12 @@
               "insert_text": "description: ",
               "kind": "field",
               "label": "description"
+            },
+            {
+              "detail": "top-level SDL key",
+              "insert_text": "trial_parallelism: ",
+              "kind": "field",
+              "label": "trial_parallelism"
             },
             {
               "detail": "top-level SDL key",
@@ -169,6 +175,12 @@
             },
             {
               "detail": "top-level SDL key",
+              "insert_text": "safe_state: ",
+              "kind": "field",
+              "label": "safe_state"
+            },
+            {
+              "detail": "top-level SDL key",
               "insert_text": "execution_policy: ",
               "kind": "field",
               "label": "execution_policy"
@@ -267,6 +279,12 @@
             "insert_text": "description: ",
             "kind": "field",
             "label": "description"
+          },
+          {
+            "detail": "top-level SDL key",
+            "insert_text": "trial_parallelism: ",
+            "kind": "field",
+            "label": "trial_parallelism"
           },
           {
             "detail": "top-level SDL key",
@@ -411,6 +429,12 @@
             "insert_text": "evidence_requirements: ",
             "kind": "field",
             "label": "evidence_requirements"
+          },
+          {
+            "detail": "top-level SDL key",
+            "insert_text": "safe_state: ",
+            "kind": "field",
+            "label": "safe_state"
           },
           {
             "detail": "top-level SDL key",

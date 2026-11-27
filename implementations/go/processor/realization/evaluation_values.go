@@ -10,6 +10,9 @@ import (
 )
 
 func (s *evaluationState) evaluateOpen(requirement Requirement, realized any) (*diagnostic.Diagnostic, *Provenance, error) {
+	if s.leftEmptyWithoutReadback(requirement, realized) {
+		return nil, nil, nil
+	}
 	if missingValue(realized) {
 		if requirement.ObservationScope != "" || requirement.ObservationStrength != "" {
 			return invalidObservation(requirement), nil, nil
@@ -121,7 +124,7 @@ func constraintAdmitsValue(constraint admission.Fragment, input any) (bool, erro
 	if err != nil {
 		return false, err
 	}
-	result, err := admission.EvaluateRealizationConstraint(constraint, fragment, admission.DefaultConstraintLimits())
+	result, err := admission.EvaluateRealizationConstraint(constraint, fragment, admission.PlanAuthorityConstraintLimits())
 	if err != nil {
 		return false, err
 	}
@@ -187,6 +190,21 @@ func observationPostureSupported(requirement Requirement, declaration supportDec
 	default:
 		return containsString(declaration.exact, "declared-capability-match")
 	}
+}
+
+// leftEmptyWithoutReadback accepts no member where the planner admitted an
+// authored-empty open concern for a backend without readback. Its omission or
+// empty report realizes nothing and earns no provenance. A reported member, or
+// a readback claim that the manifest cannot support, still fails corroboration.
+func (s *evaluationState) leftEmptyWithoutReadback(requirement Requirement, realized any) bool {
+	members, sequence := realized.([]any)
+	if requirement.Structure != nil || requirement.Constraint != nil || !missingValue(realized) && (!sequence || len(members) > 0) {
+		return false
+	}
+	// Omission or an empty report earns no provenance regardless of capability.
+	// Reported members and matching observations still require corroboration.
+	_, observed := s.observation(requirement)
+	return !observed
 }
 func (s *evaluationState) manifestCorroborates(requirement Requirement, observation evaluatedObservation) bool {
 	for _, declaration := range s.supportDeclarations(requirement) {

@@ -7,6 +7,10 @@ from raes_contracts.errors import ConflictError, OperationalError
 from raes_contracts.planning import PlanScope
 from raes_runtime import RuntimeControlPlane
 
+# Upper bound for thread handoffs. A wait returns as soon as its event is set,
+# so a loaded CI runner gets time to schedule the worker without slowing a pass.
+_THREAD_SYNC_SECONDS = 30
+
 
 def _plan(run, run_id):
     return run.plan(
@@ -193,7 +197,7 @@ def test_delayed_result_stays_with_original_run_and_unknown_effects_block_reuse(
     class Blocked(StubProvisioner):
         def apply(self, plan, snapshot):
             entered.set()
-            assert release.wait(4)
+            assert release.wait(_THREAD_SYNC_SECONDS)
             return super().apply(plan, snapshot)
 
     target = replace(create_stub_target(), provisioner=Blocked())
@@ -202,10 +206,10 @@ def test_delayed_result_stays_with_original_run_and_unknown_effects_block_reuse(
     worker = Thread(target=lambda: receipts.append(first.submit_provisioning(ProvisioningPlan(run_id="first"))))
     worker.start()
     try:
-        assert entered.wait(1)
+        assert entered.wait(_THREAD_SYNC_SECONDS)
         second = engine.open_run(run_scope="run:second")
         before = second.get_snapshot()
-        worker.join(2)
+        worker.join(_THREAD_SYNC_SECONDS)
         assert not worker.is_alive()
         assert first.get_operation(receipts[0].operation_id).state is OperationState.INDETERMINATE
         with pytest.raises(ConflictError, match="active|unresolved"):
@@ -219,7 +223,7 @@ def test_delayed_result_stays_with_original_run_and_unknown_effects_block_reuse(
         assert first.get_operation(receipts[0].operation_id).state is OperationState.INDETERMINATE
     finally:
         release.set()
-        worker.join(2)
+        worker.join(_THREAD_SYNC_SECONDS)
         engine.close()
 
 

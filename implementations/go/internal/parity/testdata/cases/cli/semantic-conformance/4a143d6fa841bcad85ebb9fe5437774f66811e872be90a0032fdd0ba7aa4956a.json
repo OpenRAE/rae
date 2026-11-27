@@ -10,20 +10,27 @@
   ],
   "command": "semantic conformance",
   "files": {
-    "input.json": "sha256:b5aaf9d1294f0b104772572aa5ee213ed4e456ce244e7b628b1ef1ca9f415912"
+    "input.json": "sha256:923de5a5c9579da17c0e358c11cfc9a37e1685ae66c77a2036efc0d689ae060d"
   },
   "name": "contracts/fixtures/formal-analysis/participant-opacity-analysis-evidence-v1/valid/bounded-counterexample",
   "result": {
-    "exit_code": 0,
+    "exit_code": 1,
     "stdout": {
       "contract_id": "participant-opacity-analysis-evidence-v1",
-      "diagnostics": [],
+      "diagnostics": [
+        {
+          "address": "participant-opacity-analysis-evidence-v1",
+          "code": "conformance.schema-invalid",
+          "domain": "conformance",
+          "severity": "error"
+        }
+      ],
       "migration_policy": null,
       "normalization_profile": null,
       "operation": "conformance",
       "payload": {
         "check": "registered-contract",
-        "passed": true,
+        "passed": false,
         "phase": "contract-conformance",
         "root_type": "object"
       },
@@ -33,7 +40,7 @@
         "network": "disabled"
       },
       "source_format": null,
-      "status": "success",
+      "status": "invalid",
       "transform_profile": null,
       "validation_strength": "structural"
     }

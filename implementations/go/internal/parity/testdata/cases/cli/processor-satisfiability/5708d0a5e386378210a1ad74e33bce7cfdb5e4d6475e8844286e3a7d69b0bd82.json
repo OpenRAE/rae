@@ -6,7 +6,7 @@
   ],
   "command": "processor satisfiability",
   "files": {
-    "repo/examples/scenarios/participant-tools/tool-kit.sdl.yaml": "sha256:9b6bc7d77849becccfa252fb80a92d01b0105cff95ddee3f43a635d594e3beec"
+    "repo/examples/scenarios/participant-tools/tool-kit.sdl.yaml": "sha256:a5d50aa366b7b203f89dfded3534fecaa142568bddd09f0f4a621ecad173f22e"
   },
   "name": "examples/scenarios/participant-tools/tool-kit.sdl.yaml",
   "result": {
@@ -28,12 +28,12 @@
         },
         "clauses": [],
         "profile": "raes-finite-domain-constraints/v1",
-        "source_digest": "sha256:9b6bc7d77849becccfa252fb80a92d01b0105cff95ddee3f43a635d594e3beec",
+        "source_digest": "sha256:a5d50aa366b7b203f89dfded3534fecaa142568bddd09f0f4a621ecad173f22e",
         "symbols": [],
         "theory_profile": "raes-finite-domain-theory/v1",
         "translation_profile": "raes-sdl-authoring-translation/v1"
       },
-      "normalized_model_digest": "sha256:9f2b09c14d2b7681e3ed1785735c87c5c9ee6ec5d3c83cd959a1a25318389850",
+      "normalized_model_digest": "sha256:8d8cb005cafc663818c50d7022bb509faca93e1ad50b4780e73ef5e8efeb29a2",
       "outcome": "satisfiable",
       "profile": "scenario-satisfiability-evidence/v2",
       "solver_configuration": {
@@ -54,7 +54,7 @@
       },
       "solver_configuration_digest": "sha256:1204635e17e759e9ad3bd6be2ecb28c6de05c07ead6dfdd15936ed5d3d5b81b2",
       "source": {
-        "byte_digest": "sha256:9b6bc7d77849becccfa252fb80a92d01b0105cff95ddee3f43a635d594e3beec",
+        "byte_digest": "sha256:a5d50aa366b7b203f89dfded3534fecaa142568bddd09f0f4a621ecad173f22e",
         "source_id": "tool-kit.sdl.yaml"
       },
       "unsat_core": null,

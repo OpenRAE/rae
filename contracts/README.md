@@ -1,154 +1,194 @@
 # Contracts
 
-`contracts/` holds the published machine-readable contracts.
-The SDL specifications state their meaning.
-The contracts do not depend on one implementation language.
-Runners and code that check them belong under `implementations/`.
+Find published schemas, fixture corpora, profiles, and catalogs here.
+These artifacts define portable contracts under the
+[authority boundary](../specs/authority/authority-boundary.yaml).
+Start with the [schema reference](schemas/README.md) for exact structures.
+Use [local contract checks](../docs/develop/check-specification-contracts.md)
+to compare the reference implementation with these artifacts.
 
-| Directory | Contents |
-| --- | --- |
-| `schemas/` | Published contract schemas |
-| `fixtures/` | Valid and invalid payload examples |
-| `profiles/` | Capability and validation profiles; scientific completeness taxonomies and assessments |
-| `concept-authority/` | Concept, vocabulary, reference-model and behavioral-relation catalogs |
-| `realization-envelopes/` | Backend configuration bounds whose identity passes through manifests, plans and snapshots |
-| `provenance/` | Revision-pinned SDL lineage, derivations and third-party notice records |
+The [participant control-context asset contracts](../specs/supply-chain/participant-control-context-assets.md)
+define immutable instruction and policy versions, authorized lifecycle changes,
+and selection evidence separate from disclosure and delivery. Private contents
+stay outside these portable records.
 
-## Publication and coverage
+The optional [execution and recovery requirements](../specs/sdl/execution-recovery.md)
+profile carries complete authored policies and evidence definitions in native
+phase plans. [Migration guidance](../docs/explain/reference/execution-recovery-migration.md)
+explains scoped defaults, content commitments and explicit capability refusals.
 
-`schema-publication-manifest.json` is the stable publication index.
-Each contract has its own record under `schema-publication/entries/`.
-Changes to separate contracts do not rewrite a shared array.
-The contracts gate assembles the records in a fixed order.
-It checks that each schema exists and each JSON Schema file is listed.
-Each record must point into `contracts/schemas/`.
-It must give the schema's stability class and canonical content hash.
+The optional [backend operation and supervision family](../specs/formal/runtime-contracts/backend-operation-supervision.md)
+publishes bounded requests, capability/willingness checks, correlated progress,
+cancellation dispositions and effect evidence. The
+[backend integration and migration guide](../docs/explain/reference/backend-operation-supervision.md)
+explains the `operation-supervision` profile and its evidence limits.
 
-Publication proves that a contract exists.
-It does not prove that a runner exercises it.
-Each published schema needs at least one coverage source:
+The draft [inject trigger and occurrence contracts](../docs/explain/reference/inject-occurrence-contracts.md)
+carry an external inject request, its claimed occurrence, per-binding readback
+and participant correlation under
+[ADR-112](../docs/decisions/adrs/adr-112-external-inject-triggering-and-execution.md).
+They grant no trigger authority and execute nothing.
 
-- A checked-in artifact that the corpus router checks against the schema.
-- A delivered assurance artifact that names the schema in `specs/formal/assurance-fulfillment.yaml`.
-- A checked `coverage` association on the publication record.
+## Artifact families
 
-A formal model is not required.
-A `waived_artifacts` entry records an open obligation; it is not coverage evidence.
-`tools/check_schema_coverage.py` checks the whole publication list.
-Its `--report` flag prints the source of coverage for each contract.
-The [coverage guide](../docs/explain/reference/published-schema-coverage.md)
-states the rule, repair order and record shape.
+- `schemas/` contains published contract schemas
+- `fixtures/` contains valid and invalid payload corpora for those contracts.
+  A `valid/` or `context-invalid/` fixture leaves out derived fields, such as a
+  self-digest (`plan_digest`, `entry_digest`) or a derived identifier
+  (`selection_id`). Readers fill them with
+  `raes_contracts.contract_seals.seal_contract_fixture`, which computes each
+  value the way the owning contract verifies it. An `invalid/` fixture stays as
+  written, so it can test an absent or wrong derived value.
+- `profiles/` contains capability profiles, the governed validation-profile
+  catalog, and separately versioned scientific-completeness
+  taxonomy/assessment declarations
+- `concept-authority/` contains canonical concept, vocabulary, reference-model,
+  and behavioral-relation catalogs
+- `realization-envelopes/` contains configuration-bound backend realization
+  declarations whose identity is carried through manifests, plans, and snapshots
 
-## Schema authority
+`schema-publication-manifest.json` is the stable index for the authoritative
+publication inventory. Each contract has an independent record under
+`schema-publication/entries/`, so concurrent changes to unrelated contracts do
+not rewrite one shared array. The contracts verification gate assembles those records deterministically.
+It checks that every entry points at `contracts/schemas/` and that every listed schema exists.
+It also checks that every JSON Schema file is listed and that every entry records its stability class.
 
-The published schemas are the **hand-governed normative authority** under
-[ADR-009 §7](../docs/decisions/adrs/adr-009-normative-artifact-authority-and-repository-structure.md).
-A contract change starts with an edit to its published schema.
-Review that edit against the SDL prose specification.
-Do not change a contract as a side effect of code generation.
+Records contain `contract_id`, `schema_path`, and `stability`.
+They contain no `content_hash` or `last_change`.
+Git records schema history under the issue 1929 amendments to ADR-009 and ADR-061.
 
-The Python `schema_bundle()` and `tools/generate_contract_schemas.py` produce reference output.
-`tools/check_generated_schemas.py` generates that output in a temporary directory.
-It proves that Python still matches the published schemas.
-It never overwrites them.
+## Published-schema coverage
 
-A schema edit must update its contract record's `last_change` ledger.
-The ledger gives a summary and content hash.
-A removal needs a separate tombstone under `schema-publication/tombstones/`.
-That record gives the removed schema path and a summary.
-`tools/check_schema_publication.py --base-rev` and the `schema-change-missing-manifest` rule enforce these records.
-A schema cannot change without contract-level review.
+Publication establishes that a contract exists.
+It does not establish that a check exercises it.
+Every publication-catalog entry must have at least one of these evidence sources:
 
-The Go implementation generates transport bindings from the published schemas.
-Its check compares the complete bindings and packaged corpus with fresh output.
-The [Go guide](../implementations/go/README.md) explains schema checks and semantic checks as separate claims.
+- A checked-in artifact that the corpus router validates against the schema.
+- A delivered assurance artifact naming the schema in `specs/formal/assurance-fulfillment.yaml`.
+- A validated `coverage` association on the publication record.
 
-Current schemas are marked `draft`.
-A `v1` or `v2` suffix identifies a lineage; it does not promise stable compatibility.
-[ADR-061](../docs/decisions/adrs/adr-061-published-schema-evolution-policy.md)
-governs stable evolution.
-Additive changes can keep the suffix.
-Breaking changes need a new suffix.
+A formal model is never required.
+A `waived_artifacts` entry is an unresolved obligation, not evidence. `tools/check_schema_coverage.py` enforces this over the whole
+published inventory as the `policy / published schema coverage` stage, and
+`--report` prints the covering leg per contract. The rule, the repair order, and
+the `coverage` shape are documented in
+[published-schema-coverage.md](../docs/explain/reference/published-schema-coverage.md).
 
-## Contract families
+## Schema authority direction (ADR-009 §7)
+
+The published schemas under `contracts/schemas/` are the **hand-governed
+normative authority**. Contract changes start with a reviewed published-schema edit.
+The review compares the change with the SDL prose specification.
+
+The reference implementation consumes that authority.
+Its `raes_schemas.schema_bundle()` interface produces a comparison bundle.
+`tools/check_generated_schemas.py` generates that bundle into a temporary directory.
+It checks exact equality with the published schemas and never overwrites them.
+
+A new schema adds one record under `schema-publication/entries/`.
+A schema change does not edit its record.
+Git holds the schema history, and the pull request review covers the change. A
+schema **removal** adds an independent tombstone record (schema path + summary)
+under `schema-publication/tombstones/`.
+
+`tools/check_schema_publication.py --base-rev` refuses an incompatible change to a `stable` schema and a removal
+without a tombstone. This is the authority direction specified by ADR-009 §7.
+Optional generation of implementation bindings *from* the schemas is not implemented.
+
+Current checked-in schemas are marked `draft` in the manifest. A `v1` or `v2`
+filename suffix identifies the schema lineage; it does not by itself promise a
+stable compatibility surface. Stable schema evolution is governed by
+[ADR-061](../docs/decisions/adrs/adr-061-published-schema-evolution-policy.md):
+additive changes may stay under the same suffix, while breaking changes require
+a new version suffix.
+
+These assets are intentionally language-neutral. Any conformance runners or
+implementation-specific validation helpers belong under `implementations/`,
+not here.
+
+The `authoring-adapter-*` contracts compose bounded authoring-path observations
+and comparisons. Their fixed vectors under `fixtures/authoring-adapters-v1/`
+compare canonical artifacts, diagnostics, transformation provenance and owner
+semantic results independently. See the
+[authoring-adapter contract](../specs/conformance/authoring-adapters.md) and
+[consumer guide](../docs/explain/reference/authoring-adapter-conformance.md).
 
 The [SDL semantic vectors](fixtures/sdl/semantic-vectors-v1/README.md) publish reviewed source inputs and expected semantic results.
 Their native Go tests check the inventory and semantic comparisons without a Python recorder.
 The [maintenance guide](../docs/develop/sdl-semantic-fixtures.md) gives direct JSON updates and packaging checks.
 
-Contracts cover processor and backend manifests, participant declarations, live control-plane records, experiments, evidence and provenance.
-Some surfaces do not yet have a published schema.
-The same language-neutral rules apply to each surface.
+The contract space includes backend I/O and other artifact boundaries.
+It includes:
 
-The [control-context asset contracts](../specs/supply-chain/participant-control-context-assets.md)
-keep instruction and policy versions immutable.
-They separate authorized lifecycle changes and selection evidence from disclosure and delivery.
-Private contents stay outside portable records.
+- processor-facing contracts and manifests
+- backend-facing contracts and manifests
+- participant-implementation declaration surfaces
+- live runtime/control-plane contracts
+- experiment, evidence, and provenance artifact boundaries
 
-The optional [execution and recovery profile](../specs/sdl/execution-recovery.md)
-carries complete authored policies and evidence definitions in native phase plans.
-The [migration guide](../docs/explain/reference/execution-recovery-migration.md)
-explains scoped defaults, content commitments and explicit capability refusals.
+The control-plane `participant-context-view-v1` contract carries SEM-214 meaning and comparability for derived operational context views.
+Its envelope gives participant-local scope, audience scope, observation point, and governed source layers.
+It also gives the transformation rule, evidence/provenance basis, semantic limitations, and explicit comparability disclosure.
 
-The [backend operation family](../specs/formal/runtime-contracts/backend-operation-supervision.md)
-carries bounded requests, capability and willingness checks, progress, cancellation results and effect evidence.
-The [backend guide](../docs/explain/reference/backend-operation-supervision.md)
-explains the optional `operation-supervision` profile and its evidence limits.
+The participant-runtime `participant-information-state-record-v1` contract
+closes ACT-604's portable information-state reference at one exact participant,
+episode, state cut, projection, memory scope, and information guarantee. Strong
+claims resolve through the immutable
+`participant-information-reconstruction-profile-v1` corpus and preserve every
+visible occurrence as a typed source relation. Conformance, snapshot reload,
+and backend ingestion fail closed unless a trusted resolver supplies the required inputs.
+These are the occurrence history, typed sources, proof digest, exact-cut membership, and
+projection/policy coordinates needed by the contextual invariant. The record
+is not a mutable fact map, hidden-world snapshot, or operational-holdings
+taxonomy; ACT-615 remains the owner of concrete holdings kinds and lifecycle.
 
-The draft [inject contracts](../docs/explain/reference/inject-occurrence-contracts.md)
-carry an external request, its claimed occurrence, readback per binding and participant correlation.
-[ADR-112](../docs/decisions/adrs/adr-112-external-inject-triggering-and-execution.md) governs them.
-These records grant no trigger authority and execute nothing.
-
-The [authoring-adapter contracts](../specs/conformance/authoring-adapters.md)
-carry bounded observations and comparisons.
-Their vectors under `fixtures/authoring-adapters-v1/` compare artifacts, diagnostics, transformation provenance and owner semantic results separately.
-The [consumer guide](../docs/explain/reference/authoring-adapter-conformance.md) explains their use.
-
-The `participant-context-view-v1` contract states SEM-214's meaning and comparability bounds.
-It binds participant and audience scope, observation point, source layers and transformation rule.
-It also states the evidence basis, semantic limits and comparability disclosure.
-
-The `participant-information-state-record-v1` contract closes ACT-604's portable reference.
-It names one exact participant, episode, state cut, projection, memory scope and information guarantee.
-Strong claims use the immutable reconstruction-profile corpus.
-Each visible occurrence remains a typed source relation.
-A trusted resolver must supply occurrence history, typed sources, proof digest, exact-cut membership and projection/policy coordinates.
-Conformance checks, snapshot reload and backend ingestion fail closed without them.
-The record is not a mutable fact map or hidden-world snapshot.
-ACT-615 still owns concrete holdings kinds and their lifecycle.
-
-The `runtime-fact-binding-plane-v1` contract carries typed run-local facts and immutable versions.
-It includes compiled action sinks, value-free provenance and redacted participant/workflow views.
-Facts can fill only declared action `input.*` fields.
-They cannot rewrite SDL variables, topology, workflows, experiment factors, identities or random streams.
-Trusted per-action admission supplies sinks, candidates, time and authority.
-A one-shot dispatcher delivers values.
+The participant-runtime `runtime-fact-binding-plane-v1` contract defines typed
+run-local fact declarations, immutable versions, compiled late-bound action
+sinks, value-free binding provenance, and redacted participant/workflow
+projections. It permits facts to fill only declared action `input.*` fields.
+It does not permit runtime values to rewrite SDL variables, topology, workflow
+structure, experiment factors, identities, or random streams.
+The reference runtime obtains sinks, candidates, time, and authority from a trusted per-action admission.
+It delivers values through a one-shot dispatcher.
 Caller requests cannot inject policy or receive protected values.
 
-The experiment-core family carries tasks, runs, apparatus context, studies, collections, capture specs, raw evidence and derived measures.
-These are archival design records.
-They do not add execution, capture, storage, scheduling, statistical engines or API behavior.
-Study and benchmark claims bind to `raes-behavioral-relations@rev1`.
-They state population or case scope, measurement projection, evidence bounds, limits and explicit nonclaims.
+The published experiment-core contract family includes task, run,
+apparatus-context, study/collection, capture specification, raw evidence record,
+and derived measure schemas under `contracts/schemas/experiment-core/`. These
+contracts are archival design artifacts for scientific experiment records.
+They do not add runtime execution, capture, storage, scheduling, statistical engines,
+or API behavior by themselves. Claim-bearing study and benchmark records bind
+their conclusions to `raes-behavioral-relations@rev1`, including population or
+case scope, measurement projection, evidence boundary, limitations, and
+explicit nonclaims.
 
-`experiment-run-v1` is the canonical run provenance record.
-It links task, run and apparatus context with results, evidence and traceability records.
-It also carries realized-form disclosures for concerns resolved during a run.
-Identifier-bearing collections that need uniqueness use maps keyed by that identifier.
-The published schema can thus enforce uniqueness across languages.
+The published `scenario-satisfiability-evidence-v1` contract binds exact SDL source bytes, canonical authored semantics, and a solver-neutral normalized model.
+It also binds the pinned solver configuration and exactly one satisfiable witness,
+unsatisfiable core, or unsupported disclosure. Its claim is limited to the
+ADR-086 finite-domain profile; it is not backend-realization or runtime-success
+evidence.
 
-The `scenario-satisfiability-evidence-v1` contract binds exact SDL bytes, canonical semantics, a normalized model and pinned solver settings.
-It carries one satisfiable witness, unsatisfiable core or unsupported disclosure.
-Its claim stays within ADR-086's finite-domain profile.
-It does not prove backend realization or runtime success.
+`experiment-run-v1` is the canonical run provenance record. It carries the task/run/apparatus context and result and evidence pointers.
+It carries traceability links to capture specs, evidence records, derived measures, and claims.
+It also carries
+realized-form disclosures for underspecified concerns resolved during a run.
 
-## Authority boundary
+Within experiment-core contracts, identifier-bearing collections that require
+uniqueness are object maps keyed by that identifier. This keeps uniqueness
+portable in the published JSON Schemas rather than implementation-private.
 
-[ADR-009](../docs/decisions/adrs/adr-009-normative-artifact-authority-and-repository-structure.md)
-governs this directory split.
-The machine-readable ASR-517 authority manifest is
-[`specs/authority/authority-boundary.yaml`](../specs/authority/authority-boundary.yaml).
+Not every one of those surfaces is fully materialized in published schemas yet,
+but they share the same language-neutral contract discipline.
+
+This split follows the repository-structure decision captured in
+[ADR-009](../docs/decisions/adrs/adr-009-normative-artifact-authority-and-repository-structure.md).
+
+The canonical machine-readable manifest of the authority boundary
+(ASR-517) lives at
+[`specs/authority/authority-boundary.yaml`](../specs/authority/authority-boundary.yaml),
+governed by
 [ADR-019](../docs/decisions/adrs/adr-019-normative-authority-boundary-manifest.md)
-governs it; `tools/check_authority_boundary.py` checks it.
-ADR-019 and ADR-080 also govern the provenance records.
+and enforced by `tools/check_authority_boundary.py`.
+The `provenance/` family contains revision-pinned SDL lineage, derivation, and
+third-party notice dispositions governed by ADR-019 and ADR-080.

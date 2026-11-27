@@ -16,6 +16,7 @@ Each publication retains the protocol, authored runtime coordinates, configurati
 The trajectory binds observed action admissions, feedback, monitor observations, controller state, and operation identities.
 The report retains contract versions, exact-cut bindings, artifact digests, selected obligations, calls, refusals, and replay observations.
 The shared runtime-mapping source inventory pins implementation, provider fixtures, contracts, and tools by content.
+
 The publication references that content-addressed inventory instead of copying it.
 Verification requires a checkout with the same source digest.
 The base revision identifies the starting commit; content pins also cover uncommitted source.
@@ -35,6 +36,7 @@ Every case passes its independent test oracle.
 A passing case does not necessarily mean an attack was prevented.
 The permitted injection achieves its side objective under the selected permissive policy.
 Its safety value means no policy-prohibited effect was observed.
+
 The three denied attack cases have zero prohibited calls or effects.
 Apparatus invalidation is excluded from successful safety observations.
 It is not an in-world attack or a failed attempt by an attacker.
@@ -43,6 +45,7 @@ Usefulness records whether an action was admitted.
 It does not measure main-task quality.
 Intervention cost counts committed denials and final-sink denials.
 An exact ledger replay does not add another intervention.
+
 Audit cost counts selected cases under a declared protocol budget.
 It does not measure labor, monetary cost, or enforced runtime audit resources.
 Uncertainty is `deterministic-fixture-only`.
@@ -52,9 +55,7 @@ The publication has no combined score, confidence interval, or population robust
 
 The [retained collection](../../research/adversarial-participant-control/evaluations/sha256-bdd6f06782b169c8e0d853b2e1a936f22eb670601e07e3dce00f1de3420fb401.json)
 contains the seven executed results and safe conformance reports.
-Its [shared source inventory](../../../specs/formal/participant-semantics/runtime-mapping/capture-c2e5461790d60587b41ec2be5a8872c167d79bb12c2c444c3848f23c7e1e3e59/manifest.json)
-pins the exact source content.
-Earlier committed captures retain their original source identities.
+The runtime-mapping export builds its shared source inventory from the current sources on each run.
 
 Run from the source checkout with its frozen Python 3.14 dependency environment.
 The collector uses synthetic fixtures and local files only.

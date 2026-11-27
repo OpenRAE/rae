@@ -1,4 +1,4 @@
-# Realization Envelope Semantics
+# Realization envelope semantics
 
 This note defines the formal design boundary for issue #667. It extends the
 SEM-218 realization model with a portable expression for a set of scenario
@@ -28,7 +28,7 @@ Out of scope:
 - defining experiment-core run-set semantics;
 - defining new SDL variable syntax beyond the existing variable catalog.
 
-## Realization Status
+## Realization status
 
 This spec is design authority. The relation helper, the envelope expression
 contract model, fixtures, and property tests are implemented by issue #668:
@@ -56,7 +56,7 @@ The remaining downstream boundary is target-conformance integration:
 - `run_target_conformance(reference_scenario=...)` remains the temporary #663
   bridge for fixed-topology and simulation backends.
 
-## Canonical Inputs
+## Canonical inputs
 
 Implementations of this spec MUST build on these authority surfaces:
 
@@ -114,7 +114,7 @@ more specific than the other for a field outside its aggregate.
 Closure is orthogonal to posture. A constrained field can live under an
 open-world node, and an exact node can live under a closed-world scenario.
 
-## Envelope Shape
+## Envelope shape
 
 An envelope expression consists of:
 
@@ -141,12 +141,15 @@ checks therefore MUST NOT treat that field as an unspecified realizable
 dimension. This projection does not weaken provenance validation or remove the
 field from the artifact.
 
-## Required Semantics
+## Required semantics
 
-### R1 - Envelopes denote sets
+<!-- vale RAES.HeadingCase = NO -->
+### R1 - envelopes denote sets
 
 Every envelope expression denotes a set of scenario instances. A concrete
 scenario instance `s` is a member of envelope `E` exactly when:
+
+<!-- vale RAES.HeadingCase = YES -->
 
 1. `s` is structurally and semantically valid under the ordinary SDL rules;
 2. every effective binding in `E` is satisfied by the corresponding value or
@@ -168,8 +171,8 @@ breaks the tie: field, node, topology/app, then scenario. Topology and app remai
 sibling scopes.
 
 If two bindings have equal specificity and incompatible domains or posture, the
-envelope is invalid. If a more-specific binding widens a value that an enclosing
-closed-world scope made exact or excluded, the envelope is invalid unless the
+envelope is invalid. A more-specific binding can widen a value that an enclosing closed-world scope made exact or excluded.
+Then the envelope is invalid unless the
 enclosing binding explicitly marks that child as overrideable.
 
 That `overrideable` condition governs explicit envelope domain bindings. It
@@ -238,8 +241,8 @@ one instance. It is not a proof of subsumption or backend honesty.
 
 ### R6 - Closed envelopes require negative conformance
 
-When a backend declares a closed-world envelope, conformance MUST generate
-negative probes for closed dimensions that can be varied without introducing
+When a backend declares a closed-world envelope, conformance MUST generate negative probes for closed dimensions.
+These are dimensions that can be varied without introducing
 secrets or unsafe side effects.
 
 A negative probe is a request that differs from a valid witness by one
@@ -286,8 +289,8 @@ Envelope diagnostics MAY name:
 - non-sensitive governed identifiers;
 - digest and contract ids.
 
-Diagnostics MUST NOT echo credentials, bearer tokens, private keys, process
-argv, host paths, backend-native ids, raw backend object representations,
+Diagnostics MUST NOT echo credentials, bearer tokens, private keys, process argv, or host paths.
+They MUST NOT echo backend-native ids, raw backend object representations,
 hidden truth, scoring state, or full tracebacks.
 
 ## Invariants
@@ -315,7 +318,7 @@ least one generated refusal test for each safely variable closed dimension.
 fixtures, diagnostics, and conformance reports carry ids, refs, digests, and
 bounded summaries, not sensitive concrete values.
 
-## Implementation Mapping
+## Implementation mapping
 
 This section names the intended future seams. It is not a claim that the code
 exists today.
@@ -330,7 +333,7 @@ exists today.
 | Target conformance witness and negative probes | `raes_conformance` | `run_target_conformance(reference_scenario=...)` |
 | Runtime refusal evidence | `raes_runtime` / control plane | `OperationStatus`, `Diagnostic` |
 
-## Non-Goals
+## Non-goals
 
 - No runtime behavior changes.
 - No contract schema publication.

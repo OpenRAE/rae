@@ -1,9 +1,10 @@
 Runtime layer
 =============
 
-The ``raes_runtime`` package owns live execution and protected readback in the current Python package.
+The ``raes_runtime`` package owns live execution and protected readback.
 It uses neutral data models from ``raes_contracts`` at backend and control-plane boundaries.
-An admitted backend implements the capabilities it declares; a protocol or stub does not prove a live deployment.
+An admitted backend implements the capabilities that it declares.
+A protocol or a stub does not prove a live deployment.
 
 Inputs, results and effects
 ---------------------------
@@ -22,7 +23,8 @@ Callers close the owning runtime or control plane when finished.
 Use :doc:`control-plane tasks <../guides/control-plane>` for composition procedures.
 
 The generated signatures give typed options and defaults.
-Shared runtime failures use the ``RaesError`` categories; constructor shape errors can raise ``ValueError`` or ``TypeError``.
+Shared runtime failures use the ``RaesError`` categories.
+A constructor shape error can raise ``ValueError`` or ``TypeError``.
 These Python exceptions differ from :doc:`HTTP status responses <http>` and :doc:`command exit codes <cli>`.
 
 Profiles and compatibility
@@ -31,13 +33,15 @@ Profiles and compatibility
 P0 is the embedded ephemeral profile.
 P1 is the durable single-process core profile.
 P2 adds the authenticated single-worker HTTP adapter over an explicitly selected P1 core.
-P3 remains unavailable; declaring the enum value does not implement a distributed service.
+P3 is not available.
+The enum value does not implement a distributed service.
 Profile declarations give capabilities and nonclaims.
 Backend support, store capabilities and profile admission are separate checks.
 
 The default HTTP security configuration has no built-in principals or bearer tokens.
 Proxy identity-header trust is disabled.
-Enabling it requires an authenticated proxy that removes caller-supplied identity headers before setting its own.
+To enable it, use an authenticated proxy.
+The proxy removes the identity headers of the caller before it sets its own.
 Single-worker and store-maintenance limits remain applicable.
 
 .. currentmodule:: raes_runtime
@@ -93,6 +97,21 @@ Control plane store
 -------------------
 
 .. automodule:: raes_runtime.control_plane_store
+   :members:
+
+Assigned trials
+---------------
+
+The :doc:`../guides/assigned-trials` guide describes coordinator admission,
+selected host execution, cancellation, and checked outcome ingestion.
+
+.. automodule:: raes_runtime.runtime_assigned_trial
+   :members: AssignedTrial
+
+.. automodule:: raes_contracts.assigned_trial
+   :members: TrialAssignmentModel, TrialAssignmentControlModel, TrialOutcomeModel
+
+.. autoclass:: raes_runtime.runtime_trial_services.TrialOutcomeVerifier
    :members:
 
 Control plane security

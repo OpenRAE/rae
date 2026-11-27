@@ -24,7 +24,7 @@ func boundRealizationObservation(v any) bool {
 	if at(v, "binding_verified") != true {
 		return false
 	}
-	for _, field := range []string{"operation_id", "envelope_digest", "configuration_digest", "observer_version", termSequence} {
+	for _, field := range []string{"operation_id", "envelope_digest", termConfigurationDigest, "observer_version", termSequence} {
 		if at(v, field) == nil {
 			return false
 		}

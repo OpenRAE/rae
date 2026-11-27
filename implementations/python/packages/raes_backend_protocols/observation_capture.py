@@ -7,7 +7,7 @@ from collections.abc import Collection
 from dataclasses import dataclass
 
 from raes_contracts.capture_dimensions import CAPTURE_SET_FIELDS, capture_offer_payload
-from raes_contracts.evidence_output_validation import validate_evidence_output_offer
+from raes_contracts.contracts.evidence_output_contracts import validate_evidence_output_offer
 
 
 def _validate_unique_non_empty_strings(field_name: str, values: Collection[str]) -> None:

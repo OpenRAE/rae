@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-// The rules of ADR-122.
+// The rules of ADR-124.
 const (
 	ruleModules         = "ARCH-001"
 	ruleLayers          = "ARCH-002"
@@ -33,7 +33,7 @@ const (
 	byCompiler  = "go build"
 )
 
-// rules maps each rule of ADR-122 to the check that enforces it.
+// rules maps each rule of ADR-124 to the check that enforces it.
 func rules() map[string]string {
 	return map[string]string{
 		ruleConsumer:        byArchcheck,

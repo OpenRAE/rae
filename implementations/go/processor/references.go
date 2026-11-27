@@ -10,23 +10,31 @@ import (
 func (state *compilerState) runtimeAddresses(refs []string) []string {
 	return state.runtimeAddressesFor(refs, "declared")
 }
+
+// referenceAliases returns the canonical declarations each reference names for a purpose.
+func (state *compilerState) referenceAliases(purpose string) (map[string][]string, error) {
+	if purpose == "declared" {
+		return state.input.aliases, nil
+	}
+	if state.input.references == nil {
+		state.input.references = map[string]map[string][]string{}
+	}
+	if aliases, loaded := state.input.references[purpose]; loaded {
+		return aliases, nil
+	}
+	aliases, err := sdl.ReferenceBindingsFor(state.input.scenario, purpose)
+	if err != nil {
+		return nil, err
+	}
+	state.input.references[purpose] = aliases
+	return aliases, nil
+}
+
 func (state *compilerState) runtimeAddressesFor(refs []string, purpose string) []string {
-	aliases := state.input.aliases
-	if purpose != "declared" {
-		if state.input.references == nil {
-			state.input.references = map[string]map[string][]string{}
-		}
-		var loaded bool
-		aliases, loaded = state.input.references[purpose]
-		if !loaded {
-			var err error
-			aliases, err = sdl.ReferenceBindingsFor(state.input.scenario, purpose)
-			if err != nil {
-				state.err = err
-				return nil
-			}
-			state.input.references[purpose] = aliases
-		}
+	aliases, err := state.referenceAliases(purpose)
+	if err != nil {
+		state.err = err
+		return nil
 	}
 	result := []string{}
 	for _, ref := range dedupe(refs) {

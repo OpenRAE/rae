@@ -1,5 +1,5 @@
 [
-{
+  {
     "name": "outcome_interpretation_rule_parses_and_compiles_explicit_layers",
     "source": {
       "name": "sem-215",
@@ -2061,9 +2061,9 @@
           "node_name": "web",
           "node_kind": "compute",
           "os_family": "",
-          "os_distribution": "",
+          "os_distribution": null,
           "os_version": "",
-          "architecture": "",
+          "architecture": null,
           "count": null,
           "network_namespace_target": "",
           "domain_topology": null
@@ -2839,7 +2839,7 @@
     },
     "diagnostics": []
   },
-{
+  {
     "name": "shared_exact_asset_and_withheld_intent_are_typed_without_delivery",
     "source": {
       "name": "context-example",
@@ -3467,7 +3467,7 @@
     },
     "diagnostics": []
   },
-{
+  {
     "name": "imports_keep_descriptor_identity_and_participant_scope",
     "source": {
       "name": "twice",
@@ -4930,7 +4930,7 @@
     },
     "diagnostics": []
   },
-{
+  {
     "name": "reusable_scope_and_direct_artifact_revalidation",
     "source": {
       "name": "context-example",
@@ -5682,6 +5682,7 @@
           "evidence_contract_refs": [],
           "tool_affordance_addresses": [],
           "participant_inject_delivery_addresses": [],
+          "episode_policy_address": "",
           "extension_policy": "governed-extension",
           "extension_keys": []
         },
@@ -5693,7 +5694,7 @@
     },
     "diagnostics": []
   },
-{
+  {
     "name": "published_examples_preserve_exact_assets_across_two_imports",
     "source": {
       "name": "two-context-kits",
@@ -8974,6 +8975,7 @@
           "evidence_contract_refs": [],
           "tool_affordance_addresses": [],
           "participant_inject_delivery_addresses": [],
+          "episode_policy_address": "",
           "extension_policy": "governed-extension",
           "extension_keys": []
         },
@@ -9060,6 +9062,7 @@
           "evidence_contract_refs": [],
           "tool_affordance_addresses": [],
           "participant_inject_delivery_addresses": [],
+          "episode_policy_address": "",
           "extension_policy": "governed-extension",
           "extension_keys": []
         },
@@ -9071,7 +9074,7 @@
     },
     "diagnostics": []
   },
-{
+  {
     "name": "mixed_control_is_not_hidden_in_raw_compiler_metadata",
     "source": {
       "name": "act-617",
@@ -10201,9 +10204,9 @@
           "node_name": "web",
           "node_kind": "compute",
           "os_family": "",
-          "os_distribution": "",
+          "os_distribution": null,
           "os_version": "",
-          "architecture": "",
+          "architecture": null,
           "count": null,
           "network_namespace_target": "",
           "domain_topology": null
@@ -10237,9 +10240,9 @@
           "node_name": "internal",
           "node_kind": "compute",
           "os_family": "",
-          "os_distribution": "",
+          "os_distribution": null,
           "os_version": "",
-          "architecture": "",
+          "architecture": null,
           "count": null,
           "network_namespace_target": "",
           "domain_topology": null
@@ -10755,6 +10758,7 @@
           "evidence_contract_refs": [],
           "tool_affordance_addresses": [],
           "participant_inject_delivery_addresses": [],
+          "episode_policy_address": "",
           "extension_policy": "closed",
           "extension_keys": []
         },

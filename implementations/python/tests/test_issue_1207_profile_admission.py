@@ -9,6 +9,7 @@ from dataclasses import replace
 
 import pytest
 from raes_contracts.canonical import canonical_json_digest
+from raes_contracts.contracts.realization_preparation import RealizationPreparation
 from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.domain_profiles import (
     DomainProfileBindingBasis,
@@ -20,7 +21,6 @@ from raes_contracts.domain_profiles import (
     seal_domain_profile_definition,
 )
 from raes_contracts.realization_observation import RealizationObservationDisclosure
-from raes_contracts.realization_preparation import RealizationPreparation
 from raes_contracts.realization_profiles import PlanProfileAuthority, ProfileBindingConstraint, profile_context_digest
 from raes_contracts.realization_structure import (
     RealizationClosure,

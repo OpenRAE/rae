@@ -170,6 +170,13 @@ func TestOSEvidenceMatchesTheCurrentOperationAndApparatus(t *testing.T) {
 				fixture := boundOSFixture(t)
 				mutateOSTestBinding(t, fixture, mutation)
 				result := osTestEvaluate(t, fixture, route)
+				if route == "portable" && mutation == "plan-envelope" {
+					// A plan that names another envelope is refused before any evidence check.
+					if len(result.Diagnostics) != 1 || result.Diagnostics[0].Code != "realization.authority-envelope-mismatch" {
+						t.Fatalf("plan envelope mismatch was not refused first: %v", result.Diagnostics)
+					}
+					return
+				}
 				assertOSReadback(t, result, mutation == "valid")
 			})
 		}

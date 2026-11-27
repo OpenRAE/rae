@@ -35,7 +35,7 @@ Each change needs a gate that stops new debt while it removes old debt.
 
 ### 1. Checks
 
-The full repository policy check (`tools/check_repo_policy.py`) runs three structural checks.
+The full repository policy check (`tools/check_repo_policy.py`) runs six structural checks.
 The scope is every directory with `__init__.py` under `module_boundaries.package_coverage_roots`.
 
 1. **Import structure.** import-linter runs the contracts in `tools/policy/import_contracts.toml`.
@@ -63,6 +63,36 @@ The scope is every directory with `__init__.py` under `module_boundaries.package
    The count is the number of distinct package classes among all its bases.
    The check does not count external and builtin classes.
    A static resolver follows relative imports, aliases, re-exports, star imports, nested classes and subscripted bases.
+4. **Private members.** An access to a private attribute of another object is a finding.
+   The rule is Ruff `SLF001`. For example, `obj._x` is a finding, and `self._x`, `cls._x` and `super()._x` are not.
+   The check runs Ruff from the locked tooling environment with only this rule selected.
+   The identity of a finding is the module and the attribute name.
+5. **Imports inside functions.** A first-party import inside a function is a finding.
+   An import inside a module-level `__getattr__` (PEP 562) is not a finding.
+   The identity of a finding is the importing module and the imported module.
+6. **Hidden imports.** A first-party call of `importlib.import_module`, `__import__` or `importlib.util.find_spec` must name its target.
+   The check resolves each name through the imports and simple assignments of its scope, also across first-party modules.
+   A name can have more than one value, for example after a deletion. The check keeps each possible value.
+   A string literal names a target. A relative target also needs a literal package or level.
+   In a module-level `__getattr__`, a `for` loop over the literal `_LAZY_EXPORTS` mapping of that module names each key as a target.
+   This applies only when the module only reads the mapping and no other module reaches it.
+   Each target is an edge of the import graph. The layer, module-boundary and cycle checks apply to it as to a static import.
+   The cycle contract applies to the graph with these edges, after the ignored imports are removed.
+   `structural_checks.dynamic_import_allowlist` names each other call, with its reason.
+   Any other call fails the gate. Any other use that passes on one of these callables or modules also fails the gate.
+   This check has no baseline.
+
+The checks in this ADR and in ADR-036 enforce these rules:
+
+| Rule | Check |
+| --- | --- |
+| A package imports only lower packages. | `module_boundaries` (ADR-036) and `raes-package-layers` |
+| A package uses another package only through its public prefixes. | `module_boundaries` `public_import_prefixes` (ADR-036) |
+| A module does not import a private module or name of another module. | `module_boundaries` (ADR-036) and check 2 |
+| Code does not access a private member of another object. | Check 4 |
+| An import inside a function needs a reason other than a cycle. | Check 5 |
+| A dynamic import does not hide an edge. | Check 6 |
+| No import cycle exists between sibling modules or packages. | `raes-sibling-cycles` and `raes-package-layers` |
 
 ### 2. Baselines
 
@@ -72,6 +102,7 @@ Each check records the current findings as exact identities:
   `unmatched_ignore_imports_alerting` is `error`.
   The cycle debt is the set of cycle breakers that grimp nominates and that are on a cycle.
 - `tools/policy/structural_baseline.json` keeps the cyclic components of each package, each private import with its occurrence count, and each deep class with its ancestor count.
+  It also keeps each private member access and each import inside a function, with its occurrence count.
   It also records the adoption commit, the analyzer versions and the analysis options.
 
 ### 3. Invariants
@@ -86,6 +117,7 @@ Each check records the current findings as exact identities:
 - **I7** The analysis record in the baseline equals the installed analyzer versions and the configured options.
 - **I8** A missing analyzer, unreadable or unsafe source, or an unresolved package base class fails the gate. It never gives an empty set of findings.
 - **I9** `tools/policy/exceptions.yaml` cannot waive a structural finding.
+- **I10** A counted family that the baseline at the base revision does not record is adopted when its total is not more than the total of the same check on the source at the base revision. A move gives a finding a new identity, so the bound uses totals.
 
 The cycle debt counts the imports to remove, not every import in a cycle.
 An import that keeps the current direction inside a component does not add to that count.
@@ -117,7 +149,7 @@ Pull request review defends against a deliberate change to them.
 
 ### Positive
 
-- CI fails on a new import cycle, a new private import and a new deep class.
+- CI fails on a new import cycle, private import, private member access, import inside a function, hidden import or deep class.
 - Debt can only decrease, and each refactor change shows its progress as baseline removals.
 - One structural gate serves CI, `make policy` and the local nox sessions.
 
@@ -129,7 +161,7 @@ Pull request review defends against a deliberate change to them.
 
 ### Risks
 
-- The checks do not see dynamic imports, such as `importlib.import_module`, or attribute access.
+- The checks do not see an attribute access through `getattr` with a computed name.
 - grimp can nominate an import that is not on a cycle. I3 keeps such imports out of the baseline.
 
 ## Amendments
@@ -137,3 +169,4 @@ Pull request review defends against a deliberate change to them.
 | Date | Commit/PR | Summary |
 | --- | --- | --- |
 | 2026-10-30 | #1752 | I6: the adoption commit bounds a baseline that is absent at the base revision. Thus a dev to main promotion can pass. |
+| 2026-10-31 | #1711 | Checks 4 to 6: private members, imports inside functions and hidden imports. Check 6 applies the layer and module-boundary rules to each dynamic edge. I10 adopts a new counted family. A table names the check for each structural rule. |

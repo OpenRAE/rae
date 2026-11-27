@@ -100,7 +100,7 @@ def selected_consumer_rows(
         raise ValueError("consumer selector is undefined, duplicated, or outside the target owner resource")
     selected = set(chosen)
     return [
-        row.model_dump(mode="python", by_alias=True)
+        row.model_dump(mode="python", by_alias=True, exclude_unset=True)
         for row in rows
         if _consumer_identity(row.node, row.mount_destination, family.nodes) in selected
     ]

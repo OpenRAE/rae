@@ -33,7 +33,7 @@ from .participant_opacity import (
     ParticipantOpacityRuntimeSupportModel,
 )
 from .participant_runtime import ParticipantRuntimeOrderingBasis
-from .schema_invariants import _add_raes_invariant
+from .schema_invariants import add_raes_invariant
 
 _TRANSFORMATION_OPERATIONS = frozenset(
     {
@@ -420,14 +420,14 @@ class ParticipantCrossingOccurrenceModel(ParticipantRuntimeBaseEnvelopeModel):
     ) -> JsonSchemaValue:
         json_schema = handler(core_schema)
         json_schema = handler.resolve_ref_schema(json_schema)
-        _add_raes_invariant(
+        add_raes_invariant(
             json_schema,
             "participant-crossing-context-agreement",
             "Every crossing fact must resolve typed subjects, exact policy revisions, predecessor stages, "
             "evidence, markings, and order coordinates without retroactive authorization or identity reuse.",
             inputs=[{"contract_id": "participant-crossing-occurrence-v1", "instance_path": "#"}],
         )
-        _add_raes_invariant(
+        add_raes_invariant(
             json_schema,
             "participant-crossing-stage-separation",
             "Requested, decided, transformed, disclosed, attempted, delivered, observed, and audited facts "

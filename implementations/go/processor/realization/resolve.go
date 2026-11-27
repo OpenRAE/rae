@@ -40,7 +40,7 @@ func Resolve(requirements []Requirement, authority []Authority, options ResolveO
 		return Resolution{}, err
 	}
 	result := Resolution{Requirements: []Requirement{}, Authority: []Authority{}, Diagnostics: []diagnostic.Diagnostic{}}
-	opened := map[requirementIdentity]bool{}
+	opened := map[requirementIdentity]string{}
 	for _, input := range requirements {
 		requirement, include, isOpen, resolveErr := resolveRequirement(input, decisions[requirementKey(input)])
 		if resolveErr != nil {
@@ -49,7 +49,9 @@ func Resolve(requirements []Requirement, authority []Authority, options ResolveO
 		if !include {
 			continue
 		}
-		opened[requirementKey(input)] = isOpen
+		if isOpen {
+			opened[requirementKey(input)] = *requirement.Posture
+		}
 		result.Requirements = append(result.Requirements, requirement)
 	}
 
@@ -83,7 +85,7 @@ func resolutionDiagnostics(requirements []Requirement, options ResolveOptions) (
 	return append(findings, envelopeFindings...), nil
 }
 
-func resolveAuthority(authority []Authority, known map[requirementIdentity]bool, decisions map[requirementIdentity]string, opened map[requirementIdentity]bool) ([]Authority, error) {
+func resolveAuthority(authority []Authority, known map[requirementIdentity]bool, decisions, opened map[requirementIdentity]string) ([]Authority, error) {
 	result := make([]Authority, 0, len(authority))
 
 	for _, input := range authority {
@@ -100,8 +102,8 @@ func resolveAuthority(authority []Authority, known map[requirementIdentity]bool,
 			}
 			entry.Delegated = false
 		}
-		if opened[key] {
-			entry.Posture = termOpen
+		if posture, open := opened[key]; open {
+			entry.Posture = posture
 		}
 		result = append(result, entry)
 	}
@@ -175,7 +177,7 @@ func lowerPendingRequirement(requirement *Requirement, decision string) (bool, e
 		requirement.StructureError = true
 	}
 	if isOpen {
-		posture := termOpen
+		posture := openedPosture(*requirement)
 		requirement.Posture = &posture
 	}
 	return isOpen, nil

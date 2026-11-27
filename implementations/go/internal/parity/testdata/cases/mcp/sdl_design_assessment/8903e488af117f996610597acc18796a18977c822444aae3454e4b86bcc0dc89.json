@@ -1,0 +1,317 @@
+{
+  "args": [],
+  "command": "sdl_design_assessment",
+  "files": {
+    "arguments.json": "sha256:0a8c0e01aa3bc5e98f05b14f986a0c3cf14fa12a05ca632e257fde9f00169a75"
+  },
+  "name": "contracts/fixtures/sdl/participant-episode-policy-v1/valid/standalone-episode-structure.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "design_notes": [
+            {
+              "message": "No objectives are authored; range intent and success criteria may be hard to assess.",
+              "severity": "warning",
+              "topic": "objectives"
+            },
+            {
+              "message": "Agents declare action names without action contracts; do not treat action names as behavior semantics.",
+              "severity": "warning",
+              "topic": "participant_actions"
+            },
+            {
+              "message": "Agents are present without observation boundaries; participant-visible state claims are limited.",
+              "severity": "warning",
+              "topic": "participant_visibility"
+            }
+          ],
+          "diagnostics": [
+            {
+              "address": "time.model",
+              "code": "time.unsupported-capability",
+              "domain": "time",
+              "severity": "error",
+              "stage": "assessment"
+            },
+            {
+              "address": "evidence_requirements.replay-clock-evidence",
+              "code": "capture.offer-missing",
+              "domain": "capture",
+              "severity": "error",
+              "stage": "assessment"
+            },
+            {
+              "address": "evidence_requirements.replay-reset-evidence",
+              "code": "capture.offer-missing",
+              "domain": "capture",
+              "severity": "error",
+              "stage": "assessment"
+            }
+          ],
+          "plan": {
+            "diagnostic_count": 3,
+            "is_valid": false,
+            "operations": {
+              "evaluation": {
+                "create": 2
+              },
+              "orchestration": {},
+              "provisioning": {
+                "create": 1
+              }
+            },
+            "resources": {
+              "evaluation": 2,
+              "orchestration": 0,
+              "provisioning": 1
+            },
+            "startup_order": {
+              "evaluation": [
+                "evaluation.proposition.console-ready",
+                "evaluation.assertion.console-ready"
+              ],
+              "orchestration": []
+            }
+          },
+          "runtime_model": {
+            "diagnostic_count": 0,
+            "domains": {
+              "evaluation": {
+                "condition_bindings": 0,
+                "objectives": 0
+              },
+              "orchestration": {
+                "events": 0,
+                "inject_bindings": 0,
+                "injects": 0,
+                "scripts": 0,
+                "stories": 0,
+                "workflows": 0
+              },
+              "participant": {
+                "action_contracts": 0,
+                "observation_boundaries": 0,
+                "outcome_interpretation_rules": 0,
+                "participant_behaviors": 1
+              },
+              "provisioning": {
+                "account_placements": 0,
+                "content_placements": 0,
+                "feature_bindings": 0,
+                "networks": 0,
+                "nodes": 1
+              }
+            },
+            "metadata": {
+              "agents": 1,
+              "capability_constraints": 0,
+              "entities": 1,
+              "relationships": 0
+            },
+            "templates": {
+              "conditions": 0,
+              "features": 0,
+              "injects": 0
+            }
+          },
+          "scenario": {
+            "instantiation": {
+              "binding_count": 0,
+              "import_count": 0,
+              "profile": null
+            },
+            "name": "act-623",
+            "populated_sections": {
+              "agents": 1,
+              "entities": 1,
+              "nodes": 1
+            }
+          },
+          "stages": [
+            {
+              "detail": "ok",
+              "stage": "parse",
+              "status": "ok"
+            },
+            {
+              "detail": "ok",
+              "stage": "semantic_validation",
+              "status": "ok"
+            },
+            {
+              "detail": "ok",
+              "stage": "instantiation",
+              "status": "ok"
+            },
+            {
+              "detail": "ok",
+              "stage": "compilation",
+              "status": "ok"
+            },
+            {
+              "detail": "reference backend dry-run",
+              "stage": "planning",
+              "status": "ok"
+            }
+          ],
+          "status": "needs_attention"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "design_notes": [
+          {
+            "message": "No objectives are authored; range intent and success criteria may be hard to assess.",
+            "severity": "warning",
+            "topic": "objectives"
+          },
+          {
+            "message": "Agents declare action names without action contracts; do not treat action names as behavior semantics.",
+            "severity": "warning",
+            "topic": "participant_actions"
+          },
+          {
+            "message": "Agents are present without observation boundaries; participant-visible state claims are limited.",
+            "severity": "warning",
+            "topic": "participant_visibility"
+          }
+        ],
+        "diagnostics": [
+          {
+            "address": "time.model",
+            "code": "time.unsupported-capability",
+            "domain": "time",
+            "severity": "error",
+            "stage": "assessment"
+          },
+          {
+            "address": "evidence_requirements.replay-clock-evidence",
+            "code": "capture.offer-missing",
+            "domain": "capture",
+            "severity": "error",
+            "stage": "assessment"
+          },
+          {
+            "address": "evidence_requirements.replay-reset-evidence",
+            "code": "capture.offer-missing",
+            "domain": "capture",
+            "severity": "error",
+            "stage": "assessment"
+          }
+        ],
+        "plan": {
+          "diagnostic_count": 3,
+          "is_valid": false,
+          "operations": {
+            "evaluation": {
+              "create": 2
+            },
+            "orchestration": {},
+            "provisioning": {
+              "create": 1
+            }
+          },
+          "resources": {
+            "evaluation": 2,
+            "orchestration": 0,
+            "provisioning": 1
+          },
+          "startup_order": {
+            "evaluation": [
+              "evaluation.proposition.console-ready",
+              "evaluation.assertion.console-ready"
+            ],
+            "orchestration": []
+          }
+        },
+        "runtime_model": {
+          "diagnostic_count": 0,
+          "domains": {
+            "evaluation": {
+              "condition_bindings": 0,
+              "objectives": 0
+            },
+            "orchestration": {
+              "events": 0,
+              "inject_bindings": 0,
+              "injects": 0,
+              "scripts": 0,
+              "stories": 0,
+              "workflows": 0
+            },
+            "participant": {
+              "action_contracts": 0,
+              "observation_boundaries": 0,
+              "outcome_interpretation_rules": 0,
+              "participant_behaviors": 1
+            },
+            "provisioning": {
+              "account_placements": 0,
+              "content_placements": 0,
+              "feature_bindings": 0,
+              "networks": 0,
+              "nodes": 1
+            }
+          },
+          "metadata": {
+            "agents": 1,
+            "capability_constraints": 0,
+            "entities": 1,
+            "relationships": 0
+          },
+          "templates": {
+            "conditions": 0,
+            "features": 0,
+            "injects": 0
+          }
+        },
+        "scenario": {
+          "instantiation": {
+            "binding_count": 0,
+            "import_count": 0,
+            "profile": null
+          },
+          "name": "act-623",
+          "populated_sections": {
+            "agents": 1,
+            "entities": 1,
+            "nodes": 1
+          }
+        },
+        "stages": [
+          {
+            "detail": "ok",
+            "stage": "parse",
+            "status": "ok"
+          },
+          {
+            "detail": "ok",
+            "stage": "semantic_validation",
+            "status": "ok"
+          },
+          {
+            "detail": "ok",
+            "stage": "instantiation",
+            "status": "ok"
+          },
+          {
+            "detail": "ok",
+            "stage": "compilation",
+            "status": "ok"
+          },
+          {
+            "detail": "reference backend dry-run",
+            "stage": "planning",
+            "status": "ok"
+          }
+        ],
+        "status": "needs_attention"
+      }
+    }
+  },
+  "surface": "mcp"
+}

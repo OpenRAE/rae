@@ -36,7 +36,7 @@ func (e *Validator) localModels(id string, root any) error {
 		return propositionTruth(root)
 	case termRuntimeSnapshotV1:
 		return e.snapshotLocalModels(root)
-	case "experiment-study-v1":
+	case contractExperimentStudy:
 		return studyFactorDeclarations(root)
 	case "semantic-profile-v1":
 		return e.semanticProfile(root)
@@ -212,6 +212,8 @@ func (e *Validator) initialModel(id string, root any, data []byte) error {
 }
 func (e *Validator) localModelDetails(id string, root any) error {
 	switch id {
+	case termAssignedTrialV1, termAssignedTrialControlV1, termTrialOutcomeV1:
+		return e.trialHandoffLocal(id, root)
 	case termBackendMaterializationAttestationV1:
 		return require(len(stringAt(root, "sdl")) <= 4*1048576)
 	case termMaterializedScenarioV1:

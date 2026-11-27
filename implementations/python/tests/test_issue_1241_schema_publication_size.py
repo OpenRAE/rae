@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 from jsonschema import Draft202012Validator
-from raes_contracts.contracts import schema_bundle
+from raes_schemas import schema_bundle
 
 
 def test_published_materialized_schema_fits_the_existing_file_budget():
@@ -17,7 +17,7 @@ def test_published_materialized_schema_fits_the_existing_file_budget():
 
 
 def test_shared_rules_expand_to_the_exact_unfactored_schema(monkeypatch):
-    from raes_contracts.contracts import bundle
+    from raes_schemas import bundle
 
     actual = schema_bundle()["materialized-scenario-v1"]
     with monkeypatch.context() as patch:

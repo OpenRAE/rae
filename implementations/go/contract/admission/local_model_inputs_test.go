@@ -53,7 +53,7 @@ func TestAdditionalContractModelsMatchIndependentPython(t *testing.T) {
 		Cases []localModelInputCase `json:"cases"`
 	}
 	readFullReferenceJSON(t, "testdata/expanded-model-inputs.json", &reference)
-	if len(reference.Cases) != 1049 {
+	if len(reference.Cases) != 1042 {
 		t.Fatal("additional model inventory changed")
 	}
 	e := boundTestOwner(t)

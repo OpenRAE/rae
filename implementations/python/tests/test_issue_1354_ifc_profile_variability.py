@@ -13,8 +13,11 @@ from ifc_profile_variability_model import (
     release,
 )
 from jsonschema import Draft202012Validator
-from raes_contracts.contracts import ParticipantBoundaryFlowPolicyProfileModel, schema_bundle
-from raes_contracts.participant_flow_policy_profiles import load_participant_boundary_flow_policy_profile
+from raes_contracts.contracts import ParticipantBoundaryFlowPolicyProfileModel
+from raes_contracts.contracts.participant_flow_policy_profiles import (
+    load_participant_boundary_flow_policy_profile,
+)
+from raes_schemas import schema_bundle
 from sem233_boundary_flow_model import (
     FlowGateState,
     FlowOperation,

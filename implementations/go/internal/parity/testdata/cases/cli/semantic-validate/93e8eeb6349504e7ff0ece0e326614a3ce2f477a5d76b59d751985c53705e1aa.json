@@ -10,20 +10,27 @@
   ],
   "command": "semantic validate",
   "files": {
-    "input.json": "sha256:0ecc7b10c44471bc300822039c47c3824b7612b273f02a438d94bc4f0d1bcec5"
+    "input.json": "sha256:05eb921c21b18cd6e0745c852e10688118578f3f4a18d08c3a4f2692bd9e418d"
   },
   "name": "contracts/fixtures/candidate-synthesis/sdl-candidate-synthesis-record-v1/valid/attack-enterprise",
   "result": {
-    "exit_code": 0,
+    "exit_code": 1,
     "stdout": {
       "contract_id": "sdl-candidate-synthesis-record-v1",
-      "diagnostics": [],
+      "diagnostics": [
+        {
+          "address": "sdl-candidate-synthesis-record-v1",
+          "code": "conformance.schema-invalid",
+          "domain": "conformance",
+          "severity": "error"
+        }
+      ],
       "migration_policy": null,
       "normalization_profile": null,
       "operation": "validate",
       "payload": {
-        "admitted": true,
-        "member_count": 12,
+        "admitted": false,
+        "member_count": 11,
         "phase": "contract-admission",
         "root_type": "object"
       },
@@ -33,7 +40,7 @@
         "network": "disabled"
       },
       "source_format": null,
-      "status": "success",
+      "status": "invalid",
       "transform_profile": null,
       "validation_strength": "structural"
     }

@@ -19,11 +19,12 @@ malformed nested structures, and changed snapshot constraints are rejected even
 when surrounding manifest and observation digests have been rebound.
 
 The offline gate checks these shapes before projecting historical identity joins.
-Policy constants independently pin the manifest and the canonical digests of the
-twelve retained evidence records. Rebinding artifact, observation, or manifest
+Policy constants independently pin each manifest and the canonical digests of the
+fourteen retained evidence records. Rebinding artifact, observation, or manifest
 metadata cannot authorize a replacement schema or an unrecorded historical
 artifact. Computed checks verify model, graph, configuration, snapshot and witness
 digest joins, source/authored joins, core references, and recorded witness steps.
+
 The finite corpus pins also preserve the original records' remaining invariants.
 It uses an empty external-reference registry and never invokes current artifact
 models, analyzers, solvers, or CLI replay for historical evidence. Shape admission
@@ -35,5 +36,11 @@ independently pinned. `manifest-v2.json` supplies frozen shapes for retained
 progressive evidence records that became historical with the materialization
 capture. The gate accepts a retained record through either frozen shape
 version, then checks the complete record's immutable identity and joins.
-Current release 21.0.0 uses production APIs and CLI replay; archival admission
+
+`manifest-v3.json` supplies the frozen satisfiability evidence v2 shape. Capture
+`79da43a6` retains two records with that shape, and they became historical with
+the next capture. The shape narrows the witness snapshot to the exact snapshot of
+that capture. The exploit-path entry reuses the v2 exploit-path shape.
+
+The current release uses production APIs and CLI replay. Archival admission
 never substitutes for that current-code check.

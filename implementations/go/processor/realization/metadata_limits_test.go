@@ -31,7 +31,7 @@ func TestRecursiveMetadataRefusalsCannotProducePartialConstraintAuthority(t *tes
 	for _, test := range []struct {
 		state concernMetadata
 		depth int
-	}{{concernMetadata{}, admission.DefaultConstraintLimits().MaxDepth + 1}, {concernMetadata{nodes: admission.DefaultConstraintLimits().MaxNodes}, 0}} {
+	}{{concernMetadata{}, admission.PlanAuthorityConstraintLimits().MaxDepth + 1}, {concernMetadata{nodes: admission.PlanAuthorityConstraintLimits().MaxNodes}, 0}} {
 		state := test.state
 		state.collect(nil, nil, "", "", "", test.depth)
 		if !state.invalid {

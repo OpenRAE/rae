@@ -21,6 +21,9 @@ func (e *Validator) backendNormalized(id string, value any) (any, error) {
 	if id == termBackendOperationCapabilitiesV1 && at(v, "execution_policy") == nil {
 		delete(object(v), "execution_policy")
 	}
+	if id == termBackendOperationRequestV1 && at(v, "workflow_step") == nil {
+		delete(object(v), "workflow_step")
+	}
 	return v, nil
 }
 

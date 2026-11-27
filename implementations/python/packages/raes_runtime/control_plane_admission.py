@@ -160,6 +160,9 @@ class RuntimeAdmissionMixin:
         legacy_request_fingerprint: str = "",
         new_claim_blocked: NewClaimBlock = None,
     ) -> ControlPlaneOperationRecord:
+        authority = getattr(self, "_mutation_authority", None)
+        if authority is not None:
+            authority.require_live_child_scope()
         self._assert_runtime_owner()
         require_idempotency_key(record.idempotency_key)
         new_claim_blocked, reservation_error = self._effect_claim_block(record, new_claim_blocked)

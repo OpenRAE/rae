@@ -16,6 +16,7 @@ type executionPlan struct {
 	materializationSource      json.RawMessage
 	materializationDiagnostics []diagnostic.Diagnostic
 	augmentationScopeRequired  bool
+	safeStates                 []json.RawMessage
 	purpose                    string
 	profileAuthority           *binding.PlanRealizationProfilesV1
 	policyDiagnostics          map[string][]diagnostic.Diagnostic

@@ -18,6 +18,10 @@ from raes_contracts.contracts import (
     TrialCoordinateModel,
 )
 from raes_contracts.contracts.experiment_bindings import ParticipantConfigurationResultModel
+from raes_contracts.contracts.participant_configuration import (
+    ConfigurationOverrideModel,
+    realize_participant_configuration,
+)
 from raes_contracts.experiment_bindings import (
     ApparatusManifest,
     ApparatusManifestKey,
@@ -25,7 +29,6 @@ from raes_contracts.experiment_bindings import (
     ParticipantManifestKey,
     validate_experiment_binding_targets,
 )
-from raes_contracts.participant_configuration import ConfigurationOverrideModel, realize_participant_configuration
 
 from .models import CompilationFailure, TrialCompilationRequest
 from .policies import CoordinateSelections, ResolvedSelection

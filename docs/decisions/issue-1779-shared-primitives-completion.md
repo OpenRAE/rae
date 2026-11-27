@@ -21,6 +21,7 @@ The Python implementation and published schemas remain unchanged.
 
 `versions.py` names schemas. It does not compare versions.
 The published schemas remain the authority. Issue #1780 owns their Go bindings.
+
 Go has no Pydantic base class. Closed Go structs and strict decoding replace that class.
 Unknown fields and unknown digest carriers remain forbidden.
 
@@ -45,7 +46,9 @@ Record accepted values and refusals through Python reference cases. Keep
 compatibility changes already approved for ingress explicit in corpus outcomes.
 Use exact numeric comparison and independent implemented-command coverage.
 Port the timestamp/leap-second/offset, software-version, pointer, graph, logging,
-input-bound and digest regression cases. Run targeted tests locally in the
+input-bound and digest regression cases.
+
+Run targeted tests locally in the
 network-free, credential-free sandbox. CI owns complete suites, mutation and
 fuzz campaigns. Collect fixes before one consolidated push.
 
@@ -53,12 +56,13 @@ fuzz campaigns. Collect fixes before one consolidated push.
 
 - https://github.com/knqyf263/go-deb-version (MIT)
 - https://github.com/knqyf263/go-rpm-version (MIT)
-- ADR-116, ADR-118, ADR-121 and ADR-122 in this repository.
+- ADR-116, ADR-118, ADR-123 and ADR-124 in this repository.
 
 go-deb-version narrows digit runs to machine integers.
 This loses values in the governed 256-character domain.
 Overflow can change the result.
 Debian ordering follows the Debian Policy algorithm instead.
+
 It compares normalized digit strings by length, then lexical order.
 It never narrows digit runs to machine integers.
 The RPM adapter compares epochs exactly before it calls the installed library.
@@ -103,7 +107,7 @@ Privacy and control-character rules still apply.
 ## Machine-checked interface commitments
 
 The architecture model records the intended typed interfaces for these packages.
-These commitments bind this design to those interfaces under ADR-122.
+These commitments bind this design to those interfaces under ADR-124.
 <!-- go-api implementations/go/base/clock 7f59594ce66222adb63a00e1ece5b889d6e531f6eeb68a5bca7398773238fcbd -->
 <!-- go-api implementations/go/base/fault 5bb58f771c0ad4d13ad2a8417dbc875034009e187a5929c35c5c8a3ff7ee926d -->
 <!-- go-api implementations/go/internal/base/timestamp c79504fc0ab6c66598fc2a8d8c9bf3ccbbc1f5f6e8954e9d902df236d4635500 -->

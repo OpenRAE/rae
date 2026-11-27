@@ -1,50 +1,71 @@
-# RAES Examples
+# RAES examples
 
-This directory contains non-normative worked examples, templates, and reusable
-patterns for authoring agentic environments with RAES SDL. They are useful for
-reading, testing, and adapting current SDL behavior. They are not conformance
-fixtures, schemas, deployment recipes, or backend guarantees.
+Use this catalogue to select an authored example, template, or pattern.
+For a guided first result, start with the [quickstart](../docs/public/quickstart.md).
+Continue with the [first-scenario tutorial](../docs/public/tutorials/first-scenario.md) before selecting a larger example.
 
-The current corpus is strongest in cyber and infrastructure scenarios. Those
-examples demonstrate the domain-neutral authored-scenario model; they do not
-limit RAES to cyber or prove complete support for AI security, AI safety,
-testing, research, evaluation, or any additional domain. Future application
-areas extend through their own examples, vocabularies, profiles, assets,
-backends, and evidence requirements.
+These files are non-normative authoring examples.
+They are not conformance fixtures, deployment recipes, or backend guarantees.
+The corpus mainly covers cyber and infrastructure scenarios.
+This coverage does not limit the language to cyber or establish support for every research domain.
+Other domains need their own examples, vocabularies, profiles, assets, backends, and evidence requirements.
 
-## Current Corpus
+## Current corpus
 
-| File | Best use | Current coverage | Limits |
-|------|----------|------------------|--------|
-| [`scenarios/cloud-resources/cloud-secret-cross-project.sdl.yaml`](scenarios/cloud-resources/cloud-secret-cross-project.sdl.yaml) | Cross-project identity, policy and secret-version descriptions | Focused schema, reference, composition and compilation tests | Synthetic metadata and illustrative evidence references; no cloud deployment or certified access result |
-| [`scenarios/hospital-ransomware-surgery-day.sdl.yaml`](scenarios/hospital-ransomware-surgery-day.sdl.yaml) | Large enterprise and clinical operations scenario | Disk-backed example test; complex example checks for objectives, agents, relationships, content, stories, conditions, direct refs | Does not deploy a hospital range or prove clinical exercise adequacy |
-| [`scenarios/satcom-release-poisoning.sdl.yaml`](scenarios/satcom-release-poisoning.sdl.yaml) | Supply-chain, release, tenant, and rollback scenario | Disk-backed example test; complex example checks for objectives, agents, relationships, content, stories, conditions, workflows, enum-backed variables | Does not implement a CI/CD backend or production release system |
-| [`scenarios/port-authority-surge-response.sdl.yaml`](scenarios/port-authority-surge-response.sdl.yaml) | IT/OT, customs, yard operations, and recovery scenario | Disk-backed example test; complex example checks for objectives, agents, relationships, content, stories, conditions, workflows, direct refs | Does not implement OT control, safety validation, or port operations |
-| [`scenarios/techvault.sdl.yaml`](scenarios/techvault.sdl.yaml) | Runtime inventory and image provenance parity example | Disk-backed example test | Does not provide a deployable TechVault application or image build pipeline |
-| [`scenarios/enterprise-participant-evidence-loop.sdl.yaml`](scenarios/enterprise-participant-evidence-loop.sdl.yaml) | Reference scenario for a generic enterprise participant/evidence loop | Disk-backed example test; focused processor compile check for participant behaviors, action contracts, observation boundaries, Wazuh evidence, policy provenance, and boundary evidence surfaces | Does not prove a concrete coding-agent runner, APTL/libvirt realization, TechVault coverage, or broad benchmark capability |
-| [`scenarios/initial-service-state.sdl.yaml`](scenarios/initial-service-state.sdl.yaml) | Provider-neutral service-owned initial content | Disk-backed semantic validation of exact service binding, operation requirements, readback evidence, and participant projection | No current backend claims the `service-content-v1` materialization profile |
-| [`scenarios/techvault-bounded-native.sdl.yaml`](scenarios/techvault-bounded-native.sdl.yaml) | Bounded TechVault VM/network substrate with explicit resources and network policy | Disk-backed example test; RAES 7.0.0 used it for the removed libvirt exactness and cleanup certification | Deliberately excludes guest images, placements, services, ACLs, readiness, applications, and SOC claims |
-| [`scenarios/cross-backend-minimal.sdl.yaml`](scenarios/cross-backend-minimal.sdl.yaml) | Smallest scenario resolving inside more than one provisioning backend's realization envelope | Disk-backed example test; shared input for backend distributions' cross-backend parity checks | Does not exercise an OCI runtime or live libvirt/QEMU daemon and makes no infrastructure-equivalence or fidelity claim |
-| [`scenarios/reconciliation-demo-v1.sdl.yaml`](scenarios/reconciliation-demo-v1.sdl.yaml) | Baseline version of the reconciliation demonstration pair | Planner reconciliation across scenario versions, exercised end to end through `raes processor reconcile` | Plans only; the projected snapshot is assumed state, never backend readback or proof of realization |
-| [`scenarios/reconciliation-demo-v2.sdl.yaml`](scenarios/reconciliation-demo-v2.sdl.yaml) | Modified version that creates, updates, deletes, and leaves resources unchanged in one plan | Exact `create`/`update`/`delete`/`unchanged` outcomes across provisioning, orchestration, and evaluation | Same limits as the baseline; the pair demonstrates planner behavior, not a deployable environment |
-| [`scenarios/guided-web-probe.sdl.yaml`](scenarios/guided-web-probe.sdl.yaml) | Finished file of the public [validate, compile, and inspect a scenario plan](../docs/public/sdl/validate-compile-plan.md) guide | Disk-backed example test; focused checks that the guide's steps rebuild this file, each step validates, and the guide's outputs and diagnostics match the CLI | Plans with a `capture.offer-missing` error against the reference dry-run manifest, which declares no capture offers; realizes nothing |
-| [`scenarios/participant-control-context/`](scenarios/participant-control-context/README.md) | Exact shared and distinct control-context assets, withheld intent, and repeated imports | Parser, compiler, navigation, and participant-factor tests | References grant no visibility, delivery, execution, or permission |
-| [`scenarios/participant-tools/`](scenarios/participant-tools/README.md) | Reusable participant tool unit imported twice, with a local tool affordance over an imported action and tool | Focused composition, compilation, rename and runtime-admission checks for tool affordances and SSH/RDP access carriers | Declares authored intent only; installs no tool, opens no session, and a declared or displayed tool authorizes no invocation |
+Each scenario below can be read with the RAES file parser.
+Use the [validation procedure](#validate-the-examples) for local checks.
+The support column names additional requirements or important limits.
+Parsing does not install software, realize a topology, or execute a participant.
 
-The corpus tests are in
-[`../implementations/python/tests/test_scenarios.py`](../implementations/python/tests/test_scenarios.py),
-with the reconciliation-pair checks in
-[`../implementations/python/tests/test_reconciliation_demonstration.py`](../implementations/python/tests/test_reconciliation_demonstration.py),
-the guide checks in
-[`../implementations/python/tests/test_issue_613_scenario_plan_guide.py`](../implementations/python/tests/test_issue_613_scenario_plan_guide.py),
-and the participant-tool checks in
-[`../implementations/python/tests/test_issue_298_tool_authoring.py`](../implementations/python/tests/test_issue_298_tool_authoring.py).
+| Example | Purpose | Required support and limits | Reference or explanation |
+| --- | --- | --- | --- |
+| [Cross-project secret](scenarios/cloud-resources/cloud-secret-cross-project.sdl.yaml) | Describe identity, policy, metadata, and secret-version access across projects. | Local parser reports capacity advisories; no cloud access result. | [Cloud example notes](scenarios/cloud-resources/README.md) |
+| [Hospital](scenarios/hospital-ransomware-surgery-day.sdl.yaml) | Read a large clinical recovery exercise. | Local parser; clinical adequacy and live realization are not established. | [SDL sections](../specs/sdl/sections.md) |
+| [Satellite release](scenarios/satcom-release-poisoning.sdl.yaml) | Read supply-chain compromise, tenant isolation, and rollback declarations. | Local parser; no CI/CD or production release backend. | [Workflows](../specs/formal/workflows/README.md) |
+| [Port authority](scenarios/port-authority-surge-response.sdl.yaml) | Read IT/OT operations and recovery declarations. | Local parser; no OT control or safety result. | [SDL sections](../specs/sdl/sections.md) |
+| [Enterprise identity and tenancy](scenarios/enterprise-identity-tenancy.sdl.yaml) | Inspect an enterprise forest, carrier placement, and shared inference tenancy. | Local parser; native identity and inference services need a backend. | [Identity and tenancy](../specs/sdl/enterprise-deployment-tenancy.md) |
+| [Participant evidence loop](scenarios/enterprise-participant-evidence-loop.sdl.yaml) | Follow a portal probe's action, observation, and evidence declarations. | Parser and processor checks; native runner and Wazuh evidence need a backend binding. | [Evidence-loop notes](scenarios/enterprise-participant-evidence-loop.README.md) |
+| [Initial service state](scenarios/initial-service-state.sdl.yaml) | Describe service-owned initial content and readback requirements. | Local semantic checks; no current backend claims the `service-content-v1` materialization profile. | [Initial service state](../specs/sdl/initial-service-state.md) |
+| [Cross-backend minimum](scenarios/cross-backend-minimal.sdl.yaml) | Supply a small common input for backend parity checks. | Local parser; live OCI or libvirt execution requires a separate backend. | [Backend ownership](../docs/public/backends.md) |
+| [Reconciliation v1](scenarios/reconciliation-demo-v1.sdl.yaml) | Supply the baseline for a reconciliation plan. | Processor dry-run manifest; projected state is synthetic. | [Reconciliation demonstration](#reconciliation-demonstration) |
+| [Reconciliation v2](scenarios/reconciliation-demo-v2.sdl.yaml) | Show create, update, delete, and unchanged plan actions. | Same dry-run support; no backend readback. | [Reconciliation demonstration](#reconciliation-demonstration) |
+| [Guided web probe](scenarios/guided-web-probe.sdl.yaml) | Inspect the finished file from the scenario-plan guide. | Reference dry-run manifest reports `capture.offer-missing`; nothing is realized. | [Scenario-plan guide](../docs/public/sdl/validate-compile-plan.md) |
+| [TechVault inventory](scenarios/techvault.sdl.yaml) | Inspect runtime inventory and image provenance declarations. | Local parser; no application or image build pipeline is supplied. | [Runtime inventory](../specs/sdl/runtime-inventory.md) |
+| [TechVault operational](scenarios/techvault-operational.sdl.yaml) | Inspect steady-state service and network declarations. | Local parser; live startup requires a backend distribution. | [Backend ownership](../docs/public/backends.md) |
+| [TechVault observability](scenarios/techvault-observability-core.sdl.yaml) | Inspect the OTEL core slice. | Local parser; no live startup or monitoring result. | [Backend ownership](../docs/public/backends.md) |
+| [TechVault defensive minimum](scenarios/techvault-defensive-min.sdl.yaml) | Inspect Wazuh and OTEL declarations without the wider SOC. | Local parser; native services require a backend. | [Backend ownership](../docs/public/backends.md) |
+| [TechVault enterprise web](scenarios/techvault-enterprise-web.sdl.yaml) | Inspect the enterprise web, Wazuh, and OTEL slice. | Local parser; no live application or detection result. | [Backend ownership](../docs/public/backends.md) |
+| [TechVault attacker and target](scenarios/techvault-attacker-target.sdl.yaml) | Inspect Kali, capture, victim, Wazuh, and OTEL declarations. | Local parser; no participant or native execution result. | [Backend ownership](../docs/public/backends.md) |
+| [TechVault bounded native](scenarios/techvault-bounded-native.sdl.yaml) | Retain the bounded VM/network substrate used by RAES 7.0.0. | Local parser; the bundled libvirt certifier was removed. Guest images, services, ACLs, readiness, applications, and SOC results are excluded. | [Backend extraction](../docs/migration/concrete-backends.md) |
+| [TechVault guest certification](scenarios/techvault-guest-certified.sdl.yaml) | Retain the guest-readback example used by RAES 7.0.0. | Local parser; current native certification needs a backend-owned producer. | [Backend extraction](../docs/migration/concrete-backends.md) |
+| [Control-context kit](scenarios/participant-control-context/context-kit.sdl.yaml) | Select shared and distinct reference-only participant assets. | Synthetic descriptors; no private content or delivery. | [Control-context notes](scenarios/participant-control-context/README.md) |
+| [Control-context imports](scenarios/participant-control-context/twice-imported.sdl.yaml) | Inspect two namespaced imports with immutable asset pins. | File parser with local imports; no runtime withholding result. | [Control-context notes](scenarios/participant-control-context/README.md) |
+| [Tool kit](scenarios/participant-tools/tool-kit.sdl.yaml) | Bind a participant's tool affordance, action, and access carrier. | File parser; declarations grant no invocation authority. | [Tool notes](scenarios/participant-tools/README.md) |
+| [Tool imports](scenarios/participant-tools/twice-imported.sdl.yaml) | Inspect local participants over an imported action and tool. | File parser with local imports; no tool installation or scan. | [Tool notes](scenarios/participant-tools/README.md) |
+| [User deadline](scenarios/temporal-profiles/user-deadline.sdl.yaml) | Declare a probe completion deadline at tick 5. | Temporal-capable implementation and evidence are needed for execution. | [Temporal notes](scenarios/temporal-profiles/README.md) |
+| [Automation dwell](scenarios/temporal-profiles/automation-dwell.sdl.yaml) | Declare continuous evidence over `[0, 10)` before a probe. | Temporal-capable implementation and continuous evidence are needed for execution. | [Temporal notes](scenarios/temporal-profiles/README.md) |
 
-## Reconciliation Demonstration
+The [minimal completeness fragment](completeness/rev1/valid-sdl-fragment/minimal.sdl.yaml) supports completeness tests.
+It is a versioned test input, not a second first-use lesson.
+See the [completeness reference](../specs/sdl/scientific-scenario-completeness.md).
 
-The `reconciliation-demo-v1` / `reconciliation-demo-v2` pair makes the
-processor's reconciliation behavior directly observable. From the repository
-root:
+### Experiment examples
+
+These files describe pre-run design under `experiment-authoring-input-v1`.
+They require the experiment loader, not the SDL parser.
+They do not admit, schedule, or run experiments.
+
+| Example | Purpose | Required support and limits | Reference |
+| --- | --- | --- | --- |
+| [Smoke run](experiments/techvault-smoke-run.exp.yaml) | Describe a small replication count for one task. | Experiment loader; the task reference is unresolved unless a task is supplied. | [Experiment input boundary](../docs/decisions/adrs/adr-074-experiment-authoring-input-contract-boundary.md) |
+| [Red-tactic sweep](experiments/techvault-red-tactic-sweep.exp.yaml) | Compare declared red-tactic conditions with seeded replication. | Experiment loader; labels and seed declarations establish no applied treatment or reproducibility result. | [Experiment input boundary](../docs/decisions/adrs/adr-074-experiment-authoring-input-contract-boundary.md) |
+| [Variation selection](experiments/techvault-variation-selection.exp.yaml) | Select declared scenario-family variation domains before trial compilation. | Experiment loader and compatible trial bindings; no trial record is produced by this file. | [Variation points](../specs/sdl/variation-points.md) |
+
+## Reconciliation demonstration
+
+This is a planning demonstration for readers with a repository checkout.
+Use the frozen environment from [contributor setup](../CONTRIBUTING.md#set-up-the-repository).
+Run from the repository root:
 
 ```shell
 uv run --project implementations/python --frozen raes processor reconcile \
@@ -53,239 +74,118 @@ uv run --project implementations/python --frozen raes processor reconcile \
   --format json
 ```
 
-The command plans v1 against the reference dry-run manifest, projects that
-plan into a snapshot, plans v2 against the snapshot, and prints every
-resulting action. Against the baseline's planned state, v2 creates
-`provision.node.cache`, updates `provision.node.database`, deletes
-`provision.node.retired`, and leaves the rest unchanged.
-`evaluation.condition.database.health` also updates even though its own
-payload is unchanged, because it refresh-depends on the database node -- the
-case a payload comparison gets wrong.
+The command exits with code `0` and prints a JSON action report.
+It plans v1 against the reference dry-run manifest and projects that plan into an assumed snapshot.
+It then plans v2 against that snapshot.
+The report creates `provision.node.cache`, updates `provision.node.database`, deletes `provision.node.retired`, and leaves the remaining resources unchanged.
+`evaluation.condition.database.health` also updates because its refresh dependency is the database node.
+Its own payload is unchanged.
 
-Both files are import-free and declare nothing that regenerates per run or per
-instantiation, so the demonstration is offline and deterministic. The projected
-snapshot is synthetic assumed state: it is not backend readback, a durable
-checkpoint, or evidence that anything was realized, and the command applies,
-provisions, and starts nothing. The report summarizes resource identity and
-dependencies and deliberately omits resource payloads, which can carry authored
-credentials and content.
+Both files are import-free and regenerate nothing per run or instantiation.
+The result is deterministic and offline.
+The snapshot is synthetic assumed state, not backend readback or a durable checkpoint.
+The command applies, provisions, and starts nothing.
+The report omits resource payloads because they can contain authored credentials and content.
+See the [reconciliation tests](../implementations/python/tests/test_reconciliation_demonstration.py) for exact assertions.
 
-## Template And Pattern Library
+## Template and pattern library
 
-The AUT-806 library is indexed by
-[`library/catalog.yaml`](library/catalog.yaml). It is a versioned,
-machine-readable catalog for the current non-normative authoring library.
+The machine-readable [catalogue](library/catalog.yaml) owns the library's IDs, contracts, status, users, and limits.
+The [example-library reference](../docs/explain/reference/example-library.md) defines the metadata and loader behavior.
+A template has a complete `body` to copy.
+A pattern gives authoring guidance; it is not a complete scenario.
+The existing gate checks `validation` command strings for shape but does not execute them.
 
-| Surface | Templates | Pattern |
-|---------|-----------|---------|
-| Scenario | [`library/templates/scenario/minimal-validated-scenario.yaml`](library/templates/scenario/minimal-validated-scenario.yaml), [`library/templates/scenario/segmented-network-scenario.yaml`](library/templates/scenario/segmented-network-scenario.yaml), [`library/templates/scenario/parameterized-scenario.yaml`](library/templates/scenario/parameterized-scenario.yaml) | [`library/patterns/scenario-reference-integrity.yaml`](library/patterns/scenario-reference-integrity.yaml) |
-| Workflow | [`library/templates/workflow/parallel-objective-workflow.yaml`](library/templates/workflow/parallel-objective-workflow.yaml) | [`library/patterns/workflow-explicit-control-graph.yaml`](library/patterns/workflow-explicit-control-graph.yaml) |
-| Participant behavior | [`library/templates/participant_behavior/action-contract-observation-boundary.yaml`](library/templates/participant_behavior/action-contract-observation-boundary.yaml) | [`library/patterns/participant-behavior-contract-binding.yaml`](library/patterns/participant-behavior-contract-binding.yaml) |
-| Task | [`library/templates/task/single-objective-task.yaml`](library/templates/task/single-objective-task.yaml) | [`library/patterns/task-as-objective-contract.yaml`](library/patterns/task-as-objective-contract.yaml) |
-| Run | [`library/templates/run/timed-run-control.yaml`](library/templates/run/timed-run-control.yaml), [`library/templates/run/seeded-run-plan.yaml`](library/templates/run/seeded-run-plan.yaml) | [`library/patterns/run-window-with-evidence.yaml`](library/patterns/run-window-with-evidence.yaml) |
-| Study | [`library/templates/study/observational-study-protocol.yaml`](library/templates/study/observational-study-protocol.yaml), [`library/templates/study/two-condition-study-design.yaml`](library/templates/study/two-condition-study-design.yaml) | [`library/patterns/observable-study-conditions.yaml`](library/patterns/observable-study-conditions.yaml) |
+| Template | Purpose | Required support and limits | Reference |
+| --- | --- | --- | --- |
+| [Minimal scenario](library/templates/scenario/minimal-validated-scenario.yaml) | Connect a host, participant, objective, and workflow. | SDL parser; no backend realizability claim. | [SDL sections](../specs/sdl/sections.md) |
+| [Segmented network](library/templates/scenario/segmented-network-scenario.yaml) | Declare two segments, addresses, access rules, and a service feature. | SDL parser; native enforcement and feature installation need a backend. | [SDL sections](../specs/sdl/sections.md) |
+| [Parameterized scenario](library/templates/scenario/parameterized-scenario.yaml) | Take host settings and instance count from declared variables. | SDL parser and instantiation for supplied values; the catalogue gate does not instantiate. | [Variables](../specs/sdl/variables-and-instantiation.md) |
+| [Parallel workflow](library/templates/workflow/parallel-objective-workflow.yaml) | Join parallel objective branches. | SDL parser; no workflow execution result. | [Workflows](../specs/formal/workflows/README.md) |
+| [Participant behavior](library/templates/participant_behavior/action-contract-observation-boundary.yaml) | Bind actions, contracts, and observation boundaries. | SDL parser; native execution needs an admitted implementation. | [Participant semantics](../specs/formal/participant-semantics/README.md) |
+| [Single-objective task](library/templates/task/single-objective-task.yaml) | Express one task through an SDL objective. | SDL parser; no first-class `tasks` section. | [Task boundary](../docs/explain/reference/example-library.md#task-run-and-study-entries) |
+| [Timed run control](library/templates/run/timed-run-control.yaml) | Connect story/script timing to objective and workflow windows. | SDL parser; no run scheduling or storage. | [Run boundary](../docs/explain/reference/example-library.md#task-run-and-study-entries) |
+| [Seeded run plan](library/templates/run/seeded-run-plan.yaml) | Describe seeded replication, turns, and a step limit. | Experiment loader; seed declarations do not establish a random-stream contract. | [Experiment inputs](../docs/explain/reference/example-library.md#task-run-and-study-entries) |
+| [Observational study](library/templates/study/observational-study-protocol.yaml) | Connect observed conditions to objective and workflow declarations. | SDL parser; graded scoring belongs to the experiment/evaluator plane. | [Study boundary](../docs/explain/reference/example-library.md#task-run-and-study-entries) |
+| [Two-condition study](library/templates/study/two-condition-study-design.yaml) | Describe two levels of one treatment factor and runs per condition. | Experiment loader; membership checks establish no applied treatment. | [Experiment inputs](../docs/explain/reference/example-library.md#task-run-and-study-entries) |
 
-Each template has metadata, a `validation` list of commands with their
-expected results, and a complete `body`. Most bodies are current SDL; the
-`seeded-run-plan` and `two-condition-study-design` bodies are
-`experiment-authoring-input-v1` documents. The
-`tools/check_example_library.py` policy gate validates catalog shape, stable
-IDs, referenced paths, AUT-806 requirement references, and entry metadata. It
-checks every SDL template body and validated worked example with the SDL
-parser and semantic validator, and every experiment template body with the
-experiment authoring-input loader. It also checks that each template has a
-non-empty `validation` list whose entries have non-empty `command` and
-`expected` strings. The gate does not run those commands.
+| Pattern | Purpose | Required support | Reference |
+| --- | --- | --- | --- |
+| [Scenario references](library/patterns/scenario-reference-integrity.yaml) | Keep node, participant, objective, and workflow references valid. | Guidance; validate the authored result with the SDL parser. | [SDL validation](../docs/explain/sdl/validation.md) |
+| [Workflow graph](library/patterns/workflow-explicit-control-graph.yaml) | Declare branches, joins, retries, calls, and endings. | Guidance; validate the authored graph. | [Workflows](../specs/formal/workflows/README.md) |
+| [Participant binding](library/patterns/participant-behavior-contract-binding.yaml) | Bind actions and participant views. | Guidance; validate the authored result. | [Participant semantics](../specs/formal/participant-semantics/README.md) |
+| [Task objective](library/patterns/task-as-objective-contract.yaml) | Express participant, target, and success through an objective. | Guidance; no first-class task section. | [Task boundary](../docs/explain/reference/example-library.md#task-run-and-study-entries) |
+| [Run window](library/patterns/run-window-with-evidence.yaml) | Connect timed material and evidence to objective windows. | Guidance; no runtime execution result. | [SDL sections](../specs/sdl/sections.md) |
+| [Study conditions](library/patterns/observable-study-conditions.yaml) | Connect propositions, assertions, evidence, and workflow protocol. | Guidance; scoring needs the experiment/evaluator plane. | [Scoring boundary](../docs/decisions/adrs/adr-073-scoring-reward-language-scope.md) |
 
 ### Catalog entry metadata
 
-Every `worked_examples`, `templates`, and `patterns` entry in the catalog
-records `validation_status`, `intended_user`, and `limits`. SDL entries also
-record `sdl_sections`, and a template whose body is not SDL records
-`contract`. The policy gate rejects an entry that omits a field or breaks
-these rules.
-
-| Field | Allowed values | What the gate checks |
-|-------|----------------|----------------------|
-| `contract` | `sdl-yaml/v1`, the default when absent, or `experiment-authoring-input-v1` for a run or study template | The value is allowed for the entry. It selects how a `validated` body is checked and which `intended_user` the entry names. |
-| `validation_status` | `validated` or `guidance` | For `validated`, the gate checks the template body or worked-example file against its contract. SDL goes through the SDL parser and semantic validator, on the worked-example file or on the template body as the `sdl-yaml/v1` loader reads it from the template file, and fails on any error or advisory they report. That loader rejects duplicate keys, merge keys, and explicit tags in the template file. `experiment-authoring-input-v1` goes through the experiment authoring-input loader, on the template body as that loader's YAML reader reads it from the template file, and fails on any error it reports. That reader rejects duplicate keys, aliases, and `<<` merge keys in the template file. A `guidance` file is not checked against a contract. Templates must be `validated`; patterns must be `guidance`. |
-| `sdl_sections` | Top-level section names from [`../specs/sdl/sections.md`](../specs/sdl/sections.md), such as `nodes` or `workflows` | Present for SDL entries and absent otherwise. Each name is a current SDL section, not a metadata or composition field such as `name` or `imports`. For a `validated` entry, each listed section is present in the validated SDL. |
-| `intended_user` | `sdl-author` for SDL entries, `experiment-author` for `experiment-authoring-input-v1` templates | The value matches the entry's contract. |
-| `limits` | One or more short statements of what the entry does not show | The list is present and not empty. Reviewers check the wording. |
-
-`sdl_sections` names the sections that an entry shows for its surface, so a
-large worked example lists only some of the sections it uses. `validated`
-means that the contract's validator accepts the file or template body. It does
-not mean that a backend can realize the scenario, that anything has run, or
-that references to other artifacts resolve. A `guidance` entry is reading
-material, such as a prose pattern or a test module, and the gate does not
-check it against a contract.
+See [catalogue metadata](../docs/explain/reference/example-library.md#catalog-entry-metadata) for exact fields and validation behavior.
+`validated` means acceptance by the stated contract's validator.
+It establishes neither backend support nor execution.
+`guidance` marks material that the gate does not validate against a contract.
 
 ### Scenario templates
 
-Each scenario template claims only that current SDL validation accepts its
-body with no advisories.
-
-| Template | Shows | Does not claim |
-|----------|-------|----------------|
-| [`minimal-validated-scenario`](library/templates/scenario/minimal-validated-scenario.yaml) | One host service, one participant, an objective whose success is an assertion over an observed proposition, and a workflow with one objective step | That a backend can realize the scenario |
-| [`segmented-network-scenario`](library/templates/scenario/segmented-network-scenario.yaml) | Two switched segments, a linked host with a fixed address on each, access rules that admit only HTTPS from the user segment into the server segment, and a service feature | That a backend enforces the access rules or installs the feature |
-| [`parameterized-scenario`](library/templates/scenario/parameterized-scenario.yaml) | Host operating system, size, instance count, and service port taken from declared variables with defaults and an allowed-values list | That the scenario instantiates with every supplied value; the gate does not instantiate it |
-
-To check a template as shipped, run the catalog command in
-[Validate The Examples](#validate-the-examples). To check an adapted copy, save
-its `body` as `my-scenario.sdl.yaml` in the repository root and run this
-command from there:
-
-```shell
-uv run --project implementations/python --frozen raes semantic validate my-scenario.sdl.yaml
-```
-
-The command prints `validate: success` and exits `0` when the SDL parser and
-semantic validator accept the file. It does not report semantic-validator
-advisories, such as a compute node without `resources`. The `parse_sdl_file`
-check in [Validate The Examples](#validate-the-examples) asserts that there
-are none.
+See the individual templates above for their purpose and limits.
+Use the [template validation procedure](../docs/explain/reference/example-library.md#validate-an-adapted-template) after copying a `body`.
 
 ### Task, run, and study entries
 
-The task, run, and study surfaces keep these parts separate:
+See the [contract boundary](../docs/explain/reference/example-library.md#task-run-and-study-entries) for SDL, experiment inputs, and task loading.
+These categories do not add `tasks`, `runs`, or `studies` sections to SDL.
 
-- **SDL:** the `single-objective-task`, `timed-run-control`, and
-  `observational-study-protocol` templates and the worked examples. SDL has no
-  `tasks`, `runs`, or `studies` sections, so these use objectives, workflows,
-  timing, and observable conditions.
-- **Experiment authoring input:** the `seeded-run-plan` and
-  `two-condition-study-design` templates. Each body is an
-  `experiment-authoring-input-v1` document, the pre-run design that binds a
-  task to a run plan
-  ([ADR-074](../docs/decisions/adrs/adr-074-experiment-authoring-input-contract-boundary.md)).
-  `seeded-run-plan` declares the run count, seed, and episode controls for one
-  task. `two-condition-study-design` declares a treatment factor, two compared
-  conditions, and the runs per condition.
-  Each condition must name factors and levels declared in that experiment,
-  in both `descriptive` and `explicit-required` modes. Authors choose these
-  declarations; RAE supplies no domain catalog. Descriptive parameters do not
-  apply configuration. Explicit bindings retain their additional source and
-  target checks under
-  [ADR-094](../docs/decisions/adrs/adr-094-authoritative-cross-plane-experiment-bindings.md).
-- **Guidance:** the task, run, and study patterns, which are prose.
-- **Experiment tasks:** validate an authored JSON task with
-  `raes semantic validate --contract experiment-task-v1 my-task.json`.
-  This checks the task contract, including its protocol and artifact fields;
-  it does not fetch the scenario or verify artifact bytes. No experiment task
-  template is shipped: each author's protocol artifact needs its own checksum,
-  byte size, and creation time. The task catalog entry records this limit.
-- **Outside current support:**
-  - Automatically acquiring the task named by `task_ref`. The loader checks
-    a supplied task as shown below; without one, the reference is unresolved.
-  - Establishing domain meaning from factor labels. Membership validation uses
-    the experiment's own declarations. It does not resolve an ontology or prove
-    that a declared treatment was applied.
-  - Admitting, scheduling, or running a plan, and the `experiment-run-v1` and
-    `experiment-study-v1` records that describe actual executions and
-    analyses.
+## Validate the examples
 
-To check an adapted copy of an experiment template, save its `body` as
-`my-experiment.exp.yaml` in the repository root and run this command from
-there:
+For checkout checks, use the [frozen development environment](../CONTRIBUTING.md#set-up-the-repository).
+Run this focused test module from the repository root:
 
 ```shell
-uv run --project implementations/python --frozen python -c "import sys; from pathlib import Path; from raes_contracts.experiment_spec import load_experiment_spec; print(load_experiment_spec(Path(sys.argv[1])).spec_id)" my-experiment.exp.yaml
+uv run --project implementations/python --frozen pytest -c implementations/python/pyproject.toml implementations/python/tests/test_scenarios.py -q
 ```
 
-The command prints the document's `spec_id` and exits `0`. An invalid
-document raises `ExperimentSpecValidationError` and exits `1`.
+Exit code `0` means the selected assertions passed.
+It does not mean that any backend realized the scenarios.
+The [schema tests](../implementations/python/tests/test_example_schema_conformance.py) separately check disk-backed scenarios and experiment inputs.
 
-To check the plan against a task you supply, load the task through its contract
-model and pass it to the experiment loader:
-
-```python
-from pathlib import Path
-from raes_contracts.contracts import ExperimentTaskModel
-from raes_contracts.experiment_spec import load_experiment_spec
-
-task = ExperimentTaskModel.model_validate_json(Path("my-task.json").read_text())
-plan = load_experiment_spec(Path("my-experiment.exp.yaml"), task=task)
-```
-
-The task id and any version declared in `task_ref` must match. A mismatch raises
-`ExperimentSpecValidationError` with code `task-reference-mismatch`.
-`parse_experiment_spec(text, task=task)` offers the same check for YAML text.
-Neither function fetches task references or checks scenario or artifact content.
-
-## Validate The Examples
-
-From the Python implementation directory:
+For one scenario, run the file parser from the repository root:
 
 ```shell
-cd implementations/python
-uv run --extra dev pytest tests/test_scenarios.py -q
-```
-
-For one file, use the parser boundary directly:
-
-```python
+uv run --project implementations/python --frozen python - <<'PY'
 from pathlib import Path
-
 from raes import parse_sdl_file
 
-scenario = parse_sdl_file(
-    Path("../../examples/scenarios/port-authority-surge-response.sdl.yaml")
-)
+scenario = parse_sdl_file(Path("examples/scenarios/port-authority-surge-response.sdl.yaml"))
 assert scenario.advisories == []
+PY
 ```
 
-Validate the template and pattern catalog from the repository root:
+The command exits with code `0` and prints nothing.
+The assertion also checks advisories, which the semantic CLI success line does not report.
+
+Check the template and pattern catalogue:
 
 ```shell
 uv run --project implementations/python --frozen python tools/check_example_library.py
 ```
 
-## How To Use These Files
+Exit code `0` with no output means the catalogue and validated bodies passed their checks.
+A failure reports a rule and path, then exits nonzero.
+The gate does not run each entry's command strings.
+The [catalogue reference](../docs/explain/reference/example-library.md) gives its exact coverage.
 
-Use the examples as references for current SDL shape:
+## How to use these files
 
-- section structure
-- stable identifiers and references
-- variables
-- workflows
-- objectives
-- entities and agents
-- content and evidence-like scenario material
-- runtime inventory fields where present
+Select an entry with the declarations you need.
+Read its reference and support limits before adapting it.
+Use the [section reference](../docs/explain/sdl/sections.md) for fields and the [validation guide](../docs/explain/sdl/validation.md) for checks.
+The [limitations](../docs/explain/sdl/limitations.md) and [testing guide](../docs/explain/sdl/testing.md) explain the result boundaries.
+The [revised-control examples](../docs/examples/revised-control.md) show controlled runtime tests after the first-use lesson.
 
-Check the section reference and limitations before adapting a file:
+## Template boundary
 
-- [`../docs/explain/sdl/sections.md`](../docs/explain/sdl/sections.md)
-- [`../docs/explain/sdl/validation.md`](../docs/explain/sdl/validation.md)
-- [`../docs/explain/sdl/limitations.md`](../docs/explain/sdl/limitations.md)
-- [`../docs/explain/sdl/testing.md`](../docs/explain/sdl/testing.md)
-
-## Template Boundary
-
-No template in this directory contains incomplete SDL. Files under
-`examples/scenarios/` are positive SDL examples and must load successfully from
-disk. Files under `examples/library/templates/` are reusable authoring
-templates with complete SDL or `experiment-authoring-input-v1` bodies; they are
-validated by the example-library policy gate. An SDL template body may use
-`${name}` variable placeholders, as `parameterized-scenario` does. A
-placeholder's `name` follows the variable-name grammar in
-[`../specs/sdl/variables-and-instantiation.md`](../specs/sdl/variables-and-instantiation.md)
-(lowercase letters, digits, `-`, and `_`), and the gate rejects a body whose
-placeholder names a variable that the body does not declare under `variables`.
-Text such as `${Web OS}` or `${CUSTOMER_NAME}` is not a placeholder: it stays
-literal text, and the gate does not report it as an undeclared variable.
-
-Do not add invalid or incomplete SDL files under `examples/scenarios/`.
-Negative-path examples belong in focused parser, model, validator, contract, or
-conformance tests.
-
-The task, run, and study SDL templates use current SDL wrappers rather than
-first-class `tasks`, `runs`, or `studies` sections. They show how to express
-those concepts with objectives, workflows, timing, observable conditions, and
-evidence-like references that the current implementation can validate. Graded
-scoring and reward are experiment/evaluator-plane concerns (experiment-*
-contracts) per ADR-073, not SDL surfaces. The run and study experiment
-templates are pre-run designs; see
-[Task, run, and study entries](#task-run-and-study-entries).
+Scenario files are positive examples that must load from disk.
+Template bodies are complete SDL or `experiment-authoring-input-v1` documents.
+Keep invalid inputs in focused negative tests.
+The [template reference](../docs/explain/reference/example-library.md#template-boundary) gives variable and contract rules.
+Native deployment, credentials, execution, rollback, and cleanup belong to backend distributions under [ADR-115](../docs/decisions/adrs/adr-115-concrete-backends-owned-outside-raes.md).

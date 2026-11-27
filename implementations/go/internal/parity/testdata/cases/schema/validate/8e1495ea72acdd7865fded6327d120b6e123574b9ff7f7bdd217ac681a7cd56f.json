@@ -4,11 +4,11 @@
   ],
   "command": "validate",
   "files": {
-    "payload.json": "sha256:4d2829157faf585badbdc749cdaf73cce24429d7cfbd5504b7c73d86dfca9c33"
+    "payload.json": "sha256:91e285a9531b4a9e312d4e32200cd4158e3c1d34b89c5070aa738a45e4c44926"
   },
   "name": "contracts/fixtures/time/realized-time-model-v1/valid/reference",
   "result": {
-    "valid": true
+    "valid": false
   },
   "surface": "schema"
 }

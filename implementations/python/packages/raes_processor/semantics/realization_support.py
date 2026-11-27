@@ -2,13 +2,13 @@
 
 from __future__ import annotations
 
-from raes.explicitness import ExplicitnessClass
 from raes_backend_protocols.capabilities import BackendManifest
 from raes_contracts.apparatus import (
     DECLARED_CAPABILITY_MATCH_REQUIREMENT_KIND,
     RealizationSupportDeclaration,
 )
 from raes_contracts.diagnostics import Diagnostic, Severity
+from raes_contracts.explicitness import ExplicitnessClass
 from raes_contracts.realization_structure import RealizationCollection, RealizationRecord
 from raes_contracts.software_versions import has_version_constraints, version_relations_supported
 from raes_contracts.vocabulary import RealizationSupportMode
@@ -124,10 +124,6 @@ def _observation_kind(requirement: CompiledRealizationRequirement) -> str:
     )
 
 
-def _left_empty(requirement: CompiledRealizationRequirement) -> bool:
-    return requirement.structure is None and requirement.constraint_document is None
-
-
 def _open_support_diagnostic(
     requirement: CompiledRealizationRequirement,
     declarations: list[RealizationSupportDeclaration],
@@ -144,7 +140,7 @@ def _open_support_diagnostic(
             # backend reports; the runtime gate rejects one that lacks corroboration (SEM-218 I2).
             sufficiently_observed = (
                 requirement.verification_scope is None
-                or _left_empty(requirement)
+                or requirement.authored_empty
                 or has_required_observation_support(
                     requirement,
                     supporting,

@@ -4,11 +4,11 @@
   ],
   "command": "validate",
   "files": {
-    "payload.json": "sha256:e71b710d2ee25eb866b21492898899e1db1ae058ea69f0d803892b8ed756bcc3"
+    "payload.json": "sha256:ae136f1b0314501e7507e0569b5e167d1a3c9b296d364e221cfb7aac1150206f"
   },
   "name": "contracts/fixtures/realization-envelope/realization-envelope-v1/valid/generic",
   "result": {
-    "valid": true
+    "valid": false
   },
   "surface": "schema"
 }

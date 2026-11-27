@@ -14,11 +14,14 @@ from raes_contracts.errors import ConflictError, EvidenceIntegrityError, Operati
 from raes_contracts.json_serialization import sorted_json_text
 from raes_contracts.trial_unit import TrialUnitResult, validate_trial_unit_result
 
+from .control_plane_operation_context import operation_actor_scope
 from .control_plane_store_snapshots import _snapshot_from_payload, _snapshot_payload
+from .errors import TrialPending as TrialPending
 from .operation_policy_admission import authored_attempt_budget
-from .runtime_decisions import RunPhaseDecision
-from .runtime_module_step import advance_step, step_records
+from .runtime_decisions import RunPhaseDecision, RunProgramDecision
+from .runtime_module_step import advance_step, step_key, step_records
 from .runtime_run_cleanup import advance_destroy
+from .runtime_run_driver import run_phase_key
 from .runtime_trial_decisions import TrialInterruptionDecision, TrialObservationDecision
 from .runtime_trial_services import TrialExecutionObservation, call_installed_owner
 
@@ -30,6 +33,7 @@ if TYPE_CHECKING:
     from raes_contracts.trial_unit import TrialUnitRequest
     from raes_processor.trial_realization import TrialRealization
 
+    from .control_plane_store import ControlPlaneOperationRecord
     from .runtime_run_context import RuntimeRunContext
     from .runtime_trial_decisions import TrialAttemptDecision
     from .runtime_trial_services import (
@@ -40,8 +44,8 @@ if TYPE_CHECKING:
     )
 
 
-class TrialPending(ConflictError):
-    """The attempt needs observation or reconciliation, never blind redispatch."""
+_APPLY_SUFFIX = ":apply"
+_DESTROY_SUFFIX = ":destroy"
 
 
 class RuntimeTrialUnit:
@@ -55,6 +59,7 @@ class RuntimeTrialUnit:
         identity: object | None,
     ) -> None:
         self.run, self.request, self.realization = run, replace(request), realization
+        self.store = run._store
         self.services, self.attempt, self.identity = services, attempt, identity
         started = datetime.fromisoformat(attempt.started_at)
         deadline = datetime.fromisoformat(attempt.deadline)
@@ -64,14 +69,9 @@ class RuntimeTrialUnit:
         # A local wall-clock adjustment cannot renew an admitted allowance.
         # Restoration uses only the remaining part of the retained UTC bound.
         self._deadline = monotonic() + max(0, (deadline - now).total_seconds())
-        owner = run._engine.owner
-        experiment = owner._experiments.get(attempt.experiment_id)
-        if (
-            experiment is None
-            or experiment.services is not services
-            or attempt not in owner._store.load_runtime_decisions()
-        ):
-            raise ConflictError("trial adapter is not bound to its engine admission")
+        self._engine = run._engine
+        owner = self._engine.owner
+        owner.require_trial_admission(attempt, services)
 
         self._require_request_binding()
 
@@ -87,7 +87,7 @@ class RuntimeTrialUnit:
     def observations(self) -> dict[str, TrialObservationDecision]:
         return {
             record.observation.kind: record
-            for record in self.run._store.load_runtime_decisions()
+            for record in self.store.load_runtime_decisions()
             if isinstance(record, TrialObservationDecision)
             and record.execution_attempt_id == self.request.execution_attempt_id
         }
@@ -160,6 +160,12 @@ class RuntimeTrialUnit:
 
     def prepare_retry(self) -> str:
         return self._module(4, self.services.prepare_retry)
+
+    def prepare_retry_runtime(self) -> str:
+        return self._runtime_step(self.prepare_retry)
+
+    def retire(self) -> None:
+        self._engine.owner.retire_run("run:" + self.request.run_id)
 
     def _module(
         self, phase: int, method: Callable[..., tuple[ApplyResult, TrialObservation]], *, outcome: str | None = None
@@ -236,12 +242,30 @@ class RuntimeTrialUnit:
             return "indeterminate"
         return self._after_execution(execution.observation)
 
+    def advance_runtime(self, *, cancelled: bool = False) -> str:
+        """Advance through the existing owner, reservation, and mutation gates."""
+        return self._runtime_step(lambda: self.advance(cancelled=cancelled))
+
+    def _runtime_step(self, step: Callable[[], str]) -> str:
+        from raes_contracts.runtime_state import OperationKind
+
+        from .control_plane_mutation import control_plane_mutation
+
+        self.run._assert_runtime_owner()
+        self._engine.reserve(self.run)
+        with (
+            self.run._runtime_call(),
+            self.run._resource_claim.runtime_call(self._engine.owner),
+            control_plane_mutation(self.run, OperationKind.COMPOSITION_PHASE),
+        ):
+            return step()
+
     def _after_execution(self, execution: TrialExecutionObservation) -> str:
         capture = self._module(1, self.services.capture)
         if capture in {"pending", "indeterminate"}:
             return capture
         # Capture is retained before teardown, including an explicit failed cut.
-        teardown = advance_destroy(self.run, self.request.execution_attempt_id + ":destroy", self.identity)
+        teardown = advance_destroy(self.run, self.request.execution_attempt_id + _DESTROY_SUFFIX, self.identity)
         if teardown != "succeeded":
             return "cleanup-failed" if teardown in {"failed", "cancelled"} else teardown
         cleanup = self._module(2, self.services.cleanup, outcome=execution.state)
@@ -338,7 +362,7 @@ class RuntimeTrialUnit:
                         json.loads(self.observations()["configuration"].snapshot_json)
                     ),
                 ),
-                execution_id=self.request.execution_attempt_id + ":apply",
+                execution_id=self.request.execution_attempt_id + _APPLY_SUFFIX,
                 identity=self.identity,
             ).state
 
@@ -350,9 +374,7 @@ class RuntimeTrialUnit:
         if cleanup.receipt.trial_outcome != observed["execution"].observation.state:
             raise EvidenceIntegrityError("cleanup receipt changed the observed trial outcome")
         operation_ids = self._operation_ids()
-        receipts = tuple(
-            record.receipt for key, record in self.run._store.load_records().items() if key in operation_ids
-        )
+        receipts = tuple(record.receipt for key, record in self.store.load_records().items() if key in operation_ids)
         execution_snapshot = _snapshot_from_payload(json.loads(observed["execution"].snapshot_json))
         # The trial unit contract refuses with ValueError; the retained evidence owns the refusal (E9).
         try:
@@ -369,13 +391,50 @@ class RuntimeTrialUnit:
         return result
 
     def _operation_ids(self) -> set[str]:
-        execution_ids = {self.request.execution_attempt_id + suffix for suffix in ("", ":apply", ":destroy")}
+        execution_ids = {self.request.execution_attempt_id + suffix for suffix in ("", _APPLY_SUFFIX, _DESTROY_SUFFIX)}
         return {
             operation_id
-            for decision in self.run._store.load_runtime_decisions()
+            for decision in self.store.load_runtime_decisions()
             if isinstance(decision, RunPhaseDecision) and decision.execution_id in execution_ids
             for operation_id in decision.operation_ids
         }
+
+    def _operation_keys(self) -> set[str]:
+        execution_ids = {self.request.execution_attempt_id + suffix for suffix in ("", _APPLY_SUFFIX, _DESTROY_SUFFIX)}
+        scope = "run:" + self.request.run_id
+        decisions = self.store.load_runtime_decisions()
+        programs = {
+            item.execution_id: item
+            for item in decisions
+            if isinstance(item, RunProgramDecision) and item.run_scope == scope and item.execution_id in execution_ids
+        }
+        return {
+            run_phase_key(programs[item.execution_id], item.phase)
+            if item.execution_id in programs
+            else step_key(item.execution_id, item.phase)
+            for item in decisions
+            if isinstance(item, RunPhaseDecision) and item.run_scope == scope and item.execution_id in execution_ids
+        }
+
+    def operation_records(self) -> tuple[ControlPlaneOperationRecord, ...]:
+        ids, keys = self._operation_ids(), self._operation_keys()
+        scope, actor = "run:" + self.request.run_id, operation_actor_scope(self.identity)[0]
+        return tuple(
+            record
+            for operation_id, record in self.store.load_records().items()
+            if record.receipt.context.run_scope == scope
+            and record.receipt.context.actor_id == actor
+            and (operation_id in ids or record.idempotency_key in keys)
+        )
+
+    def phase_state(self, phase: int) -> str:
+        records = step_records(self.run, self.request.execution_attempt_id, phase)
+        if not records:
+            return "unobserved"
+        states = {record.status.state.value for record in records}
+        if states == {"succeeded"}:
+            return "succeeded"
+        return next((state for state in ("failed", "cancelled", "indeterminate") if state in states), "unobserved")
 
     @staticmethod
     def _result_evidence(observed: dict[str, TrialObservationDecision]) -> tuple[ExperimentEvidenceRecordModel, ...]:
@@ -401,23 +460,12 @@ class RuntimeTrialUnit:
         )
 
     def execute_trial(self, request: TrialUnitRequest) -> TrialUnitResult:
-        from raes_contracts.runtime_state import OperationKind
-
-        from .control_plane_mutation import control_plane_mutation
-
         if replace(request) != self.request:
             raise ConflictError("trial adapter request conflicts with its admitted entry")
-        self.run._assert_runtime_owner()
-        self.run._engine.reserve(self.run)
-        with (
-            self.run._runtime_call(),
-            self.run._resource_claim.runtime_call(self.run._engine.owner),
-            control_plane_mutation(self.run, OperationKind.COMPOSITION_PHASE),
-        ):
-            for _ in range(16):
-                state = self.advance()
-                if state == "succeeded":
-                    return self.result()
-                if state != "progress":
-                    raise TrialPending("trial requires observation or recovery through its shared runtime")
+        for _ in range(16):
+            state = self.advance_runtime()
+            if state == "succeeded":
+                return self.result()
+            if state != "progress":
+                raise TrialPending("trial requires observation or recovery through its shared runtime")
         raise TrialPending("trial has not reached its terminal cut")

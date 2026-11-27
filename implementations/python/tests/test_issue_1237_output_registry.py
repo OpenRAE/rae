@@ -45,7 +45,7 @@ def test_missing_published_schema_cannot_use_generated_fallback(tmp_path, monkey
 
 @pytest.mark.parametrize("ingress", ["protocol", "model", "content"])
 def test_missing_semantic_validator_never_degrades_to_schema_only(monkeypatch, ingress: str) -> None:
-    import raes_contracts.evidence_output_validation as registry
+    import raes_contracts.contracts.evidence_output_contracts as registry
 
     valid_offer = _offer().to_payload()
     registrations = dict(registry.evidence_output_registrations())
@@ -76,8 +76,9 @@ def test_one_exact_schema_is_checked_once_and_a_changed_schema_again(tmp_path, m
     import json
     import shutil
 
+    import raes_contracts.contracts.evidence_output_contracts as registry
     import raes_contracts.corpus as corpus
-    import raes_contracts.evidence_output_validation as registry
+    import raes_contracts.evidence_output_validation as schemas
     from jsonschema import Draft202012Validator
 
     checks = []
@@ -91,10 +92,10 @@ def test_one_exact_schema_is_checked_once_and_a_changed_schema_again(tmp_path, m
     shutil.copytree(published / "schemas", tmp_path / "schemas")
     monkeypatch.setattr(corpus, "corpus_root", lambda: tmp_path)
     monkeypatch.setattr(Draft202012Validator, "check_schema", staticmethod(counted))
-    clear = getattr(getattr(registry, "_checked_schema_validator", None), "cache_clear", lambda: None)
+    clear = getattr(getattr(schemas, "_checked_schema_validator", None), "cache_clear", lambda: None)
     clear()
     contract = "experiment-evidence-record-v1"
-    schema_path = tmp_path / "schemas" / registry.evidence_output_registrations()[contract].schema_path
+    schema_path = tmp_path / "schemas" / registry.evidence_output_registrations()[contract].schema.schema_path
 
     for _ in range(3):
         registry.resolve_evidence_output_contract(contract)

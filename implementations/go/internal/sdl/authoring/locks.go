@@ -201,7 +201,7 @@ func (c *composition) resolveLocked(decl map[string]any, lock *lockfile) (map[st
 		if record == nil {
 			return nil, importError("lock-record-missing")
 		}
-		resolved := map[string]any{sourceField: record[sourceField], namespaceField: decl[namespaceField], "version": record[requestedVersionField], "parameters": decl["parameters"], "digest": decl["digest"]}
+		resolved := map[string]any{sourceField: record[sourceField], namespaceField: decl[namespaceField], versionField: record[requestedVersionField], "parameters": decl["parameters"], "digest": decl["digest"]}
 		if text(resolved["digest"]) == "" {
 			resolved["digest"] = record[contentDigestField]
 		}

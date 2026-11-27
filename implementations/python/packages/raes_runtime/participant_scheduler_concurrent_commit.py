@@ -6,11 +6,12 @@ from typing import TYPE_CHECKING, cast
 
 from raes_contracts.addressing import require_compiled_address
 from raes_contracts.contracts import ParticipantAutonomousExecutionStateModel
+from raes_contracts.contracts.participant_action_admission import ParticipantActionAdmissionRequest
 from raes_contracts.contracts.participant_execution import ParticipantExecutionServiceStateModel
 from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.errors import ConflictError
 from raes_contracts.operational_logging import foreign_failure_record, get_logger
-from raes_contracts.participant_binding import ParticipantActionAdmissionRequest, ParticipantActionApplyResult
+from raes_contracts.participant_binding import ParticipantActionApplyResult
 from raes_contracts.runtime_state import RuntimeSnapshot
 
 from .participant_action_validation import autonomous_action_result_violation

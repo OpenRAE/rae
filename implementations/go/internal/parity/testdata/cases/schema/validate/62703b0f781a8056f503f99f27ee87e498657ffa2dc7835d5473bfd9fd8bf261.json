@@ -4,11 +4,11 @@
   ],
   "command": "validate",
   "files": {
-    "payload.json": "sha256:30790117e031037bc1f1b34512b30be6a66e1f23ac707ae541d75b0218692de2"
+    "payload.json": "sha256:6ee817dd43573d2b815f7e4051a98859020fb6a7f02d116278774c5ef56480f7"
   },
   "name": "contracts/fixtures/plans/admitted-trial-plan-v1/context-invalid/altered-allocation",
   "result": {
-    "valid": true
+    "valid": false
   },
   "surface": "schema"
 }

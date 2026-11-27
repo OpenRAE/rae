@@ -1,0 +1,63 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:fa57a7725c55e9b90a25fa7d2eb5f2f48db1f544586de044dae626e3dbfac569"
+  },
+  "name": "regression/913fc45c96c2067c8d01eaac5db562464964680973139058eab78509b18e4ae9",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "diagnostics": [
+            {
+              "code": "sdl.model.invalid",
+              "path": "/behavior_specifications/analyst-triage/episode_policy/terminal_conditions/shift-ended/timed_out/expression",
+              "range": {
+                "end": {
+                  "column": 7,
+                  "line": 165
+                },
+                "start": {
+                  "column": 11,
+                  "line": 161
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            }
+          ],
+          "stage": "parse",
+          "status": "invalid"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "diagnostics": [
+          {
+            "code": "sdl.model.invalid",
+            "path": "/behavior_specifications/analyst-triage/episode_policy/terminal_conditions/shift-ended/timed_out/expression",
+            "range": {
+              "end": {
+                "column": 7,
+                "line": 165
+              },
+              "start": {
+                "column": 11,
+                "line": 161
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          }
+        ],
+        "stage": "parse",
+        "status": "invalid"
+      }
+    }
+  },
+  "surface": "mcp"
+}

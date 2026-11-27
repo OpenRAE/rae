@@ -10,19 +10,26 @@
   ],
   "command": "semantic validate",
   "files": {
-    "input.json": "sha256:5f6c2f4adb8fbf32aaef142ecb3a635f19c6c482311b922c6b1ef2672aec692d"
+    "input.json": "sha256:ed0c47e308239df93e754d8c7a82f6e63624f2556abfda1e44ef828e0305f95a"
   },
   "name": "contracts/fixtures/candidate-synthesis/sdl-candidate-synthesis-input-v1/valid/nist-csf",
   "result": {
-    "exit_code": 0,
+    "exit_code": 1,
     "stdout": {
       "contract_id": "sdl-candidate-synthesis-input-v1",
-      "diagnostics": [],
+      "diagnostics": [
+        {
+          "address": "sdl-candidate-synthesis-input-v1",
+          "code": "conformance.schema-invalid",
+          "domain": "conformance",
+          "severity": "error"
+        }
+      ],
       "migration_policy": null,
       "normalization_profile": null,
       "operation": "validate",
       "payload": {
-        "admitted": true,
+        "admitted": false,
         "member_count": 10,
         "phase": "contract-admission",
         "root_type": "object"
@@ -33,7 +40,7 @@
         "network": "disabled"
       },
       "source_format": null,
-      "status": "success",
+      "status": "invalid",
       "transform_profile": null,
       "validation_strength": "structural"
     }

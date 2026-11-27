@@ -1,0 +1,14 @@
+{
+  "args": [
+    "trial-outcome-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:8d33bfd0bcca64276a9e0d1ab515f56f5d2376ae8e562d0cd98e6aab399b291f"
+  },
+  "name": "regression/454a1b6ea3260e2c4bc10a142ab79402d6f075e6afd0283cb301d78fd6fc1c27",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

@@ -358,6 +358,30 @@ def test_git_path_selection_failure_omits_git_output(monkeypatch: pytest.MonkeyP
     assert str(raised.value) == "git diff failed with exit code 128"
 
 
+def test_changed_test_modules_accept_a_module_that_collects_nothing_in_this_lane(
+    monkeypatch: pytest.MonkeyPatch, test_lanes: ModuleType
+) -> None:
+    """An integration-only module collects nothing here (exit 5); its own lane runs it."""
+
+    from contextlib import nullcontext
+
+    from tools.nox_support import runner
+
+    calls: list[tuple[tuple[str, ...], dict[str, object]]] = []
+    monkeypatch.setattr(runner, "_sync_project", lambda _session: None)
+    monkeypatch.setattr(runner, "_run", lambda _session, *args, **kwargs: calls.append((args, kwargs)))
+    session = SimpleNamespace(chdir=lambda _path: nullcontext())
+
+    runner._run_changed_test_modules(session, ["implementations/python/tests/test_x.py"])
+
+    assert calls == [
+        (
+            ("uv", "run", "--frozen", "python", "-m", "pytest", "tests/test_x.py", "-q"),
+            {"success_codes": (0, 5)},
+        )
+    ]
+
+
 def test_session_reporter_records_a_passed_stage(test_lanes: ModuleType) -> None:
     from tools.nox_support.runner import SessionReporter
 

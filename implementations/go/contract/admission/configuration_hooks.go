@@ -74,7 +74,7 @@ func configurationRequestBudget(request ParticipantConfigurationRequest, configu
 			slots[control.SlotID] = true
 		}
 	}
-	return configurationTreeBudget(map[string]any{"schema_version": "participant-configuration-result/v1", fieldParticipantAddress: request.ParticipantAddress, "manifest_ref": request.ManifestRef, "manifest_digest": request.ManifestDigest, "configuration": document, termConfigurationDigest: "sha256:0000000000000000000000000000000000000000000000000000000000000000"})
+	return configurationTreeBudget(map[string]any{termSchemaVersion: "participant-configuration-result/v1", fieldParticipantAddress: request.ParticipantAddress, "manifest_ref": request.ManifestRef, "manifest_digest": request.ManifestDigest, "configuration": document, termConfigurationDigest: "sha256:0000000000000000000000000000000000000000000000000000000000000000"})
 }
 func configurationTreeBudget(document any) error {
 	limits := value.Plan()

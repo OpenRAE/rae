@@ -172,6 +172,7 @@ def _os_capable_stub_manifest() -> BackendManifest:
         limited,
         supported_contract_versions=(
             limited.supported_contract_versions
+            | frozenset({"workflow-step-dispatch-v1", "workflow-step-response-v1"})
             | observation.supported_evidence_contracts
             | frozenset(offer.output_contract for offer in observation.capture_offers)
         ),

@@ -10,6 +10,10 @@ phases:
       - GOV-920
       - GOV-921
       - GOV-922
+  # Listed before sdl-language so DSL-120 matches here, not ^DSL- (#1510).
+  - id: participant-episode-policy-language
+    requirements:
+      - DSL-120
   - id: sdl-language
     patterns:
       - ^DSL-
@@ -112,6 +116,10 @@ phases:
       - ^SEM-
     blocked_until:
       - reference-implementations
+  # Listed before participant-model so ACT-623 matches here, not ^ACT- (#1510).
+  - id: participant-episode-structure
+    requirements:
+      - ACT-623
   - id: participant-model
     patterns:
       - ^ACT-
@@ -241,7 +249,6 @@ ownership:
     - specs/formal/assurance-fulfillment.yaml
     - specs/formal/participant-semantics/README.md
     - specs/formal/participant-semantics/adversarial-flow-control.md
-    - specs/formal/participant-semantics/runtime-mapping
   participant-relation-assurance:
     # Issue #973 bounded negative evidence; no runtime or tooling ownership.
     - implementations/formal/participant_crossing/counterexample_corpus.py
@@ -249,29 +256,11 @@ ownership:
     - implementations/python/tests/test_issue_973_crossing_corpus.py
     - implementations/python/tests/test_issue_973_crossing_witnesses.py
     - docs/research/participant-bisimulation/worked-evidence.md
-    # Issue #974 finite decision and admitted artifact publication.
+    # Issue #974 finite decision, built and checked from the current sources.
     - implementations/formal/participant_crossing/machine_check.py
     - implementations/formal/participant_crossing/machine_check_evidence.py
-    - implementations/formal/participant_crossing/machine_check_publication.py
     - implementations/python/tests/test_issue_974_machine_check.py
     - implementations/python/tests/test_issue_974_machine_check_publication.py
-    # Issue #975 isolated measurements; reviewer acceptance remains separate.
-    - implementations/formal/participant_crossing/reproduction_checks.py
-    - implementations/python/tests/test_issue_975_reproduction_checks.py
-    - implementations/formal/participant_crossing/reproduction.py
-    - implementations/formal/participant_crossing/reproduction_sandbox.py
-    - implementations/python/tests/test_issue_975_reproduction.py
-    - implementations/python/tests/test_issue_975_reproduction_sandbox.py
-    - implementations/python/tests/test_issue_975_reproduction_workflow.py
-    - implementations/python/tests/test_issue_975_reproduction_record.py
-    - specs/formal/participant-semantics/participant-crossing-reproduction.md
-    - specs/formal/participant-semantics/reproduction
-    # Issue #976 retained-record admission and publication facts from admitted evidence.
-    - implementations/formal/participant_crossing/reproduction_record.py
-    - implementations/formal/participant_crossing/reproduction_attestation.py
-    - implementations/formal/participant_crossing/publication.py
-    - implementations/python/tests/test_issue_976_reproduction_record.py
-    - implementations/python/tests/test_issue_976_crossing_publication.py
     - implementations/python/tests/test_issue_976_evidence_identity.py
     - tools/check_participant_opacity_proof.py
     - specs/formal/participant-semantics/participant-opacity-proof-evidence.json
@@ -314,7 +303,7 @@ ownership:
     - implementations/python/packages/raes_conformance/_authoring_observations.py
     - implementations/python/packages/raes_conformance/conformance/validators.py
     - implementations/python/packages/raes_contracts/authoring_adapters.py
-    - implementations/python/packages/raes_contracts/contracts/bundle.py
+    - implementations/python/packages/raes_contracts/schema_contributions.py
     - implementations/python/tests/test_authoring_adapters.py
     - implementations/python/tests/test_authoring_adapter_governance.py
     - implementations/python/tests/test_corpus_packaging.py
@@ -341,11 +330,9 @@ ownership:
     - docs/requirements/EXP-715/requirement.md
     - implementations/python/packages/raes_backend_protocols/observation_capture.py
     - implementations/python/packages/raes_backend_protocols/observation_manifest.py
-    - implementations/python/packages/raes_contracts/_evidence_content_validation.py
+    - implementations/python/packages/raes_contracts/contracts/evidence_satisfaction.py
     - implementations/python/packages/raes_contracts/capture_dimensions.py
     - implementations/python/packages/raes_contracts/evidence_output_validation.py
-    - implementations/python/packages/raes_contracts/evidence_proof.py
-    - implementations/python/packages/raes_contracts/evidence_satisfaction.py
     - implementations/python/packages/raes_contracts/contracts/experiment_analysis.py
     - implementations/python/packages/raes_contracts/contracts/experiment_conditions.py
     - implementations/python/packages/raes_contracts/contracts/experiment_run.py
@@ -358,7 +345,7 @@ ownership:
     - implementations/python/tests/test_issue_1237_governance.py
     - implementations/python/tests/test_issue_1237_output_registry.py
   evidence-provenance:
-    - implementations/python/packages/raes_contracts/evidence_satisfaction.py
+    - implementations/python/packages/raes_contracts/contracts/evidence_satisfaction.py
     - implementations/python/tests/test_exp_732_evidence_provenance.py
     - implementations/python/tests/test_requirement_governance.py
     - implementations/python/tests/test_specification_coverage.py
@@ -457,6 +444,50 @@ ownership:
     - implementations/python/pyproject.toml
     - implementations/python/tests
     - CHANGELOG.md
+  # DSL-120 keeps the shared sdl-language roots it reached through ^DSL-,
+  # without the paths named there for other issues and requirements, and adds
+  # the episode-policy fixtures, the participant-control guide, the semantic
+  # profile and assurance records #307 amends, and its issue scope. Other ^DSL-
+  # requirements stay in the shared phase (#1510).
+  participant-episode-policy-language:
+    - contracts/concept-authority
+    - contracts/fixtures/backend-manifest
+    - contracts/fixtures/concept-authority
+    - contracts/fixtures/sdl/participant-episode-policy-v1
+    - contracts/provenance
+    - contracts/schema-publication
+    - contracts/schema-publication-manifest.json
+    - contracts/schemas/backend-manifest
+    - contracts/schemas/plans
+    - contracts/schemas/satisfiability
+    - contracts/schemas/sdl
+    - docs/decisions/adrs
+    - docs/explain/sdl
+    - docs/governance/requirement-scopes/307.json
+    - docs/index.md
+    - docs/public/participant-control.md
+    - docs/research/formal-semantic-validation
+    - docs/research/specification-coverage
+    - docs/research/lineage/source-audit-2026-07-12.md
+    - implementations/python/packages/raes_backend_protocols
+    - implementations/python/packages/raes_backend_stubs
+    - implementations/python/packages/raes_contracts
+    - implementations/python/packages/raes_processor
+    - implementations/python/packages/raes
+    - implementations/python/tests
+    - specs/concept-authority/semantic-profiles.md
+    - specs/formal/assurance-fulfillment.yaml
+    - specs/formal/participant-behavior-model/README.md
+    - specs/formal/participant-semantics
+    - specs/formal/sdl-phases
+    - specs/sdl
+    - tools/check_sdl_catalog_parity.py
+    - tools/check_specification_coverage.py
+    - tools/formal_semantic_validation
+    - tools/policy/requirement_order.yaml
+    - CHANGELOG.md
+    # The canonical CI repair carried from #1474 (#1637) documents its locator here.
+    - docs/decisions/package-artifacts/operations.md
   sdl-language:
     # Issue #299 connects exact SDL control-context pins to existing participant configuration.
     - contracts/schemas/participant-implementation-manifest/participant-implementation-manifest-v1.json
@@ -793,7 +824,6 @@ ownership:
     - docs/research/specification-coverage/bundles/raes-standardized-specification-coverage-issue-1069-v40.json
     - docs/research/specification-coverage/execution-snapshot-v40.json
     - docs/research/specification-coverage/index.md
-    - implementations/python/packages/raes_contracts/_snapshot_updates.py
     - implementations/python/packages/raes_contracts/contracts/realization_plans.py
     - implementations/python/packages/raes_contracts/participant_control_evaluation_history.py
     - implementations/python/packages/raes_contracts/runtime_state.py
@@ -919,7 +949,7 @@ ownership:
     - docs/research/specification-coverage/captures/capture-37102d61ffe88ba5d97f95faee0a4e2efa81b609f30b1a3e00f370bf76c31584/analysis.json
     - docs/research/specification-coverage/captures/capture-37102d61ffe88ba5d97f95faee0a4e2efa81b609f30b1a3e00f370bf76c31584/manifest.json
     - docs/research/specification-coverage/captures/capture-37102d61ffe88ba5d97f95faee0a4e2efa81b609f30b1a3e00f370bf76c31584/snapshot.json
-    - implementations/python/packages/raes_contracts/contracts/bundle.py
+    - implementations/python/packages/raes_contracts/schema_contributions.py
     - implementations/python/packages/raes_contracts/contracts/participant_control_security_resolution.py
     - implementations/python/packages/raes_contracts/contracts/participant_flow_control.py
     - implementations/python/packages/raes_contracts/contracts/participant_flow_control_context.py
@@ -969,7 +999,7 @@ ownership:
     - implementations/python/packages/raes_contracts/contracts/participant_control_effect_composition.py
     - implementations/python/packages/raes_contracts/contracts/_participant_control_exports.py
     - implementations/python/tests/test_api_424_review_regressions.py
-    - implementations/python/packages/raes_contracts/participant_flow_policy_profiles.py
+    - implementations/python/packages/raes_contracts/contracts/participant_flow_policy_profiles.py
     - contracts/fixtures/backend-manifest/backend-manifest-v2/valid/stub.json
     - contracts/fixtures/concept-authority/controlled-vocabularies-v1/valid/reference.json
     # API-424 publishes closed contracts, not RUN-320 orchestration (#1072).
@@ -1159,8 +1189,7 @@ ownership:
     - implementations/python/packages/raes_contracts/contracts/mixed_composition_validation.py
     - implementations/python/packages/raes_contracts/contracts/mixed_composition_resolution.py
     - implementations/python/packages/raes_contracts/contracts/mixed_runtime.py
-    - implementations/python/packages/raes_contracts/mixed_runtime_history.py
-    - implementations/python/packages/raes_contracts/_snapshot_updates.py
+    - implementations/python/packages/raes_contracts/contracts/mixed_runtime_history.py
     - implementations/python/packages/raes_contracts/operation_lifecycle.py
     - implementations/python/packages/raes_contracts/runtime_state.py
     - implementations/python/packages/raes_contracts/contracts/realization_plans.py
@@ -1168,7 +1197,7 @@ ownership:
     - implementations/python/packages/raes_contracts/contracts/admitted_trial_plan_components.py
     - implementations/python/packages/raes_contracts/contracts/trial_compilation.py
     - implementations/python/packages/raes_contracts/json_ingress.py
-    - implementations/python/packages/raes_contracts/contracts/bundle.py
+    - implementations/python/packages/raes_contracts/schema_contributions.py
     - implementations/python/packages/raes_contracts/contracts/__init__.py
     - implementations/python/packages/raes_contracts/contracts/_exports.py
     - implementations/python/packages/raes_contracts/contracts/_mixed_composition_exports.py
@@ -1317,6 +1346,34 @@ ownership:
     - implementations/python/tests
     - specs/formal
     - CHANGELOG.md
+  # ACT-623 keeps the participant-model roots it reached through ^ACT- and adds
+  # its issue scope. Other ^ACT- requirements stay in the shared phase (#1510).
+  participant-episode-structure:
+    - tools/policy/adr_policy.yaml
+    - contracts/concept-authority
+    - contracts/fixtures
+    - contracts/schemas
+    - contracts/schema-publication
+    - contracts/schema-publication-manifest.json
+    - docs/decisions
+    - docs/explain/reference
+    - docs/explain/sdl
+    - docs/requirements
+    - docs/migration
+    - docs/research/specification-coverage
+    - docs/research/formal-semantic-validation
+    - specs/formal
+    - specs/sdl
+    - implementations/python/packages/raes
+    - implementations/python/packages/raes_processor
+    - implementations/python/packages/raes_contracts
+    - implementations/python/packages/raes_backend_protocols
+    - implementations/python/packages/raes_conformance
+    - implementations/python/packages/raes_runtime
+    - implementations/python/tests
+    - tools/policy/requirement_order.yaml
+    - CHANGELOG.md
+    - docs/governance/requirement-scopes/309.json
   participant-model:
     - contracts/concept-authority
     - contracts/fixtures
@@ -1438,10 +1495,6 @@ ownership:
     - docs/decisions/issue-1734-structural-policy-preflight.md
     - docs/decisions/issue-1734-structural-checks-design.md
     - docs/DEVELOPMENT_WORKFLOW.md
-    # The tooling lock is tool provenance in the counterexample corpus, and the
-    # runtime-mapping capture pins the changed tools and tests.
-    - specs/formal/participant-semantics/counterexamples
-    - specs/formal/participant-semantics/runtime-mapping
   decision-record-governance:
     - docs/decisions/adrs
     - docs/index.md

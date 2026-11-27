@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from raes.explicitness import ExplicitnessProvenance
 from raes_contracts.addressing import require_compiled_address
+from raes_contracts.explicitness import ExplicitnessProvenance
 from raes_contracts.planning import RealizationAuthorityMode, RealizationResolutionSource
 from raes_contracts.vocabulary import ObservationStrength, RealizationVerificationScope
 

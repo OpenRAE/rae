@@ -2,7 +2,7 @@
   "args": [],
   "command": "sdl_references",
   "files": {
-    "arguments.json": "sha256:0c03b7e7c93264b19a1aea36bfb9c2360b208aa919a6ab4a3db63476d8621e7a"
+    "arguments.json": "sha256:caa55faa2000dcd1489fc518e08051082941b9a1f17ebe176fa978ad9c9dc366"
   },
   "name": "examples/experiments/techvault-variation-selection.exp.yaml",
   "result": {
@@ -20,11 +20,11 @@
               "range": {
                 "end": {
                   "column": 23,
-                  "line": 30
+                  "line": 29
                 },
                 "start": {
                   "column": 5,
-                  "line": 30
+                  "line": 29
                 }
               },
               "severity": "error",
@@ -40,11 +40,11 @@
               "range": {
                 "end": {
                   "column": 27,
-                  "line": 39
+                  "line": 38
                 },
                 "start": {
                   "column": 5,
-                  "line": 39
+                  "line": 38
                 }
               },
               "severity": "error",
@@ -71,11 +71,11 @@
             "range": {
               "end": {
                 "column": 23,
-                "line": 30
+                "line": 29
               },
               "start": {
                 "column": 5,
-                "line": 30
+                "line": 29
               }
             },
             "severity": "error",
@@ -91,11 +91,11 @@
             "range": {
               "end": {
                 "column": 27,
-                "line": 39
+                "line": 38
               },
               "start": {
                 "column": 5,
-                "line": 39
+                "line": 38
               }
             },
             "severity": "error",

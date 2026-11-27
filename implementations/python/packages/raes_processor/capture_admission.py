@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from raes.evidence_requirements import EvidenceRequirement
+from raes.authored_scenario_evidence import AuthoredScenarioEvidenceView
 from raes.scenario import ScenarioContent
 from raes_backend_protocols.capabilities import ObservationCapabilities, ObservationCaptureOffer
 from raes_contracts.capture_dimensions import CAPTURE_DIMENSIONS, project_capture_dimensions
@@ -15,6 +15,8 @@ from raes_contracts.contracts import (
 )
 from raes_contracts.diagnostics import Diagnostic, Severity
 from raes_contracts.errors import InvalidInputError
+from raes_contracts.evidence_integrity import evidence_integrity_modes
+from raes_contracts.evidence_requirements import EvidenceRequirement
 
 _CHANNEL_CAPTURE_KIND = {
     "packet_capture": "packet-capture",
@@ -175,7 +177,7 @@ def compile_scoped_evidence_requirement_demands(
     try:
         validate_evidence_requirement_relations(
             relations,
-            scenario=relation_scenario or scenario,
+            scenario=AuthoredScenarioEvidenceView(relation_scenario or scenario),
             capture_specs=supplied_specs,
         )
     except ValueError as exc:
@@ -218,6 +220,9 @@ def capture_admission_diagnostics(
     for demand in sorted(demands, key=lambda item: (item.address, item.demand_id)):
         if demand.capture_spec_ref or demand.capture_requirement_ref:
             diagnostics.append(_diagnostic(demand, "reference-unresolved"))
+            continue
+        if set(demand.integrity_modes) - evidence_integrity_modes():
+            diagnostics.append(_diagnostic(demand, "integrity-verifier-unavailable"))
             continue
         if not offers:
             diagnostics.append(_diagnostic(demand, "offer-missing"))

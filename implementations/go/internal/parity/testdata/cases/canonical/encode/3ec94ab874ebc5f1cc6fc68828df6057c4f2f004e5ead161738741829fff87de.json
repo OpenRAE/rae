@@ -1,0 +1,14 @@
+{
+  "args": [],
+  "command": "encode",
+  "files": {
+    "value.json": "sha256:5e78edaa86d60e29a9aeaff41e0e8c2485cac32ba80e33b74730d4fe929e9674"
+  },
+  "name": "contracts/fixtures/control-plane/assigned-trial-v1/invalid/unauthorized-attempt",
+  "result": {
+    "jcs": "sha256:7c25c86bbf36b7da43dc99f1bdca8bb78b1d29d0aa5e0f3e92d61d1fb3395d3c",
+    "sorted_ascii": "sha256:7c25c86bbf36b7da43dc99f1bdca8bb78b1d29d0aa5e0f3e92d61d1fb3395d3c",
+    "sorted_unicode": "sha256:7c25c86bbf36b7da43dc99f1bdca8bb78b1d29d0aa5e0f3e92d61d1fb3395d3c"
+  },
+  "surface": "canonical"
+}

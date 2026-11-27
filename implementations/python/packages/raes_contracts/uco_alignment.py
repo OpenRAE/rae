@@ -5,7 +5,8 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from .contracts import UcoAlignmentCatalogModel
+from raes_contracts.contracts.catalogs import UcoAlignmentCatalogModel
+
 from .corpus import CONCEPT_AUTHORITY, corpus_family_root
 
 

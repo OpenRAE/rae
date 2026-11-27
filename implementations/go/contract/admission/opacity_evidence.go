@@ -67,11 +67,7 @@ func (e *Validator) opacityEvidence(i validation.Invocation) error {
 
 func opacityCounterexample(v any) error {
 	if counter := at(v, "counterexample"); counter != nil {
-		payload := map[string]any{"normalized_model_digest": at(v, "normalized_model_digest")}
-		for _, field := range []string{"safe_ref", "actual_point_ordinal", "examined_cell_size"} {
-			payload[field] = at(counter, field)
-		}
-		digest, err := jsonDigest(payload)
+		digest, err := opacityCounterexampleDigest(v)
 		if err != nil {
 			return err
 		}
@@ -80,6 +76,17 @@ func opacityCounterexample(v any) error {
 		}
 	}
 	return nil
+}
+
+// opacityCounterexampleDigest binds an analysis counterexample to the
+// normalized model it was found in.
+func opacityCounterexampleDigest(v any) (string, error) {
+	counter := at(v, "counterexample")
+	payload := map[string]any{"normalized_model_digest": at(v, "normalized_model_digest")}
+	for _, field := range []string{"safe_ref", "actual_point_ordinal", "examined_cell_size"} {
+		payload[field] = at(counter, field)
+	}
+	return jsonDigest(payload)
 }
 
 func (e *Validator) opacityModelEvidence(i validation.Invocation) error {
@@ -160,16 +167,23 @@ func opacityModelCounterexample(v, counter any) error {
 			return invalid()
 		}
 	}
-	payload := map[string]any{}
-	for _, field := range []string{"safe_ref", "actual_state_ordinal", "actual_path_transition_ordinals", fieldStrategyRef, "examined_cell_size"} {
-		payload[field] = at(counter, field)
-	}
-	for _, field := range []string{"model_digest", "profile_digest", "derived_carrier_digest"} {
-		payload[field] = at(v, field)
-	}
-	digest, err := jsonDigest(payload)
+	digest, err := opacityModelCounterexampleDigest(v)
 	if err != nil {
 		return err
 	}
 	return require(digest == stringAt(counter, "counterexample_digest"))
+}
+
+// opacityModelCounterexampleDigest binds a model-check counterexample to the
+// model, profile and derived carrier it was found in.
+func opacityModelCounterexampleDigest(v any) (string, error) {
+	counter := at(v, "counterexample")
+	payload := map[string]any{}
+	for _, field := range []string{"safe_ref", "actual_state_ordinal", "actual_path_transition_ordinals", fieldStrategyRef, "examined_cell_size"} {
+		payload[field] = at(counter, field)
+	}
+	for _, field := range []string{"model_digest", termProfileDigest, "derived_carrier_digest"} {
+		payload[field] = at(v, field)
+	}
+	return jsonDigest(payload)
 }

@@ -10,11 +10,13 @@ from pathlib import Path
 import pytest
 from pydantic import ValidationError
 from raes import canonical_sdl_digest, parse_sdl, parse_sdl_file
+from raes.associated_artifacts import ScenarioArtifactParent
 from raes.instantiate import instantiate_scenario
 from raes.scenario import ExpandedScenario, Scenario
 from raes_conformance.conformance import _MODEL_VALIDATORS, _fixture_case_diagnostics
 from raes_contracts.associated_artifacts import (
     AssociatedArtifactValidationLimits,
+    ExperimentArtifactParent,
     associated_artifact_set_digest,
     load_associated_artifact_manifest_json,
     validate_associated_artifact_manifest,
@@ -27,10 +29,10 @@ from raes_contracts.contracts import (
     ExperimentSpecModel,
     ExperimentStudyModel,
     ExperimentTaskModel,
-    schema_bundle,
 )
 from raes_contracts.json_ingress import StrictJsonIngressError
 from raes_contracts.versions import ASSOCIATED_ARTIFACT_MANIFEST_SCHEMA_VERSION
+from raes_schemas import schema_bundle
 
 PAYLOAD = b"operator guide\n"
 PAYLOAD_SHA256 = hashlib.sha256(PAYLOAD).hexdigest()
@@ -87,7 +89,7 @@ def test_validator_binds_every_checksum_to_concrete_bytes() -> None:
     scenario = parse_sdl("name: training-range\nversion: 1.0.0\n")
     diagnostics = validate_associated_artifact_manifest(
         _manifest(),
-        parent=scenario,
+        parent=ScenarioArtifactParent(scenario),
         artifact_readers={"operator-guide": BytesIO(PAYLOAD)},
     )
 
@@ -97,10 +99,12 @@ def test_validator_binds_every_checksum_to_concrete_bytes() -> None:
 def test_validator_rejects_missing_and_digest_only_bindings() -> None:
     scenario = parse_sdl("name: training-range\n")
 
-    missing = validate_associated_artifact_manifest(_manifest(), parent=scenario, artifact_readers={})
+    missing = validate_associated_artifact_manifest(
+        _manifest(), parent=ScenarioArtifactParent(scenario), artifact_readers={}
+    )
     digest_only = validate_associated_artifact_manifest(
         _manifest(),
-        parent=scenario,
+        parent=ScenarioArtifactParent(scenario),
         artifact_readers={"operator-guide": PAYLOAD_SHA256},
     )
 
@@ -116,7 +120,7 @@ def test_validator_rejects_unexpected_and_failing_byte_readers() -> None:
     scenario = parse_sdl("name: training-range\n")
     unexpected = validate_associated_artifact_manifest(
         _manifest(),
-        parent=scenario,
+        parent=ScenarioArtifactParent(scenario),
         artifact_readers={
             "operator-guide": BytesIO(PAYLOAD),
             "undeclared": BytesIO(b""),
@@ -124,7 +128,7 @@ def test_validator_rejects_unexpected_and_failing_byte_readers() -> None:
     )
     failing = validate_associated_artifact_manifest(
         _manifest(),
-        parent=scenario,
+        parent=ScenarioArtifactParent(scenario),
         artifact_readers={"operator-guide": FailingReader()},  # type: ignore[dict-item]
     )
 
@@ -137,23 +141,23 @@ def test_validator_reports_checksum_size_set_and_parent_mismatches() -> None:
     original = _manifest()
     changed_bytes = validate_associated_artifact_manifest(
         _manifest(),
-        parent=scenario,
+        parent=ScenarioArtifactParent(scenario),
         artifact_readers={"operator-guide": BytesIO(b"changed")},
     )
     changed_set = validate_associated_artifact_manifest(
         original.model_copy(update={"set_digest": "sha256:" + ("f" * 64)}),
-        parent=scenario,
+        parent=ScenarioArtifactParent(scenario),
         artifact_readers={"operator-guide": BytesIO(PAYLOAD)},
     )
     changed_artifact = original.artifacts["operator-guide"].model_copy(update={"role": "documentation"})
     changed_artifact_set = validate_associated_artifact_manifest(
         original.model_copy(update={"artifacts": {"operator-guide": changed_artifact}}),
-        parent=scenario,
+        parent=ScenarioArtifactParent(scenario),
         artifact_readers={"operator-guide": BytesIO(PAYLOAD)},
     )
     wrong_parent = validate_associated_artifact_manifest(
         _manifest(),
-        parent=parse_sdl("name: another-scenario\n"),
+        parent=ScenarioArtifactParent(parse_sdl("name: another-scenario\n")),
         artifact_readers={"operator-guide": BytesIO(PAYLOAD)},
     )
 
@@ -207,7 +211,7 @@ def test_streaming_limits_reject_before_or_during_reads() -> None:
 
     diagnostics = validate_associated_artifact_manifest(
         _manifest(),
-        parent=scenario,
+        parent=ScenarioArtifactParent(scenario),
         artifact_readers={"operator-guide": BytesIO(PAYLOAD)},
         limits=limits,
     )
@@ -229,7 +233,7 @@ def test_artifact_count_limit_is_enforced_independently_of_byte_limits() -> None
 
     diagnostics = validate_associated_artifact_manifest(
         manifest,
-        parent=parse_sdl("name: training-range\n"),
+        parent=ScenarioArtifactParent(parse_sdl("name: training-range\n")),
         artifact_readers={},
         limits=AssociatedArtifactValidationLimits(
             max_artifacts=1,
@@ -254,7 +258,7 @@ def test_blake3_payloads_supported_by_the_public_checksum_contract_can_conform()
     assert (
         validate_associated_artifact_manifest(
             manifest,
-            parent=parse_sdl("name: training-range\n"),
+            parent=ScenarioArtifactParent(parse_sdl("name: training-range\n")),
             artifact_readers={"operator-guide": BytesIO(b"")},
         )
         == ()
@@ -316,7 +320,7 @@ def test_every_experiment_attachment_scope_binds_its_concrete_parent(
     assert (
         validate_associated_artifact_manifest(
             manifest,
-            parent=parent,
+            parent=ExperimentArtifactParent(parent),
             artifact_readers={"operator-guide": BytesIO(PAYLOAD)},
         )
         == ()
@@ -328,7 +332,7 @@ def test_every_experiment_attachment_scope_binds_its_concrete_parent(
     assert "associated-artifact.parent-mismatch" in _codes(
         validate_associated_artifact_manifest(
             wrong_version_manifest,
-            parent=parent,
+            parent=ExperimentArtifactParent(parent),
             artifact_readers={"operator-guide": BytesIO(PAYLOAD)},
         )
     )
@@ -347,7 +351,7 @@ def test_snapshot_parent_digest_is_checked_without_changing_sdl_identity() -> No
     assert (
         validate_associated_artifact_manifest(
             manifest,
-            parent=scenario,
+            parent=ScenarioArtifactParent(scenario),
             artifact_readers={"operator-guide": BytesIO(PAYLOAD)},
         )
         == ()
@@ -361,7 +365,7 @@ def test_snapshot_parent_digest_is_checked_without_changing_sdl_identity() -> No
         assert "associated-artifact.parent-mismatch" in _codes(
             validate_associated_artifact_manifest(
                 mismatched_manifest,
-                parent=scenario,
+                parent=ScenarioArtifactParent(scenario),
                 artifact_readers={"operator-guide": BytesIO(PAYLOAD)},
             )
         )
@@ -407,7 +411,7 @@ imports:
     assert (
         validate_associated_artifact_manifest(
             manifest,
-            parent=expanded,
+            parent=ScenarioArtifactParent(expanded),
             artifact_readers={"operator-guide": BytesIO(PAYLOAD)},
         )
         == ()
@@ -417,7 +421,7 @@ imports:
     assert "associated-artifact.parent-mismatch" in _codes(
         validate_associated_artifact_manifest(
             wrong_digest,
-            parent=expanded,
+            parent=ScenarioArtifactParent(expanded),
             artifact_readers={"operator-guide": BytesIO(PAYLOAD)},
         )
     )
@@ -429,7 +433,7 @@ imports:
         assert "associated-artifact.parent-mismatch" in _codes(
             validate_associated_artifact_manifest(
                 manifest,
-                parent=inadmissible_parent,
+                parent=ScenarioArtifactParent(inadmissible_parent),
                 artifact_readers={"operator-guide": BytesIO(PAYLOAD)},
             )
         )
@@ -438,7 +442,7 @@ imports:
     assert (
         validate_associated_artifact_manifest(
             generic_manifest,
-            parent=unvalidated_scenario,
+            parent=ScenarioArtifactParent(unvalidated_scenario),
             artifact_readers={"operator-guide": BytesIO(PAYLOAD)},
         )
         == ()

@@ -10,7 +10,7 @@
   ],
   "command": "semantic conformance",
   "files": {
-    "input.json": "sha256:bd39bd3897af89b1261aa773bb6a2cfda66f4e0dc7176edbcbc51ce9471768ce"
+    "input.json": "sha256:d5d5a007c22e543eb4439370a7974d7d8e7f4b6061abd96588b015dfff1d91d6"
   },
   "name": "contracts/fixtures/plans/mixed-participant-composition-profile-v1/valid/staged",
   "result": {
@@ -20,7 +20,7 @@
       "diagnostics": [
         {
           "address": "mixed-participant-composition-profile-v1",
-          "code": "conformance.semantic-context-required",
+          "code": "conformance.schema-invalid",
           "domain": "conformance",
           "severity": "error"
         }

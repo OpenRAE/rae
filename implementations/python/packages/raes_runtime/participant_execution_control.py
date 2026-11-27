@@ -51,7 +51,7 @@ from .participant_release import (
 from .participant_scheduler_release import release_pending, start_disposition
 
 if TYPE_CHECKING:
-    from raes_processor.models import ExecutionPlan
+    from raes_processor.models import ExecutionPlan, ParticipantAutonomousExecutionRuntime, RuntimeModel
 
     from .manager import _RuntimeApplyState
 
@@ -147,8 +147,29 @@ class InvocationToolActionLedger:
         action_instance_id: str,
         request: ParticipantToolActionRequest,
         admitted_at: str,
+        *,
+        delivery_tool: dict[str, object] | None = None,
     ) -> ControlPlaneOperationRecord:
         """Claim the accepted child record before the port returns its decision."""
+
+        return self.store.claim_record(
+            self.admission_record(
+                action_instance_id,
+                request,
+                admitted_at,
+                delivery_tool=delivery_tool,
+            )
+        )
+
+    def admission_record(
+        self,
+        action_instance_id: str,
+        request: ParticipantToolActionRequest,
+        admitted_at: str,
+        *,
+        delivery_tool: dict[str, object] | None = None,
+    ) -> ControlPlaneOperationRecord:
+        """Build the immutable child claim for an owning runtime admission transaction."""
 
         payload = _request_payload(request)
         context = OperationAdmissionContext(
@@ -178,22 +199,26 @@ class InvocationToolActionLedger:
             ),
             request_fingerprint=context.request_commitment,
             idempotency_key=TOOL_ACTION_IDEMPOTENCY_PREFIX + action_instance_id,
-            result_payload=payload,
+            result_payload=payload if delivery_tool is None else {**payload, "delivery_tool": delivery_tool},
         )
-        return self.store.claim_record(record)
+        return record
 
     def record_dispatch(self, record: ControlPlaneOperationRecord) -> ControlPlaneOperationRecord:
         """Persist the consumed one-use grant before the port returns it."""
 
-        running = cast(
+        running = self.dispatched_record(record)
+        self.store.save_record(running)
+        return running
+
+    def dispatched_record(self, record: ControlPlaneOperationRecord) -> ControlPlaneOperationRecord:
+        """Build the consumed grant for a composition's atomic state transaction."""
+        return cast(
             ControlPlaneOperationRecord,
             replace(
                 record,
                 status=replace(record.status, state=OperationState.RUNNING, updated_at=isoformat_z(self.wall_clock())),
             ),
         )
-        self.store.save_record(running)
-        return running
 
     def record_settlement(
         self,
@@ -203,7 +228,32 @@ class InvocationToolActionLedger:
     ) -> ControlPlaneOperationRecord:
         """Commit the terminal child record and its actor audit; the snapshot does not change."""
 
-        terminal = cast(
+        terminal = self.settlement_record(record, settlement, action_result)
+        retries = _REVISION_RETRIES
+        while True:
+            state = self.store.load_snapshot_state()
+            try:
+                self.store.commit_terminal_operation(
+                    state.snapshot,
+                    terminal,
+                    mode=TerminalCommitMode.OPERATION_ONLY,
+                    expected_revision=state.revision,
+                )
+            except SnapshotRevisionConflict:
+                retries -= 1
+                if retries == 0:
+                    raise
+            else:
+                return terminal
+
+    def settlement_record(
+        self,
+        record: ControlPlaneOperationRecord,
+        settlement: ParticipantToolActionSettlement,
+        action_result: ParticipantActionResultModel,
+    ) -> ControlPlaneOperationRecord:
+        """Build a terminal child for the incumbent history and audit transaction."""
+        return cast(
             ControlPlaneOperationRecord,
             replace(
                 record,
@@ -217,23 +267,6 @@ class InvocationToolActionLedger:
                 },
             ),
         )
-        retries = _REVISION_RETRIES
-        while True:
-            state = self.store.load_snapshot_state()
-            try:
-                self.store.commit_terminal_operation(
-                    state.snapshot,
-                    terminal,
-                    mode=TerminalCommitMode.OPERATION_ONLY,
-                    expected_revision=state.revision,
-                )
-            except SnapshotRevisionConflict:
-                # A concurrent supervisory cut advanced the revision; this commit changes no snapshot.
-                retries -= 1
-                if retries == 0:
-                    raise
-            else:
-                return terminal
 
 
 class RuntimeParticipantExecutionMixin:
@@ -376,6 +409,31 @@ class RuntimeParticipantExecutionMixin:
         if released.success:
             return receipt
         return cast(OperationReceipt, replace(receipt, diagnostics=[*receipt.diagnostics, *released.diagnostics]))
+
+    @property
+    @runtime_owned
+    def participant_execution_policies(self) -> tuple[ParticipantAutonomousExecutionRuntime, ...]:
+        """Return the admitted autonomous execution policies of the current run."""
+        return self._participant_execution_policies
+
+    @runtime_owned
+    def participants_waiting(self) -> bool:
+        """Return whether an autonomous participant still waits for its starting assertions."""
+        return self._participant_scheduler is not None and any(
+            waiting_participant_addresses(policy, self._snapshot) for policy in self._participant_execution_policies
+        )
+
+    @runtime_owned
+    def release_waiting_participants(self) -> bool:
+        """Run one scheduler pass when a waiting participant can be released; return whether it succeeded."""
+        if not self._participant_release_pending(self._snapshot):
+            return True
+        return self.run_due_participant_actions().success
+
+    @runtime_owned
+    def restore_participant_release(self, model: RuntimeModel, *, started: bool) -> None:
+        """Restore the release map; it exists only after the participant start phase."""
+        self._participant_release_assertions = participant_release_assertions(model) if started else {}
 
     def _participant_release_pending(self, snapshot: RuntimeSnapshot) -> bool:
         """Return whether a scheduler pass can now release or refuse a waiting participant."""

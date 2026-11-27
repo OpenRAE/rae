@@ -81,7 +81,7 @@ func snapshotObject(input binding.RuntimeSnapshotV1) (map[string]any, error) {
 	if _, present := result["entries"]; !present {
 		result["entries"] = map[string]any{}
 	}
-	result["schema_version"] = "runtime-snapshot/v1"
+	result[termSchemaVersion] = "runtime-snapshot/v1"
 	return result, nil
 }
 func snapshotResult(input map[string]any) (binding.RuntimeSnapshotV1, error) {

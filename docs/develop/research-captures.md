@@ -3,9 +3,9 @@
 Feature branches record research evidence under unique, content-addressed paths.
 They do not allocate a global release number or edit a central list of revisions.
 The formal and specification loaders discover `captures/*/manifest.json` next to
-the existing `bundles` directory. Each capture's identity binds its immutable
-snapshot, analysis, protocol, corpus and artifact pins. Paths remain repository
-relative and the normal bounded document and replay checks still apply.
+the existing `bundles` directory. Each capture binds its snapshot, analysis, protocol, corpus, and artifact pins.
+Paths remain relative to the repository.
+The bounded document and replay checks still apply.
 
 The existing numbered manifests remain unchanged. `published-history.json`
 freezes their admitted inventory and digests, so discovery cannot silently drop
@@ -13,6 +13,9 @@ history. Each new capture also has an independent `capture-records` manifest pin
 removing a capture directory is detected. Adding a capture never edits the
 published-history inventory. It also never edits either
 family's narrative `index.md`; describe the new work in its issue or PR instead.
+
+Use the [frozen contributor setup](../../CONTRIBUTING.md#set-up-the-repository) before these commands.
+Run them from the repository root.
 
 ## Recording a branch capture
 
@@ -26,12 +29,12 @@ Use an admitted manifest as the protocol, corpus and artifact template. Supply
 both freshly prepared documents together:
 
 ```sh
-python -m tools.research_capture record formal-semantic-validation \
+uv run --project implementations/python --frozen python -m tools.research_capture record formal-semantic-validation \
   --template docs/research/formal-semantic-validation/bundles/retest-v76.json \
   --snapshot docs/research/prepared-formal-snapshot.json \
   --analysis docs/research/prepared-formal-analysis.json
 
-python -m tools.research_capture record specification-coverage \
+uv run --project implementations/python --frozen python -m tools.research_capture record specification-coverage \
   --template docs/research/specification-coverage/bundles/raes-standardized-specification-coverage-issue-1366-sync-v75.json \
   --snapshot docs/research/prepared-specification-snapshot.json \
   --analysis docs/research/prepared-specification-analysis.json
@@ -40,7 +43,9 @@ python -m tools.research_capture record specification-coverage \
 The command prints a new manifest path. It copies the snapshot without a change
 to its observations. It derives the directory name from the document pins.
 If the analysis refers to the prepared snapshot path, the recorder changes only
-that reference to `@snapshot`. Formal validation reads this token as the snapshot
+that reference to `@snapshot`.
+
+Formal validation reads this token as the snapshot
 that the manifest pins. Thus the directory name, which is a hash, does not refer
 to itself. Other evidence references stay the same, and you must commit their files.
 Keep the new capture directory and its `capture-records` receipt. You do not
@@ -52,9 +57,8 @@ The recorder keeps the artifact kind and pins the SHA-256 of the new file.
 This option requires `--snapshot` and `--analysis`.
 
 For an unchanged historical capture, omit `--snapshot` and `--analysis` to wrap
-its existing exact bytes. Repeating the same capture is idempotent. A different
-capture creates another directory, so parallel branches do not overwrite one
-another's evidence files.
+its existing exact bytes. Repeating the same capture is idempotent. A different capture creates another directory.
+Thus parallel branches do not overwrite each other's evidence files.
 
 ## Routine verification
 
@@ -80,7 +84,7 @@ Source-bound publication still requires the selected capture to match the live i
 After integration and validation, use a clean checkout of `dev`:
 
 ```sh
-python -m tools.research_capture publish formal-semantic-validation
+uv run --project implementations/python --frozen python -m tools.research_capture publish formal-semantic-validation
 ```
 
 The command selects the current content-addressed capture and writes a small
@@ -89,6 +93,7 @@ previous publication receipts. The receipt pins the capture manifest's path and
 SHA-256; the capture identity, observation bytes and baseline links stay unchanged.
 Commit that receipt through the integration workflow before publishing the other
 family. Repeating publication of a committed receipt returns the existing path.
+
 The command refuses feature branches, detached checkouts, `main`, and dirty
 integration checkouts. It does not merge a PR or change any branch itself.
 

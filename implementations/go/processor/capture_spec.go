@@ -102,7 +102,7 @@ func oneCaptureSpecDemands(spec binding.ExperimentCaptureSpecV1) ([]CaptureDeman
 			ArtifactRoles: nonNilStrings(fieldValue(requirement.RequiredArtifactRoles)), MediaTypes: nonNilStrings(fieldValue(requirement.ExpectedMediaTypes)),
 			CaptureKind: fieldValue(requirement.CaptureKind), SourceClasses: []string{}, SourceRefs: []string{}, Scopes: []string{fieldValue(requirement.CaptureScope)}, ScopeRefs: []string{},
 			ChannelKinds: []string{}, ChannelRefs: []string{fieldValue(fieldValue(requirement.ChannelRef).RefId)}, WindowKinds: kinds,
-			IntegrityModes: nonNilStrings(fieldValue(requirement.IntegrityRequirements)), Sensitivity: fieldValue(requirement.Sensitivity), Disclosure: disclosure,
+			IntegrityModes: integrityModes(nonNilStrings(fieldValue(requirement.IntegrityRequirements))), Sensitivity: fieldValue(requirement.Sensitivity), Disclosure: disclosure,
 			RetentionPolicyRefs: policies, ExportPolicy: "not-required", RedactionPolicy: redaction,
 		})
 	}

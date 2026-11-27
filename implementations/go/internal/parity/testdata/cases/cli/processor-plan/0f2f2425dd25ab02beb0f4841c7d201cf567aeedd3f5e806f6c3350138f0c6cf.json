@@ -471,14 +471,14 @@
             "address": "provision.node.mail",
             "ordering_dependencies": [],
             "payload": {
-              "architecture": "",
+              "architecture": null,
               "count": null,
               "domain_topology": null,
               "name": "mail",
               "network_namespace_target": "",
               "node_kind": "compute",
               "node_name": "mail",
-              "os_distribution": "",
+              "os_distribution": null,
               "os_family": "linux",
               "os_version": "",
               "spec": {

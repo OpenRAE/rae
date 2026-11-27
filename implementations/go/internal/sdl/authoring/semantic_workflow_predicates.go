@@ -31,7 +31,7 @@ func (w *semanticWorkflowCheck) predicateSectionReferences(label string, predica
 		switch {
 		case !present:
 			w.report(fmt.Sprintf("%s references undefined assertion '%s' in predicate", w.label(label), ref))
-		case string(fieldValue(assertion.Role)) != "precondition":
+		case string(fieldValue(assertion.Role)) != rolePrecondition:
 			w.report(fmt.Sprintf("%s assertion '%s' in predicate must be a precondition", w.label(label), ref))
 		}
 	}

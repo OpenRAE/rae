@@ -18,9 +18,6 @@ func (s *publicationInspection) history(ctx context.Context, base string) error 
 	if err != nil {
 		return err
 	}
-	if err := s.changeLedger(ctx, base); err != nil {
-		return err
-	}
 	s.removalLedger(baseEntries)
 	return nil
 }
@@ -77,9 +74,8 @@ func (s *publicationInspection) stableEntry(ctx context.Context, base string, pr
 		s.messages = append(s.messages, "base schema for "+entry.id+" at "+base+":"+name+" is not valid JSON")
 		return nil //nolint:nilerr // Invalid historical JSON is a reference finding.
 	}
-	digest, err := publicationDigest(value)
-	if err != nil || digest == entry.digest {
-		return err
+	if publicationEqual(value, entry.schema) {
+		return nil
 	}
 	changes, err := publicationBreakingChanges(value, entry.schema)
 	if err != nil {
@@ -93,32 +89,6 @@ func (s *publicationInspection) stableEntry(ctx context.Context, base string, pr
 		s.messages = append(s.messages, stableSchemaPrefix+entry.id+" changed incompatibly without a version bump: "+strings.Join(changes, "; "))
 	}
 	return nil
-}
-
-func (s *publicationInspection) changeLedger(ctx context.Context, base string) error {
-	for _, entry := range s.entries {
-		unchanged, err := s.unchangedSchema(ctx, base, entry)
-		if err != nil {
-			return err
-		}
-		if !unchanged && entry.lastChange == nil {
-			s.messages = append(s.messages, "published schema "+entry.id+" changed without a contract-facing change description; add a 'last_change' entry (summary + current content_hash) to its record under "+publicationEntries+" recording why the contract changed")
-		}
-	}
-	return nil
-}
-
-func (s *publicationInspection) unchangedSchema(ctx context.Context, base string, entry publicationEntry) (bool, error) {
-	text, err := publicationGitText(ctx, s.repository, "show", "--end-of-options", base+":"+entry.path)
-	if err != nil || text == nil {
-		return false, err
-	}
-	value, err := decodeJSON([]byte(*text), 0, false)
-	if err != nil || value == nil {
-		return false, nil //nolint:nilerr // Parse failure and JSON null both fail the reference's explicit non-None unchanged check.
-	}
-	digest, err := publicationDigest(value)
-	return digest == entry.digest, err
 }
 
 func (s *publicationInspection) removalLedger(baseEntries map[string]*mapping) {

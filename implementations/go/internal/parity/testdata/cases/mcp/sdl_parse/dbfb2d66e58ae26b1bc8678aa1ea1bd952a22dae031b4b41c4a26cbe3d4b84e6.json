@@ -1,0 +1,63 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:59444c4fdc0f519f3e39a30f84e1f29f9ae8b491629a181589005d05b375228d"
+  },
+  "name": "regression/143bbdc022200f999f10aa86e905138077f281a8e327fa0ad94e1a5ef3ee6046",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "diagnostics": [
+            {
+              "code": "sdl.model.invalid",
+              "path": "/behavior_specifications/analyst-triage/episode_policy/truncation_conditions/queue-stalled/temporal_constraint_ref",
+              "range": {
+                "end": {
+                  "column": 50,
+                  "line": 167
+                },
+                "start": {
+                  "column": 36,
+                  "line": 167
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            }
+          ],
+          "stage": "parse",
+          "status": "invalid"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "diagnostics": [
+          {
+            "code": "sdl.model.invalid",
+            "path": "/behavior_specifications/analyst-triage/episode_policy/truncation_conditions/queue-stalled/temporal_constraint_ref",
+            "range": {
+              "end": {
+                "column": 50,
+                "line": 167
+              },
+              "start": {
+                "column": 36,
+                "line": 167
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          }
+        ],
+        "stage": "parse",
+        "status": "invalid"
+      }
+    }
+  },
+  "surface": "mcp"
+}

@@ -3,10 +3,10 @@
 from dataclasses import replace
 from typing import cast
 
-from raes.explicitness import ExplicitnessClass
 from raes_backend_protocols.capabilities import BackendManifest
 from raes_contracts.artifact_requirements import ArtifactAvailabilityContext
 from raes_contracts.diagnostics import Diagnostic
+from raes_contracts.explicitness import ExplicitnessClass
 from raes_contracts.planning import ProvisioningPlan
 from raes_contracts.runtime_state import RuntimeSnapshot
 

@@ -25,6 +25,52 @@ func DefaultConstraintLimits() ConstraintLimits {
 	return ConstraintLimits{l.MaxDepth, l.MaxNodes, l.MaxOperations, l.MaxMembers, l.MaxIdentityChecks,
 		l.MaxReferenceHops, l.MaxScalarBytes, l.MaxTotalScalarBytes, l.MaxDiagnostics, nil}
 }
+
+// PlanAuthorityConstraintLimits returns the fixed process-owned budget of
+// recursive realization authority. Compilation, binding, preparation and
+// delivery evaluation share it, because recursive authority carries scopes,
+// origins and keyed identities beside the projected inventory.
+func PlanAuthorityConstraintLimits() ConstraintLimits {
+	limits := DefaultConstraintLimits()
+	limits.MaxNodes, limits.MaxOperations, limits.MaxMembers, limits.MaxIdentityChecks = 131072, 1048576, 65536, 65536
+	limits.MaxScalarBytes, limits.MaxTotalScalarBytes = 1048576, 8*1048576
+	return limits
+}
+
+// ValidateRealizationValue checks one admitted value against a relation
+// caller's work limits. The result is a value-free relation result.
+//
+//nolint:ireturn // The planned interface keeps each admitted fragment opaque and sealed.
+func ValidateRealizationValue(actual Fragment, limits ConstraintLimits) (Fragment, error) {
+	observed, ok := actual.(fragment)
+	if !ok || observed.profile != RealizationValue {
+		return nil, fragmentInvalid()
+	}
+	return ValidateRealizationDocument(observed.Document(), limits)
+}
+
+// ValidateRealizationDocument checks one native JSON document against a
+// relation caller's work limits before any fragment holds it. It refuses an
+// unsupported carrier and grants no admission or execution authority.
+//
+//nolint:ireturn // The planned interface keeps each admitted fragment opaque and sealed.
+func ValidateRealizationDocument(document any, limits ConstraintLimits) (Fragment, error) {
+	if err := limits.Validate(); err != nil {
+		return nil, err
+	}
+	engine := constraintEvaluation{limits: limits}
+	work := constraintValueAdmission{engine: &engine}
+	result := constraintSuccess()
+	if !work.walk(document, "", 0) {
+		result = *work.failure
+	}
+	raw, err := json.Marshal(result)
+	if err != nil {
+		return nil, err
+	}
+	return fragment{profile: RealizationConstraintEvaluation, data: raw}, nil
+}
+
 func (limits ConstraintLimits) native() value.Limits {
 	l := value.Limits{MaxDepth: limits.MaxDepth, MaxNodes: limits.MaxNodes, MaxOperations: limits.MaxOperations,
 		MaxMembers: limits.MaxMembers, MaxIdentityChecks: limits.MaxIdentityChecks, MaxReferenceHops: limits.MaxReferenceHops,
@@ -160,6 +206,8 @@ type constraintEvaluation struct {
 	document                      constraintDocument
 	limits                        ConstraintLimits
 	nodes, operations, identities int
+	// keyedScopes indexes each keyed collection once for one scope evaluation.
+	keyedScopes map[keyedScopeKey]keyedScopeMembers
 }
 
 func (e *constraintEvaluation) spend(depth int) bool {

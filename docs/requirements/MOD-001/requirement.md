@@ -13,18 +13,21 @@ updated_at: 2026-10-31T00:00:00Z
 
 ## Statement
 
-The raes codebase shall keep a one-way dependency between the SDL and processor layers: no `raes` module shall import `raes_processor`. No non-test, non-generated source file under `implementations/python/packages/` shall have more than 1,000 lines. An allowlist that can only shrink shall record the files over this line cap. The repository policy gate shall also fail on these new findings:
+The raes codebase shall keep a one-way dependency between the SDL and processor layers: no `raes` module shall import `raes_processor`. No `raes_contracts` module shall import another first-party package. No non-test, non-generated source file under `implementations/python/packages/` shall have more than 1,000 lines. An allowlist that can only shrink shall record the files over this line cap. The repository policy gate shall also fail on these new findings:
 
 - an import cycle between sibling modules;
 - an import of a private name from another module;
-- a class with more than seven ancestors from the packages.
+- a class with more than seven ancestors from the packages;
+- an access to a private member of another object;
+- a first-party import inside a function;
+- a dynamic first-party import that does not name its target.
 
 Each of these checks shall compare its findings with a baseline that can only shrink. The repository policy gate shall enforce all these invariants in CI, so that review judgment is not the only control.
 
-The Go code shall meet the architecture model in `implementations/architecture.json` (ADR-122):
+The Go code shall meet the architecture model in `implementations/architecture.json` (ADR-124):
 
 - The model shall classify each Go package in a layer and list the permitted dependencies of each package and layer.
-- CI shall fail on an unclassified package, on a dependency that the model does not permit, and on an ADR-122 rule without a check.
+- CI shall fail on an unclassified package, on a dependency that the model does not permit, and on an ADR-124 rule without a check.
 - Each failure shall name the rule and the location, and state how to fix it.
 - Each change shall declare its packages and dependencies in the model and pass the design check before its Go code is written.
 - The Go checks shall have no baseline.
@@ -60,12 +63,12 @@ Layering and size invariants across the codebase prevent the architectural drift
 - TESTS → TEST `implementations/python/tests/test_issue_1734_structural_ratchet.py` (Structural ratchet tests)
 - TESTS → TEST `implementations/python/tests/test_issue_1734_import_graph.py` (grimp and import-linter bridge tests)
 - TESTS → TEST `implementations/python/tests/test_issue_1734_structural_integration.py` (Structural checks with Git and the tooling analyzers)
-- IMPLEMENTS → ADR `docs/decisions/adrs/adr-122-go-architecture-model.md` (ADR-122: Go Architecture Model)
+- IMPLEMENTS → ADR `docs/decisions/adrs/adr-124-go-architecture-model.md` (ADR-124: Go Architecture Model)
 - IMPLEMENTS → GITHUB_ISSUE `1775` (Go port 02: Define the architecture model and check code and designs against it)
 - CONSTRAINS → CONFIG `implementations/architecture.json` (Go architecture model)
 - IMPLEMENTS → CODE_FILE `implementations/tooling/go/arch/model.go` (Architecture model and design checks)
 - IMPLEMENTS → CODE_FILE `implementations/tooling/go/arch/code.go` (Code loading and code checks)
-- IMPLEMENTS → CODE_FILE `implementations/tooling/go/arch/rules.go` (ADR-122 rule table check)
+- IMPLEMENTS → CODE_FILE `implementations/tooling/go/arch/rules.go` (ADR-124 rule table check)
 - IMPLEMENTS → CODE_FILE `implementations/tooling/go/cmd/archcheck/main.go` (Architecture check command)
 - TESTS → TEST `implementations/tooling/go/arch/model_test.go` (Design check tests)
 - TESTS → TEST `implementations/tooling/go/arch/code_test.go` (Code check tests)
@@ -82,3 +85,14 @@ Layering and size invariants across the codebase prevent the architectural drift
 
 - IMPLEMENTS → CODE_FILE `implementations/tooling/go/arch/api_files.go` (Bounded shared snapshot fragments and exact canonical declaration comparison)
 - TESTS → TEST `implementations/tooling/go/arch/api_files_test.go` (Shared fragment order, complete closures, duplicate declarations and unchanged snapshot bounds)
+- IMPLEMENTS → ADR `docs/decisions/adrs/adr-121-strict-package-layers.md` (ADR-121: Strict Package Layers and a Schema Composition Root)
+- IMPLEMENTS → GITHUB_ISSUE `1711` (Quality refactor 02: Remove the import cycle between raes_contracts and raes)
+- IMPLEMENTS → POLICY `tools/policy/private_members.py` (ADR-117 private-member check)
+- IMPLEMENTS → POLICY `tools/policy/function_imports.py` (ADR-117 check of imports inside functions)
+- IMPLEMENTS → POLICY `tools/policy/hidden_imports.py` (ADR-117 hidden-import check)
+- IMPLEMENTS → POLICY `tools/policy/import_boundaries.py` (Module-boundary decision for static and dynamic imports)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_schemas/bundle.py` (Schema composition root above the package layers)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/published_schemas.py` (Published schemas read as data below the SDL layer)
+- DOCUMENTS → DOCUMENTATION `docs/decisions/issue-1711-strict-layers-design.md` (Issue 1711 strict package layers design)
+- TESTS → TEST `implementations/python/tests/test_issue_1711_layer_direction.py` (No raes_contracts module imports a first-party package)
+- TESTS → TEST `implementations/python/tests/test_issue_1711_structural_checks.py` (Private-member, inside-function and hidden-import checks)

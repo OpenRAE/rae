@@ -1,10 +1,5 @@
 {
   "contract_id": "sdl-candidate-synthesis-profile-v1",
   "schema_path": "contracts/schemas/candidate-synthesis/sdl-candidate-synthesis-profile-v1.json",
-  "stability": "draft",
-  "content_hash": "1de704cff334150ffd291c6fa050cf68416eddeabc20e62e8ef7387b6e4ec806",
-  "last_change": {
-    "content_hash": "1de704cff334150ffd291c6fa050cf68416eddeabc20e62e8ef7387b6e4ec806",
-    "summary": "Remove the Python validator paths from the semantic invariants (#1776)."
-  }
+  "stability": "draft"
 }

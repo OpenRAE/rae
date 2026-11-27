@@ -1067,8 +1067,8 @@ def test_v2_publication_has_exact_schema_and_separate_provider_protocol():
     from jsonschema import Draft202012Validator
     from raes_backend_protocols.protocols import ParticipantControlProviderV2
     from raes_conformance.conformance.validators import contract_validation_strength
-    from raes_contracts.contracts import schema_bundle
     from raes_contracts.corpus import corpus_family_root
+    from raes_schemas import schema_bundle
 
     bundle = schema_bundle()
     for contract_id, payload in (
@@ -1761,10 +1761,10 @@ def test_published_v2_examples_cover_applicability_and_effect_boundaries():
     import json
 
     from jsonschema import Draft202012Validator
-    from raes_contracts.contracts import schema_bundle
     from raes_contracts.contracts.participant_control_applicability import ParticipantControlSelectionV2Model
     from raes_contracts.contracts.participant_control_evaluation_v2 import ParticipantControlEvaluationV2Model
     from raes_contracts.corpus import corpus_family_root
+    from raes_schemas import schema_bundle
 
     examples = (
         ("participant-control-selection-v2", "valid", "disjoint-sinks", True, True),

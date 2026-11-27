@@ -1,4 +1,4 @@
-# Mixed Cross-Backend Participant-Control Composition
+# Mixed Cross-Backend participant-control composition
 
 Requirements: SEM-234 and ASR-537.
 
@@ -117,22 +117,32 @@ authority. Provider and native ownership changes do not change this selection.
 
 ## 3. Backend-neutral authoring
 
-### MCB-001 — Portable scenario independence
+<!-- vale RAES.HeadingCase = NO -->
+### MCB-001 — portable scenario independence
 
 Scenario identity and membership authority are independent of \(A_\phi\), \(T\), \(\Phi\),
 component manifests, and backend availability.
 
-### MCB-002 — Allocation authority
+<!-- vale RAES.HeadingCase = YES -->
+
+<!-- vale RAES.HeadingCase = NO -->
+### MCB-002 — allocation authority
 
 Allocation is experiment/trial intent compiled after deterministic scenario
 composition and before runtime execution.
 
-### MCB-003 — Stable allocation targets
+<!-- vale RAES.HeadingCase = YES -->
+
+<!-- vale RAES.HeadingCase = NO -->
+### MCB-003 — stable allocation targets
 
 Every \(u \in U\) resolves through the canonical compiled-address authority and
 has the same meaning across admitted realizations.
 
-### MCB-004 — No apparatus-created meaning
+<!-- vale RAES.HeadingCase = YES -->
+
+<!-- vale RAES.HeadingCase = NO -->
+### MCB-004 — no apparatus-created meaning
 
 An apparatus component may realize or refuse \(u\). It cannot create a
 participant, controlled scope, action family, observation source, or crossing
@@ -140,27 +150,35 @@ that is not permitted by \(S\). Here \(S\) includes the authored constraints
 and their selected abstraction, not an exhaustive concrete inventory. A
 delegated internal materialization choice does not become a portable allocation
 unit. Additional portable membership, where allowed, must first pass the
-owning prepared-membership authority and resolve stable compiled identities
-before composition sealing; a backend report cannot grant it.
+owning prepared-membership authority and resolve stable compiled identities before composition sealing.
+A backend report cannot grant it.
+
+<!-- vale RAES.HeadingCase = YES -->
 
 ## 4. Allocation
 
-### MCB-005 — Completeness
+<!-- vale RAES.HeadingCase = NO -->
+### MCB-005 — completeness
 
 In every active phase, every required unit has an admitted active provider:
+
+<!-- vale RAES.HeadingCase = YES -->
 
 \[
 \forall u \in U_{\mathrm{required}},\
 \exists c \in C_\phi : (u,c) \in A_\phi
 \]
 
-### MCB-006 — Effective eligibility
+<!-- vale RAES.HeadingCase = NO -->
+### MCB-006 — effective eligibility
 
 \[
 (u,c) \in A_\phi
 \Rightarrow
 B(c,u) \geq \operatorname{requiredStrength}(u)
 \]
+
+<!-- vale RAES.HeadingCase = YES -->
 
 where \(B\) includes declared support, effective support, required contracts,
 realization-envelope membership, limitations, downgrade, and conformance
@@ -174,28 +192,39 @@ the backend to realize every allowed completion. Legacy universal-envelope
 admission and ADR-070 `subsumes(B,R)` retain their stronger meaning. Neither
 negotiation nor a nonempty intersection alone proves delivery.
 
-### MCB-007 — Closed overlap
+<!-- vale RAES.HeadingCase = NO -->
+### MCB-007 — closed overlap
 
 If two providers cover the same unit, an accepted revisioned arbitration or
 failover profile must define selection and failure. Revision 1 supplies no such
-profile, so unexplained overlap is invalid. This is phase-relative and checks
-resolved effect coverage across allocation kinds: a participant-runtime scope
+profile, so unexplained overlap is invalid.
+
+This is phase-relative and checks resolved effect coverage across allocation kinds.
+A participant-runtime scope
 and an action-family scope cannot assign the same effect to different
 providers. Repeated consistent coverage by the same provider is not competing
 ownership. Disjointness requires the owning scope interpretation, not address
 prefixes. Sequential providers in different phases are not simultaneous overlap.
 
-### MCB-008 — No runtime fallback
+<!-- vale RAES.HeadingCase = YES -->
+
+<!-- vale RAES.HeadingCase = NO -->
+### MCB-008 — no runtime fallback
 
 A failed or unavailable provider does not authorize another component.
 Fallback outside the current \(A_\phi\) is rejection. A pinned but inactive
 provider cannot act.
 
-### MCB-009 — Schedule independence
+<!-- vale RAES.HeadingCase = YES -->
+
+<!-- vale RAES.HeadingCase = NO -->
+### MCB-009 — schedule independence
 
 Allocation identity and sealed plan bytes do not depend on host, worker,
 thread, queue, batching, completion order, retry count, wall time, or backend
 availability.
+
+<!-- vale RAES.HeadingCase = YES -->
 
 ## 5. Composition topology
 
@@ -228,10 +257,13 @@ failure behavior
 evidence
 ```
 
-### MCB-010 — Edge totality
+<!-- vale RAES.HeadingCase = NO -->
+### MCB-010 — edge totality
 
 An exchange across components is admissible only when its edge fields resolve
 to revision/digest-matched authority.
+
+<!-- vale RAES.HeadingCase = YES -->
 
 These are admitted apparatus obligations, not compulsory author-written backend
 recipes. Evidence fields bind the selected obligation, basis and authorized
@@ -239,12 +271,16 @@ references; they do not require an experimental inventory or raw telemetry.
 An obligation may be inapplicable only under its owning policy. Required
 operational/capability facts cannot be waived by an empty reference list.
 
-### MCB-011 — Directionality
+<!-- vale RAES.HeadingCase = NO -->
+### MCB-011 — directionality
 
 An edge \(c_i \to c_j\) does not imply \(c_j \to c_i\). Bidirectional
 interaction uses two directed edges or a closed bidirectional profile.
 
-### MCB-012 — Nested disclosure
+<!-- vale RAES.HeadingCase = YES -->
+
+<!-- vale RAES.HeadingCase = NO -->
+### MCB-012 — nested disclosure
 
 A nested component exposes its external allocation, edge/time/policy
 capabilities, digest, internal-evidence ref, and limitations. Its internal
@@ -253,6 +289,8 @@ to support a selected boundary claim or execution obligation; unrelated
 implementation choices need no authored profile or universal export. Nested
 profile resolution is bounded and acyclic. Interaction feedback edges are
 different: they may be cyclic, but require explicit progress/failure semantics.
+
+<!-- vale RAES.HeadingCase = YES -->
 
 ## 6. Control and responsibility transfer
 
@@ -269,43 +307,64 @@ cancelled
 stale
 ```
 
-### MCB-013 — Commit establishes responsibility
+<!-- vale RAES.HeadingCase = NO -->
+### MCB-013 — commit establishes responsibility
 
 Requested, offered, or pending transfer does not alter effective provider or
 controller state. Only an atomic revision-fenced `committed` occurrence does.
 
-### MCB-014 — Pull/push provenance
+<!-- vale RAES.HeadingCase = YES -->
 
-Acquisition initiated by the candidate and transfer initiated by the current
-provider retain different initiator/negotiation evidence even when both
+<!-- vale RAES.HeadingCase = NO -->
+### MCB-014 — pull/push provenance
+
+Acquisition initiated by the candidate and transfer initiated by the current provider retain different initiator/negotiation evidence.
+This is true even when both
 converge on the same commit relation.
 
-### MCB-015 — Stale transition safety
+<!-- vale RAES.HeadingCase = YES -->
+
+<!-- vale RAES.HeadingCase = NO -->
+### MCB-015 — stale transition safety
 
 A controller, authority, policy, capability, state-revision, history-head, or
 order mismatch yields `stale` and zero prohibited effects.
 
-### MCB-016 — No authority laundering
+<!-- vale RAES.HeadingCase = YES -->
+
+<!-- vale RAES.HeadingCase = NO -->
+### MCB-016 — no authority laundering
 
 Provider/owner transfer never changes participant identity, acting controller,
 action authority, or disclosure authority by implication.
 
-### MCB-017 — Oscillation is not progress
+<!-- vale RAES.HeadingCase = YES -->
+
+<!-- vale RAES.HeadingCase = NO -->
+### MCB-017 — oscillation is not progress
 
 Repeated valid transfers require a bounded cooldown/retry or explicit
 livelock/cycle disposition before any progress guarantee may be claimed.
 Revision 1 makes no such guarantee.
 
+<!-- vale RAES.HeadingCase = YES -->
+
 ## 7. Information distribution
 
-### MCB-018 — Authorization before routing
+<!-- vale RAES.HeadingCase = NO -->
+### MCB-018 — authorization before routing
 
 SEM-230/API-423 projection and release are resolved before publish/subscribe,
 DDM, bridge filtering, directed delivery, or serialization.
 
-### MCB-019 — Filtering may only narrow
+<!-- vale RAES.HeadingCase = YES -->
+
+<!-- vale RAES.HeadingCase = NO -->
+### MCB-019 — filtering may only narrow
 
 For authorized projection \(R\) and bridge filter \(D\):
+
+<!-- vale RAES.HeadingCase = YES -->
 
 \[
 D(R) \subseteq R
@@ -313,14 +372,20 @@ D(R) \subseteq R
 
 An adapter cannot add participant-visible information.
 
-### MCB-020 — Delivery stages remain distinct
+<!-- vale RAES.HeadingCase = NO -->
+### MCB-020 — delivery stages remain distinct
 
 Addressing, request, decision, delivery attempt, delivery, observation, and
 audit remain distinct occurrences. No earlier stage implies a later stage.
 
-### MCB-021 — Metadata projection
+<!-- vale RAES.HeadingCase = YES -->
+
+<!-- vale RAES.HeadingCase = NO -->
+### MCB-021 — metadata projection
 
 The observer profile dispositions:
+
+<!-- vale RAES.HeadingCase = YES -->
 
 ```text
 membership
@@ -335,9 +400,12 @@ differential failure
 
 Payload filtering does not establish metadata noninterference.
 
-### MCB-022 — Audit is a separate audience
+<!-- vale RAES.HeadingCase = NO -->
+### MCB-022 — audit is a separate audience
 
 Authorized audit retention does not add a participant observation.
+
+<!-- vale RAES.HeadingCase = YES -->
 
 ## 8. Time and order
 
@@ -359,7 +427,8 @@ rollback or replay behavior
 runtime readback
 ```
 
-### MCB-023 — Cross-clock mapping
+<!-- vale RAES.HeadingCase = NO -->
+### MCB-023 — cross-clock mapping
 
 Every edge between different clock domains has an admitted mapping \(M_{ij}\).
 Without one, the relation is unknown and cannot authorize an exchange that
@@ -368,19 +437,30 @@ only comparisons actually established by that mapping. Incomparable events
 remain incomparable; timestamps, phase indices and arrival order do not add
 causal edges. Identity mappings within one clock are still explicit.
 
-### MCB-024 — Timestamp weakness
+<!-- vale RAES.HeadingCase = YES -->
+
+<!-- vale RAES.HeadingCase = NO -->
+### MCB-024 — timestamp weakness
 
 Timestamps without governed mapping/order/readback support only
 `disclosed_weak`. They do not establish causality or exact order.
 
+<!-- vale RAES.HeadingCase = YES -->
+
+<!-- vale RAES.HeadingCase = NO -->
 ### MCB-025 — Backend serialization evidence
 
 `backend_serialized` requires a named clock, serialization service, runtime
 readback, and conformance evidence.
 
-### MCB-026 — Staleness coordinates
+<!-- vale RAES.HeadingCase = YES -->
+
+<!-- vale RAES.HeadingCase = NO -->
+### MCB-026 — staleness coordinates
 
 Staleness is evaluated over:
+
+<!-- vale RAES.HeadingCase = YES -->
 
 ```text
 controller
@@ -394,34 +474,49 @@ governed order
 
 Wall-clock age can constrain but not replace those facts.
 
-### MCB-027 — Knowledge is append-only
+<!-- vale RAES.HeadingCase = NO -->
+### MCB-027 — knowledge is append-only
 
 Rollback, replay, concealment, and retraction append occurrences. They do not
 erase prior delivery or participant knowledge.
 
+<!-- vale RAES.HeadingCase = YES -->
+
 ## 9. Trial and phase realization
 
-### MCB-028 — Inter-trial change
+<!-- vale RAES.HeadingCase = NO -->
+### MCB-028 — inter-trial change
 
 A realization change between trials creates a new admitted plan entry and run
 id with source lineage.
 
-### MCB-029 — Derived model identity
+<!-- vale RAES.HeadingCase = YES -->
+
+<!-- vale RAES.HeadingCase = NO -->
+### MCB-029 — derived model identity
 
 An emulation-derived simulator records source dataset/traces, generator and
 profile revisions, model digest, coverage, unknown transitions, and
 limitations.
 
-### MCB-030 — Finite within-run phases
+<!-- vale RAES.HeadingCase = YES -->
+
+<!-- vale RAES.HeadingCase = NO -->
+### MCB-030 — finite within-run phases
 
 \(\Phi\) is finite and sealed before execution. Every possible component,
 allocation, edge, clock mapping, policy, authority expectation, transition,
 progress bound, and failure behavior resolves before plan sealing.
 
-### MCB-031 — Phase commit before effect
+<!-- vale RAES.HeadingCase = YES -->
+
+<!-- vale RAES.HeadingCase = NO -->
+### MCB-031 — phase commit before effect
 
 The transition from \(\phi_i\) to \(\phi_{i+1}\) commits its exact state cut
 before the next phase can cause effects.
+
+<!-- vale RAES.HeadingCase = YES -->
 
 Revision 1 uses quiescent transition: pending effects/deliveries must be
 resolved under their original owners before activation can commit. A timeout
@@ -429,31 +524,44 @@ or cancellation may stop progression but cannot turn pending work into
 completion. The sealed transition names its trusted trigger evaluator, bounds
 and failure disposition. Runtime facts do not themselves select apparatus.
 
-### MCB-032 — Phase history
+<!-- vale RAES.HeadingCase = NO -->
+### MCB-032 — phase history
 
 A transition appends prior/next phase, trigger/order, membership,
 allocation, controller/authority/policy/time cuts, commit result, loss, and
 evidence.
 
-### MCB-033 — Identity preservation
+<!-- vale RAES.HeadingCase = YES -->
+
+<!-- vale RAES.HeadingCase = NO -->
+### MCB-033 — identity preservation
 
 A phase change does not rewrite plan id, plan-entry id, run id, prior control
 or crossing histories, prior delivery, or participant knowledge.
 
-### MCB-034 — Unadmitted join
+<!-- vale RAES.HeadingCase = YES -->
+
+<!-- vale RAES.HeadingCase = NO -->
+### MCB-034 — unadmitted join
 
 A component absent from the sealed possible-membership set cannot join.
 
+<!-- vale RAES.HeadingCase = YES -->
+
 ## 10. Open and closed axes
 
-### MCB-035 — Control-loop posture
+<!-- vale RAES.HeadingCase = NO -->
+### MCB-035 — control-loop posture
 
 `open-loop` permits observation/replay without external actuation.
 `closed-loop` permits a candidate action to reach ordinary control, admission,
 policy, capability, time/order, commit, and effect boundaries. The posture
 does not grant authority.
 
-### MCB-036 — World assumption
+<!-- vale RAES.HeadingCase = YES -->
+
+<!-- vale RAES.HeadingCase = NO -->
+### MCB-036 — world assumption
 
 `closed-world` rejects unknown entities/actions/observations/mappings.
 `bounded-open-world` acknowledges possible unknowns but treats an unknown
@@ -463,19 +571,27 @@ operational dispositions, not an exhaustive catalog of products, private
 mechanisms or all possible worlds. Exact authored constraints remain binding
 under either world assumption (ADR-105).
 
-### MCB-037 — Federation membership
+<!-- vale RAES.HeadingCase = YES -->
+
+<!-- vale RAES.HeadingCase = NO -->
+### MCB-037 — federation membership
 
 `fixed` keeps one active component set.
 `pre-admitted-dynamic` follows \(\Phi\). No other dynamic membership is
 admitted.
 
+<!-- vale RAES.HeadingCase = YES -->
+
 The three axes are independent.
 
 ## 11. Runtime effect boundary
 
-### MCB-038 — Exact-cut resolution
+<!-- vale RAES.HeadingCase = NO -->
+### MCB-038 — exact-cut resolution
 
 Before any adapter call or disclosure, resolve:
+
+<!-- vale RAES.HeadingCase = YES -->
 
 ```text
 authenticated caller and target
@@ -490,10 +606,13 @@ state revision and history heads
 mapping loss and evidence expectations
 ```
 
-### MCB-039 — Commit before effect
+<!-- vale RAES.HeadingCase = NO -->
+### MCB-039 — commit before effect
 
 The exact decision and predecessor histories commit atomically before the
 effect or serialization.
+
+<!-- vale RAES.HeadingCase = YES -->
 
 This is an authority/store transaction, not a distributed transaction with
 the apparatus. A crash after commit requires reconciliation. The decision,
@@ -502,10 +621,13 @@ accepted operation receipt or a record named `delivered` is not success by
 itself. Replay may return the original result, never renew permission or
 dispatch a second effect implicitly.
 
-### MCB-040 — Zero prohibited effects
+<!-- vale RAES.HeadingCase = NO -->
+### MCB-040 — zero prohibited effects
 
 Denial, stale cut, missing/unsupported mapping, failed admission, unsupported
 capability, invalid phase, or failed commit produces:
+
+<!-- vale RAES.HeadingCase = YES -->
 
 ```text
 zero prohibited backend calls
@@ -519,10 +641,13 @@ external effects are not undone by later denial, cancellation or store failure.
 Retain their accountable state and limitations; do not restore an obsolete
 snapshot or claim compensation, cleanup or exactly-once execution.
 
-### MCB-041 — Adapter distrust
+<!-- vale RAES.HeadingCase = NO -->
+### MCB-041 — adapter distrust
 
 Backend output is revalidated and mapped through safe diagnostics. Adapter
 success cannot synthesize a portable success after a failed RAES gate.
+
+<!-- vale RAES.HeadingCase = YES -->
 
 ## 12. Evidence and claims
 
@@ -541,26 +666,38 @@ transformations, loss, uncertainty, and limitations
 raw evidence, derived measures, and reproduction
 ```
 
-### MCB-042 — Pure and mixed cases
+<!-- vale RAES.HeadingCase = NO -->
+### MCB-042 — pure and mixed cases
 
 The protocol covers pure simulation, pure emulation/operation, simultaneous
 mixed, inter-trial transition, and pre-admitted phase transition.
 
-### MCB-043 — Open and closed loops
+<!-- vale RAES.HeadingCase = YES -->
+
+<!-- vale RAES.HeadingCase = NO -->
+### MCB-043 — open and closed loops
 
 The protocol covers open-loop and closed-loop cases under the same profile
 identities.
 
-### MCB-044 — Mandatory mismatches
+<!-- vale RAES.HeadingCase = YES -->
+
+<!-- vale RAES.HeadingCase = NO -->
+### MCB-044 — mandatory mismatches
 
 The protocol includes stale handoff, concurrent intervention, false/unsupported
 capability, timestamp-only/unmapped order, simulation-only observation,
 unrealizable action, directed-delivery failure, prior-delivery retraction, and
 bridge-metadata leakage.
 
-### MCB-045 — Claim separation
+<!-- vale RAES.HeadingCase = YES -->
+
+<!-- vale RAES.HeadingCase = NO -->
+### MCB-045 — claim separation
 
 These claims remain distinct:
+
+<!-- vale RAES.HeadingCase = YES -->
 
 ```text
 bounded conformance
@@ -621,8 +758,8 @@ Eligible(phi)   iff each allocation resolves to an active admitted component
 An edge is the directed relation `(source, destination, crossing-scope)` plus
 the bindings in section 5. A declared required exchange needs exactly one
 resolving edge. No reverse or transitive authority follows from another edge.
-Multiple edges with conflicting interpretations of the same exchange refuse
-admission. Endpoint clocks must match the named mapping's source/destination
+
+Multiple edges with conflicting interpretations of the same exchange refuse admission. Endpoint clocks must match the named mapping's source/destination
 domains. A common adapter identity does not supply a missing mapping. Mapping
 loss must be explicit, compatible with exact constraints, and accepted by the
 selected policy before sealing.
@@ -649,14 +786,17 @@ Admit(P,S,D,O) iff
 Alternative realization relates separately admitted plans holding instantiated
 scenario and participant-policy identity fixed, with distinct plan-entry/run
 identities and their own apparatus provenance. It is an OR choice, not a
-concurrent fallback pool. Simultaneous mixed realization has at least one
-active phase with two or more providers whose declared realized dimensions
+concurrent fallback pool.
+
+Simultaneous mixed realization has at least one active phase with two or more providers whose declared realized dimensions
 include distinct forms. `federated-composition` describes a composition
 boundary; its nested profile must disclose the relevant leaf forms. Several
 same-form components, names or adapter classes alone do not establish mixed
-simulation/emulation. Simulation realizes declared transition/interaction
-semantics; emulation/operation realizes the selected operational behavior;
-hardware/native names a physical/native realization dimension. These labels
+simulation/emulation.
+
+Simulation realizes declared transition/interaction semantics.
+Emulation/operation realizes the selected operational behavior.
+Hardware/native names a physical/native realization dimension. These labels
 are bounded declarations supported by the selected basis, not equivalence.
 
 Admission does not imply current execution permission. For exchange `x` at
@@ -678,8 +818,10 @@ The authorized projection includes declared metadata observations as well as
 payload. `BridgeOutput(x,K)` must be a narrowing of that projection before
 serialization. Metadata outside the modeled observer surface is an explicit
 claim limitation, not proven absence of a channel. Audit uses its own audience.
-An edge does not wrap every internal exchange in a participant carrier:
-API-423 applies only at the participant boundary and keeps its existing typed
+
+An edge does not wrap every internal exchange in a participant carrier.
+API-423 applies only at the participant boundary.
+It keeps its existing typed
 subjects, predecessor joins and stage dispositions.
 
 Refusal versus weakening is precise. Missing/revoked/stale authority,
@@ -687,6 +829,7 @@ unresolved required mappings, unmet exact constraints and failed commit always
 refuse the affected effect. A weaker *claim* can be admitted only where its
 owning policy explicitly permits that strength and records the omitted relation,
 loss and limitations. It does not satisfy an unchanged stronger obligation.
+
 Timestamp-only disclosure cannot be promoted to causal or backend-serialized
 order. Optional unsupported observation has an explicit unavailable outcome;
 required unsupported observation refuses. Weakening never invents permission.
@@ -739,33 +882,32 @@ policy and order inputs. It is not a parser, solver for arbitrary backends,
 authentication service, nested-profile resolver, coordinator or conformance
 engine. Its symbolic attempts/results are not realization evidence.
 
-MCB-001–045 are definitions; the matrix states the narrower clauses exercised
-by executable witnesses. The #1013 semantic publication alone established no
-portable schema or runtime enforcement. Subsequent #1014–#1016 and #1355 work
-adds the published profile, trial admission, and bounded reference runtime
-behavior described below; it does not establish a deployed backend
-realization, general model-checking result, proof, or ASR-537 demonstration.
-The profile keeps the edition-pinned prior-art dispositions
-from [the #813 source assessment](../../../docs/research/cross-backend-participant-control/prior-art-and-design-criteria.md).
-HLA ownership/time, co-simulation coupling and range transfer precedents remain
-design lineage, not wire or behavioral compatibility claims.
+MCB-001–045 are definitions.
+The matrix identifies the narrower clauses exercised by executable witnesses.
+The #1013 semantic publication alone established no portable schema or runtime enforcement.
+Subsequent #1014–#1016 and #1355 work adds the published profile, trial admission, and bounded reference runtime behavior described below.
+It establishes no deployed backend realization, general model-checking result, proof, or ASR-537 demonstration.
+
+The profile keeps the edition-pinned dispositions from
+[the #813 source assessment](../../../docs/research/cross-backend-participant-control/prior-art-and-design-criteria.md).
+HLA ownership/time, co-simulation coupling, and range transfer precedents remain design lineage.
+They are not wire or behavioral compatibility claims.
 
 ## 17. Executable edge and handoff interpretation (#1355)
 
-For an admitted directed edge (e), the trusted runtime binding fixes an
-installed bridge version and digest, source and destination action subjects,
-the admitted loss, and a time service for the edge's named mapping. The mapper
-must preserve the already authorized compiled action address and its provider
-allocation; backend-native translation remains inside the pinned bridge. The
-control plane retains the operation id and exact provider; the bridge cannot
-select another provider or gain controller or disclosure authority. No binding,
-capability, current policy, or evidence means refusal before a provider call.
-The executable edge must join the exact governed crossing subject, audience,
-policy cut, controller, action and disclosure authority, and permitted final
-sink decision before bridge invocation.
+For an admitted directed edge (e), the trusted runtime binding fixes the installed bridge version and digest.
+It also fixes source and destination action subjects, admitted loss, and the time service for the edge's named mapping.
+The mapper must preserve the authorized compiled action address and its provider allocation.
+Backend-native translation remains inside the pinned bridge.
 
-Let (A) be the durable decision/attempt, (X) the correlated provider result,
-(D) a destination receipt from independent readback, and (O) an authorized
+The control plane retains the operation id and exact provider.
+The bridge cannot select another provider or gain controller or disclosure authority.
+Missing binding, capability, current policy, or evidence causes refusal before a provider call.
+Before bridge invocation, the executable edge must join the exact governed crossing coordinates.
+These are subject, audience, policy cut, controller, action and disclosure authority, and permitted final sink decision.
+
+Let (A) be the durable decision/attempt, and (X) the correlated provider result.
+Let (D) be a destination receipt from independent readback, and (O) an authorized
 participant/audience readback. The executable ordering is:
 
 ```text
@@ -776,40 +918,45 @@ record O    only after D and a matching participant/audience observation
 ```
 
 The time grant cites the named source and destination clocks, mapping,
-comparable order, and evidence; typed pre/post runtime readback must match the
+comparable order, and evidence.
+Typed pre/post runtime readback must match the
 admitted time model. A mapping declaration or pair of timestamps does not
-provide the grant. The bounded implementation supports proved comparisons
-within one segment. Incomparable or unsupported comparisons refuse; neither a
+provide the grant.
+
+The bounded implementation supports proved comparisons within one segment. Incomparable or unsupported comparisons refuse; neither a
 shared physical clock nor physical-OT timing is inferred.
 At equal mapped ticks, source microstep must not exceed destination microstep.
+
 Successful execution, delivery, observation, and weakening facts require the
 incumbent backend result gate to accept the returned provider result. If a
 later readback interrupts the call, already confirmed stages remain tied to
 their original operation and the operation stays `INDETERMINATE`.
 
 For a staged transition that changes active components, the admitted evaluator
-and an installed transfer service are separate. The service must obtain its
-time grant, execute the exact native handoff under the operation id, and read
-back the destination owner at the next phase revision. Only then may the new
-phase and handoff fact commit. A failed or stale handoff with old-owner readback
-retains the prior phase. Pending, contradictory, or unknown transfer is
+and an installed transfer service are separate. The service must obtain its time grant and execute the exact native handoff under the operation id.
+It must then read back the destination owner at the next phase revision. Only then may the new
+phase and handoff fact commit.
+
+A failed or stale handoff with old-owner readback retains the prior phase. Pending, contradictory, or unknown transfer is
 `INDETERMINATE` and blocks dependent work. The store atomically excludes a
 competing phase or mixed-effect claim for that run while the transfer is active.
 Native ownership does not alter RUN-310 controller authority.
 
-The governed request and provider snapshot are fixed before a mapper runs;
-mapping, time, and bridge callbacks cannot mutate either carrier and still
-invoke the provider on an altered cut. Handoff
+The governed request and provider snapshot are fixed before a mapper runs.
+Mapping, time, and bridge callbacks cannot mutate either carrier and still invoke the provider on an altered cut. Handoff
 time readbacks join the committed snapshot before the grant and after the
 transfer. On restart, an interrupted edge or native transfer has only its
-durable pre-effect cut. Provider-only recovery cannot establish the bridge,
+durable pre-effect cut.
+
+Provider-only recovery cannot establish the bridge,
 clock, delivery, audience, or native-owner stages. Such an operation remains
 `INDETERMINATE` and blocks dependent work until those stages are reconciled.
+
 Generic acceptance of the current snapshot cannot discharge an interrupted
 mixed edge or native handoff, even when its crossing history is valid. A
 stage-specific reconciliation must prove the missing external facts first.
-Startup still validates typed crossing records and every unaffected history;
-only the suffix of the interrupted crossing is withheld from contextual
+Startup still validates typed crossing records and every unaffected history.
+Only the suffix of the interrupted crossing is withheld from contextual
 validation while its operation is quarantined.
 
 Historical `sem-234/rev1` edge references and success values retain their old

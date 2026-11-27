@@ -36,8 +36,8 @@ def _resolution(*, required: bool = False):
         ObservationLifecycleDecision,
         ObservationPurpose,
         ObservationSelector,
-        normalize_observation_demands,
     )
+    from raes_contracts.observation_demand_resolution import normalize_observation_demands
 
     selector = ObservationSelector(semantic_scope="/nodes/kali", data_kind="stream", names=("filesystem-trace",))
     document = ObservationDemandDocument(
@@ -72,7 +72,7 @@ def _assert_foreign_record(record: logging.LogRecord) -> None:
 
 
 def test_optional_producer_failure_records_only_raes_frames(lifecycle_records):
-    from raes_contracts.observation_demand import execute_observation_lifecycle
+    from raes_contracts.observation_lifecycle import execute_observation_lifecycle
 
     resolution, key = _resolution()
     result = execute_observation_lifecycle(
@@ -87,7 +87,7 @@ def test_optional_producer_failure_records_only_raes_frames(lifecycle_records):
 
 
 def test_optional_protector_failure_records_only_raes_frames(lifecycle_records):
-    from raes_contracts.observation_demand import execute_observation_lifecycle
+    from raes_contracts.observation_lifecycle import execute_observation_lifecycle
 
     resolution, key = _resolution()
     result = execute_observation_lifecycle(
@@ -104,7 +104,7 @@ def test_optional_protector_failure_records_only_raes_frames(lifecycle_records):
 
 @pytest.mark.parametrize("required", [False, True])
 def test_a_failure_that_is_not_an_optional_loss_propagates_without_a_record(lifecycle_records, required):
-    from raes_contracts.observation_demand import execute_observation_lifecycle
+    from raes_contracts.observation_lifecycle import execute_observation_lifecycle
 
     resolution, key = _resolution(required=required)
     supported = frozenset({key})
@@ -151,7 +151,10 @@ def _relation_outcome(result) -> tuple[object, list[str]]:
 
 @pytest.mark.parametrize("token", [*_NOT_INDEX_TOKENS, "٣"], ids=[*_NOT_INDEX_IDS, "non-ascii-decimal-digit"])
 def test_evidence_field_selector_with_a_non_index_token_does_not_resolve(token):
-    from raes_contracts._evidence_content_validation import _json_pointer_resolves, _validate_field_selectors
+    from raes_contracts.contracts.evidence_satisfaction import (
+        _json_pointer_resolves,
+        _validate_field_selectors,
+    )
 
     document = {"items": [{"a": 1}, {"a": 2}, {"a": 3}, {"a": 4}]}
     assert _json_pointer_resolves(document, f"/items/{token}") is False
@@ -161,7 +164,7 @@ def test_evidence_field_selector_with_a_non_index_token_does_not_resolve(token):
 
 
 def test_evidence_field_selector_keeps_ascii_indexes():
-    from raes_contracts._evidence_content_validation import _json_pointer_resolves
+    from raes_contracts.contracts.evidence_satisfaction import _json_pointer_resolves
 
     document = {"items": [{"a": 1}, {"a": 2}]}
     assert _json_pointer_resolves(document, "/items/0/a")
@@ -354,7 +357,7 @@ def test_temporal_record_selection_keeps_well_formed_records():
 )
 def test_temporal_history_refuses_malformed_records_with_value_error(raw):
     from raes_contracts.contracts.participant_runtime import ParticipantBehaviorHistoryEventModel
-    from raes_contracts.participant_temporal import _temporal_history_record
+    from raes_contracts.contracts.participant_temporal_history import _temporal_history_record
 
     with pytest.raises(ValueError, match="temporal history record"):
         _temporal_history_record(raw, {}, ParticipantBehaviorHistoryEventModel)

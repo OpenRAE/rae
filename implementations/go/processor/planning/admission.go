@@ -5,6 +5,7 @@ import (
 	"sync"
 	"unicode/utf8"
 
+	"github.com/OpenRAE/rae/implementations/go/base/fault"
 	"github.com/OpenRAE/rae/implementations/go/base/ingress"
 	"github.com/OpenRAE/rae/implementations/go/contract/admission"
 	"github.com/OpenRAE/rae/implementations/go/contract/binding"
@@ -29,7 +30,8 @@ func checkTransport(contract string, document any) error {
 	return owner.CheckPortable(contract, raw, limits)
 }
 
-func prepareOptions(model processor.RuntimeModel, options Options) (PlanningContext, error) {
+// checkOptionTransports checks each supplied option carrier through its contract.
+func checkOptionTransports(options Options) error {
 	for _, input := range []struct {
 		contract string
 		document any
@@ -42,9 +44,16 @@ func prepareOptions(model processor.RuntimeModel, options Options) (PlanningCont
 	} {
 		if input.present {
 			if err := checkTransport(input.contract, input.document); err != nil {
-				return PlanningContext{}, err
+				return err
 			}
 		}
+	}
+	return nil
+}
+
+func prepareOptions(model processor.RuntimeModel, options Options) (PlanningContext, error) {
+	if err := checkOptionTransports(options); err != nil {
+		return PlanningContext{}, err
 	}
 	if options.MixedControlAdmission != nil {
 		admission, ok := options.MixedControlAdmission.(*mixedControlAdmission)
@@ -55,6 +64,10 @@ func prepareOptions(model processor.RuntimeModel, options Options) (PlanningCont
 	if err := checkNativeOptions(options); err != nil {
 		return PlanningContext{}, err
 	}
+	reporting, err := materializationReporting(options.MaterializationReporting)
+	if err != nil {
+		return PlanningContext{}, err
+	}
 	var snapshot binding.RuntimeSnapshotV1
 	if options.Snapshot == nil {
 		if json.Unmarshal([]byte(`{"schema_version":"runtime-snapshot/v1","entries":{}}`), &snapshot) != nil {
@@ -63,7 +76,18 @@ func prepareOptions(model processor.RuntimeModel, options Options) (PlanningCont
 	} else {
 		snapshot = copyTransport(*options.Snapshot)
 	}
-	return PlanningContext{OriginalModel: model, Snapshot: snapshot, Scope: copyScope(options.Scope), ApparatusDecisions: map[RequirementKey]Closure{}, ArtifactAvailability: copyAvailability(options.ArtifactAvailability), ProfileContext: copyTransport(options.ProfileContext), MixedControlAdmission: options.MixedControlAdmission, RefreshEvaluation: options.RefreshEvaluation, ProcessorManifest: copyTransport(options.ProcessorManifest), RealizationEnvelope: copyTransport(options.RealizationEnvelope)}, nil
+	return PlanningContext{OriginalModel: model, Snapshot: snapshot, Scope: copyScope(options.Scope), ApparatusDecisions: map[RequirementKey]Closure{}, ArtifactAvailability: copyAvailability(options.ArtifactAvailability), ProfileContext: copyTransport(options.ProfileContext), MixedControlAdmission: options.MixedControlAdmission, RefreshEvaluation: options.RefreshEvaluation, ProcessorManifest: copyTransport(options.ProcessorManifest), RealizationEnvelope: copyTransport(options.RealizationEnvelope), MaterializationReporting: reporting}, nil
+}
+
+// materializationReporting admits the reporting scope of the materialization source.
+func materializationReporting(scope string) (string, error) {
+	if scope == "" {
+		return materializationAllPhases, nil
+	}
+	if scope != materializationAllPhases && scope != "provisioning" {
+		return "", fault.New(fault.InvalidInput, "unsupported-materialization-reporting-scope", nil)
+	}
+	return scope, nil
 }
 
 type optionTextBudget struct{ bytes, nodes int }

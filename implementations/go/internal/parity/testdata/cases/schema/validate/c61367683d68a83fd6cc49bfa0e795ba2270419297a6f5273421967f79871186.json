@@ -1,0 +1,14 @@
+{
+  "args": [
+    "experiment-binding-descriptors-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:0e272dc58336b80e443d30d1aadf4edcb411cceec3128e94a887c6f689aacec8"
+  },
+  "name": "regression/5e9fb17926d6fde79cc6e7c3374a57e2214484d596896072316c8573a6e0147b",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

@@ -26,7 +26,7 @@ def _register_workflow_routes(
         payload = cancellation or WorkflowCancellationRequestModel()
         calls = _control_plane_calls(request)
         try:
-            receipt = await calls.mutate(
+            receipt = await calls.control(
                 control_plane.cancel_workflow,
                 workflow_address,
                 run_id=payload.run_id,
@@ -45,7 +45,7 @@ def _register_workflow_routes(
     ) -> OperationReceiptModel:
         calls = _control_plane_calls(request)
         try:
-            receipt = await calls.mutate(
+            receipt = await calls.control(
                 control_plane.reconcile_workflow_timeouts,
                 idempotency_key=request.headers.get("idempotency-key", ""),
                 identity=identity,

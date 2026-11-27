@@ -166,7 +166,7 @@ func actionPrecondition(input runtimecontract.ParticipantActionInput, snapshot m
 			return actionRefusal(previous, address, "runtime.participant-autonomous-native-outcome-missing", "Autonomous native execution did not publish a typed action outcome."), true, nil
 		}
 		switch text(action, termStatus) {
-		case "succeeded", "failed", "partial_success", "rejected", "withheld":
+		case "succeeded", termFailed, "partial_success", "rejected", "withheld":
 		default:
 			return actionRefusal(previous, address, "runtime.participant-autonomous-native-outcome-nonterminal", "Autonomous native execution must publish a terminal typed action outcome."), true, nil
 		}

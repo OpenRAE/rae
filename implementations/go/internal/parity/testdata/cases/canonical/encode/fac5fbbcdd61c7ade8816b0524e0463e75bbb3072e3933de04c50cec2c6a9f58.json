@@ -1,0 +1,14 @@
+{
+  "args": [],
+  "command": "encode",
+  "files": {
+    "value.json": "sha256:bc3b572f4ff3d34409d6df686a30eda5e8f60ee33c0f16acedc5fbef076a6d68"
+  },
+  "name": "contracts/fixtures/control-plane/assigned-trial-control-v1/valid/reference",
+  "result": {
+    "jcs": "sha256:d12ae78c849a6b3a64a3f2726c74ca970b63258e7c727e507c1d621d3124b92d",
+    "sorted_ascii": "sha256:d12ae78c849a6b3a64a3f2726c74ca970b63258e7c727e507c1d621d3124b92d",
+    "sorted_unicode": "sha256:d12ae78c849a6b3a64a3f2726c74ca970b63258e7c727e507c1d621d3124b92d"
+  },
+  "surface": "canonical"
+}

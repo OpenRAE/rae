@@ -1,7 +1,6 @@
 package admission
 
 import (
-	"maps"
 	"slices"
 
 	"github.com/OpenRAE/rae/implementations/go/contract/validation"
@@ -27,9 +26,7 @@ func (e *Validator) mixedCompositionLocal(i validation.Invocation) error {
 	if err = mixedMode(v); err != nil {
 		return err
 	}
-	payload := maps.Clone(object(v))
-	delete(payload, "profile_digest")
-	digest, err := jsonDigest(payload)
+	digest, err := selfDigest(v, "profile_digest")
 	if err != nil {
 		return err
 	}

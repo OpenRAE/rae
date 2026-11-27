@@ -15,7 +15,7 @@ func authoredReferenceFields() []referenceFields {
 		{[]string{behaviorSection, "*"}, []string{participantRefsField, actionRefsField, boundaryRefsField, outcomeRefsField, authorityScopeRefsField}},
 		{[]string{agentsSection, "*"}, []string{"affiliations", termActions, boundariesSection, "starting_accounts", "allowed_subnets", "starting_assertions", "authority_anchors", "operating_scope"}},
 		{[]string{agentsSection, "*", "initial_knowledge"}, []string{"hosts", "subnets", servicesField, accountsSection}},
-		{[]string{agentsSection, "*", "interactive_access", "*"}, []string{"target_ref", "account_ref"}},
+		{[]string{agentsSection, "*", "interactive_access", "*"}, []string{targetRefField, "account_ref"}},
 		{[]string{agentsSection, "*", controlContextField, "*"}, []string{declarationRefField}},
 		{[]string{behaviorSection, "*", controlContextField, "*"}, []string{declarationRefField}},
 		{[]string{behaviorSection, "*", toolAffordancesField, "*"}, []string{participantRefsField, actionRefsField, boundaryRefsField, toolRefField}},

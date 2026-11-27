@@ -2,7 +2,7 @@
   "args": [],
   "command": "sdl_completions",
   "files": {
-    "arguments.json": "sha256:da9c7c50508ac42de9fc7d5641077a75ff3380bd541a2ed230515b5fdf1c8eea"
+    "arguments.json": "sha256:2feb85f48df7f26409a508642a61d1459cccd07d4d4f42e7dcf8d80a0899c491"
   },
   "name": "examples/library/catalog.yaml",
   "result": {
@@ -16,6 +16,12 @@
               "insert_text": "name: ",
               "kind": "field",
               "label": "name"
+            },
+            {
+              "detail": "top-level SDL key",
+              "insert_text": "trial_parallelism: ",
+              "kind": "field",
+              "label": "trial_parallelism"
             },
             {
               "detail": "top-level SDL key",
@@ -199,6 +205,12 @@
             },
             {
               "detail": "top-level SDL key",
+              "insert_text": "safe_state: ",
+              "kind": "field",
+              "label": "safe_state"
+            },
+            {
+              "detail": "top-level SDL key",
               "insert_text": "execution_policy: ",
               "kind": "field",
               "label": "execution_policy"
@@ -297,6 +309,12 @@
             "insert_text": "name: ",
             "kind": "field",
             "label": "name"
+          },
+          {
+            "detail": "top-level SDL key",
+            "insert_text": "trial_parallelism: ",
+            "kind": "field",
+            "label": "trial_parallelism"
           },
           {
             "detail": "top-level SDL key",
@@ -477,6 +495,12 @@
             "insert_text": "evidence_requirements: ",
             "kind": "field",
             "label": "evidence_requirements"
+          },
+          {
+            "detail": "top-level SDL key",
+            "insert_text": "safe_state: ",
+            "kind": "field",
+            "label": "safe_state"
           },
           {
             "detail": "top-level SDL key",

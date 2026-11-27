@@ -2,7 +2,7 @@
   "args": [],
   "command": "sdl_parse",
   "files": {
-    "arguments.json": "sha256:774d73f7e46bfd08bd5e5b715d8a92d73f53ab9da1247e487e45921ae8b27d72"
+    "arguments.json": "sha256:a01133ab021e7f5f5fe322e4c6efe416cff393fe56ec7def4ae1d5d8100e3383"
   },
   "name": "examples/library/patterns/observable-study-conditions.yaml",
   "result": {
@@ -16,7 +16,7 @@
               "range": {
                 "end": {
                   "column": 1,
-                  "line": 29
+                  "line": 28
                 },
                 "start": {
                   "column": 1,
@@ -127,7 +127,7 @@
               "path": "/summary",
               "range": {
                 "end": {
-                  "column": 166,
+                  "column": 143,
                   "line": 9
                 },
                 "start": {
@@ -144,7 +144,7 @@
               "range": {
                 "end": {
                   "column": 1,
-                  "line": 16
+                  "line": 15
                 },
                 "start": {
                   "column": 9,
@@ -160,11 +160,11 @@
               "range": {
                 "end": {
                   "column": 1,
-                  "line": 19
+                  "line": 18
                 },
                 "start": {
                   "column": 3,
-                  "line": 17
+                  "line": 16
                 }
               },
               "severity": "error",
@@ -176,11 +176,11 @@
               "range": {
                 "end": {
                   "column": 1,
-                  "line": 26
+                  "line": 25
                 },
                 "start": {
                   "column": 3,
-                  "line": 20
+                  "line": 19
                 }
               },
               "severity": "error",
@@ -192,11 +192,11 @@
               "range": {
                 "end": {
                   "column": 1,
-                  "line": 29
+                  "line": 28
                 },
                 "start": {
                   "column": 3,
-                  "line": 27
+                  "line": 26
                 }
               },
               "severity": "error",
@@ -219,7 +219,7 @@
             "range": {
               "end": {
                 "column": 1,
-                "line": 29
+                "line": 28
               },
               "start": {
                 "column": 1,
@@ -330,7 +330,7 @@
             "path": "/summary",
             "range": {
               "end": {
-                "column": 166,
+                "column": 143,
                 "line": 9
               },
               "start": {
@@ -347,7 +347,7 @@
             "range": {
               "end": {
                 "column": 1,
-                "line": 16
+                "line": 15
               },
               "start": {
                 "column": 9,
@@ -363,11 +363,11 @@
             "range": {
               "end": {
                 "column": 1,
-                "line": 19
+                "line": 18
               },
               "start": {
                 "column": 3,
-                "line": 17
+                "line": 16
               }
             },
             "severity": "error",
@@ -379,11 +379,11 @@
             "range": {
               "end": {
                 "column": 1,
-                "line": 26
+                "line": 25
               },
               "start": {
                 "column": 3,
-                "line": 20
+                "line": 19
               }
             },
             "severity": "error",
@@ -395,11 +395,11 @@
             "range": {
               "end": {
                 "column": 1,
-                "line": 29
+                "line": 28
               },
               "start": {
                 "column": 3,
-                "line": 27
+                "line": 26
               }
             },
             "severity": "error",

@@ -62,7 +62,19 @@ type evidenceSource struct {
 	Observation           *evidenceObservationRule `json:"observation_demand"`
 }
 
+// integrityModes leaves out an explicit lack of an integrity requirement,
+// which is not a backend mode that an offer must advertise.
+//
 //go:fix inline
+func integrityModes(values []string) []string {
+	result := []string{}
+	for _, value := range values {
+		if value != "none" {
+			result = append(result, value)
+		}
+	}
+	return result
+}
 func evidenceValues(values ...string) []string {
 	result := []string{}
 	for _, value := range values {
@@ -308,7 +320,7 @@ func compileCaptureDemand(name string, source evidenceSource) CaptureDemand {
 	} else {
 		redaction = new(source.Redaction)
 	}
-	return CaptureDemand{DemandID: name, Address: "evidence_requirements." + name, OutputContract: source.OutputContract, FieldSelectors: nonNilStrings(source.FieldSelectors), ArtifactRoles: evidenceValues(source.ArtifactRole), MediaTypes: nonNilStrings(source.MediaTypes), CaptureKind: kind, SourceClasses: evidenceValues(source.SourceClass), SourceRefs: nonNilStrings(source.SourceRefs), Scopes: evidenceValues(source.Scope), ScopeRefs: nonNilStrings(source.ScopeRefs), ChannelKinds: evidenceValues(channel), ChannelRefs: nonNilStrings(source.ChannelRefs), WindowKinds: windows, IntegrityModes: evidenceValues(source.Integrity), Sensitivity: source.Sensitivity, Disclosure: disclosure, RetentionPolicyRefs: evidenceValues(source.Retention), ExportPolicy: "not-required", RedactionPolicy: redaction, CaptureSpecRef: source.CaptureSpecRef, CaptureRequirementRef: source.CaptureRequirementRef}
+	return CaptureDemand{DemandID: name, Address: "evidence_requirements." + name, OutputContract: source.OutputContract, FieldSelectors: nonNilStrings(source.FieldSelectors), ArtifactRoles: evidenceValues(source.ArtifactRole), MediaTypes: nonNilStrings(source.MediaTypes), CaptureKind: kind, SourceClasses: evidenceValues(source.SourceClass), SourceRefs: nonNilStrings(source.SourceRefs), Scopes: evidenceValues(source.Scope), ScopeRefs: nonNilStrings(source.ScopeRefs), ChannelKinds: evidenceValues(channel), ChannelRefs: nonNilStrings(source.ChannelRefs), WindowKinds: windows, IntegrityModes: integrityModes(evidenceValues(source.Integrity)), Sensitivity: source.Sensitivity, Disclosure: disclosure, RetentionPolicyRefs: evidenceValues(source.Retention), ExportPolicy: "not-required", RedactionPolicy: redaction, CaptureSpecRef: source.CaptureSpecRef, CaptureRequirementRef: source.CaptureRequirementRef}
 }
 func captureDemandProjection(demand CaptureDemand) map[string]any {
 	return map[string]any{"demand_id": demand.DemandID, termAddress: demand.Address, "output_contract": demand.OutputContract, "field_selectors": demand.FieldSelectors, "artifact_roles": demand.ArtifactRoles, "media_types": demand.MediaTypes, "capture_kind": demand.CaptureKind, "source_classes": demand.SourceClasses, "source_refs": demand.SourceRefs, "scopes": demand.Scopes, "scope_refs": demand.ScopeRefs, "channel_kinds": demand.ChannelKinds, "channel_refs": demand.ChannelRefs, "window_kinds": demand.WindowKinds, "integrity_modes": demand.IntegrityModes, "sensitivity": demand.Sensitivity, "disclosure": demand.Disclosure, "retention_policy_refs": demand.RetentionPolicyRefs, "export_policy": demand.ExportPolicy, "redaction_policy": demand.RedactionPolicy, "capture_spec_ref": demand.CaptureSpecRef, "capture_requirement_ref": demand.CaptureRequirementRef}

@@ -3,11 +3,16 @@
 import json
 
 import pytest
+from contract_fixtures import contract_fixture_text
 from jsonschema import Draft202012Validator
 from paths import REPO_ROOT
-from raes_contracts.admitted_trial_plan_ingress import AdmittedTrialPlanIngressError, parse_admitted_trial_plan_json
-from raes_contracts.contracts import ExperimentSpecModel, schema_bundle
+from raes_contracts.contracts import ExperimentSpecModel
+from raes_contracts.contracts.admitted_trial_plan_ingress import (
+    AdmittedTrialPlanIngressError,
+    parse_admitted_trial_plan_json,
+)
 from raes_contracts.experiment_spec import ExperimentSpecValidationError, parse_experiment_spec
+from raes_schemas import schema_bundle
 from test_exp_719_factorial_allocation import _payload
 
 
@@ -30,7 +35,7 @@ def test_malformed_factorial_sections_fail_with_safe_diagnostics(field: str) -> 
 
 def test_altered_allocation_is_structurally_valid_but_fails_ingress_replay() -> None:
     path = REPO_ROOT / "contracts/fixtures/plans/admitted-trial-plan-v1/context-invalid/altered-allocation.json"
-    source = path.read_text(encoding="utf-8")
+    source = contract_fixture_text(path)
     Draft202012Validator(schema_bundle()["admitted-trial-plan-v1"]).validate(json.loads(source))
     with pytest.raises(AdmittedTrialPlanIngressError) as caught:
         parse_admitted_trial_plan_json(source)

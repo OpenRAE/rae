@@ -60,7 +60,7 @@ def finalize_time_result(
             result.snapshot,
             clock_address,
             "paused" if method == "pause" else "running",
-            policies=owner._participant_execution_policies,
+            policies=owner.participant_execution_policies,
         )
     if synced is not None:
         result = replace(

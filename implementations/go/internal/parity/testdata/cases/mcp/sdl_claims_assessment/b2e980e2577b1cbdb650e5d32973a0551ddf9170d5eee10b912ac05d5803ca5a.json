@@ -2,7 +2,7 @@
   "args": [],
   "command": "sdl_claims_assessment",
   "files": {
-    "arguments.json": "sha256:2cfad5fd1b047b823efcd0bad382c1337c41287a29f01f828738f3ca4933c12b"
+    "arguments.json": "sha256:49c641c32cb113ae5e794b129c46646977f11dcfac343e8de6434fdd9da5ae38"
   },
   "name": "examples/library/patterns/scenario-reference-integrity.yaml",
   "result": {
@@ -16,7 +16,7 @@
               "range": {
                 "end": {
                   "column": 1,
-                  "line": 25
+                  "line": 24
                 },
                 "start": {
                   "column": 1,
@@ -127,7 +127,7 @@
               "path": "/summary",
               "range": {
                 "end": {
-                  "column": 114,
+                  "column": 77,
                   "line": 9
                 },
                 "start": {
@@ -144,7 +144,7 @@
               "range": {
                 "end": {
                   "column": 1,
-                  "line": 14
+                  "line": 13
                 },
                 "start": {
                   "column": 9,
@@ -160,11 +160,11 @@
               "range": {
                 "end": {
                   "column": 1,
-                  "line": 17
+                  "line": 16
                 },
                 "start": {
                   "column": 3,
-                  "line": 15
+                  "line": 14
                 }
               },
               "severity": "error",
@@ -176,11 +176,11 @@
               "range": {
                 "end": {
                   "column": 1,
-                  "line": 22
+                  "line": 21
                 },
                 "start": {
                   "column": 3,
-                  "line": 18
+                  "line": 17
                 }
               },
               "severity": "error",
@@ -192,11 +192,11 @@
               "range": {
                 "end": {
                   "column": 1,
-                  "line": 25
+                  "line": 24
                 },
                 "start": {
                   "column": 3,
-                  "line": 23
+                  "line": 22
                 }
               },
               "severity": "error",
@@ -219,7 +219,7 @@
             "range": {
               "end": {
                 "column": 1,
-                "line": 25
+                "line": 24
               },
               "start": {
                 "column": 1,
@@ -330,7 +330,7 @@
             "path": "/summary",
             "range": {
               "end": {
-                "column": 114,
+                "column": 77,
                 "line": 9
               },
               "start": {
@@ -347,7 +347,7 @@
             "range": {
               "end": {
                 "column": 1,
-                "line": 14
+                "line": 13
               },
               "start": {
                 "column": 9,
@@ -363,11 +363,11 @@
             "range": {
               "end": {
                 "column": 1,
-                "line": 17
+                "line": 16
               },
               "start": {
                 "column": 3,
-                "line": 15
+                "line": 14
               }
             },
             "severity": "error",
@@ -379,11 +379,11 @@
             "range": {
               "end": {
                 "column": 1,
-                "line": 22
+                "line": 21
               },
               "start": {
                 "column": 3,
-                "line": 18
+                "line": 17
               }
             },
             "severity": "error",
@@ -395,11 +395,11 @@
             "range": {
               "end": {
                 "column": 1,
-                "line": 25
+                "line": 24
               },
               "start": {
                 "column": 3,
-                "line": 23
+                "line": 22
               }
             },
             "severity": "error",

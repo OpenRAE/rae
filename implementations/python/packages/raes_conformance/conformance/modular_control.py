@@ -9,13 +9,13 @@ from pathlib import Path
 from pydantic import TypeAdapter
 from raes_backend_protocols.manifest import backend_manifest_payload
 from raes_contracts.canonical import canonical_json_digest
-from raes_contracts.contracts import schema_bundle
 from raes_contracts.contracts.participant_control_decisions_v2 import ControlExecutableEffectTargetV2
 from raes_contracts.errors import InvalidInputError, RaesError
 from raes_contracts.operational_logging import foreign_failure_record, get_logger
+from raes_contracts.published_schemas import published_schema
 from raes_runtime.registry import RuntimeTarget
 
-from .diagnostics import _diagnostic, sanitized_failure_message
+from .diagnostics import conformance_diagnostic, sanitized_failure_message
 from .modular_control_checks import artifact_bindings, case_checks
 from .modular_control_execution import _Measurement, execute_case
 from .modular_control_types import (
@@ -101,7 +101,9 @@ def _missing(obligation: str, obligations: tuple[str, ...], effects: tuple[str, 
         probe_kind="modular-control",
         modular_control=_evidence(obligation, obligations, effects),
         diagnostics=(
-            _diagnostic("conformance.modular-coverage-missing", obligation, "Required runtime probe is absent."),
+            conformance_diagnostic(
+                "conformance.modular-coverage-missing", obligation, "Required runtime probe is absent."
+            ),
         ),
         limitations=_LIMITATIONS,
         explicit_non_claims=_NON_CLAIMS,
@@ -122,7 +124,7 @@ def _run_case(
         failures = case_checks(case, measured)
         if failures:
             diagnostics.append(
-                _diagnostic(
+                conformance_diagnostic(
                     "conformance.modular-obligation-failed",
                     case.obligation,
                     "Runtime probe failed: " + ", ".join(failures) + ".",
@@ -133,7 +135,7 @@ def _run_case(
             # Isolation of the harness inputs and installed operator code: a refusal category needs no record.
             _LOGGER.exception("modular-control probe failed", exc_info=foreign_failure_record(exc))
         diagnostics.append(
-            _diagnostic("conformance.modular-probe-failed", case.obligation, sanitized_failure_message(exc))
+            conformance_diagnostic("conformance.modular-probe-failed", case.obligation, sanitized_failure_message(exc))
         )
     evidence = _evidence(case.obligation, obligations, effects, case, measured)
     return ConformanceCaseResult(
@@ -263,7 +265,9 @@ def run_modular_control_conformance(
         if not isinstance(exc, RaesError):
             # Isolation of the harness case supply: a refusal category needs no record.
             _LOGGER.exception("modular-control harness failed", exc_info=foreign_failure_record(exc))
-        diagnostics.append(_diagnostic("conformance.modular-harness-invalid", _PROFILE, sanitized_failure_message(exc)))
+        diagnostics.append(
+            conformance_diagnostic("conformance.modular-harness-invalid", _PROFILE, sanitized_failure_message(exc))
+        )
         covered = {case.modular_control.obligation for case in cases}
         if subset_valid:
             cases.extend(_missing(item, selected, effects) for item in required if item not in covered)
@@ -294,7 +298,7 @@ def run_modular_control_conformance(
         diagnostics=tuple(diagnostics),
         probe_set_digest=digest,
         contract_versions={
-            key: canonical_json_digest(schema_bundle()[key])
+            key: canonical_json_digest(published_schema(key))
             for key in ("participant-control-selection-v2", "participant-control-evaluation-v2")
         },
     )

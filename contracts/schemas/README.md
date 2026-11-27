@@ -34,9 +34,8 @@ Current published schemas cover:
 canonical-field recognition, shorthand expansion, enum normalization, and typed
 construction. Its title and `x-raes-document-phase` annotation state that
 boundary. Raw YAML properties such as duplicate keys, tags, directives,
-anchors, aliases, Core scalar resolution, and resource limits are specified in
-`specs/sdl/document-model.md` and tested by
-`contracts/fixtures/sdl/sdl-yaml-v1/`; JSON Schema cannot express them.
+anchors, aliases, Core scalar resolution, and resource limits are specified in `specs/sdl/document-model.md`.
+`contracts/fixtures/sdl/sdl-yaml-v1/` tests them, and JSON Schema cannot express them.
 
 `sdl/instantiated-scenario-v1.json` is a distinct closed derived-artifact
 contract. It requires `instantiation_provenance`, forbids `variables`,
@@ -52,8 +51,8 @@ corresponding valid and invalid fixtures live under
 `instantiated-scenario-snapshot-v1/`.
 
 These schemas enforce portable structure and scalar constraints. Cross-field
-provenance relations, reference resolution, and graph semantics remain the
-normative model/semantic-admission layer; schema validity alone does not assert
+provenance relations, reference resolution, and graph semantics remain the normative model/semantic-admission layer.
+Schema validity alone does not assert
 that provenance is truthful or that an artifact is compiler-admitted.
 
 ## Participant execution control
@@ -86,9 +85,14 @@ For apparatus manifests, `v2` is now the authoritative shared envelope:
 - `identity`
 - `supported_contract_versions`
 - `compatibility`
-- `realization_support`
+- `concept_bindings`
 - `constraints`
 - `capabilities`
+
+Backend manifests additionally carry `realization_support`.
+Processor manifests reject that field.
+The processor compiles requirements and plans against backend support.
+The backend owns realization.
 
 These sections are intended to be concrete declarations, not placeholders. In
 particular:
@@ -132,18 +136,21 @@ The canonical catalog lives at
 the shared `BehavioralClaimBindingModel` rather than copying relation meaning.
 Finite evidence cannot be bound to a universal quantifier.
 
+<!-- vale RAES.HeadingCase = NO -->
 ## UCO alignment evidence
 
 The `uco-alignment-v1` schema publishes the machine-readable UCO alignment
-evidence catalog. It pins the reviewed UCO version and maps each adopted and
-adapted cyber-domain concept family (from `concept-families-v1`) to the UCO
-object types it aligns to, enumerating adapted-family divergences explicitly.
+evidence catalog. It pins the reviewed UCO version.
+It maps each adopted and adapted cyber-domain concept family (from `concept-families-v1`) to the UCO object types it aligns to.
+It enumerates adapted-family divergences explicitly.
+
+<!-- vale RAES.HeadingCase = YES -->
 
 The catalog lives at `contracts/concept-authority/uco-alignment-v1.json`.
 Coverage is catalog-derived: every adopted or adapted family whose authority is
 UCO must have exactly one alignment entry. Validation uses local evidence only
-and does not fetch the UCO ontology; semantic checks beyond JSON Schema enforce
-coverage, provenance agreement with `concept-families-v1`, canonical UCO IRIs,
+and does not fetch the UCO ontology.
+Semantic checks beyond JSON Schema enforce coverage, provenance agreement with `concept-families-v1`, canonical UCO IRIs,
 and the adapted-family divergence rule.
 
 ## Semantic profiles
@@ -163,29 +170,27 @@ lives at
 selection uses the exact profile id/version plus a declared subject kind; the
 catalog does not execute gates or carry per-subject results.
 
-The `validation-basis-disclosure-v1` schema publishes the ASR-515 record of
-the validation/admission basis used for one concrete subject, joined to the
-`validation-profile-catalog-v1` authority by `(profile_id, profile_version,
-subject_kind)`. It carries the achieved strength, gate-result rows,
-limitations, and safe evidence/producer/diagnostic references. It refers to
-scenario and scenario-snapshot subjects and never models them again.
-Experiment task/run/study contracts embed it as an optional
-`validation_basis_disclosures` list. It does not execute gates, does not replace the ASR-511 catalog, and
-does not add an admission, endpoint, or persistence surface.
+The `validation-basis-disclosure-v1` schema publishes the ASR-515 validation/admission basis for one concrete subject.
+It joins the `validation-profile-catalog-v1` authority by `(profile_id, profile_version, subject_kind)`.
+It carries achieved strength, gate-result rows, limitations, and safe evidence/producer/diagnostic references.
+Scenario and scenario-snapshot subjects use references and are never re-modeled.
+Experiment task/run/study contracts embed an optional `validation_basis_disclosures` list.
+This record executes no gate and replaces no ASR-511 catalog.
+
+It adds no admission, endpoint, or persistence surface.
 
 ## Semantic projection reports
 
-The `semantic-projection-report-v1` schema publishes scheme-neutral,
-evidence-bounded reports over `external-concept-bindings/v1`. Each report
-embeds a complete frame that a canonical digest binds. The frame contains these
-items:
+The `semantic-projection-report-v1` schema publishes scheme-neutral, evidence-bounded reports over `external-concept-bindings/v1`.
+Each report embeds a complete frame bound by canonical digest.
+That frame contains:
 
-- exact scheme revision and source digest;
-- explicit concept inclusion set and native subject scope;
-- one governed predicate profile and producer;
-- perspective and configuration/state coordinates;
-- quantifier and evidence/freshness boundary; and
-- binding-set digest and transformation versions.
+- Exact scheme revision and source digest.
+- Explicit concept inclusion set and native subject scope.
+- One governed predicate profile and producer.
+- Perspective and configuration/state coordinates.
+- Quantifier and evidence/freshness boundary.
+- Binding-set digest and transformation versions.
 
 Rows form an exact partition of the pinned scheme snapshot into witnesses,
 gaps, unknowns, ambiguous concepts, and excluded concepts. A gap requires a
@@ -279,42 +284,34 @@ The `experiment-core` schema family publishes:
 - `experiment-evidence-record-v1`
 - `experiment-derived-measure-v1`
 
-These schemas keep SDL scenario authoring, experiment task protocol, execution
-apparatus context, archival run provenance, study/collection analysis,
-declarative capture requirements, raw evidence records, and derived
-measure/evaluation outputs separate. The normative invariant set lives in
+These schemas keep SDL scenario authoring, experiment task protocol, execution apparatus context, and archival run provenance separate.
+They also keep study/collection analysis, declarative capture requirements, raw evidence records, and derived measure/evaluation outputs separate. The normative invariant set lives in
 `specs/formal/experiment-core/`. ADR-055 records the original task/run/study
 boundary, and ADR-064 records the evidence/measure and backend observation
 capability extension. ADR-065 records `experiment-run-v1` as the canonical run
 provenance record with required traceability links and realized-form
 disclosures.
 
-Schema-expressible invariants are encoded in the published schemas. In
-particular, task/run reference-kind constraints and invalidated-run
-requirements are part of `experiment-task-v1` and `experiment-run-v1`.
-Keyed object maps represent identifier uniqueness for metrics, apparatus
-components, result summaries, study members, and study factors.
-Run traceability and realized-form disclosure invariants keep claims grounded
-in evidence/derived-measure refs and keep realized choices distinct from
-authored scenario meaning and result values.
-Task, run-plan, run, and study schemas also embed the same closed
-`ExperimentEvidenceRequirementRelationModel`. Its semantic invariant requires
-exact authored-scenario/declaration lineage, exact capture-specification
-coordinates, carrier-owned task/run/study authority, and fail-closed governed
-refinement comparisons. Generic JSON Schema validates the relation shape;
-consumers apply `validate_evidence_requirement_relations()` with resolved SDL
-and capture-specification inputs before treating the relationship as valid.
-The trial compiler and realization path apply this validation through
-`compile_scoped_evidence_requirement_demands()` before capability admission and
-processor planning. Governed semantic comparison selects relation-aware
-version-2 projections for current task, run, and study carriers.
-Cross-artifact or graph invariants that standard JSON Schema cannot express are
-published under the RAES semantic-invariant profile with `x-raes-invariants`
-entries that name the validator and input contract paths. The generated schemas
-declare draft 2020-12 identity, and the annotation profile shape is published as
-`raes-semantic-invariants-v1` and checked during generation. Generic JSON Schema
-validation remains structural; consumers of experiment-core records must apply
-the named semantic validators before accepting records as RAES-conformant.
+Published schemas encode the invariants that JSON Schema can express.
+`experiment-task-v1` and `experiment-run-v1` encode task/run reference-kind constraints and invalidated-run requirements.
+Keyed object maps express identifier uniqueness for metrics, apparatus components, result summaries, study members, and study factors.
+Run traceability and realized-form disclosures ground claims in evidence/derived-measure refs.
+They keep realized choices distinct from authored meaning and result values.
+
+Task, run-plan, run, and study schemas embed the same closed `ExperimentEvidenceRequirementRelationModel`.
+Its semantic invariant requires exact authored-scenario/declaration lineage, exact capture-specification coordinates, carrier-owned task/run/study authority, and fail-closed governed refinement comparisons.
+Generic JSON Schema checks the relation shape.
+Before accepting a relationship, consumers apply `validate_evidence_requirement_relations()` with resolved SDL and capture-specification inputs.
+
+Trial compilation and realization use `compile_scoped_evidence_requirement_demands()` before capability admission and processor planning.
+Governed semantic comparison uses relation-aware version-2 projections for current task, run, and study carriers.
+The RAES semantic-invariant profile publishes cross-artifact and graph constraints that standard JSON Schema cannot express.
+Its `x-raes-invariants` entries name validators and input contract paths.
+
+Generated schemas declare draft 2020-12 identity.
+Schema generation checks the annotation shape against `raes-semantic-invariants-v1`.
+Generic JSON Schema validation remains structural.
+Consumers must apply the named semantic validators before accepting experiment-core records as RAES-conformant.
 
 The optional backend-manifest `capabilities.observation` block declares EXP-715
 observation/evidence collection support. Backends that declare it must also

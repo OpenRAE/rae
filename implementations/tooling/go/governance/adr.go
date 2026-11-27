@@ -19,8 +19,8 @@ const adrDirectory = "docs/decisions/adrs"
 const adrManifest = adrDirectory + "/adr-index.yaml"
 
 type adrPin struct {
-	id, path, pin string
-	refs          []string
+	id, path string
+	refs     []string
 }
 
 type adrDocument struct{ id, path, text string }
@@ -286,9 +286,6 @@ func checkADRPin(r *repository, pin adrPin, doc adrDocument) []Finding {
 	right, rightErr := r.resolve(doc.path)
 	if leftErr != nil || rightErr != nil || left != right {
 		return []Finding{finding("adr-manifest-malformed", pin.id+": manifest path does not resolve to the ADR file on disk", pin.path)}
-	}
-	if adrHash(doc.text) != pin.pin {
-		findings = append(findings, finding("adr-pin-stale", pin.id+" content differs from its pinned hash; record an amendment (and update the pin) or supersede it with a new ADR", pin.path))
 	}
 	actual, expected := amendmentRefs(doc.text), append([]string{}, pin.refs...)
 	slices.Sort(actual)

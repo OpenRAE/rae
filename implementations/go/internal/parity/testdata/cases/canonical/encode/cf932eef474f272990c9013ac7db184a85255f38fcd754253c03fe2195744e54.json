@@ -1,0 +1,14 @@
+{
+  "args": [],
+  "command": "encode",
+  "files": {
+    "value.json": "sha256:15cb581a2ef0ea167583c83037c54a746dd96d018b136051259f509a4f8f8b53"
+  },
+  "name": "contracts/fixtures/participant-runtime/participant-delivery-invocation-request-v1/valid/example",
+  "result": {
+    "jcs": "sha256:530c7763de4f7dd503fe69f7bb4433e64273973d8a8693bce5bc11639b44ca36",
+    "sorted_ascii": "sha256:530c7763de4f7dd503fe69f7bb4433e64273973d8a8693bce5bc11639b44ca36",
+    "sorted_unicode": "sha256:530c7763de4f7dd503fe69f7bb4433e64273973d8a8693bce5bc11639b44ca36"
+  },
+  "surface": "canonical"
+}

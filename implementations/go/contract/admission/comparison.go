@@ -1,7 +1,6 @@
 package admission
 
 import (
-	"maps"
 	"slices"
 
 	"github.com/OpenRAE/rae/implementations/go/contract/validation"
@@ -80,9 +79,7 @@ func comparisonImpactScope(scope any) error {
 			}
 		}
 	}
-	payload := maps.Clone(object(scope))
-	delete(payload, "scope_digest")
-	actual, err := jsonDigest(payload)
+	actual, err := selfDigest(scope, "scope_digest")
 	if err != nil {
 		return err
 	}

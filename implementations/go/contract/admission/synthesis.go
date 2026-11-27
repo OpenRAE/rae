@@ -2,7 +2,6 @@ package admission
 
 import (
 	"encoding/json"
-	"maps"
 	"strings"
 
 	"github.com/OpenRAE/rae/implementations/go/base/ingress"
@@ -124,9 +123,7 @@ func (e *Validator) synthesisProfile(i validation.Invocation) error {
 			return invalid()
 		}
 	}
-	profile := maps.Clone(object(v))
-	delete(profile, "profile_digest")
-	actual, err := jsonDigest(profile)
+	actual, err := selfDigest(v, "profile_digest")
 	if err != nil {
 		return err
 	}

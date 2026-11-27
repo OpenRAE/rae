@@ -65,6 +65,9 @@ type Options struct {
 	RefreshEvaluation     bool
 	ProcessorManifest     *binding.ProcessorManifestV2
 	RealizationEnvelope   *binding.RealizationEnvelopeV1
+	// MaterializationReporting is the reporting scope of the materialization
+	// source: "all-phases" when empty, or "provisioning".
+	MaterializationReporting string
 }
 
 // RequirementKey identifies a delegated concern without relying on rendered payloads.
@@ -84,6 +87,8 @@ type PlanningContext struct {
 	RefreshEvaluation     bool
 	ProcessorManifest     *binding.ProcessorManifestV2
 	RealizationEnvelope   *binding.RealizationEnvelopeV1
+	// MaterializationReporting is the admitted reporting scope of the materialization source.
+	MaterializationReporting string
 }
 
 // Actions counts reconciliation actions across the three execution phases.

@@ -31,15 +31,12 @@ func (c *compiledConcern) lower(requirement *Requirement, apparatus string) (boo
 	requirement.ConstraintBinding = ""
 	requirement.RecursivePending = false
 	requirement.StructureError = false
+	requirement.StructureLimit = ""
 	if record, present := c.input.explicitness[c.fieldPath]; present && record.Classification == termConstrained && requirement.ValueDomain == nil && (c.definition.kind == termOsFamily || c.definition.kind == termOsDistribution || c.definition.kind == termOsVersion) {
 		return false, nil
 	}
-	projection, err := ProjectConcern(c.definition.kind, c.value, false, true)
-	if err != nil {
-		if category, ok := fault.CategoryOf(err); ok && category == fault.InvalidInput {
-			requirement.StructureError = true
-			return false, nil
-		}
+	projection, admitted, err := c.recursiveProjection(requirement)
+	if err != nil || !admitted {
 		return false, err
 	}
 	rootDomain := requirement.ValueDomain
@@ -54,6 +51,39 @@ func (c *compiledConcern) lower(requirement *Requirement, apparatus string) (boo
 	context.collect(projected, source, "", c.fieldPath, "", 0)
 	return context.lowerConstraint(requirement, projection, projected)
 }
+
+// recursiveProjection projects the authored value and requires it to fit the
+// plan authority budget before its source metadata is read. A refused value
+// marks the requirement; exhausted work keeps its limit message.
+//
+//nolint:ireturn // The shared owner returns a sealed admitted fragment.
+func (c *compiledConcern) recursiveProjection(requirement *Requirement) (admission.Fragment, bool, error) {
+	refused := func(err error) (admission.Fragment, bool, error) {
+		if category, ok := fault.CategoryOf(err); ok && category == fault.InvalidInput {
+			requirement.StructureError = true
+			return nil, false, nil
+		}
+		return nil, false, err
+	}
+	document, err := projectConcernDocument(c.definition.kind, c.value, false, true)
+	if err != nil {
+		return refused(err)
+	}
+	conformant, limit, err := relationAdmits(admission.ValidateRealizationDocument(document, admission.PlanAuthorityConstraintLimits()))
+	if err != nil {
+		return nil, false, err
+	}
+	if !conformant {
+		requirement.StructureError, requirement.StructureLimit = true, limit
+		return nil, false, nil
+	}
+	projection, err := admitConcernProjection(document)
+	if err != nil {
+		return refused(err)
+	}
+	return projection, true, nil
+}
+
 func (m *concernMetadata) lowerConstraint(requirement *Requirement, projection admission.Fragment, projected any) (bool, error) {
 	if m.err != nil {
 		return false, m.err
@@ -79,12 +109,16 @@ func (m *concernMetadata) lowerConstraint(requirement *Requirement, projection a
 		requirement.RecursivePending = true
 		return false, nil
 	}
-	result, err := admission.NormalizeRealizationLiteral(projection, "raes/"+m.concern.definition.kind+"/v1", closure, m.metadata, admission.DefaultConstraintLimits())
+	limits := admission.PlanAuthorityConstraintLimits()
+	result, err := admission.NormalizeRealizationLiteral(projection, "raes/"+m.concern.definition.kind+"/v1", closure, m.metadata, limits)
 	if err != nil {
 		return false, err
 	}
 	if result.Status != termConformant {
 		requirement.StructureError = true
+		if result.Status == termLimitExceeded && len(result.Diagnostics) > 0 {
+			requirement.StructureLimit = result.Diagnostics[0].Message
+		}
 		return false, nil
 	}
 	document, err := bindScalarChoices(result.Document)
@@ -92,7 +126,17 @@ func (m *concernMetadata) lowerConstraint(requirement *Requirement, projection a
 		requirement.StructureError = true
 		return false, nil //nolint:nilerr // This relation reports candidate refusal in its result without failing the enclosing operation.
 	}
-	binding, err := admission.RealizationConstraintBinding(document, projection)
+	// Admission and evaluation share work: normalization alone cannot prove
+	// that the unchanged source fits downstream preparation and delivery.
+	evaluated, err := admission.EvaluateRealizationConstraint(document, projection, limits)
+	if err != nil {
+		return false, err
+	}
+	if _, limit, _ := relationAdmits(evaluated, nil); limit != "" {
+		requirement.StructureError, requirement.StructureLimit = true, limit
+		return false, nil
+	}
+	binding, err := admission.RealizationConstraintBindingWithLimits(document, projection, limits)
 	if err != nil {
 		return false, err
 	}
@@ -129,9 +173,28 @@ func metadataPointer(pointer, key string) string {
 	return pointer + jsonpointer.FromTokens([]string{key})
 }
 
+// relationAdmits reads a relation result: conformance, and the work-limit
+// message when the relation exhausted its budget.
+func relationAdmits(result admission.Fragment, err error) (bool, string, error) {
+	if err != nil {
+		return false, "", err
+	}
+	document := ownedProjection[map[string]any](result.Document())
+	status, _ := document["status"].(string)
+	if status != termLimitExceeded {
+		return status == termConformant, "", nil
+	}
+	diagnostics, _ := document["diagnostics"].([]any)
+	if len(diagnostics) == 0 {
+		return false, "", nil
+	}
+	message, _ := ownedProjection[map[string]any](diagnostics[0])["message"].(string)
+	return false, message, nil
+}
+
 func (m *concernMetadata) collect(projected, source any, pointer, path, sourcePointer string, depth int) {
 	m.nodes++
-	limits := admission.DefaultConstraintLimits()
+	limits := admission.PlanAuthorityConstraintLimits()
 	if m.invalid || m.pending || m.err != nil {
 		return
 	}
@@ -311,10 +374,9 @@ func (m *concernMetadata) collectionIdentity(pointer string) []string {
 		return m.concern.definition.identity
 	}
 	kind := m.concern.definition.kind
-	if kind == "runtime-datastore-services" || kind == "runtime-orchestration-authorities" || kind == "runtime-app-authorizations" {
-		if identity := sdlrules.RuntimeCollectionIdentity(strings.TrimPrefix(kind, "runtime-"), pointer); identity != "" {
-			return []string{identity}
-		}
+	// Every registered runtime service family compares its members by identity.
+	if identity := sdlrules.RuntimeCollectionIdentity(strings.TrimPrefix(kind, "runtime-"), pointer); identity != "" {
+		return []string{identity}
 	}
 	tokens := jsonpointer.Tokens(pointer)
 	field := tokens[len(tokens)-1]
@@ -322,6 +384,8 @@ func (m *concernMetadata) collectionIdentity(pointer string) []string {
 	switch {
 	case kind == termRuntimeSoftwareComponents && field == "repository_refs":
 		identity = termIdentityMarker
+	case kind == "runtime-applications" && field == "routes":
+		identity = "route_id"
 	case kind == termRuntimeRepositoryState:
 		identity = map[string]string{"repositories": termRepositoryID, "trust_bindings": termTrustID}[field]
 	case kind == termLinuxCapabilities && slices.Contains([]string{termRequired, termEffective, termAdd, termDrop, "process_overrides"}, field):

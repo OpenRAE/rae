@@ -196,3 +196,13 @@ const (
 	temporalConstraintsSection = "temporal_constraints"
 	mailServicesField          = "mail_services"
 )
+
+// Shared literal terms of this package.
+const (
+	durationOperation = "duration"
+	rolePostcondition = "postcondition"
+	rolePrecondition  = "precondition"
+	stateField        = "state"
+	targetRefField    = "target_ref"
+	versionField      = "version"
+)

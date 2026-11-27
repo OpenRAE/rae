@@ -8,6 +8,7 @@ from contextvars import ContextVar
 from time import monotonic
 from typing import TYPE_CHECKING
 
+from raes_contracts.contracts.workflow_dispatch import WorkflowStepDispatch
 from raes_contracts.errors import ConflictError
 
 from .errors import RuntimeBudgetExhaustedError
@@ -33,7 +34,11 @@ def authored_attempt_budget(deadline: float) -> Iterator[None]:
 def execution_budget_ms(plan: object, configuration: OperationSupervisionConfiguration) -> int:
     budget = configuration.execution_ms
     budget = _remaining_attempt_budget(budget)
-    for operation in plan.operations:
+    if isinstance(plan, WorkflowStepDispatch) and plan.remaining_budget_ms is not None:
+        if plan.remaining_budget_ms <= 0:
+            raise RuntimeBudgetExhaustedError("workflow apparatus budget is exhausted")
+        budget = min(budget, plan.remaining_budget_ms)
+    for operation in (plan,) if isinstance(plan, WorkflowStepDispatch) else plan.operations:
         for effective in (operation.execution_policy, *operation.execution_policy_scopes):
             if effective is None:
                 continue

@@ -124,6 +124,10 @@ func (plan *executionPlan) phaseProjection(domain string) map[string]any {
 	if plan.augmentationScopeRequired {
 		result["augmentation_scope_required"] = true
 	}
+	// Each phase retains the same separate safe-state proof; an empty collection is omitted.
+	if len(plan.safeStates) > 0 {
+		result["safe_states"] = plan.safeStates
+	}
 	return result
 }
 
@@ -178,6 +182,11 @@ func projectAuthority(resources map[string]plannedResource, resolved realization
 			continue
 		}
 		requirement := requirements[identity{authority.Address, authority.FieldPath, authority.Concern}]
+		if requirement.StructureLimit != "" {
+			// Exhausted work differs from unrepresentable source authority.
+			diagnostics = append(diagnostics, planDiagnostic("realization.limit-exceeded", authority.Domain, authority.Address, "Recursive authority for '"+authority.Concern+"': "+requirement.StructureLimit))
+			continue
+		}
 		if requirement.StructureError || requirement.RecursivePending {
 			diagnostics = append(diagnostics, unsafeAuthority(authority))
 			continue

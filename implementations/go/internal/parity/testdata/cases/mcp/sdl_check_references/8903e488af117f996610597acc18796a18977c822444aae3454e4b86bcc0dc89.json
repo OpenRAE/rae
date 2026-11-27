@@ -1,0 +1,25 @@
+{
+  "args": [],
+  "command": "sdl_check_references",
+  "files": {
+    "arguments.json": "sha256:0a8c0e01aa3bc5e98f05b14f986a0c3cf14fa12a05ca632e257fde9f00169a75"
+  },
+  "name": "contracts/fixtures/sdl/participant-episode-policy-v1/valid/standalone-episode-structure.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "Cross-reference graph": "agents.replayer -> blue-team assertions.console-ready -> console-ready propositions.console-ready -> nodes.siem.services.console"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "Cross-reference graph": "agents.replayer -> blue-team assertions.console-ready -> console-ready propositions.console-ready -> nodes.siem.services.console"
+      }
+    }
+  },
+  "surface": "mcp"
+}

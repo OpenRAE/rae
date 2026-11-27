@@ -6190,6 +6190,14 @@
             ]
           },
           "then": {
+            "properties": {
+              "profile": {
+                "type": "string"
+              },
+              "universe": {
+                "type": "string"
+              }
+            },
             "required": [
               "universe",
               "profile"
@@ -6202,10 +6210,7 @@
               "posture": {
                 "const": "undefined"
               }
-            },
-            "required": [
-              "posture"
-            ]
+            }
           },
           "then": {
             "properties": {

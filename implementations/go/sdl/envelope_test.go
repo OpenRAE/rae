@@ -14,7 +14,7 @@ type replacedEnvelopeInstance struct{ sdl.InstantiatedScenario }
 func (replacedEnvelopeInstance) Document() map[string]any { panic("foreign scenario method invoked") }
 
 func TestEnvelopeMembershipUsesNativeInstantiatedOwner(t *testing.T) {
-	raw, err := os.ReadFile("../../../contracts/fixtures/realization-envelope/realization-envelope-v1/valid/generic.json")
+	raw, err := readSealedFixture("../../../contracts/fixtures/realization-envelope/realization-envelope-v1/valid/generic.json")
 	if err != nil {
 		t.Fatal(err)
 	}

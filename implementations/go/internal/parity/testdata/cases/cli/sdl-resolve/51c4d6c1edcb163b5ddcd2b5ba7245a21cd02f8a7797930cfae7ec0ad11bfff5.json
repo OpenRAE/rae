@@ -1,0 +1,17 @@
+{
+  "args": [
+    "sdl",
+    "resolve",
+    "input/root.sdl.yaml"
+  ],
+  "command": "sdl resolve",
+  "files": {
+    "input/root.sdl.yaml": "sha256:491fd4cfbb66087e0a519845d5f001235986191382b0971dbf779ccec30e381d"
+  },
+  "name": "regression/e7c7a561594e98b9413450bc5e51f0724bb590bbd2555488fe1ab826093c8335",
+  "result": {
+    "exit_code": 1,
+    "stdout": null
+  },
+  "surface": "cli"
+}

@@ -8,20 +8,20 @@
   ],
   "command": "sdl publish",
   "files": {
-    "repo/examples/scenarios/participant-tools/tool-kit.sdl.yaml": "sha256:9b6bc7d77849becccfa252fb80a92d01b0105cff95ddee3f43a635d594e3beec"
+    "repo/examples/scenarios/participant-tools/tool-kit.sdl.yaml": "sha256:a5d50aa366b7b203f89dfded3534fecaa142568bddd09f0f4a621ecad173f22e"
   },
   "name": "examples/scenarios/participant-tools/tool-kit.sdl.yaml",
   "result": {
     "exit_code": 0,
     "generated_files": {
-      "layout/acme_scanner-toolkit-2.1.0.oci/versions/cf53d8ce677aa4560ef4-0251c051cee241b589fb/index.json": {
+      "layout/acme_scanner-toolkit-2.1.0.oci/versions/8ea8c2b389ec64ea12b8-0251c051cee241b589fb/index.json": {
         "manifests": [
           {
             "annotations": {
               "io.raes.module.id": "acme/scanner-toolkit",
               "org.opencontainers.image.ref.name": "2.1.0"
             },
-            "digest": "sha256:cf53d8ce677aa4560ef490c00242b26b1380625f5ba6a0d1cc691270278ca040",
+            "digest": "sha256:8ea8c2b389ec64ea12b8fcb11e04b9e82698c682fd58c92289ac561e0c22d636",
             "mediaType": "application/vnd.oci.image.manifest.v1+json",
             "size": 510
           }
@@ -30,10 +30,10 @@
       }
     },
     "stdout": {
-      "content_digest": "sha256:2209d92b7aebcf14d883203ccb77ab81facc1ea617e2f4c53510d82290b01bb4",
+      "content_digest": "sha256:b84f164be889e96a94b7014a77dc4291fad957526b9c362d4d129745360dce9e",
       "export_hash": "3f7a65ceb6efe7a81e04c995e0e799a81de718be935adc4b74da90e1843eb866",
-      "layout_dir": "layout/acme_scanner-toolkit-2.1.0.oci/versions/cf53d8ce677aa4560ef4-0251c051cee241b589fb",
-      "manifest_digest": "sha256:cf53d8ce677aa4560ef490c00242b26b1380625f5ba6a0d1cc691270278ca040",
+      "layout_dir": "layout/acme_scanner-toolkit-2.1.0.oci/versions/8ea8c2b389ec64ea12b8-0251c051cee241b589fb",
+      "manifest_digest": "sha256:8ea8c2b389ec64ea12b8fcb11e04b9e82698c682fd58c92289ac561e0c22d636",
       "module_id": "acme/scanner-toolkit",
       "module_version": "2.1.0",
       "signer_id": ""

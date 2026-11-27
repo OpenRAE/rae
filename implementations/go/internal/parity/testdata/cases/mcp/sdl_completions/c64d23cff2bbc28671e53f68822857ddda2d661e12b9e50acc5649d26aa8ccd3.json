@@ -13,6 +13,12 @@
           "items": [
             {
               "detail": "top-level SDL key",
+              "insert_text": "trial_parallelism: ",
+              "kind": "field",
+              "label": "trial_parallelism"
+            },
+            {
+              "detail": "top-level SDL key",
               "insert_text": "semantic_revision: ",
               "kind": "field",
               "label": "semantic_revision"
@@ -115,6 +121,12 @@
             },
             {
               "detail": "top-level SDL key",
+              "insert_text": "safe_state: ",
+              "kind": "field",
+              "label": "safe_state"
+            },
+            {
+              "detail": "top-level SDL key",
               "insert_text": "execution_policy: ",
               "kind": "field",
               "label": "execution_policy"
@@ -196,6 +208,12 @@
       "result": {
         "context": "top-level",
         "items": [
+          {
+            "detail": "top-level SDL key",
+            "insert_text": "trial_parallelism: ",
+            "kind": "field",
+            "label": "trial_parallelism"
+          },
           {
             "detail": "top-level SDL key",
             "insert_text": "semantic_revision: ",
@@ -297,6 +315,12 @@
             "insert_text": "control_context_assets: ",
             "kind": "field",
             "label": "control_context_assets"
+          },
+          {
+            "detail": "top-level SDL key",
+            "insert_text": "safe_state: ",
+            "kind": "field",
+            "label": "safe_state"
           },
           {
             "detail": "top-level SDL key",

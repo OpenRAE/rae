@@ -3,8 +3,8 @@
 from dataclasses import dataclass
 
 from raes_contracts.contracts import ParticipantAutonomousExecutionStateModel
+from raes_contracts.contracts.participant_action_admission import ParticipantActionAdmissionRequest
 from raes_contracts.errors import ConflictError
-from raes_contracts.participant_binding import ParticipantActionAdmissionRequest
 
 from .participant_activity import (
     ParticipantActivityDrawContext,

@@ -83,7 +83,7 @@ func TestRealizationResolutionChecksExactAndObservationSupport(t *testing.T) {
 }
 
 func TestRealizationResolutionBindsCompleteEnvelopeIdentity(t *testing.T) {
-	raw, err := os.ReadFile("../../../../contracts/fixtures/realization-envelope/realization-envelope-v1/valid/generic.json")
+	raw, err := readSealedFixture("../../../../contracts/fixtures/realization-envelope/realization-envelope-v1/valid/generic.json")
 	requireNoError(t, err)
 	var envelope binding.RealizationEnvelopeV1
 	if json.Unmarshal(raw, &envelope) != nil {
@@ -124,7 +124,7 @@ func TestRealizationResolutionBindsCompleteEnvelopeIdentity(t *testing.T) {
 }
 
 func TestRealizationResolutionAcceptsAdmittedEnvelopeDefaults(t *testing.T) {
-	raw, err := os.ReadFile("../../../../contracts/fixtures/realization-envelope/realization-envelope-v1/valid/generic.json")
+	raw, err := readSealedFixture("../../../../contracts/fixtures/realization-envelope/realization-envelope-v1/valid/generic.json")
 	requireNoError(t, err)
 	var record map[string]json.RawMessage
 	if json.Unmarshal(raw, &record) != nil {

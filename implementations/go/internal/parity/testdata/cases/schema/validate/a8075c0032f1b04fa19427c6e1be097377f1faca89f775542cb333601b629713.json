@@ -1,0 +1,14 @@
+{
+  "args": [
+    "validation-profile-catalog-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:affb10e2ef2da5f98c60fd2118082c77968129bda69ef22d7616e095146c87b5"
+  },
+  "name": "regression/671adc347eef3d669fdaf4816429d360754ea0adcbfc3d3cb6ae4a0d8eb4d0e4",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

@@ -2,6 +2,7 @@
 
 This design covers issue #1789 on the `go-cutover` branch.
 Analysis stays in RAE. The services check models and return evidence. They do not run a scenario.
+
 The [preflight](issue-1789-processor-analysis-preflight.md) records the retained behavior and its limits.
 The changed declarations and architecture model passed the design check. No product code had changed.
 
@@ -10,6 +11,7 @@ The changed declarations and architecture model passed the design check. No prod
 The public `processor/analysis` package checks inputs and selects the service. It builds evidence and can replay a result.
 Its existing `Analyze(Request) (Result, error)` entry point remains available.
 `Request.Kind`, `Request.Compilation`, `Request.Options`, `Result.Document`, and `Result.Diagnostics` retain their declared types.
+
 Some services do not take a compilation. New typed inputs carry their data.
 Arbitrary options do not become an internal domain model.
 
@@ -26,6 +28,7 @@ Arbitrary options do not become an internal domain model.
 Generated `contract/binding` records remain the transport shapes.
 `contract/admission` remains the semantic validation owner.
 The service can project checked data into small private records. These records supply the algorithms.
+
 It does not create another published schema or duplicate contract predicates.
 The existing profile owner supplies exact profile documents through `Documents` and checks their identities.
 Contract admission checks their complete rules before analysis projects the bounds and quantification parameters.
@@ -70,7 +73,9 @@ This differs from the preflight's initial C-API direction.
 The inspected Go bindings use finalizers for native context release.
 The aclements solver interface also lacks the required logic-specific constructor and assumption-check interface in its inspected source.
 The official binding has those solver operations but still relies on finalizers for resource release.
-A separate process can be stopped and collected. This also applies when a call is cancelled, times out, or gets a bad response.
+A separate process can be stopped and collected.
+
+This also applies when a call is cancelled, times out, or gets a bad response.
 Downstream Go builds need no C compiler or native link step.
 The cost is process startup and a small private protocol adapter.
 Checks must show that completed results match Python. The operation budget stays the same.
@@ -80,6 +85,7 @@ Its package identity is `raes-go-z3-smtlib`, package version `1.0.0`, and engine
 The package version identifies this adapter's protocol, not an external Go module release.
 It does not claim use of a C-API Go binding or the Python package.
 The Python v1 profile stays unchanged.
+
 The schema checks the identity fields as a group. It rejects a mix of fields from the two profiles.
 Configuration digests change with the identity and are recomputed.
 Parity checks allow only this identity change. They also check each digest that binds it.
@@ -88,7 +94,9 @@ The first qualified platform is `linux-amd64`. It uses the existing Ubuntu 24.04
 The upstream archive requires glibc 2.39.
 Its executable links the host C/C++ runtime libraries, but does not dynamically link `libz3`.
 No support claim extends to an unqualified host.
-The artifact route keeps the MIT license. It checks the size and digest of the archive. It also checks the executable digest.
+The artifact route keeps the MIT license.
+
+It checks the size and digest of the archive. It also checks the executable digest.
 The executable path is explicit. Neither `PATH` lookup nor runtime acquisition selects it.
 The adapter checks the exact executable identity and reported engine version before solving.
 The caller cannot supply arbitrary solver flags or a replacement digest.
@@ -97,6 +105,7 @@ The tooling adapter `tools/z3_tool.py` uses `load_tooling_artifact_selection`, `
 The shared installer gains bounded ZIP materialization beside its existing tar and direct-file materializers.
 It reads only exact manifest members and verifies every installed byte before publication.
 The installed manifest includes the executable and MIT license.
+
 CI supplies the resulting path to analysis tests explicitly.
 Product code has no acquisition path and no Python runtime dependency.
 The release and development host retain the admitted C/C++ runtime prerequisites.
@@ -122,6 +131,7 @@ The adapter retains QF_LIA, seed zero, one thread, and all published solver opti
 One monotonic 5,000 ms budget covers model validation, construction, all probes, and final selection.
 The existing clock owner receives a narrow elapsed-time seam; wall-clock UTC values do not control this budget.
 Each probe consumes one check before it starts.
+
 Timeouts and unknown responses are operational failures. They produce no completed evidence.
 Witness selection and core reduction stay in Go and preserve canonical order.
 The adapter never uses a native model or native core as the published result.
@@ -202,9 +212,9 @@ Official STE access returned HTTP 403; no full dictionary-conformance claim is m
 ## Typed interface commitments
 
 <!-- go-api implementations/go/base/clock 2582eb92f20e5edc6057de2fa7ca965af86a967711c8dcdf24d1c47ad3fcd187 -->
-<!-- go-api implementations/go/processor/analysis f8dd33c947a61ec4c5d00693dac9ebd477db4d7c6997b87d3953ba2a491545e7 -->
+<!-- go-api implementations/go/processor/analysis 98c4a8a2bf5904727561365bb92fc1fafa1c74cdcab5bd086e6f01301cd626bf -->
 
-<!-- go-api implementations/go/sdl 6ba216e06e79957da1e0eca2c28d356356c8d31760c4f288b2db2e801e41bb35 -->
+<!-- go-api implementations/go/sdl 9e371d72e356c611df2d5e18eea579819d326f9f1a7b96bc535d94b351e66e6e -->
 
 ## Retained expanded model
 
@@ -220,7 +230,9 @@ A satisfiability witness can contain authored control-context assets. These are
 scenario declarations, not a claim that an authority approved their runtime use.
 At the exact witness asset path, the contract owner delegates contextual admission
 to its mandatory native witness phase check. The supplied materialization port
-must be present and non-nil. The final check re-admits the complete instantiated
+must be present and non-nil.
+
+The final check re-admits the complete instantiated
 scenario and verifies its canonical digest. Standalone control assets retain
 all trusted-agreement requirements. No runtime agreement is invented from the
 witness declarations.
@@ -257,9 +269,11 @@ operational and unclassified failures propagate to the caller.
 
 Opacity inputs permit larger finite carriers than the checker can evaluate.
 They must reach the documented unsupported outcome after full admission.
-The shared validator uses its existing schema-graph work calculation for the
-two opacity input contracts and their evidence contracts, as it already does
-for admitted trial plans. Default insertion uses the same schema-derived bound
+The shared validator uses its existing schema-graph work calculation for the two
+opacity input contracts and their evidence contracts. It already does this for
+admitted trial plans.
+
+Default insertion uses the same schema-derived bound
 for those contracts. Other contracts keep the existing 100,000-visit default.
 Input bytes, output bytes, depth and published array limits remain enforced.
 The analyzer still permits at most 4,096 points or states and 65,536 transitions.
@@ -271,12 +285,14 @@ existing claim joins to an exact supplied relation catalog. The existing
 packaged-catalog method delegates to this method. Contract admission rechecks
 any catalog supplied by a context with `BehavioralCatalog() []byte` before it
 projects that catalog into the profile owner's typed record. An absent or empty
-catalog keeps packaged authority. The processor passes its explicit catalog
+catalog keeps packaged authority.
+
+The processor passes its explicit catalog
 through this context when it re-admits the profile. It still checks the input's
 catalog digest. A catalog that removes a relation or forbids its supplied
 parameter profile cannot authorize a result through packaged fallback.
 
-<!-- go-api implementations/go/contract/profile e6d807339741842258c8a114213f8d9875c04c75adc4a6ec31d7dfb73bd0eea0 -->
+<!-- go-api implementations/go/contract/profile 4a7a2f9495d4baede2570cc62a17174c23ab20dfd93386dfee07223007631eaa -->
 
 ### Authenticated historical snapshots
 
@@ -285,6 +301,7 @@ in the public SDL package. It first bounds the JSON and checks its current
 snapshot profile. Migration accepts legacy `vm` nodes and exact empty retired
 classification containers. It checks the submitted digest against the original
 canonical snapshot or the named historical architecture-default projection.
+
 Only then can the migrated payload pass admission. The SDL owner records the exact VM
 substrate constraint, rejects a conflicting constraint, and re-admits the result
 as an instantiated scenario. Nonempty retired classifications remain errors.
@@ -306,7 +323,9 @@ outside this file-permission boundary.
 The test data contains 180 recorded service calls from Python.
 It also contains four cases with uncertain semantic results. The recorder
 runs six named Python test modules. It records complete evidence documents,
-companion artifacts and refusal classes. It excludes solver fault injections
+companion artifacts and refusal classes.
+
+It excludes solver fault injections
 from ordinary cross-language calls; native tests inject those failures directly.
 The provenance file records a hash for each source and fixture. Reference tests bind captured checker metadata before applying the current
 release version. Other fields remain exact.
@@ -333,6 +352,7 @@ Add `scenario-satisfiability-evidence-v2` with profile
 `raes-sdl-instantiated-snapshot/v3`. Add snapshot contract
 `instantiated-scenario-snapshot-v2`. These versions emit public SDL aliases,
 including `then`, `else` and `default`, and hash that exact representation.
+
 The Python service and Go service emit the new evidence version. Existing v1
 models, schemas and snapshot canonical functions keep their historical meaning.
 No silent rewrite upgrades stored evidence or its digest.
@@ -350,7 +370,7 @@ The delivery uses a breaking-change PR title and documents the migration.
 Generated bindings add `ScenarioSatisfiabilityEvidenceV2` and
 `InstantiatedScenarioSnapshotV2`. Existing binding types remain.
 
-<!-- go-api implementations/go/contract/binding 2c17bdd678872cf565b90f2a5eb8a058e439e650832a92e01074c7f9fea31a98 -->
+<!-- go-api implementations/go/contract/binding 5054607604136f9c335cbdbd623d06773bf7fbe2034164ebd1ada94c508e0de0 -->
 
 The two schema versions also add generated public Go binding types. Their exact
 API records bring the architecture snapshot total above 16 MiB. The checker

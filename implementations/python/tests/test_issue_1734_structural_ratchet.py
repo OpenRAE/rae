@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import json
+import shutil
 import subprocess
+from collections import Counter
 from collections.abc import Iterable, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -21,7 +23,8 @@ from tools.policy.import_graph import (
     ContractResult,
     ImportAnalysis,
 )
-from tools.policy.source_index import build_source_index
+from tools.policy.private_members import PrivateMemberAccess, PrivateMemberAnalysis
+from tools.policy.source_index import SourceIndex, build_source_index
 from tools.policy.structural_baseline import (
     IMPORT_CONTRACTS_PATH,
     STRUCTURAL_BASELINE_PATH,
@@ -31,6 +34,7 @@ from tools.policy.structural_ratchet import evaluate_structural_ratchet
 
 PACKAGES = "implementations/python/packages"
 VERSIONS = {"grimp": "3.18", "import-linter": "2.15"}
+RUFF = "0.15.9"
 COMMIT = "0" * 40
 
 
@@ -82,6 +86,9 @@ def _baseline(
     components: dict[str, list[list[str]]] | None = None,
     private: dict[str, dict[str, int]] | None = None,
     deep: dict[str, int] | None = None,
+    members: dict[str, dict[str, int]] | None = None,
+    function_imports: dict[str, dict[str, int]] | None = None,
+    families: bool = True,
     **analysis: object,
 ) -> str:
     record = {
@@ -90,9 +97,10 @@ def _baseline(
         "import-linter": VERSIONS["import-linter"],
         "max_repository_ancestors": 7,
         "sibling_depth": 10,
+        **({"ruff": RUFF} if families else {}),
         **analysis,
     }
-    document = {
+    document: dict[str, object] = {
         "schema": "raes.structural-baseline/v1",
         "adopted_commit": COMMIT,
         "analysis": record,
@@ -100,6 +108,9 @@ def _baseline(
         "private_imports": private or {},
         "deep_classes": deep or {},
     }
+    if families:
+        document["private_member_accesses"] = members or {}
+        document["function_imports"] = function_imports or {}
     return json.dumps(document, indent=2)
 
 
@@ -138,11 +149,26 @@ class FakeAnalyzer:
 
 
 @dataclass
+class FakeMembers:
+    """A private-member analyzer that reports fixed findings instead of running Ruff."""
+
+    counts: dict[tuple[str, str], int] = field(default_factory=dict)
+    version: str = RUFF
+
+    def __call__(self, repo: Path, index: SourceIndex) -> PrivateMemberAnalysis:
+        return PrivateMemberAnalysis(
+            Counter({PrivateMemberAccess(module, member): count for (module, member), count in self.counts.items()}),
+            self.version,
+        )
+
+
+@dataclass
 class FakeBase:
     texts: dict[str, str | None]
     changed: bool = False
     revision: str = "base"
     adopted: FakeBase | None = None
+    source: Path | None = None
 
     def read(self, rel_path: str) -> str | None:
         return self.texts.get(rel_path)
@@ -152,6 +178,11 @@ class FakeBase:
 
     def adoption(self, roots: Sequence[str]) -> FakeBase | None:
         return self.adopted
+
+    def extract(self, roots: Sequence[str], destination: Path) -> None:
+        assert self.source is not None, "this base has no package source"
+        for root in roots:
+            shutil.copytree(self.source / root, destination / root)
 
 
 def _same_base(repo: Path) -> FakeBase:
@@ -163,11 +194,18 @@ def _same_base(repo: Path) -> FakeBase:
     )
 
 
-def _run(repo: Path, analyzer: FakeAnalyzer | None = None, base: FakeBase | None = None, **policy: object):
+def _run(
+    repo: Path,
+    analyzer: FakeAnalyzer | None = None,
+    base: FakeBase | None = None,
+    members: FakeMembers | None = None,
+    **policy: object,
+):
     return evaluate_structural_ratchet(
         repo,
         _policy(**policy),
         import_analyzer=analyzer or FakeAnalyzer(repo),
+        member_analyzer=members or FakeMembers(),
         base_revision=base or _same_base(repo),
     )
 
@@ -225,7 +263,7 @@ def test_a_new_private_import_fails_and_a_replacement_cannot_reuse_a_fixed_entry
 def test_a_second_site_of_a_baselined_private_import_exceeds_its_occurrence_count(tmp_path: Path) -> None:
     repo = _cyclic_repo(
         tmp_path,
-        {"alpha/a.py": "from alpha import b\nfrom alpha.b import _x\ndef f():\n    from alpha.b import _x\n"},
+        {"alpha/a.py": "from alpha import b\nfrom alpha.b import _x\nfrom alpha.b import _x as _x2\n"},
         private={"alpha.a": {"alpha.b._x": 1}},
     )
 
@@ -408,7 +446,7 @@ def test_the_analysis_record_must_match_the_analyzers_and_options(tmp_path: Path
     [
         (None, None, {"adr": ""}, "structural_checks.adr"),
         (None, None, {"max_repository_ancestors": 0}, "max_repository_ancestors"),
-        (None, None, {"extra": 1}, "exactly the keys"),
+        (None, None, {"extra": 1}, "is required with the keys"),
         (None, "{}", {}, "keys must be"),
         (None, '{"schema": 1, "schema": 2}', {}, "duplicate JSON key"),
         (None, _baseline().replace("raes.structural-baseline/v1", "v0"), {}, "schema must be"),
@@ -521,7 +559,9 @@ def test_an_analyzer_refusal_fails_the_gate(tmp_path: Path) -> None:
     def refusing(*_args: object, **_kwargs: object) -> ImportAnalysis:
         raise InvalidInputError("grimp could not build the import graph: SourceSyntaxError")
 
-    failures = evaluate_structural_ratchet(repo, _policy(), import_analyzer=refusing, base_revision=_same_base(repo))
+    failures = evaluate_structural_ratchet(
+        repo, _policy(), import_analyzer=refusing, member_analyzer=FakeMembers(), base_revision=_same_base(repo)
+    )
 
     assert _rules(failures) == ["structural-analysis-failed"]
 

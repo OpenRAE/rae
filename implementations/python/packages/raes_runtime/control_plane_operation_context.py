@@ -15,13 +15,13 @@ from raes_contracts.account_credentials import (
     value_free_account_placement_payload,
 )
 from raes_contracts.canonical import JsonValue, canonical_json_digest
-from raes_contracts.errors import ConflictError, InvalidInputError
-from raes_contracts.operation_lifecycle import OperationAdmissionContext, OperationKind
-from raes_contracts.plan_projection import (
+from raes_contracts.contracts.plan_projection import (
     evaluation_plan_model,
     orchestration_plan_model,
     provisioning_plan_model,
 )
+from raes_contracts.errors import ConflictError, InvalidInputError
+from raes_contracts.operation_lifecycle import OperationAdmissionContext, OperationKind
 from raes_contracts.planning import EvaluationPlan, OrchestrationPlan, ProvisioningPlan
 from raes_contracts.runtime_state import RuntimeSnapshot
 

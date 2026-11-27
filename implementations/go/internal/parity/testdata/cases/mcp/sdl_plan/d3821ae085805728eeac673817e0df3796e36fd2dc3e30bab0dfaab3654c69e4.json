@@ -2,7 +2,7 @@
   "args": [],
   "command": "sdl_plan",
   "files": {
-    "arguments.json": "sha256:7ffde1a7ea2a42686c372d7902ca399204a0a6311db649f29ecd16b2c27b0014"
+    "arguments.json": "sha256:e230ce914df6198ffcdbbfc1b3a43e519f6ba2a9e7838dd1bd1b1449bf5cbcc2"
   },
   "name": "examples/scenarios/cloud-resources/cloud-secret-cross-project.sdl.yaml",
   "result": {
@@ -70,9 +70,11 @@
               "trial-cleanup-plan-v1",
               "trial-cleanup-receipt-v1",
               "workflow-history-event-stream-v1",
-              "workflow-result-envelope-v1"
+              "workflow-result-envelope-v1",
+              "workflow-step-dispatch-v1",
+              "workflow-step-response-v1"
             ],
-            "version": "10.2.0"
+            "version": "12.0.0"
           },
           "plan": {
             "diagnostic_count": 2,
@@ -198,9 +200,11 @@
             "trial-cleanup-plan-v1",
             "trial-cleanup-receipt-v1",
             "workflow-history-event-stream-v1",
-            "workflow-result-envelope-v1"
+            "workflow-result-envelope-v1",
+            "workflow-step-dispatch-v1",
+            "workflow-step-response-v1"
           ],
-          "version": "10.2.0"
+          "version": "12.0.0"
         },
         "plan": {
           "diagnostic_count": 2,

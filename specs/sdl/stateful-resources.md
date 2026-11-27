@@ -1,8 +1,8 @@
 # Stateful realization resources
 
 `generated_artifacts` and `persistent_volumes` are portable provisioning
-desired state. They describe prerequisites a stateful service consumes; they
-are not observations of mounts already present on a running node and they are
+desired state. They describe prerequisites a stateful service consumes.
+They are not observations of mounts already present on a running node and they are
 not provider-specific Compose fragments.
 
 Every declaration has a user-defined identifier and compiles to one stable
@@ -160,8 +160,8 @@ A generated-artifact output reaches a consumer through one of four portable
 runtime environment; the compiler derives the matching generated-artifact
 consumer projection into the provisioning resource. Authors never duplicate the
 binding under `generated_artifacts[].consumers[]`. Because an artifact may be
-consumed only through environment bindings, its authored `consumers` list may be
-empty — but semantic admission still rejects an artifact that no file consumer
+consumed only through environment bindings, its authored `consumers` list may be empty.
+But semantic admission still rejects an artifact that no file consumer
 and no environment binding consumes.
 
 A `value_from` reference names the producing `generated_artifacts.<id>` (bare id
@@ -174,11 +174,11 @@ material — it remains reserved for out-of-SDL operator-controlled secrets.
 
 A provisioner declares each delivery mode it can realize in
 `supported_generated_artifact_delivery_modes`; supporting generated artifacts
-implies at least `mount`. Admission rejects a binding whose delivery mode the
-backend does not claim, so a backend cannot silently downgrade an environment or
-env-file injection into a file mount. A runtime-generated value may become
-available only after its producer boots; a consumer reference does not imply an
-ordering edge, so declare `ordering_dependencies` / `refresh_dependencies` where
+implies at least `mount`. Admission rejects a binding whose delivery mode the backend does not claim.
+Thus a backend cannot silently downgrade an environment or
+env-file injection into a file mount. A runtime-generated value may become available only after its producer boots.
+A consumer reference does not imply an ordering edge.
+Thus declare `ordering_dependencies` / `refresh_dependencies` where
 the value must exist before a dependent process starts.
 
 ## Persistent volumes
@@ -199,21 +199,20 @@ validation completes before provisioning operations are dispatched.
 
 ## Deferred verification of generated values
 
-An `observed_state` string proposition may compare a submission against a
-generated value without the value appearing in the SDL. Its `string` predicate
-declares a value-free `expected_from` reference to a `generated_artifacts.<id>`
-output (a scalar `equals`/`not_equals` operator, mutually exclusive with a literal
-`expected`). The evaluator resolves the value at the same run scope and compares
-inside the protected backend; the expected value never enters the SDL, plan,
-evidence, or error envelopes, and a `producer_private` output cannot be selected.
-A backend declares this in its evaluator capability
-`supports_deferred_expected_comparison`, and admission rejects an `expected_from`
-predicate a backend does not support.
+An `observed_state` string proposition may compare a submission against a generated value without putting that value in SDL.
+Its `string` predicate declares a value-free `expected_from` reference to a `generated_artifacts.<id>` output.
+It uses a scalar `equals`/`not_equals` operator, mutually exclusive with a literal `expected`.
+The evaluator resolves the value at the same run scope and compares it inside the protected backend.
+The expected value never enters SDL, plans, evidence, or error envelopes.
+A `producer_private` output cannot be selected.
+
+The backend declares `supports_deferred_expected_comparison` in its evaluator capability.
+Admission rejects an `expected_from` predicate that the backend does not support.
 
 The compiler preserves each declaration as an exact SEM-218 realization
 requirement and emits its typed payload into the provisioning plan. Backends
-must either honor the complete declared resource or reject the plan; silently
-substituting an observed mount, generic content placement, or provider-private
+must either honor the complete declared resource or reject the plan.
+Silently substituting an observed mount, generic content placement, or provider-private
 configuration is not conformant. A provisioner that supports generated
 artifacts also declares every supported generator in
 `supported_generated_artifact_kinds`; the coarse support flag alone does not
@@ -221,5 +220,5 @@ authorize an unlisted kind.
 
 Published JSON Schemas reject exact duplicate collection members. Relational
 uniqueness, cross-resource reference resolution, mount ownership, and access
-cardinality are published as `x-raes-invariants` and enforced by semantic SDL
-admission; JSON Schema success alone is not semantic admission.
+cardinality are published as `x-raes-invariants` and enforced by semantic SDL admission.
+JSON Schema success alone is not semantic admission.

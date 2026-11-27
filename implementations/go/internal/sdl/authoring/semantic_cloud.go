@@ -58,21 +58,27 @@ func (c *semanticCloud) scopeGraph() {
 	edges := map[string][]string{}
 	for _, address := range c.scopeOrder {
 		scope := c.scopes[address]
-		if scope.Parent == "" {
-			continue
-		}
-		if c.exactModel(scope.Parent, cloudScopes, "scope parent") {
-			parent := c.scopes[scope.Parent]
-			if parent != nil && parent.Provider != scope.Provider && !variable(parent.Provider) && !variable(scope.Provider) {
-				c.report("cloud-provider: parent scope must retain the same provider identity")
+		c.scopeParent(scope)
+		for _, log := range scope.Audit {
+			for _, principal := range log.Exempted {
+				c.exactModel(principal, cloudSubjects, "audit exemption principal reference")
 			}
 		}
-		if c.scopes[scope.Parent] != nil {
+		if scope.Parent != "" && c.scopes[scope.Parent] != nil {
 			edges[address] = []string{scope.Parent}
 		}
 	}
 	if graph.HasCycle(edges) {
 		c.report("cloud-cycle: scope references must not form a cycle")
+	}
+}
+func (c *semanticCloud) scopeParent(scope *semanticCloudScope) {
+	if scope.Parent == "" || !c.exactModel(scope.Parent, cloudScopes, "scope parent") {
+		return
+	}
+	parent := c.scopes[scope.Parent]
+	if parent != nil && parent.Provider != scope.Provider && !variable(parent.Provider) && !variable(scope.Provider) {
+		c.report("cloud-provider: parent scope must retain the same provider identity")
 	}
 }
 func (c *semanticCloud) policyGraph() {

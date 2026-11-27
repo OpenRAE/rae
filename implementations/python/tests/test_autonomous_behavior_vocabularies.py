@@ -12,11 +12,7 @@ import pytest
 from jsonschema import Draft202012Validator
 from pydantic import ValidationError
 from raes_conformance.conformance import validate_contract_payload
-from raes_contracts.contracts import (
-    ActivityStreamsActivityTypesSourceModel,
-    FipaCommunicativeActsSourceModel,
-    schema_bundle,
-)
+from raes_contracts.contracts import ActivityStreamsActivityTypesSourceModel, FipaCommunicativeActsSourceModel
 from raes_contracts.external_concept_bindings import (
     adapt_activitystreams_activity_types_snapshot,
     adapt_fipa_communicative_acts_snapshot,
@@ -25,6 +21,7 @@ from raes_contracts.vocabulary_sources import (
     load_activitystreams_activity_types_source,
     load_fipa_communicative_acts_source,
 )
+from raes_schemas import schema_bundle
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 SCHEMA_ROOT = REPO_ROOT / "contracts" / "schemas" / "concept-authority"

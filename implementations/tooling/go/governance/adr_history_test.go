@@ -67,7 +67,7 @@ func testADRWrite(t *testing.T, dir, name, text, recorded string) {
 	for _, ref := range amendmentRefs(text) {
 		refs = append(refs, map[string]string{"ref": ref})
 	}
-	manifest := map[string]any{"hash_algorithm": "sha256", "adrs": []map[string]any{{"id": "ADR-001", "path": recorded, "pin": adrHash(text), "amendments": refs}}}
+	manifest := map[string]any{"adrs": []map[string]any{{"id": "ADR-001", "path": recorded, "amendments": refs}}}
 	data, err := json.Marshal(manifest)
 	if err != nil {
 		t.Fatal(err)

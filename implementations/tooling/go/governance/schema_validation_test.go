@@ -102,6 +102,10 @@ func TestCandidateSchemaReference(t *testing.T) {
 func unsupportedRepositorySchemas() []string {
 	return []string{
 		"contracts/schemas/artifact-requirements/artifact-requirement-v1.json",
+		"contracts/schemas/control-plane/assigned-trial-v1.json",
+		"contracts/schemas/control-plane/backend-operation-request-v1.json",
+		"contracts/schemas/control-plane/workflow-step-dispatch-v1.json",
+		"contracts/schemas/plans/admitted-trial-plan-v1.json",
 		"contracts/schemas/plans/backend-realization-preparation-v1.json",
 		"contracts/schemas/plans/evaluation-plan-v1.json",
 		"contracts/schemas/plans/orchestration-plan-v1.json",

@@ -10,6 +10,29 @@ manifest only when the backend can satisfy the
 The bundled stubs and the emulation backend do not claim this support.
 The configured realization envelope must identify the producer configuration.
 
+For an initial-validation consumer, use
+`RuntimeManager.plan(..., materialization_reporting="provisioning")` (or the
+same keyword on `raes_processor.planner.plan`). Initial provisioning still
+requires the complete description and protected archive. The full source and
+reporting scope remain bound to every phase's plan identity. Later orchestration
+and evaluation need no additional description unless they introduce prospective
+in-world augmentation. Materialize that apparatus during provisioning to keep
+later collection free of this reporting obligation.
+
+Supplied later descriptions
+still undergo normal admission. Command results, selected evidence capture,
+native ownership and cleanup remain required. This option requests no inventory
+refresh, ongoing snapshots or end-state SDL. The default is `"all-phases"`.
+Producers read `request.materialization_source.reporting_scope` to select this
+reporting behavior; the presence of source context alone does not require a
+later description when the scope is `"provisioning"`.
+
+The description uses ordinary typed SDL even when native readback uses runtime
+value commitments or presence markers. Admission compares these through the
+registered concern owners. It does not recover protected values or admit
+commitments as SDL fields. Changed values, presence, identities and inventory
+membership still fail admission.
+
 ## Producer and runtime flow
 
 1. Compile the original SDL. Plan with `PlanScope(run_id=...)`.
@@ -19,8 +42,9 @@ The configured realization envelope must identify the producer configuration.
    from resource payloads.
 2. After all materialization and setup hooks, make a `MaterializedScenario`
    with the ordinary SDL vocabulary. Include a result that has no additions.
-   Bind the provenance to the submitted plan, the bound operation ID, the
-   previous snapshot, the producer manifest and configuration, and the source.
+   Bind the provenance to the submitted plan, the bound operation ID and the
+   previous snapshot. Also bind it to the producer manifest and configuration,
+   and the source.
    Record each node instance. Record each added, changed or removed member.
    Qualified names stay qualified.
 3. Return `ApplyResult(..., materialization_attestation=MaterializationSubmission(sdl=...))`.
@@ -42,7 +66,9 @@ The configured realization envelope must identify the producer configuration.
 
 The operator selects the output directory as the archive root. SDL files are
 restricted (`0600`). The archive does not follow symbolic links. It does not
-replace an existing identity. A retry with the same bytes is safe. A retry with
+replace an existing identity. A retry with the same bytes is safe.
+
+A retry with
 different bytes fails. File publication and the operation-store commit are
 separate steps. A failed reference commit can leave a protected orphan file.
 It never leaves an accepted reference to bytes that were not published.
@@ -63,11 +89,17 @@ These budgets are different:
 | Materialization document | 4 MiB | One source, report or prospective document. |
 | SDL parser input | 8 MiB | Any SDL document. |
 | Portable runtime value | 1 MiB for each value, 8 MiB total | All other runtime values. |
-| Operation plan nodes | 262,144 | Plans from the planner and their compiled realization authority. |
+| Source and report value nodes | 262,144 | `MATERIALIZATION_VALUE_LIMITS`; at most 1,048,576 traversal operations. |
+| Operation plan nodes | 524,288 | Plans from the planner and their compiled realization authority. |
+| Operation plan aggregate scalars | 16 MiB | Source document plus compiled authority; ordinary runtime snapshots retain 8 MiB. |
 | HTTP request | 1,000,000 bytes by default | Control-plane requests. A larger plan needs an explicit `max_request_bytes`. |
 
 The runtime gives the document limit only to contract fields that declare a document body.
 Another string keeps the 1 MiB value limit.
+Source and report traversal permits 65,536 members per collection.
+Depth, scalar and aggregate scalar limits remain those of the runtime profile.
+
+Digest and provenance checks still apply to the complete source.
 A source above the limit fails planning with `materialization.source-limit-exceeded`.
 A missing run identity or target scope fails with `materialization.source-context-required`.
 
@@ -83,7 +115,9 @@ Copy the `materialization_attestations` records of the accepted snapshot to
 the experiment run. Keep `scenario_snapshot_ref` on the original input.
 An augmentation disclosure can use the new reference as a portable carrier.
 It must keep the required visibility classes, markings, evidence references
-and comparability or observer effects. A collector that is present did not
+and comparability or observer effects.
+
+A collector that is present did not
 necessarily capture evidence. Associated-artifact manifests accept the
 materialized parent. They validate byte streams from the caller and do not
 fetch URIs.

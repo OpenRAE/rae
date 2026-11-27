@@ -14,17 +14,17 @@ type RecursiveRealizationConstraintV1 struct {
 	SemanticProfile Field[string]                     "json:\"semantic_profile,omitzero\""
 }
 
-type d97cb1790f23314ed68a86c d97cb1790f25a01ae7475ab
+type d97cb1790f23314ed68a86c d97cb1790f2dd5cf12aed79
 
 type d97cb1790f24bd0c474c4c6 string
 
-type d97cb1790f25a01ae7475ab struct {
+type d97cb1790f2cd20a219024f d97cb1790f2f7939ee01ab1
+
+type d97cb1790f2dd5cf12aed79 struct {
 	Posture  Field[d97cb1790f24bd0c474c4c6] "json:\"posture,omitzero\""
 	Profile  Field[json.RawMessage]         "json:\"profile,omitzero\""
 	Universe Field[json.RawMessage]         "json:\"universe,omitzero\""
 }
-
-type d97cb1790f2cd20a219024f d97cb1790f2f7939ee01ab1
 
 type d97cb1790f2f18149c381c8 string
 

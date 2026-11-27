@@ -2205,7 +2205,7 @@
     },
     "ParticipantInvocationToolActionCapabilitiesModel": {
       "additionalProperties": false,
-      "description": "Exact composition version and finite per-invocation limits.",
+      "description": "Exact composition version and explicitly selected invocation limits.",
       "properties": {
         "max_concurrent_tool_actions_per_invocation": {
           "minimum": 1,
@@ -2213,13 +2213,24 @@
           "type": "integer"
         },
         "max_tool_actions_per_invocation": {
-          "minimum": 1,
-          "title": "Max Tool Actions Per Invocation",
-          "type": "integer"
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Max Tool Actions Per Invocation"
         },
         "semantic_versions": {
           "items": {
-            "const": "participant-invocation-tool-actions/v1",
+            "enum": [
+              "participant-invocation-tool-actions/v1",
+              "participant-invocation-tool-actions/v2"
+            ],
             "type": "string"
           },
           "minItems": 1,
@@ -2230,7 +2241,6 @@
       },
       "required": [
         "semantic_versions",
-        "max_tool_actions_per_invocation",
         "max_concurrent_tool_actions_per_invocation"
       ],
       "title": "ParticipantInvocationToolActionCapabilitiesModel",
@@ -3960,6 +3970,8 @@
     "supported_contract_versions": {
       "items": {
         "enum": [
+          "workflow-step-dispatch-v1",
+          "workflow-step-response-v1",
           "backend-operation-request-v1",
           "backend-operation-capabilities-v1",
           "backend-operation-control-v1",

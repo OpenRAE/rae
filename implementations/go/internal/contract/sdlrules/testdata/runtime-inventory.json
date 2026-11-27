@@ -1,5 +1,5 @@
 {
-  "reference": "e5d8f6c1b10adaa66bb15b415e9f9a7263bd44f8",
+  "reference": "39481bb657acab4f58687f27e8bb3357ba3c8226",
   "sources": [
     "raes/_runtime_service_family_registry.py",
     "raes/runtime_inventory.py"
@@ -70,7 +70,13 @@
         {
           "Collection": "resource_scopes",
           "Identity": "scope_id",
-          "Children": null
+          "Children": [
+            {
+              "Collection": "audit_logs",
+              "Identity": "audit_log_id",
+              "Children": null
+            }
+          ]
         },
         {
           "Collection": "identity_uses",

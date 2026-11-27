@@ -1,10 +1,5 @@
 {
   "contract_id": "participant-episode-state-envelope-v1",
   "schema_path": "contracts/schemas/control-plane/participant-episode-state-envelope-v1.json",
-  "stability": "draft",
-  "content_hash": "36ccb0fd9c2c67dcf620d6ecd9aef959dbd836b5aa54385908786ab63f7e8c38",
-  "last_change": {
-    "summary": "Rebound the published schema namespace to the renamed OpenRAE GitHub organization for issue #963.",
-    "content_hash": "36ccb0fd9c2c67dcf620d6ecd9aef959dbd836b5aa54385908786ab63f7e8c38"
-  }
+  "stability": "draft"
 }

@@ -87,7 +87,7 @@
             ],
             "identity": {
               "name": "stub",
-              "version": "10.2.0"
+              "version": "12.0.0"
             },
             "realization_support": [
               {
@@ -117,6 +117,8 @@
               }
             ],
             "supported_contract_versions": [
+              "workflow-step-dispatch-v1",
+              "workflow-step-response-v1",
               "backend-manifest-v2",
               "artifact-requirement-v1",
               "provisioning-plan-v1",
@@ -184,7 +186,7 @@
             ],
             "identity": {
               "name": "raes-reference-processor",
-              "version": "10.2.0"
+              "version": "12.0.0"
             },
             "realization_support": [],
             "supported_contract_versions": [
@@ -284,7 +286,7 @@
           ],
           "identity": {
             "name": "stub",
-            "version": "10.2.0"
+            "version": "12.0.0"
           },
           "realization_support": [
             {
@@ -314,6 +316,8 @@
             }
           ],
           "supported_contract_versions": [
+            "workflow-step-dispatch-v1",
+            "workflow-step-response-v1",
             "backend-manifest-v2",
             "artifact-requirement-v1",
             "provisioning-plan-v1",
@@ -381,7 +385,7 @@
           ],
           "identity": {
             "name": "raes-reference-processor",
-            "version": "10.2.0"
+            "version": "12.0.0"
           },
           "realization_support": [],
           "supported_contract_versions": [

@@ -1,10 +1,5 @@
 {
   "contract_id": "inject-trigger-request-v1",
   "schema_path": "contracts/schemas/control-plane/inject-trigger-request-v1.json",
-  "stability": "draft",
-  "content_hash": "48dd58cb0e468bb936eaf9a14eecaec7c61cf53172b2cf5eee4ecd47b3f5fc54",
-  "last_change": {
-    "content_hash": "48dd58cb0e468bb936eaf9a14eecaec7c61cf53172b2cf5eee4ecd47b3f5fc54",
-    "summary": "Remove the Python validator paths from the semantic invariants (#1776)."
-  }
+  "stability": "draft"
 }

@@ -12,6 +12,7 @@ func (m *semanticModel) checkParticipantBehavior(c *semanticCollector) {
 	m.checkResourceOwners(c)
 	m.checkAffordanceTools(c)
 	m.checkDeliveries(c)
+	m.checkEpisodePolicies(c)
 	m.checkParticipantInteractions(c)
 	m.checkBehaviorAuthority(c)
 	m.checkMixedControl(c)

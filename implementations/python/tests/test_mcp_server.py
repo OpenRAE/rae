@@ -228,6 +228,10 @@ class TestReferenceTools:
     @pytest.mark.parametrize(
         "section",
         [
+            "conditions",
+            "propositions",
+            "assertions",
+            "injects",
             "forwarding_agents",
             "action_contracts",
             "observation_boundaries",
@@ -274,7 +278,7 @@ class TestReferenceTools:
         text = _call(server, "sdl_validation_reference")
         # Require both the section heading and a specific pass name so the
         # response cannot satisfy the test with a generic "validation" string.
-        assert "Validation Passes" in text
+        assert "Validation passes" in text
         assert "verify_runtime_identity_authorities" in text
 
 

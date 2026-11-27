@@ -13,7 +13,7 @@ import (
 
 func TestPhaseProjectionRefusesAggregateBeforeEncoding(t *testing.T) {
 	payload := json.RawMessage(`{"value":"` + strings.Repeat("x", 750000) + `"}`)
-	operations := make([]planOperation, 12)
+	operations := make([]planOperation, 24)
 	for i := range operations {
 		operations[i] = planOperation{Address: fmt.Sprintf("provision.node.host%d", i), Action: termCreate, Kind: "node", Payload: payload}
 	}

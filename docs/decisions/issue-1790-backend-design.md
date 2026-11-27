@@ -17,6 +17,7 @@ Generated `contract/binding` values carry published payloads.
 Their presence does not prove admission.
 Use `contract/admission` for transport bounds and semantic rules.
 Use `contract/validation` and packaged data for schemas and defaults.
+
 Use `contract/profile` for packaged profile documents.
 Profile IDs must pass the published grammar before any path lookup.
 The requested ID must match the payload ID.
@@ -33,6 +34,7 @@ The planned `contract/runtime` declarations define the shared records.
 `PrepareForRequest` binds the exact plan and predecessor digests.
 It validates bounded native carriers before copying or hashing them.
 It uses the existing canonical JSON and digest owners.
+
 The request digest follows the published runtime plan projection.
 A materialization submission is bounded UTF-8 SDL, with its fixed contract ID.
 It carries source text, not proof of semantic admission or native delivery.
@@ -81,6 +83,7 @@ Subsumption checks whether the requested set is contained in the offered set.
 It is not a sample test.
 Keep exact and finite domains, interval endpoints, governed references, and closed records distinct.
 A witness or probe must pass ordinary SDL validation.
+
 A negative probe must lie outside the offered envelope.
 Bound path work, domain expansion, output size, and probe counts before allocation.
 Witness seeds do not advance experiment random streams.
@@ -90,6 +93,7 @@ Witness seeds do not advance experiment random streams.
 Default manifest options enable orchestration, evaluation, participants, and observation.
 They disable time and envelope carriage.
 Keep target-factory defaults separate from manifest defaults.
+
 The manifest reads governed contract sets and existing corpus data.
 `ManifestWithVersion` accepts an explicit apparatus version.
 `Manifest` uses `0.0.0+unknown`, matching the reference fallback when no installed distribution supplies a version.
@@ -105,6 +109,7 @@ Provisioning copies create/update payloads and removes deleted entries.
 It preserves unrelated snapshot domains and changed-address order.
 It refuses a mismatched configured envelope without changing state.
 Orchestration and evaluation retain results, histories, startup order, and stop behavior.
+
 They do not run a workflow engine or native effects.
 Participant doubles retain episode counters, predecessor checks, action outcomes, and rollback.
 Return owned copies so caller mutation cannot change retained state.
@@ -158,7 +163,7 @@ Independent corpus and defect-case tests address that risk.
 
 ## Checks and supporting artifacts
 
-ADR-060, ADR-070, ADR-115, ADR-121, and ADR-122 retain their decisions.
+ADR-060, ADR-070, ADR-115, ADR-123, and ADR-124 retain their decisions.
 No new ADR is needed.
 The architecture model and planned API declarations change with this port.
 Existing policy, architecture, lint, parity, and CI gates apply.
@@ -207,6 +212,7 @@ Generated snapshot maps carry no insertion order.
 The doubles retain entry order established by their operations.
 Imported entries use canonical address order.
 A Python dictionary's insertion history is not an input of the fixed Go carrier.
+
 Likewise, published plans omit the Python resolver's private resource index.
 The doubles derive running state from non-deleted operations and startup order.
 These rules apply to native carriers; they do not change a published schema.
@@ -218,6 +224,7 @@ Other package naming checks remain active.
 The typed API model stays within its existing model and snapshot read limits.
 Native input limits and model read limits remain unchanged.
 Three pre-push review attempts ended after twenty minutes without a verdict.
+
 A one-hour repository timeout was accepted by configuration validation, but did not extend the station deadline.
 That ineffective setting was removed.
 The attempts supplied no review verdict.
@@ -226,8 +233,8 @@ The delivery still runs the commit checks and CI.
 
 The verification record is [issue-1790-backend-verification.md](issue-1790-backend-verification.md).
 
-<!-- go-api implementations/go/backend 9dcaa2f55530b058f06cbfec3c16e0bdd1ed44925a79177cab078fc04e88c019 -->
+<!-- go-api implementations/go/backend a84dffc77bb30ea9e386eb4fd977665acc2689e57b25b4192a715395014b82a6 -->
 
-<!-- go-api implementations/go/backend/stub 132469e022bbc25f648a914864e125c568871b0163d392d935d2f1c80d5b77e4 -->
+<!-- go-api implementations/go/backend/stub bc564c367098bb077e97fef38151af55bfeab0908ce12303410339b0f0d32074 -->
 
-<!-- go-api implementations/go/contract/runtime f5dff81fbbee0bddd56893f8a82d0d520cb171bf2eb19ec852c91bb495ff7c1c -->
+<!-- go-api implementations/go/contract/runtime 117944ab93b8d162bf775707fec6f0d38fcd46e0db421cb5c0822dbb5ef3b1c8 -->

@@ -95,14 +95,14 @@
               "provision.network.guest-net"
             ],
             "payload": {
-              "architecture": "",
+              "architecture": null,
               "count": 1,
               "domain_topology": null,
               "name": "guest-vm",
               "network_namespace_target": "",
               "node_kind": "compute",
               "node_name": "guest-vm",
-              "os_distribution": "",
+              "os_distribution": null,
               "os_family": "linux",
               "os_version": "",
               "spec": {

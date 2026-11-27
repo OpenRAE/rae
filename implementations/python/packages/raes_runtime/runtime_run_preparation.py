@@ -12,7 +12,6 @@ from raes_processor.compiler.time_model import time_model_contract_model
 
 from .diagnostics import _has_error_diagnostic
 from .manager_augmentation import prepare_execution_augmentation
-from .participant_release import participant_release_assertions
 from .runtime_decisions import RunPreparationDecision
 
 if TYPE_CHECKING:
@@ -78,7 +77,7 @@ def _restore_participant_modules(run: RuntimeRunContext, plan: ExecutionPlan, *,
         for spec in plan.model.behavior_specifications.values()
         if spec.autonomous_execution is not None
     )
-    run._participant_release_assertions = participant_release_assertions(plan.model) if started else {}
+    run.restore_participant_release(plan.model, started=started)
     run._participant_execution_time_model = plan.model.time_model
     if run._participant_execution_policies and run._participant_scheduler is None:
         from .participant_scheduler import ParticipantScheduler

@@ -2,7 +2,7 @@
   "args": [],
   "command": "sdl_completions",
   "files": {
-    "arguments.json": "sha256:234b383d0d51089e212fde0ec6db77942cc1deab327d5c06c96f86662dc75dca"
+    "arguments.json": "sha256:08d390cd4ed40c293917c8e6ba62b26f9d587a296f7cbc8954bfc0c03483a549"
   },
   "name": "examples/library/templates/run/timed-run-control.yaml",
   "result": {
@@ -22,6 +22,12 @@
               "insert_text": "description: ",
               "kind": "field",
               "label": "description"
+            },
+            {
+              "detail": "top-level SDL key",
+              "insert_text": "trial_parallelism: ",
+              "kind": "field",
+              "label": "trial_parallelism"
             },
             {
               "detail": "top-level SDL key",
@@ -205,6 +211,12 @@
             },
             {
               "detail": "top-level SDL key",
+              "insert_text": "safe_state: ",
+              "kind": "field",
+              "label": "safe_state"
+            },
+            {
+              "detail": "top-level SDL key",
               "insert_text": "execution_policy: ",
               "kind": "field",
               "label": "execution_policy"
@@ -309,6 +321,12 @@
             "insert_text": "description: ",
             "kind": "field",
             "label": "description"
+          },
+          {
+            "detail": "top-level SDL key",
+            "insert_text": "trial_parallelism: ",
+            "kind": "field",
+            "label": "trial_parallelism"
           },
           {
             "detail": "top-level SDL key",
@@ -489,6 +507,12 @@
             "insert_text": "evidence_requirements: ",
             "kind": "field",
             "label": "evidence_requirements"
+          },
+          {
+            "detail": "top-level SDL key",
+            "insert_text": "safe_state: ",
+            "kind": "field",
+            "label": "safe_state"
           },
           {
             "detail": "top-level SDL key",

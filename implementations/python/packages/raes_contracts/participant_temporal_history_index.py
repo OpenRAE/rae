@@ -8,6 +8,7 @@ from dataclasses import dataclass
 from rpds import HashTrieMap, HashTrieSet
 
 from .canonical import JsonValue
+from .immutable_history import mutable_history_value
 
 
 def explicit_temporal_record(record: Mapping[str, object]) -> bool:
@@ -45,6 +46,4 @@ class TemporalRecordIndex:
         selected = {}
         for key in self.explicit_actions:
             selected.update(self.by_action[key])
-        from .immutable_history import mutable_history_value
-
         return tuple(mutable_history_value(record) for _, record in sorted(selected.items()))

@@ -28,7 +28,8 @@ from raes.participant_migration import (  # noqa: E402
     ParticipantIdentityMigrationContext,
     migrate_participant_identity,
 )
-from raes.semantic_migration import SDLSemanticMigrationContext, migrate_sdl_semantics  # noqa: E402
+from raes.semantic_migration import migrate_sdl_semantics  # noqa: E402
+from raes.semantic_migration_context import SDLSemanticMigrationContext  # noqa: E402
 from raes.semantic_revisions import PROGRESSIVE_SDL_REVISION  # noqa: E402
 from raes.transformations import ArtifactTransformationPolicy  # noqa: E402
 from raes_contracts.contracts import (  # noqa: E402

@@ -16,7 +16,7 @@ from raes_backend_protocols.recovery_observation import (
     RecoveryObservationResult,
 )
 from raes_backend_stubs.stubs import StubEvaluator, create_stub_target
-from raes_contracts.plan_projection import provisioning_plan_model
+from raes_contracts.contracts.plan_projection import provisioning_plan_model
 from raes_contracts.planning import ProvisioningPlan
 from raes_contracts.runtime_state import OperationKind, OperationState
 from raes_runtime.control_plane import RuntimeControlPlane

@@ -1,5 +1,5 @@
 [
-{
+  {
     "name": "external_direction_binds_a_compatible_control_transition",
     "source": {
       "name": "dsl-142",
@@ -2123,9 +2123,9 @@
           "node_name": "web",
           "node_kind": "compute",
           "os_family": "",
-          "os_distribution": "",
+          "os_distribution": null,
           "os_version": "",
-          "architecture": "",
+          "architecture": null,
           "count": null,
           "network_namespace_target": "",
           "domain_topology": null
@@ -2821,6 +2821,7 @@
           "participant_inject_delivery_addresses": [
             "participant.behavior-specification.red-briefing.inject-delivery.briefing"
           ],
+          "episode_policy_address": "",
           "extension_policy": "governed-extension",
           "extension_keys": []
         },
@@ -3023,7 +3024,7 @@
     },
     "diagnostics": []
   },
-{
+  {
     "name": "binding_is_a_typed_declaration_and_valid_temporal_subject",
     "source": {
       "name": "dsl-142",
@@ -4294,9 +4295,9 @@
           "node_name": "web",
           "node_kind": "compute",
           "os_family": "",
-          "os_distribution": "",
+          "os_distribution": null,
           "os_version": "",
-          "architecture": "",
+          "architecture": null,
           "count": null,
           "network_namespace_target": "",
           "domain_topology": null
@@ -4579,6 +4580,7 @@
           "participant_inject_delivery_addresses": [
             "participant.behavior-specification.red-briefing.inject-delivery.briefing"
           ],
+          "episode_policy_address": "",
           "extension_policy": "governed-extension",
           "extension_keys": []
         },
@@ -4762,7 +4764,7 @@
     },
     "diagnostics": []
   },
-{
+  {
     "name": "a_rev1_binding_joins_the_source_controller_and_compiles_to_a_typed_control_child",
     "source": {
       "name": "dsl-142",
@@ -6778,9 +6780,9 @@
           "node_name": "web",
           "node_kind": "compute",
           "os_family": "",
-          "os_distribution": "",
+          "os_distribution": null,
           "os_version": "",
-          "architecture": "",
+          "architecture": null,
           "count": null,
           "network_namespace_target": "",
           "domain_topology": null
@@ -7514,6 +7516,7 @@
           "participant_inject_delivery_addresses": [
             "participant.behavior-specification.red-briefing.inject-delivery.briefing"
           ],
+          "episode_policy_address": "",
           "extension_policy": "governed-extension",
           "extension_keys": []
         },
@@ -7732,7 +7735,7 @@
     },
     "diagnostics": []
   },
-{
+  {
     "name": "compiler_carries_typed_access_and_refresh_dependencies",
     "source": {
       "name": "participant-interactive-access",
@@ -8304,9 +8307,9 @@
           "node_name": "workstation",
           "node_kind": "compute",
           "os_family": "windows",
-          "os_distribution": "",
+          "os_distribution": null,
           "os_version": "",
-          "architecture": "",
+          "architecture": null,
           "count": null,
           "network_namespace_target": "",
           "domain_topology": null
@@ -8341,9 +8344,9 @@
           "node_name": "other-host",
           "node_kind": "compute",
           "os_family": "linux",
-          "os_distribution": "",
+          "os_distribution": null,
           "os_version": "",
-          "architecture": "",
+          "architecture": null,
           "count": null,
           "network_namespace_target": "",
           "domain_topology": null
@@ -8496,7 +8499,7 @@
     },
     "diagnostics": []
   },
-{
+  {
     "name": "compiler_resolves_network_namespace_owner_and_dependencies",
     "source": {
       "name": "shared-network-namespace",
@@ -8782,9 +8785,9 @@
           "node_name": "owner",
           "node_kind": "compute",
           "os_family": "linux",
-          "os_distribution": "",
+          "os_distribution": null,
           "os_version": "",
-          "architecture": "",
+          "architecture": null,
           "count": null,
           "network_namespace_target": "",
           "domain_topology": null
@@ -8833,9 +8836,9 @@
           "node_name": "capture",
           "node_kind": "compute",
           "os_family": "linux",
-          "os_distribution": "",
+          "os_distribution": null,
           "os_version": "",
-          "architecture": "",
+          "architecture": null,
           "count": null,
           "network_namespace_target": "provision.node.owner",
           "domain_topology": null
@@ -8845,6 +8848,1656 @@
         ],
         "refresh_dependencies": [
           "provision.node.owner"
+        ]
+      }
+    },
+    "diagnostics": []
+  },
+  {
+    "name": "episode_policy_analyst_shift_episode",
+    "source": {
+      "name": "dsl-120",
+      "version": "*",
+      "description": "",
+      "nodes": {
+        "siem": {
+          "type": "compute",
+          "description": "",
+          "source": null,
+          "resources": {
+            "ram": 1073741824,
+            "cpu": 1
+          },
+          "os": null,
+          "os_distribution": null,
+          "os_version": "",
+          "architecture": null,
+          "features": {},
+          "conditions": {},
+          "injects": {},
+          "roles": {},
+          "services": [
+            {
+              "port": 443,
+              "protocol": "tcp",
+              "name": "console",
+              "description": ""
+            }
+          ],
+          "asset_value": null,
+          "endpoint_persona": null,
+          "runtime": null
+        }
+      },
+      "infrastructure": {},
+      "features": {},
+      "conditions": {},
+      "propositions": {
+        "console-ready": {
+          "description": "The SIEM console is reachable before the analyst episode starts.",
+          "subjects": [
+            "nodes.siem.services.console"
+          ],
+          "basis": "declared_state",
+          "predicate": {
+            "kind": "boolean",
+            "property": "console-reachable",
+            "semantic_ref": "urn:raes:observable:console-reachable",
+            "operator": "equals",
+            "expected": true
+          },
+          "quantifier": "all",
+          "threshold": null,
+          "evidence_requirements": []
+        },
+        "ticket-closed": {
+          "description": "The analyst closed the escalated incident ticket.",
+          "subjects": [
+            "nodes.siem.services.console"
+          ],
+          "basis": "observed_state",
+          "predicate": {
+            "kind": "boolean",
+            "property": "incident-ticket-closed",
+            "semantic_ref": "urn:raes:observable:incident-ticket-closed",
+            "operator": "equals",
+            "expected": true
+          },
+          "quantifier": "all",
+          "threshold": null,
+          "evidence_requirements": [
+            "ticket-evidence"
+          ]
+        },
+        "queue-stalled": {
+          "description": "The alert queue stopped producing new work for the analyst.",
+          "subjects": [
+            "nodes.siem.services.console"
+          ],
+          "basis": "observed_state",
+          "predicate": {
+            "kind": "boolean",
+            "property": "alert-queue-stalled",
+            "semantic_ref": "urn:raes:observable:alert-queue-stalled",
+            "operator": "equals",
+            "expected": true
+          },
+          "quantifier": "all",
+          "threshold": null,
+          "evidence_requirements": [
+            "queue-evidence"
+          ]
+        }
+      },
+      "assertions": {
+        "console-ready": {
+          "description": "",
+          "proposition": "console-ready",
+          "role": "precondition",
+          "polarity": "positive"
+        },
+        "ticket-closed": {
+          "description": "",
+          "proposition": "ticket-closed",
+          "role": "postcondition",
+          "polarity": "positive"
+        },
+        "queue-stalled": {
+          "description": "",
+          "proposition": "queue-stalled",
+          "role": "postcondition",
+          "polarity": "positive"
+        }
+      },
+      "entities": {
+        "blue-team": {
+          "name": "",
+          "description": "",
+          "role": "blue",
+          "mission": "",
+          "facts": {},
+          "events": [],
+          "entities": {}
+        }
+      },
+      "injects": {},
+      "events": {},
+      "scripts": {},
+      "stories": {},
+      "content": {},
+      "generated_artifacts": {},
+      "persistent_volumes": {},
+      "accounts": {},
+      "identity_domains": {},
+      "identity_forests": {},
+      "identity_facades": {},
+      "deployment_tenants": {},
+      "deployment_cells": {},
+      "relationships": {},
+      "forwarding_agents": [],
+      "agents": {
+        "analyst": {
+          "affiliations": [
+            "blue-team"
+          ],
+          "role": null,
+          "description": "",
+          "actions": [
+            "triage-alert"
+          ],
+          "starting_accounts": [],
+          "initial_knowledge": null,
+          "allowed_subnets": [],
+          "starting_assertions": [],
+          "authority_anchors": [],
+          "operating_scope": [],
+          "observation_boundaries": [],
+          "interactive_access": {}
+        }
+      },
+      "action_contracts": {
+        "triage-alert": {
+          "semantic_version": "1.0.0",
+          "lifecycle_state": "active",
+          "behavioral_granularity": "atomic",
+          "procedure_basis": "analyst reviews one SIEM alert and records a disposition",
+          "realization_profile": "backend-declared",
+          "fidelity_claim": "records the analyst disposition and the terminal console observation",
+          "arguments": {},
+          "preconditions": [
+            {
+              "precondition_id": "console-in-scope",
+              "precondition_class": "target",
+              "description": "the SIEM console is in the analyst's action scope",
+              "support_refs": [
+                "nodes.siem.services.console"
+              ],
+              "evidence_refs": []
+            }
+          ],
+          "effects": [
+            {
+              "effect_id": "alert-disposition-recorded",
+              "effect_class": "intended_effect",
+              "description": "the analyst records a disposition for the alert",
+              "target_refs": [
+                "nodes.siem.services.console"
+              ],
+              "evidence_refs": []
+            }
+          ],
+          "state_transition_effects": [],
+          "observation_expectations": [],
+          "evidence_expectations": [],
+          "failure_classes": [
+            "target_unavailable",
+            "unknown"
+          ],
+          "backend_failure_mappings": [],
+          "interactions": [],
+          "temporal_contracts": [],
+          "backend_timing_disclosures": []
+        }
+      },
+      "observation_boundaries": {},
+      "outcome_interpretation_rules": {},
+      "behavior_specifications": {
+        "analyst-triage": {
+          "semantic_version": "1.0.0",
+          "lifecycle_state": "active",
+          "participant_refs": [
+            "analyst"
+          ],
+          "participant_role_refs": [],
+          "action_contract_refs": [
+            "triage-alert"
+          ],
+          "observation_boundary_refs": [],
+          "outcome_interpretation_rule_refs": [],
+          "authority_scope_refs": [],
+          "behavior_mode": "human-supervised",
+          "autonomous_execution": null,
+          "mixed_control": null,
+          "realization_profile_ref": null,
+          "backend_feature_support_refs": [],
+          "evidence_contract_refs": [],
+          "tool_affordances": {},
+          "participant_inject_deliveries": {},
+          "episode_policy": {
+            "profile": "participant-episode-policy/v1",
+            "initialization": {
+              "assertion_refs": [
+                "console-ready"
+              ]
+            },
+            "interaction_structure": {
+              "order_basis": "decision-epoch",
+              "action_contract_refs": [
+                "triage-alert"
+              ]
+            },
+            "terminal_conditions": {
+              "ticket-closed": {
+                "terminal_reason": "completed",
+                "assertion_refs": [
+                  "ticket-closed"
+                ],
+                "evidence_requirement_refs": [
+                  "ticket-evidence"
+                ]
+              },
+              "shift-ended": {
+                "terminal_reason": "timed_out",
+                "temporal_constraint_ref": "shift-deadline",
+                "evidence_requirement_refs": [
+                  "shift-clock-evidence"
+                ]
+              }
+            },
+            "truncation_conditions": {
+              "queue-stalled": {
+                "assertion_refs": [
+                  "queue-stalled"
+                ],
+                "evidence_requirement_refs": [
+                  "queue-evidence"
+                ]
+              }
+            },
+            "reset_policy": {
+              "control_actions": [
+                "reset",
+                "restart"
+              ],
+              "participant_memory_scope": "persistent_across_episodes",
+              "memory_reset_authority_ref": null,
+              "evidence_requirement_refs": [
+                "reset-evidence"
+              ]
+            }
+          },
+          "extension_policy": "governed-extension",
+          "extensions": {}
+        }
+      },
+      "evidence_requirements": {
+        "ticket-evidence": {
+          "description": "capture the ticket closure record",
+          "source_refs": [
+            "nodes.siem.services.console"
+          ],
+          "source_class": null,
+          "scope_refs": [
+            "siem"
+          ],
+          "scope": "",
+          "window": "analyst episode close",
+          "trigger_ref": "",
+          "boundary_ref": "",
+          "boundary_kind": "",
+          "channel": "log",
+          "channel_refs": [],
+          "artifact_role": "episode_terminal_evidence",
+          "media_types": [],
+          "sensitivity": "plain",
+          "redaction": "none",
+          "integrity": "checksum",
+          "retention": "study_lifetime",
+          "loss_disclosure": "required",
+          "capture_spec_ref": "",
+          "capture_requirement_ref": "",
+          "output_contract": "",
+          "field_selectors": [],
+          "notes": [],
+          "observation_demand": null
+        },
+        "queue-evidence": {
+          "description": "capture the alert queue telemetry",
+          "source_refs": [
+            "nodes.siem.services.console"
+          ],
+          "source_class": null,
+          "scope_refs": [
+            "siem"
+          ],
+          "scope": "",
+          "window": "analyst episode close",
+          "trigger_ref": "",
+          "boundary_ref": "",
+          "boundary_kind": "",
+          "channel": "log",
+          "channel_refs": [],
+          "artifact_role": "episode_truncation_evidence",
+          "media_types": [],
+          "sensitivity": "plain",
+          "redaction": "none",
+          "integrity": "checksum",
+          "retention": "study_lifetime",
+          "loss_disclosure": "required",
+          "capture_spec_ref": "",
+          "capture_requirement_ref": "",
+          "output_contract": "",
+          "field_selectors": [],
+          "notes": [],
+          "observation_demand": null
+        },
+        "shift-clock-evidence": {
+          "description": "capture the shift clock reading at episode close",
+          "source_refs": [
+            "behavior_specifications.analyst-triage"
+          ],
+          "source_class": null,
+          "scope_refs": [
+            "siem"
+          ],
+          "scope": "",
+          "window": "analyst episode close",
+          "trigger_ref": "",
+          "boundary_ref": "",
+          "boundary_kind": "",
+          "channel": "log",
+          "channel_refs": [],
+          "artifact_role": "episode_timeout_evidence",
+          "media_types": [],
+          "sensitivity": "plain",
+          "redaction": "none",
+          "integrity": "checksum",
+          "retention": "study_lifetime",
+          "loss_disclosure": "required",
+          "capture_spec_ref": "",
+          "capture_requirement_ref": "",
+          "output_contract": "",
+          "field_selectors": [],
+          "notes": [],
+          "observation_demand": null
+        },
+        "reset-evidence": {
+          "description": "capture the episode reset or restart record",
+          "source_refs": [
+            "behavior_specifications.analyst-triage"
+          ],
+          "source_class": null,
+          "scope_refs": [
+            "siem"
+          ],
+          "scope": "",
+          "window": "analyst episode reset",
+          "trigger_ref": "",
+          "boundary_ref": "",
+          "boundary_kind": "",
+          "channel": "log",
+          "channel_refs": [],
+          "artifact_role": "episode_reset_evidence",
+          "media_types": [],
+          "sensitivity": "plain",
+          "redaction": "none",
+          "integrity": "checksum",
+          "retention": "study_lifetime",
+          "loss_disclosure": "required",
+          "capture_spec_ref": "",
+          "capture_requirement_ref": "",
+          "output_contract": "",
+          "field_selectors": [],
+          "notes": [],
+          "observation_demand": null
+        }
+      },
+      "time_domains": {
+        "shift-time": {
+          "kind": "logical",
+          "tick_period_seconds": {
+            "numerator": 60,
+            "denominator": 1
+          },
+          "epoch": "scenario_start",
+          "visibility": "participant_visible",
+          "description": "analyst shift logical time"
+        }
+      },
+      "clocks": {
+        "shift-clock": {
+          "time_domain_ref": "shift-time",
+          "authority_kind": "runtime",
+          "authority_ref": "runtime.scheduler",
+          "monotonicity": "non_decreasing",
+          "supports_pause": false,
+          "supports_reset": false,
+          "supports_jump": false,
+          "description": "analyst shift clock"
+        }
+      },
+      "time_domain_mappings": {},
+      "time_progression_policies": {},
+      "temporal_constraints": {
+        "shift-deadline": {
+          "constraint_kind": "deadline",
+          "clock_ref": "shift-clock",
+          "subject_refs": [
+            "behavior_specifications.analyst-triage"
+          ],
+          "start": null,
+          "end": {
+            "tick": 480,
+            "microstep": 0
+          },
+          "duration_ticks": null,
+          "cadence_ticks": null,
+          "description": "the analyst episode must close within one shift"
+        }
+      },
+      "objectives": {},
+      "workflows": {},
+      "module": null,
+      "imports": [],
+      "realization": null,
+      "variables": {},
+      "variation_points": {}
+    },
+    "resources": {
+      "provision.node.siem": {
+        "payload": {
+          "name": "siem",
+          "spec": {
+            "node": {
+              "type": "compute",
+              "description": "",
+              "source": null,
+              "resources": {
+                "ram": 1073741824,
+                "cpu": 1
+              },
+              "os": null,
+              "os_distribution": null,
+              "os_version": "",
+              "architecture": null,
+              "features": {},
+              "conditions": {},
+              "injects": {},
+              "roles": {},
+              "services": [
+                {
+                  "port": 443,
+                  "protocol": "tcp",
+                  "name": "console",
+                  "description": ""
+                }
+              ],
+              "asset_value": null,
+              "endpoint_persona": null,
+              "runtime": null
+            },
+            "infrastructure": {}
+          },
+          "node_name": "siem",
+          "node_kind": "compute",
+          "os_family": "",
+          "os_distribution": null,
+          "os_version": "",
+          "architecture": null,
+          "count": null,
+          "network_namespace_target": "",
+          "domain_topology": null
+        },
+        "ordering_dependencies": [],
+        "refresh_dependencies": []
+      },
+      "evaluation.proposition.console-ready": {
+        "payload": {
+          "name": "console-ready",
+          "spec": {
+            "description": "The SIEM console is reachable before the analyst episode starts.",
+            "subjects": [
+              "nodes.siem.services.console"
+            ],
+            "basis": "declared_state",
+            "predicate": {
+              "kind": "boolean",
+              "property": "console-reachable",
+              "semantic_ref": "urn:raes:observable:console-reachable",
+              "operator": "equals",
+              "expected": true
+            },
+            "quantifier": "all",
+            "threshold": null,
+            "evidence_requirements": []
+          },
+          "subject_addresses": [
+            "provision.node.siem.service.console"
+          ],
+          "predicate_kind": "boolean",
+          "quantifier": "all",
+          "evaluation_basis": "declared_state",
+          "evidence_requirement_refs": [],
+          "evidence_channels": [],
+          "unresolved_evidence_channel_refs": [],
+          "required_time_domain": ""
+        },
+        "ordering_dependencies": [],
+        "refresh_dependencies": []
+      },
+      "evaluation.proposition.ticket-closed": {
+        "payload": {
+          "name": "ticket-closed",
+          "spec": {
+            "description": "The analyst closed the escalated incident ticket.",
+            "subjects": [
+              "nodes.siem.services.console"
+            ],
+            "basis": "observed_state",
+            "predicate": {
+              "kind": "boolean",
+              "property": "incident-ticket-closed",
+              "semantic_ref": "urn:raes:observable:incident-ticket-closed",
+              "operator": "equals",
+              "expected": true
+            },
+            "quantifier": "all",
+            "threshold": null,
+            "evidence_requirements": [
+              "ticket-evidence"
+            ]
+          },
+          "subject_addresses": [
+            "provision.node.siem.service.console"
+          ],
+          "predicate_kind": "boolean",
+          "quantifier": "all",
+          "evaluation_basis": "observed_state",
+          "evidence_requirement_refs": [
+            "ticket-evidence"
+          ],
+          "evidence_channels": [
+            "log"
+          ],
+          "unresolved_evidence_channel_refs": [],
+          "required_time_domain": "scenario_time"
+        },
+        "ordering_dependencies": [],
+        "refresh_dependencies": []
+      },
+      "evaluation.proposition.queue-stalled": {
+        "payload": {
+          "name": "queue-stalled",
+          "spec": {
+            "description": "The alert queue stopped producing new work for the analyst.",
+            "subjects": [
+              "nodes.siem.services.console"
+            ],
+            "basis": "observed_state",
+            "predicate": {
+              "kind": "boolean",
+              "property": "alert-queue-stalled",
+              "semantic_ref": "urn:raes:observable:alert-queue-stalled",
+              "operator": "equals",
+              "expected": true
+            },
+            "quantifier": "all",
+            "threshold": null,
+            "evidence_requirements": [
+              "queue-evidence"
+            ]
+          },
+          "subject_addresses": [
+            "provision.node.siem.service.console"
+          ],
+          "predicate_kind": "boolean",
+          "quantifier": "all",
+          "evaluation_basis": "observed_state",
+          "evidence_requirement_refs": [
+            "queue-evidence"
+          ],
+          "evidence_channels": [
+            "log"
+          ],
+          "unresolved_evidence_channel_refs": [],
+          "required_time_domain": "scenario_time"
+        },
+        "ordering_dependencies": [],
+        "refresh_dependencies": []
+      },
+      "evaluation.assertion.console-ready": {
+        "payload": {
+          "name": "console-ready",
+          "spec": {
+            "description": "",
+            "proposition": "console-ready",
+            "role": "precondition",
+            "polarity": "positive"
+          },
+          "proposition_address": "evaluation.proposition.console-ready",
+          "role": "precondition",
+          "polarity": "positive"
+        },
+        "ordering_dependencies": [
+          "evaluation.proposition.console-ready"
+        ],
+        "refresh_dependencies": [
+          "evaluation.proposition.console-ready"
+        ]
+      },
+      "evaluation.assertion.ticket-closed": {
+        "payload": {
+          "name": "ticket-closed",
+          "spec": {
+            "description": "",
+            "proposition": "ticket-closed",
+            "role": "postcondition",
+            "polarity": "positive"
+          },
+          "proposition_address": "evaluation.proposition.ticket-closed",
+          "role": "postcondition",
+          "polarity": "positive"
+        },
+        "ordering_dependencies": [
+          "evaluation.proposition.ticket-closed"
+        ],
+        "refresh_dependencies": [
+          "evaluation.proposition.ticket-closed"
+        ]
+      },
+      "evaluation.assertion.queue-stalled": {
+        "payload": {
+          "name": "queue-stalled",
+          "spec": {
+            "description": "",
+            "proposition": "queue-stalled",
+            "role": "postcondition",
+            "polarity": "positive"
+          },
+          "proposition_address": "evaluation.proposition.queue-stalled",
+          "role": "postcondition",
+          "polarity": "positive"
+        },
+        "ordering_dependencies": [
+          "evaluation.proposition.queue-stalled"
+        ],
+        "refresh_dependencies": [
+          "evaluation.proposition.queue-stalled"
+        ]
+      },
+      "participant.action-contract.triage-alert": {
+        "payload": {
+          "name": "triage-alert",
+          "spec": {
+            "semantic_version": "1.0.0",
+            "lifecycle_state": "active",
+            "behavioral_granularity": "atomic",
+            "procedure_basis": "analyst reviews one SIEM alert and records a disposition",
+            "realization_profile": "backend-declared",
+            "fidelity_claim": "records the analyst disposition and the terminal console observation",
+            "arguments": {},
+            "preconditions": [
+              {
+                "precondition_id": "console-in-scope",
+                "precondition_class": "target",
+                "description": "the SIEM console is in the analyst's action scope",
+                "support_refs": [
+                  "nodes.siem.services.console"
+                ],
+                "evidence_refs": []
+              }
+            ],
+            "effects": [
+              {
+                "effect_id": "alert-disposition-recorded",
+                "effect_class": "intended_effect",
+                "description": "the analyst records a disposition for the alert",
+                "target_refs": [
+                  "nodes.siem.services.console"
+                ],
+                "evidence_refs": []
+              }
+            ],
+            "state_transition_effects": [],
+            "observation_expectations": [],
+            "evidence_expectations": [],
+            "failure_classes": [
+              "target_unavailable",
+              "unknown"
+            ],
+            "backend_failure_mappings": [],
+            "interactions": [],
+            "temporal_contracts": [],
+            "backend_timing_disclosures": []
+          },
+          "action_name": "triage-alert",
+          "argument_shape_ref": "participant.action-contract.triage-alert.argument-shape.sha256-44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+          "argument_definitions": [],
+          "semantic_version": "1.0.0",
+          "lifecycle_state": "active",
+          "behavioral_granularity": "atomic",
+          "precondition_classes": [
+            "target"
+          ],
+          "effect_classes": [
+            "intended_effect"
+          ],
+          "failure_classes": [
+            "target_unavailable",
+            "unknown"
+          ],
+          "backend_failure_mappings": [],
+          "interaction_classes": [],
+          "shared_state_refs": [],
+          "commutative_interaction_targets": [],
+          "merge_rule_refs": [],
+          "temporal_contract_ids": [],
+          "temporal_kinds": [],
+          "time_domains": [],
+          "clock_authorities": [],
+          "backend_timing_disclosures": []
+        },
+        "ordering_dependencies": [],
+        "refresh_dependencies": []
+      },
+      "participant.behavior.analyst": {
+        "payload": {
+          "name": "analyst",
+          "spec": {
+            "agent": {
+              "affiliations": [
+                "blue-team"
+              ],
+              "role": null,
+              "description": "",
+              "actions": [
+                "triage-alert"
+              ],
+              "starting_accounts": [],
+              "initial_knowledge": null,
+              "allowed_subnets": [],
+              "starting_assertions": [],
+              "authority_anchors": [],
+              "operating_scope": [],
+              "observation_boundaries": [],
+              "interactive_access": {}
+            },
+            "interpretation_mode": "role-neutral-projection"
+          },
+          "participant_name": "analyst",
+          "affiliation_names": [
+            "blue-team"
+          ],
+          "role": "blue",
+          "starting_account_refs": [],
+          "starting_account_addresses": [],
+          "initial_knowledge_addresses": [],
+          "starting_assertion_refs": [],
+          "starting_assertion_addresses": [],
+          "authority_anchor_refs": [],
+          "authority_anchor_addresses": [],
+          "operating_scope_refs": [],
+          "operating_scope_addresses": [],
+          "action_contract_addresses": [
+            "participant.action-contract.triage-alert"
+          ],
+          "temporally_bound_action_addresses": [],
+          "observation_boundary_addresses": [],
+          "interactive_access": [],
+          "interpretation_mode": "role-neutral-projection"
+        },
+        "ordering_dependencies": [],
+        "refresh_dependencies": [
+          "participant.action-contract.triage-alert"
+        ]
+      },
+      "participant.behavior-specification.analyst-triage": {
+        "payload": {
+          "name": "analyst-triage",
+          "spec": {
+            "semantic_version": "1.0.0",
+            "lifecycle_state": "active",
+            "participant_refs": [
+              "analyst"
+            ],
+            "participant_role_refs": [],
+            "action_contract_refs": [
+              "triage-alert"
+            ],
+            "observation_boundary_refs": [],
+            "outcome_interpretation_rule_refs": [],
+            "authority_scope_refs": [],
+            "behavior_mode": "human-supervised",
+            "autonomous_execution": null,
+            "mixed_control": null,
+            "realization_profile_ref": null,
+            "backend_feature_support_refs": [],
+            "evidence_contract_refs": [],
+            "tool_affordances": {},
+            "participant_inject_deliveries": {},
+            "episode_policy": {
+              "profile": "participant-episode-policy/v1",
+              "initialization": {
+                "assertion_refs": [
+                  "console-ready"
+                ]
+              },
+              "interaction_structure": {
+                "order_basis": "decision-epoch",
+                "action_contract_refs": [
+                  "triage-alert"
+                ]
+              },
+              "terminal_conditions": {
+                "ticket-closed": {
+                  "terminal_reason": "completed",
+                  "assertion_refs": [
+                    "ticket-closed"
+                  ],
+                  "evidence_requirement_refs": [
+                    "ticket-evidence"
+                  ]
+                },
+                "shift-ended": {
+                  "terminal_reason": "timed_out",
+                  "temporal_constraint_ref": "shift-deadline",
+                  "evidence_requirement_refs": [
+                    "shift-clock-evidence"
+                  ]
+                }
+              },
+              "truncation_conditions": {
+                "queue-stalled": {
+                  "assertion_refs": [
+                    "queue-stalled"
+                  ],
+                  "evidence_requirement_refs": [
+                    "queue-evidence"
+                  ]
+                }
+              },
+              "reset_policy": {
+                "control_actions": [
+                  "reset",
+                  "restart"
+                ],
+                "participant_memory_scope": "persistent_across_episodes",
+                "memory_reset_authority_ref": null,
+                "evidence_requirement_refs": [
+                  "reset-evidence"
+                ]
+              }
+            },
+            "extension_policy": "governed-extension",
+            "extensions": {}
+          },
+          "spec_name": "analyst-triage",
+          "semantic_version": "1.0.0",
+          "lifecycle_state": "active",
+          "participant_addresses": [
+            "participant.behavior.analyst"
+          ],
+          "participant_role_refs": [],
+          "action_contract_addresses": [
+            "participant.action-contract.triage-alert"
+          ],
+          "observation_boundary_addresses": [],
+          "outcome_interpretation_rule_addresses": [],
+          "authority_scope_refs": [],
+          "authority_scope_addresses": [],
+          "behavior_mode": "human-supervised",
+          "autonomous_execution": null,
+          "mixed_control_participant_address": "",
+          "mixed_control_policy_revision": "",
+          "mixed_control_order_strategy": "",
+          "mixed_control_initial_state_address": "",
+          "mixed_control_dispositions": null,
+          "controller_states": [],
+          "control_transitions": [],
+          "mixed_control_semantics": "",
+          "mixed_control_policy": null,
+          "realization_profile_ref": "",
+          "backend_feature_support_refs": [],
+          "evidence_contract_refs": [],
+          "tool_affordance_addresses": [],
+          "participant_inject_delivery_addresses": [],
+          "episode_policy_address": "participant.episode-policy.analyst-triage",
+          "extension_policy": "governed-extension",
+          "extension_keys": []
+        },
+        "ordering_dependencies": [],
+        "refresh_dependencies": [
+          "participant.behavior.analyst",
+          "participant.action-contract.triage-alert"
+        ]
+      },
+      "participant.episode-policy.analyst-triage": {
+        "payload": {
+          "name": "analyst-triage",
+          "spec": {
+            "profile": "participant-episode-policy/v1",
+            "initialization": {
+              "assertion_refs": [
+                "console-ready"
+              ]
+            },
+            "interaction_structure": {
+              "order_basis": "decision-epoch",
+              "action_contract_refs": [
+                "triage-alert"
+              ]
+            },
+            "terminal_conditions": {
+              "ticket-closed": {
+                "terminal_reason": "completed",
+                "assertion_refs": [
+                  "ticket-closed"
+                ],
+                "evidence_requirement_refs": [
+                  "ticket-evidence"
+                ]
+              },
+              "shift-ended": {
+                "terminal_reason": "timed_out",
+                "temporal_constraint_ref": "shift-deadline",
+                "evidence_requirement_refs": [
+                  "shift-clock-evidence"
+                ]
+              }
+            },
+            "truncation_conditions": {
+              "queue-stalled": {
+                "assertion_refs": [
+                  "queue-stalled"
+                ],
+                "evidence_requirement_refs": [
+                  "queue-evidence"
+                ]
+              }
+            },
+            "reset_policy": {
+              "control_actions": [
+                "reset",
+                "restart"
+              ],
+              "participant_memory_scope": "persistent_across_episodes",
+              "memory_reset_authority_ref": null,
+              "evidence_requirement_refs": [
+                "reset-evidence"
+              ]
+            }
+          },
+          "behavior_specification_address": "participant.behavior-specification.analyst-triage",
+          "participant_addresses": [
+            "participant.behavior.analyst"
+          ],
+          "profile": "participant-episode-policy/v1",
+          "initialization_assertion_addresses": [
+            "evaluation.assertion.console-ready"
+          ],
+          "turn_order_basis": "decision-epoch",
+          "turn_action_contract_addresses": [
+            "participant.action-contract.triage-alert"
+          ],
+          "conditions": [
+            {
+              "condition_id": "queue-stalled",
+              "terminal_reason": "truncated",
+              "evidence_requirement_addresses": [
+                "sdl.evidence-requirements.queue-evidence"
+              ],
+              "assertion_addresses": [
+                "evaluation.assertion.queue-stalled"
+              ],
+              "temporal_constraint_address": ""
+            },
+            {
+              "condition_id": "shift-ended",
+              "terminal_reason": "timed_out",
+              "evidence_requirement_addresses": [
+                "sdl.evidence-requirements.shift-clock-evidence"
+              ],
+              "assertion_addresses": [],
+              "temporal_constraint_address": "time.constraint.shift-deadline"
+            },
+            {
+              "condition_id": "ticket-closed",
+              "terminal_reason": "completed",
+              "evidence_requirement_addresses": [
+                "sdl.evidence-requirements.ticket-evidence"
+              ],
+              "assertion_addresses": [
+                "evaluation.assertion.ticket-closed"
+              ],
+              "temporal_constraint_address": ""
+            }
+          ],
+          "reset_control_actions": [
+            "reset",
+            "restart"
+          ],
+          "participant_memory_scope": "persistent_across_episodes",
+          "memory_reset_authority_address": "",
+          "reset_evidence_requirement_addresses": [
+            "sdl.evidence-requirements.reset-evidence"
+          ]
+        },
+        "ordering_dependencies": [],
+        "refresh_dependencies": [
+          "participant.behavior-specification.analyst-triage",
+          "participant.behavior.analyst",
+          "evaluation.assertion.console-ready",
+          "participant.action-contract.triage-alert",
+          "evaluation.assertion.queue-stalled",
+          "sdl.evidence-requirements.queue-evidence",
+          "time.constraint.shift-deadline",
+          "sdl.evidence-requirements.shift-clock-evidence",
+          "evaluation.assertion.ticket-closed",
+          "sdl.evidence-requirements.ticket-evidence",
+          "sdl.evidence-requirements.reset-evidence"
+        ]
+      }
+    },
+    "diagnostics": []
+  },
+  {
+    "name": "episode_policy_standalone_episode_structure",
+    "source": {
+      "name": "act-623",
+      "version": "*",
+      "description": "",
+      "nodes": {
+        "siem": {
+          "type": "compute",
+          "description": "",
+          "source": null,
+          "resources": {
+            "ram": 1073741824,
+            "cpu": 1
+          },
+          "os": null,
+          "os_distribution": null,
+          "os_version": "",
+          "architecture": null,
+          "features": {},
+          "conditions": {},
+          "injects": {},
+          "roles": {},
+          "services": [
+            {
+              "port": 443,
+              "protocol": "tcp",
+              "name": "console",
+              "description": ""
+            }
+          ],
+          "asset_value": null,
+          "endpoint_persona": null,
+          "runtime": null
+        }
+      },
+      "infrastructure": {},
+      "features": {},
+      "conditions": {},
+      "propositions": {
+        "console-ready": {
+          "description": "The SIEM console is reachable before a replay episode starts.",
+          "subjects": [
+            "nodes.siem.services.console"
+          ],
+          "basis": "declared_state",
+          "predicate": {
+            "kind": "boolean",
+            "property": "console-reachable",
+            "semantic_ref": "urn:raes:observable:console-reachable",
+            "operator": "equals",
+            "expected": true
+          },
+          "quantifier": "all",
+          "threshold": null,
+          "evidence_requirements": []
+        }
+      },
+      "assertions": {
+        "console-ready": {
+          "description": "",
+          "proposition": "console-ready",
+          "role": "precondition",
+          "polarity": "positive"
+        }
+      },
+      "entities": {
+        "blue-team": {
+          "name": "",
+          "description": "",
+          "role": "blue",
+          "mission": "",
+          "facts": {},
+          "events": [],
+          "entities": {}
+        }
+      },
+      "injects": {},
+      "events": {},
+      "scripts": {},
+      "stories": {},
+      "content": {},
+      "generated_artifacts": {},
+      "persistent_volumes": {},
+      "accounts": {},
+      "identity_domains": {},
+      "identity_forests": {},
+      "identity_facades": {},
+      "deployment_tenants": {},
+      "deployment_cells": {},
+      "relationships": {},
+      "forwarding_agents": [],
+      "agents": {
+        "replayer": {
+          "affiliations": [
+            "blue-team"
+          ],
+          "role": null,
+          "description": "",
+          "actions": [],
+          "starting_accounts": [],
+          "initial_knowledge": null,
+          "allowed_subnets": [],
+          "starting_assertions": [],
+          "authority_anchors": [],
+          "operating_scope": [],
+          "observation_boundaries": [],
+          "interactive_access": {}
+        }
+      },
+      "action_contracts": {},
+      "observation_boundaries": {},
+      "outcome_interpretation_rules": {},
+      "behavior_specifications": {
+        "replay-episodes": {
+          "semantic_version": "1.0.0",
+          "lifecycle_state": "active",
+          "participant_refs": [
+            "replayer"
+          ],
+          "participant_role_refs": [],
+          "action_contract_refs": [],
+          "observation_boundary_refs": [],
+          "outcome_interpretation_rule_refs": [],
+          "authority_scope_refs": [],
+          "behavior_mode": null,
+          "autonomous_execution": null,
+          "mixed_control": null,
+          "realization_profile_ref": null,
+          "backend_feature_support_refs": [],
+          "evidence_contract_refs": [],
+          "tool_affordances": {},
+          "participant_inject_deliveries": {},
+          "episode_policy": {
+            "profile": "participant-episode-policy/v1",
+            "initialization": {
+              "assertion_refs": [
+                "console-ready"
+              ]
+            },
+            "interaction_structure": null,
+            "terminal_conditions": {
+              "replay-window-closed": {
+                "terminal_reason": "timed_out",
+                "temporal_constraint_ref": "replay-deadline",
+                "evidence_requirement_refs": [
+                  "replay-clock-evidence"
+                ]
+              }
+            },
+            "truncation_conditions": {},
+            "reset_policy": {
+              "control_actions": [
+                "reset"
+              ],
+              "participant_memory_scope": "episode_local_reset",
+              "memory_reset_authority_ref": "agents.replayer",
+              "evidence_requirement_refs": [
+                "replay-reset-evidence"
+              ]
+            }
+          },
+          "extension_policy": "governed-extension",
+          "extensions": {}
+        }
+      },
+      "evidence_requirements": {
+        "replay-clock-evidence": {
+          "description": "capture the replay clock reading at episode close",
+          "source_refs": [
+            "agents.replayer"
+          ],
+          "source_class": null,
+          "scope_refs": [
+            "siem"
+          ],
+          "scope": "",
+          "window": "replay episode close",
+          "trigger_ref": "",
+          "boundary_ref": "",
+          "boundary_kind": "",
+          "channel": "log",
+          "channel_refs": [],
+          "artifact_role": "episode_timeout_evidence",
+          "media_types": [],
+          "sensitivity": "plain",
+          "redaction": "none",
+          "integrity": "checksum",
+          "retention": "study_lifetime",
+          "loss_disclosure": "required",
+          "capture_spec_ref": "",
+          "capture_requirement_ref": "",
+          "output_contract": "",
+          "field_selectors": [],
+          "notes": [],
+          "observation_demand": null
+        },
+        "replay-reset-evidence": {
+          "description": "capture the replay reset record",
+          "source_refs": [
+            "agents.replayer"
+          ],
+          "source_class": null,
+          "scope_refs": [
+            "siem"
+          ],
+          "scope": "",
+          "window": "replay episode reset",
+          "trigger_ref": "",
+          "boundary_ref": "",
+          "boundary_kind": "",
+          "channel": "log",
+          "channel_refs": [],
+          "artifact_role": "episode_reset_evidence",
+          "media_types": [],
+          "sensitivity": "plain",
+          "redaction": "none",
+          "integrity": "checksum",
+          "retention": "study_lifetime",
+          "loss_disclosure": "required",
+          "capture_spec_ref": "",
+          "capture_requirement_ref": "",
+          "output_contract": "",
+          "field_selectors": [],
+          "notes": [],
+          "observation_demand": null
+        }
+      },
+      "time_domains": {
+        "replay-time": {
+          "kind": "logical",
+          "tick_period_seconds": {
+            "numerator": 1,
+            "denominator": 1
+          },
+          "epoch": "scenario_start",
+          "visibility": "participant_visible",
+          "description": "replay logical time"
+        }
+      },
+      "clocks": {
+        "replay-clock": {
+          "time_domain_ref": "replay-time",
+          "authority_kind": "runtime",
+          "authority_ref": "runtime.scheduler",
+          "monotonicity": "non_decreasing",
+          "supports_pause": false,
+          "supports_reset": false,
+          "supports_jump": false,
+          "description": "replay scheduler clock"
+        }
+      },
+      "time_domain_mappings": {},
+      "time_progression_policies": {},
+      "temporal_constraints": {
+        "replay-deadline": {
+          "constraint_kind": "deadline",
+          "clock_ref": "replay-clock",
+          "subject_refs": [
+            "agents.replayer"
+          ],
+          "start": null,
+          "end": {
+            "tick": 900,
+            "microstep": 0
+          },
+          "duration_ticks": null,
+          "cadence_ticks": null,
+          "description": "each replay episode closes within fifteen minutes"
+        }
+      },
+      "objectives": {},
+      "workflows": {},
+      "module": null,
+      "imports": [],
+      "realization": null,
+      "variables": {},
+      "variation_points": {}
+    },
+    "resources": {
+      "provision.node.siem": {
+        "payload": {
+          "name": "siem",
+          "spec": {
+            "node": {
+              "type": "compute",
+              "description": "",
+              "source": null,
+              "resources": {
+                "ram": 1073741824,
+                "cpu": 1
+              },
+              "os": null,
+              "os_distribution": null,
+              "os_version": "",
+              "architecture": null,
+              "features": {},
+              "conditions": {},
+              "injects": {},
+              "roles": {},
+              "services": [
+                {
+                  "port": 443,
+                  "protocol": "tcp",
+                  "name": "console",
+                  "description": ""
+                }
+              ],
+              "asset_value": null,
+              "endpoint_persona": null,
+              "runtime": null
+            },
+            "infrastructure": {}
+          },
+          "node_name": "siem",
+          "node_kind": "compute",
+          "os_family": "",
+          "os_distribution": null,
+          "os_version": "",
+          "architecture": null,
+          "count": null,
+          "network_namespace_target": "",
+          "domain_topology": null
+        },
+        "ordering_dependencies": [],
+        "refresh_dependencies": []
+      },
+      "evaluation.proposition.console-ready": {
+        "payload": {
+          "name": "console-ready",
+          "spec": {
+            "description": "The SIEM console is reachable before a replay episode starts.",
+            "subjects": [
+              "nodes.siem.services.console"
+            ],
+            "basis": "declared_state",
+            "predicate": {
+              "kind": "boolean",
+              "property": "console-reachable",
+              "semantic_ref": "urn:raes:observable:console-reachable",
+              "operator": "equals",
+              "expected": true
+            },
+            "quantifier": "all",
+            "threshold": null,
+            "evidence_requirements": []
+          },
+          "subject_addresses": [
+            "provision.node.siem.service.console"
+          ],
+          "predicate_kind": "boolean",
+          "quantifier": "all",
+          "evaluation_basis": "declared_state",
+          "evidence_requirement_refs": [],
+          "evidence_channels": [],
+          "unresolved_evidence_channel_refs": [],
+          "required_time_domain": ""
+        },
+        "ordering_dependencies": [],
+        "refresh_dependencies": []
+      },
+      "evaluation.assertion.console-ready": {
+        "payload": {
+          "name": "console-ready",
+          "spec": {
+            "description": "",
+            "proposition": "console-ready",
+            "role": "precondition",
+            "polarity": "positive"
+          },
+          "proposition_address": "evaluation.proposition.console-ready",
+          "role": "precondition",
+          "polarity": "positive"
+        },
+        "ordering_dependencies": [
+          "evaluation.proposition.console-ready"
+        ],
+        "refresh_dependencies": [
+          "evaluation.proposition.console-ready"
+        ]
+      },
+      "participant.behavior.replayer": {
+        "payload": {
+          "name": "replayer",
+          "spec": {
+            "agent": {
+              "affiliations": [
+                "blue-team"
+              ],
+              "role": null,
+              "description": "",
+              "actions": [],
+              "starting_accounts": [],
+              "initial_knowledge": null,
+              "allowed_subnets": [],
+              "starting_assertions": [],
+              "authority_anchors": [],
+              "operating_scope": [],
+              "observation_boundaries": [],
+              "interactive_access": {}
+            },
+            "interpretation_mode": "role-neutral-projection"
+          },
+          "participant_name": "replayer",
+          "affiliation_names": [
+            "blue-team"
+          ],
+          "role": "blue",
+          "starting_account_refs": [],
+          "starting_account_addresses": [],
+          "initial_knowledge_addresses": [],
+          "starting_assertion_refs": [],
+          "starting_assertion_addresses": [],
+          "authority_anchor_refs": [],
+          "authority_anchor_addresses": [],
+          "operating_scope_refs": [],
+          "operating_scope_addresses": [],
+          "action_contract_addresses": [],
+          "temporally_bound_action_addresses": [],
+          "observation_boundary_addresses": [],
+          "interactive_access": [],
+          "interpretation_mode": "role-neutral-projection"
+        },
+        "ordering_dependencies": [],
+        "refresh_dependencies": []
+      },
+      "participant.behavior-specification.replay-episodes": {
+        "payload": {
+          "name": "replay-episodes",
+          "spec": {
+            "semantic_version": "1.0.0",
+            "lifecycle_state": "active",
+            "participant_refs": [
+              "replayer"
+            ],
+            "participant_role_refs": [],
+            "action_contract_refs": [],
+            "observation_boundary_refs": [],
+            "outcome_interpretation_rule_refs": [],
+            "authority_scope_refs": [],
+            "behavior_mode": null,
+            "autonomous_execution": null,
+            "mixed_control": null,
+            "realization_profile_ref": null,
+            "backend_feature_support_refs": [],
+            "evidence_contract_refs": [],
+            "tool_affordances": {},
+            "participant_inject_deliveries": {},
+            "episode_policy": {
+              "profile": "participant-episode-policy/v1",
+              "initialization": {
+                "assertion_refs": [
+                  "console-ready"
+                ]
+              },
+              "interaction_structure": null,
+              "terminal_conditions": {
+                "replay-window-closed": {
+                  "terminal_reason": "timed_out",
+                  "temporal_constraint_ref": "replay-deadline",
+                  "evidence_requirement_refs": [
+                    "replay-clock-evidence"
+                  ]
+                }
+              },
+              "truncation_conditions": {},
+              "reset_policy": {
+                "control_actions": [
+                  "reset"
+                ],
+                "participant_memory_scope": "episode_local_reset",
+                "memory_reset_authority_ref": "agents.replayer",
+                "evidence_requirement_refs": [
+                  "replay-reset-evidence"
+                ]
+              }
+            },
+            "extension_policy": "governed-extension",
+            "extensions": {}
+          },
+          "spec_name": "replay-episodes",
+          "semantic_version": "1.0.0",
+          "lifecycle_state": "active",
+          "participant_addresses": [
+            "participant.behavior.replayer"
+          ],
+          "participant_role_refs": [],
+          "action_contract_addresses": [],
+          "observation_boundary_addresses": [],
+          "outcome_interpretation_rule_addresses": [],
+          "authority_scope_refs": [],
+          "authority_scope_addresses": [],
+          "behavior_mode": "",
+          "autonomous_execution": null,
+          "mixed_control_participant_address": "",
+          "mixed_control_policy_revision": "",
+          "mixed_control_order_strategy": "",
+          "mixed_control_initial_state_address": "",
+          "mixed_control_dispositions": null,
+          "controller_states": [],
+          "control_transitions": [],
+          "mixed_control_semantics": "",
+          "mixed_control_policy": null,
+          "realization_profile_ref": "",
+          "backend_feature_support_refs": [],
+          "evidence_contract_refs": [],
+          "tool_affordance_addresses": [],
+          "participant_inject_delivery_addresses": [],
+          "episode_policy_address": "participant.episode-policy.replay-episodes",
+          "extension_policy": "governed-extension",
+          "extension_keys": []
+        },
+        "ordering_dependencies": [],
+        "refresh_dependencies": [
+          "participant.behavior.replayer"
+        ]
+      },
+      "participant.episode-policy.replay-episodes": {
+        "payload": {
+          "name": "replay-episodes",
+          "spec": {
+            "profile": "participant-episode-policy/v1",
+            "initialization": {
+              "assertion_refs": [
+                "console-ready"
+              ]
+            },
+            "interaction_structure": null,
+            "terminal_conditions": {
+              "replay-window-closed": {
+                "terminal_reason": "timed_out",
+                "temporal_constraint_ref": "replay-deadline",
+                "evidence_requirement_refs": [
+                  "replay-clock-evidence"
+                ]
+              }
+            },
+            "truncation_conditions": {},
+            "reset_policy": {
+              "control_actions": [
+                "reset"
+              ],
+              "participant_memory_scope": "episode_local_reset",
+              "memory_reset_authority_ref": "agents.replayer",
+              "evidence_requirement_refs": [
+                "replay-reset-evidence"
+              ]
+            }
+          },
+          "behavior_specification_address": "participant.behavior-specification.replay-episodes",
+          "participant_addresses": [
+            "participant.behavior.replayer"
+          ],
+          "profile": "participant-episode-policy/v1",
+          "initialization_assertion_addresses": [
+            "evaluation.assertion.console-ready"
+          ],
+          "turn_order_basis": "",
+          "turn_action_contract_addresses": [],
+          "conditions": [
+            {
+              "condition_id": "replay-window-closed",
+              "terminal_reason": "timed_out",
+              "evidence_requirement_addresses": [
+                "sdl.evidence-requirements.replay-clock-evidence"
+              ],
+              "assertion_addresses": [],
+              "temporal_constraint_address": "time.constraint.replay-deadline"
+            }
+          ],
+          "reset_control_actions": [
+            "reset"
+          ],
+          "participant_memory_scope": "episode_local_reset",
+          "memory_reset_authority_address": "sdl.agents.replayer",
+          "reset_evidence_requirement_addresses": [
+            "sdl.evidence-requirements.replay-reset-evidence"
+          ]
+        },
+        "ordering_dependencies": [],
+        "refresh_dependencies": [
+          "participant.behavior-specification.replay-episodes",
+          "participant.behavior.replayer",
+          "evaluation.assertion.console-ready",
+          "time.constraint.replay-deadline",
+          "sdl.evidence-requirements.replay-clock-evidence",
+          "sdl.evidence-requirements.replay-reset-evidence",
+          "sdl.agents.replayer"
         ]
       }
     },

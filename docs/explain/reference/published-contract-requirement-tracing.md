@@ -26,12 +26,12 @@ carries this link to the contract's exact schema path:
   to a schema path typed as `CONFIG`, `SCHEMA`, or `DOCUMENTATION` does not
   count as ownership either. Retype it to `SPEC` only where it records that the
   requirement owns the contract. Some such links record a narrower relation,
-  such as the vocabulary or temporal rules one requirement adds to a shared SDL
-  schema; leave those as they are.
+  such as the vocabulary or temporal rules that one requirement adds to a shared
+  SDL schema. Leave those as they are.
 - **`CODE_FILE` links never count.** A module link cannot say which contract a
-  requirement governs. `raes_contracts/contracts/bundle.py` generates every
-  published contract and several requirements link it as a `CODE_FILE`, so
-  accepting module links would mark every contract traced.
+  requirement governs. `raes_contracts/schema_contributions.py` registers every
+  neutral published contract and several requirements link it as a `CODE_FILE`,
+  so accepting module links would mark every contract traced.
 - **The path must match exactly.** A link to a document beside the schema,
   such as the catalog `contracts/concept-authority/behavioral-relations-v1.json`,
   does not trace `contracts/schemas/concept-authority/behavioral-relations-v1.json`.
@@ -49,9 +49,9 @@ carries this link to the contract's exact schema path:
 The gate reads requirement records offline through
 `RepositoryRequirementClient`, the parser behind the repository requirement
 source that `tools/policy/requirement_order.yaml` selects. It makes no Ground
-Control request, so it runs on every CI policy run. A record that the parser
-rejects, including a malformed traceability line, a symlinked record, or a
-directory that is not a canonical requirement UID, fails closed as
+Control request, so it runs on every CI policy run. The parser can reject a
+record, such as a malformed traceability line, a symlinked record, or a
+directory that is not a canonical requirement UID. Such a record fails closed as
 `[contract-requirement-record-unreadable]` and owns nothing.
 
 ## The inventory
@@ -59,8 +59,8 @@ directory that is not a canonical requirement UID, fails closed as
 The denominator is every `contracts/schemas/**/*.json` file. The contracts lane
 already fails when that tree disagrees with `schema_bundle()`
 (`tools/check_generated_schemas.py`) or with the publication manifest
-(`tools/check_schema_publication.py`), so the gate reads the tree rather than
-regenerating the bundle. `test_issue_712_contract_requirement_tracing.py` pins
+(`tools/check_schema_publication.py`). So the gate reads the tree and does not
+regenerate the bundle. `test_issue_712_contract_requirement_tracing.py` pins
 the three inventories to one set. A removed schema leaves the tree, so its
 tombstone needs no owner.
 
@@ -72,7 +72,8 @@ requirement that governs the contract, in the same pull request that publishes
 a new schema. Choose the owner by evidence, strongest first:
 
 1. A live requirement already records the exact schema path under another link
-   or artifact type, or links the contract's own catalog or publication record.
+   or artifact type. Or it links the contract's own catalog or publication
+   record.
 2. The pull request or commit that published the schema, or its issue,
    declared the requirement.
 3. The requirement's statement names the contract's subject. Prefer a

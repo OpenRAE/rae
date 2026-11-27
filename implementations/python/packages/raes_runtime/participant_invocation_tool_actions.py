@@ -15,8 +15,8 @@ from typing import TYPE_CHECKING
 
 from raes_backend_protocols.participant_capabilities import ParticipantExecutionBinding, ParticipantRuntimeCapabilities
 from raes_contracts.contracts import ParticipantActionResultModel
+from raes_contracts.contracts.participant_action_admission import ParticipantActionAdmissionRequest
 from raes_contracts.operational_logging import get_logger
-from raes_contracts.participant_binding import ParticipantActionAdmissionRequest
 from raes_contracts.participant_tool_actions import (
     INVOCATION_TOOL_ACTIONS_SEMANTICS,
     ParticipantToolActionDecision,
@@ -112,7 +112,7 @@ class HostedActionRegistry:
 class InvocationToolActionConfiguration:
     """Admitted composition limits and the manifest offers that bound tool actions."""
 
-    max_tool_actions: int
+    max_tool_actions: int | None
     max_concurrent_tool_actions: int
     execution_offers: tuple[ParticipantExecutionBinding, ...]
     ledger: InvocationToolActionLedger
@@ -154,6 +154,8 @@ class _ToolEntry:
     settlement: ParticipantToolActionSettlement | None = None
     action_result: ParticipantActionResultModel | None = None
     settled_at: str | None = None
+    admission: ParticipantActionAdmissionRequest | None = None
+    crossing_evidence: object | None = None
 
 
 def _detached_outcome(outcome: object) -> ParticipantActionResultModel | None:
@@ -382,7 +384,11 @@ class ParticipantInvocationToolActions:
         self, request: ParticipantToolActionRequest
     ) -> tuple[_ToolEntry | None, ParticipantToolActionRefusal | None]:
         refusal, binding = self._admission_refusal(request)
-        if refusal is None and len(self._entries) >= self._configuration.max_tool_actions:
+        if (
+            refusal is None
+            and self._configuration.max_tool_actions is not None
+            and len(self._entries) >= self._configuration.max_tool_actions
+        ):
             refusal = ParticipantToolActionRefusal.ADMISSION_LIMIT_EXHAUSTED
         if refusal is None:
             refusal = self._effect_authority_refusal()
@@ -707,3 +713,11 @@ class ParticipantInvocationToolActions:
 
 
 __all__ = ("InvocationToolActionConfiguration", "ParticipantInvocationToolActions")
+
+
+InvocationToolEntry = _ToolEntry
+
+
+def detached_tool_outcome(outcome: ParticipantActionResultModel) -> ParticipantActionResultModel | None:
+    """Detach and validate the shared tool outcome carrier."""
+    return _detached_outcome(outcome)

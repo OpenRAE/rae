@@ -40,6 +40,7 @@ type InstantiatedScenarioV1 struct {
 	PersistentVolumes          Field[map[string]dc7b82ee48e751811fd3799] "json:\"persistent_volumes,omitzero\""
 	Propositions               Field[map[string]dc7b82ee48e05a5738435b8] "json:\"propositions,omitzero\""
 	Relationships              Field[map[string]dc7b82ee48ef6cd76472e38] "json:\"relationships,omitzero\""
+	SafeState                  Field[json.RawMessage]                    "json:\"safe_state,omitzero\""
 	Scripts                    Field[map[string]dc7b82ee48e4584e85e24d2] "json:\"scripts,omitzero\""
 	SemanticRevision           Field[json.RawMessage]                    "json:\"semantic_revision,omitzero\""
 	Stories                    Field[map[string]dc7b82ee48e72646f29b366] "json:\"stories,omitzero\""
@@ -47,6 +48,7 @@ type InstantiatedScenarioV1 struct {
 	TimeDomainMappings         Field[map[string]dc7b82ee48eac5fc1c20c61] "json:\"time_domain_mappings,omitzero\""
 	TimeDomains                Field[map[string]dc7b82ee48eaaa1a2f3ccc4] "json:\"time_domains,omitzero\""
 	TimeProgressionPolicies    Field[map[string]dc7b82ee48e61ecb73c1fd2] "json:\"time_progression_policies,omitzero\""
+	TrialParallelism           Field[json.RawMessage]                    "json:\"trial_parallelism,omitzero\""
 	Version                    Field[string]                             "json:\"version,omitzero\""
 	Workflows                  Field[map[string]dc7b82ee48e3fb72dcec5be] "json:\"workflows,omitzero\""
 }
@@ -341,7 +343,7 @@ type dc7b82ee48e4c467811a140 struct {
 	Protocol    Field[string]          "json:\"protocol,omitzero\""
 }
 
-type dc7b82ee48e4c4b8b26b3c4 dc7b82ee48e801c1991f467
+type dc7b82ee48e4c4b8b26b3c4 dc7b82ee48e8d657753f7e7
 
 type dc7b82ee48e53f4d6e7afac dc7b82ee48eedf3f05af4ac
 
@@ -432,28 +434,6 @@ type dc7b82ee48e7e1faa29b26b dc7b82ee48e1986997ff45d
 
 type dc7b82ee48e7ed618067685 dc7b82ee48ebd00621656bb
 
-type dc7b82ee48e801c1991f467 struct {
-	ActionContractRefs            Field[[]string]                   "json:\"action_contract_refs,omitzero\""
-	AuthorityScopeRefs            Field[[]string]                   "json:\"authority_scope_refs,omitzero\""
-	AutonomousExecution           Field[json.RawMessage]            "json:\"autonomous_execution,omitzero\""
-	BackendFeatureSupportRefs     Field[[]string]                   "json:\"backend_feature_support_refs,omitzero\""
-	BehaviorMode                  Field[json.RawMessage]            "json:\"behavior_mode,omitzero\""
-	ControlContext                Field[map[string]json.RawMessage] "json:\"control_context,omitzero\""
-	EvidenceContractRefs          Field[[]string]                   "json:\"evidence_contract_refs,omitzero\""
-	ExtensionPolicy               Field[string]                     "json:\"extension_policy,omitzero\""
-	Extensions                    Field[map[string]json.RawMessage] "json:\"extensions,omitzero\""
-	LifecycleState                Field[dc7b82ee48e0dddc7463d37]    "json:\"lifecycle_state,omitzero\""
-	MixedControl                  Field[json.RawMessage]            "json:\"mixed_control,omitzero\""
-	ObservationBoundaryRefs       Field[[]string]                   "json:\"observation_boundary_refs,omitzero\""
-	OutcomeInterpretationRuleRefs Field[[]string]                   "json:\"outcome_interpretation_rule_refs,omitzero\""
-	ParticipantInjectDeliveries   Field[map[string]json.RawMessage] "json:\"participant_inject_deliveries,omitzero\""
-	ParticipantRefs               Field[[]string]                   "json:\"participant_refs,omitzero\""
-	ParticipantRoleRefs           Field[[]string]                   "json:\"participant_role_refs,omitzero\""
-	RealizationProfileRef         Field[json.RawMessage]            "json:\"realization_profile_ref,omitzero\""
-	SemanticVersion               Field[string]                     "json:\"semantic_version,omitzero\""
-	ToolAffordances               Field[map[string]json.RawMessage] "json:\"tool_affordances,omitzero\""
-}
-
 type dc7b82ee48e851d78d70d80 struct {
 	Basis                Field[dc7b82ee48efd1f56ecb7c2] "json:\"basis,omitzero\""
 	Description          Field[string]                  "json:\"description,omitzero\""
@@ -505,6 +485,29 @@ type dc7b82ee48e8c06a8a22a49 struct {
 	RequestedVersion Field[string]                    "json:\"requested_version,omitzero\""
 	ResolvedSource   Field[string]                    "json:\"resolved_source,omitzero\""
 	SignerId         Field[string]                    "json:\"signer_id,omitzero\""
+}
+
+type dc7b82ee48e8d657753f7e7 struct {
+	ActionContractRefs            Field[[]string]                   "json:\"action_contract_refs,omitzero\""
+	AuthorityScopeRefs            Field[[]string]                   "json:\"authority_scope_refs,omitzero\""
+	AutonomousExecution           Field[json.RawMessage]            "json:\"autonomous_execution,omitzero\""
+	BackendFeatureSupportRefs     Field[[]string]                   "json:\"backend_feature_support_refs,omitzero\""
+	BehaviorMode                  Field[json.RawMessage]            "json:\"behavior_mode,omitzero\""
+	ControlContext                Field[map[string]json.RawMessage] "json:\"control_context,omitzero\""
+	EpisodePolicy                 Field[json.RawMessage]            "json:\"episode_policy,omitzero\""
+	EvidenceContractRefs          Field[[]string]                   "json:\"evidence_contract_refs,omitzero\""
+	ExtensionPolicy               Field[string]                     "json:\"extension_policy,omitzero\""
+	Extensions                    Field[map[string]json.RawMessage] "json:\"extensions,omitzero\""
+	LifecycleState                Field[dc7b82ee48e0dddc7463d37]    "json:\"lifecycle_state,omitzero\""
+	MixedControl                  Field[json.RawMessage]            "json:\"mixed_control,omitzero\""
+	ObservationBoundaryRefs       Field[[]string]                   "json:\"observation_boundary_refs,omitzero\""
+	OutcomeInterpretationRuleRefs Field[[]string]                   "json:\"outcome_interpretation_rule_refs,omitzero\""
+	ParticipantInjectDeliveries   Field[map[string]json.RawMessage] "json:\"participant_inject_deliveries,omitzero\""
+	ParticipantRefs               Field[[]string]                   "json:\"participant_refs,omitzero\""
+	ParticipantRoleRefs           Field[[]string]                   "json:\"participant_role_refs,omitzero\""
+	RealizationProfileRef         Field[json.RawMessage]            "json:\"realization_profile_ref,omitzero\""
+	SemanticVersion               Field[string]                     "json:\"semantic_version,omitzero\""
+	ToolAffordances               Field[map[string]json.RawMessage] "json:\"tool_affordances,omitzero\""
 }
 
 type dc7b82ee48e8e7c50e0bebe dc7b82ee48ed690eabac9d3

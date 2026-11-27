@@ -4,8 +4,8 @@ from copy import deepcopy
 from dataclasses import replace
 
 import pytest
-from raes.explicitness import ExplicitnessClass, ExplicitnessProvenance
 from raes_contracts.artifact_requirements import ArtifactSatisfactionDisclosureModel
+from raes_contracts.explicitness import ExplicitnessClass, ExplicitnessProvenance
 from raes_contracts.runtime_state import RuntimeSnapshot
 from raes_processor.planner import prepared_node_disclosure
 from test_artifact_requirement_satisfaction import (

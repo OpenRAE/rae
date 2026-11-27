@@ -17,10 +17,6 @@ from raes.scenario import ExpandedScenario, InstantiatedScenario
 from raes.selected_scenario import ExpandedScenarioBindingTargetResolver
 from raes_backend_protocols.backend_manifest import BackendManifest
 from raes_backend_protocols.manifest import backend_manifest_from_v2_model_with_envelope
-from raes_contracts.admitted_trial_plan_ingress import (
-    AdmittedTrialPlanIngressError,
-    revalidate_admitted_trial_plan,
-)
 from raes_contracts.artifact_requirements import ArtifactAvailabilityContext
 from raes_contracts.canonical import canonical_json_digest
 from raes_contracts.contracts import (
@@ -40,13 +36,17 @@ from raes_contracts.contracts import (
     TrialProcessorPlanReferenceModel,
     processor_backend_manifests_are_mutually_compatible,
 )
-from raes_contracts.errors import InvalidInputError, NotFoundError
-from raes_contracts.experiment_bindings import ApparatusManifest, ApparatusManifestKey, ParticipantManifestKey
-from raes_contracts.plan_projection import (
+from raes_contracts.contracts.admitted_trial_plan_ingress import (
+    AdmittedTrialPlanIngressError,
+    revalidate_admitted_trial_plan,
+)
+from raes_contracts.contracts.plan_projection import (
     evaluation_plan_model,
     orchestration_plan_model,
     provisioning_plan_model,
 )
+from raes_contracts.errors import InvalidInputError, NotFoundError
+from raes_contracts.experiment_bindings import ApparatusManifest, ApparatusManifestKey, ParticipantManifestKey
 from raes_contracts.planning import PlanScope
 from raes_contracts.realization_envelope import BackendRealizationEnvelopeModel
 
@@ -114,6 +114,8 @@ def instantiate_admitted_trial_entry(
     family_digest = canonical_sdl_digest(family).value
     if family.name != family_reference.ref_id or family_digest != family_reference.ref_digest:
         raise InvalidInputError("scenario family identity does not match the admitted plan")
+    if admitted_plan.trial_parallelism != family.trial_parallelism:
+        raise InvalidInputError("trial parallelism differs from the admitted scenario family")
     entry = admitted_plan.entries.get(plan_entry_id)
     if entry is None or entry.plan_entry_id != plan_entry_id:
         raise NotFoundError("plan_entry_id does not resolve inside the admitted plan")

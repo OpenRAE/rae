@@ -198,13 +198,22 @@ func (state *compilerState) compileComputeNode(resource *Resource, wire nodeWire
 		NodeName               string       `json:"node_name"`
 		NodeKind               string       `json:"node_kind"`
 		OSFamily               string       `json:"os_family"`
-		OSDistribution         string       `json:"os_distribution"`
+		OSDistribution         *string      `json:"os_distribution"`
 		OSVersion              string       `json:"os_version"`
-		Architecture           string       `json:"architecture"`
+		Architecture           *string      `json:"architecture"`
 		Count                  *json.Number `json:"count"`
 		NetworkNamespaceTarget string       `json:"network_namespace_target"`
 		DomainTopology         any          `json:"domain_topology"`
-	}{name, wire, name, kind, osFamily, distribution, version, architecture, count, namespaceTarget, topologyWire(resource.Topology)})
+	}{name, wire, name, kind, osFamily, state.suppliedIdentity(name, "os_distribution", fieldValue(node.OsDistribution)), version, state.suppliedIdentity(name, "architecture", fieldValue(node.Architecture)), count, namespaceTarget, topologyWire(resource.Topology)})
+}
+
+// suppliedIdentity keeps an absent or null optional node identity null in the operation payload.
+func (state *compilerState) suppliedIdentity(name, field string, raw json.RawMessage) *string {
+	if !state.input.supplied[termNodesPrefix+name+"."+field] || len(raw) == 0 || string(raw) == termNull {
+		return nil
+	}
+	value := rawString(raw)
+	return &value
 }
 
 // omitConcerns visits each affected projection object once, even when many

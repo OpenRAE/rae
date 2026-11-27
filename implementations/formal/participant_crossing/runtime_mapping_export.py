@@ -13,7 +13,6 @@ from tools.research_evidence import release_managed_source_bytes
 from . import export
 from .ingress import read_bytes, safe_path
 
-OUTPUT_ROOT = "specs/formal/participant-semantics/runtime-mapping"
 SOURCE_ROOTS = (
     "implementations/python/packages",
     "implementations/formal/participant_crossing",
@@ -89,8 +88,6 @@ def source_pins(root: Path) -> dict[str, str]:
 
 
 _EXECUTING_PINS = source_pins(ROOT)
-_SOURCE_ID = export.digest(canonical_json_bytes(_EXECUTING_PINS)).split(":", 1)[1]
-OUTPUT_PATH = f"{OUTPUT_ROOT}/capture-{_SOURCE_ID}"
 
 
 def build_bundle(root: Path, reports: dict[str, dict[str, object]]) -> dict[str, bytes]:
@@ -117,16 +114,8 @@ def build_bundle(root: Path, reports: dict[str, dict[str, object]]) -> dict[str,
         "rev8",
     ):
         raise EvidenceIntegrityError("mapping profile identity drift")
-    retained_manifest_bytes = read_bytes(root, export.OUTPUT_PATH + "/manifest.json")
-    retained = parse_bounded_json_object(retained_manifest_bytes, max_bytes=2 * 1024 * 1024, max_depth=32)
-    model_pins = {}
-    for name, expected in retained["artifact_digests"].items():
-        relative = export.OUTPUT_PATH + "/" + name
-        data = read_bytes(root, relative)
-        model_pins[relative] = export.digest(data)
-        if model_pins[relative] != expected or current[name] != data:
-            raise EvidenceIntegrityError("retained model artifact drift")
-    model_pins[export.OUTPUT_PATH + "/manifest.json"] = export.digest(retained_manifest_bytes)
+    # The model artifacts come from the current sources; no retained copy is committed (issue #1929).
+    model_pins = {name: export.digest(data) for name, data in sorted(current.items())}
     cases = canonical_json_bytes(reports) + b"\n"
     counts = dict(sorted(Counter(item["classification"] for item in reports.values()).items()))
     manifest = {
@@ -141,11 +130,6 @@ def build_bundle(root: Path, reports: dict[str, dict[str, object]]) -> dict[str,
         "artifact_digests": {"cases.json": export.digest(cases)},
         "case_counts": counts,
         "case_count": len(reports),
-        "historical_source_drift": sorted(
-            name
-            for name, digest in retained["source_digests"].items()
-            if export.digest(read_bytes(root, name)) != digest
-        ),
         "equivalence_result": "not-established",
         "runtime_realization": "not-established",
         "backend_conformance": "not-established",
@@ -168,8 +152,5 @@ def build_bundle(root: Path, reports: dict[str, dict[str, object]]) -> dict[str,
 
 
 def check(root: Path, reports: dict[str, dict[str, object]]) -> None:
-    export._check_expected(root, build_bundle(root, reports), OUTPUT_PATH)
-
-
-def publish(root: Path, reports: dict[str, dict[str, object]]) -> None:
-    export.publish_bundle(root, build_bundle(root, reports), OUTPUT_PATH)
+    """Build the mapping artifacts from the current sources and observed cases; nothing is committed."""
+    build_bundle(root, reports)

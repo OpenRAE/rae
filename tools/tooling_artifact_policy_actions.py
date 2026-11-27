@@ -21,9 +21,20 @@ _CANONICAL = ".github/workflows/canonical-verification.yml"
 _SONAR_GUARD = """inputs.sonar-enabled
 && ((github.event_name == 'push'
 && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev'))
+|| github.event_name == 'merge_group'
 || (github.event_name == 'pull_request'
 && github.event.pull_request.head.repo.full_name == github.repository
 && github.actor != 'dependabot[bot]'))"""
+_GGSHIELD_WORKFLOW = ".github/workflows/secret-scan.yml"
+_GGSHIELD_CREDENTIAL = "${{ secrets.GITGUARDIAN_API_KEY }}"
+_GGSHIELD_IMAGE = "docker://gitguardian/ggshield@"
+_PHASE_E_WORKFLOW = ".github/workflows/ground-control-phase-e.yml"
+_PHASE_E_CREDENTIAL = "${{ secrets.GROUND_CONTROL_READ_TOKEN }}"
+_QUEUE_LABEL_WORKFLOW = ".github/workflows/merge-queue-removed.yml"
+_QUEUE_LABEL_TYPES = frozenset({"enqueued", "dequeued", "closed"})
+# Events that run code or data from an unmerged change. A merge group commit
+# contains the queued pull requests before they merge (#2026).
+_UNTRUSTED_EVENTS = frozenset({"pull_request", "pull_request_target", "workflow_call", "merge_group"})
 _CODEQL_STEPS = (
     ("actions/checkout", {"persist-credentials": False}),
     ("github/codeql-action/init", {"languages": "${{ matrix.language }}", "build-mode": "none"}),
@@ -58,6 +69,62 @@ def _sonar_boundary(path: str, name: str, job: Mapping[str, Any], workflows: Map
         and job.get("uses") == "./" + _CANONICAL
         and job.get("secrets") == {"sonar_token": "${{ secrets.SONAR_TOKEN }}"}
         and _secret_expressions(job) == {"${{ secrets.SONAR_TOKEN }}"}
+    )
+
+
+def _secret_scan_boundary(path: str, name: str, job: Mapping[str, Any]) -> bool:
+    """Admit the GitGuardian key only in the pinned ggshield step of the reviewed scan job.
+
+    The job runs no repository code: it has no ``run`` step, and only the
+    digest-pinned ggshield container step receives the key.
+    """
+
+    if (path, name) != (_GGSHIELD_WORKFLOW, "ggshield"):
+        return False
+    steps = [as_mapping(step) for step in as_list(job.get("steps"))]
+    holders = [step for step in steps if _secret_expressions(step)]
+    return bool(
+        job.get("permissions") == {"contents": "read"}
+        and _secret_expressions(job) == {_GGSHIELD_CREDENTIAL}
+        and len(holders) == 1
+        and str(holders[0].get("uses", "")).startswith(_GGSHIELD_IMAGE)
+        and _secret_expressions(holders[0].get("env")) == {_GGSHIELD_CREDENTIAL}
+        and not any("run" in step for step in steps)
+    )
+
+
+def _download_holder(steps: Sequence[Mapping[str, Any]]) -> int | None:
+    """Return the index of the one run step that holds only the release token, before every checkout."""
+
+    holders = [index for index, step in enumerate(steps) if _secret_expressions(step)]
+    if len(holders) != 1:
+        return None
+    holder = steps[holders[0]]
+    valid = (
+        _secret_expressions(holder.get("env")) == {_PHASE_E_CREDENTIAL}
+        and set(holder) <= {"name", "env", "run"}
+        and "run" in holder
+    )
+    return holders[0] if valid else None
+
+
+def _release_download_boundary(path: str, name: str, job: Mapping[str, Any], triggers: object) -> bool:
+    """Admit the Ground Control read token only in the merged finalizer's release download.
+
+    The download is a ``run`` step that precedes every checkout, so no repository
+    file is present while the token is. No other step or job field receives it.
+    """
+
+    if (path, name) != (_PHASE_E_WORKFLOW, "finalize") or not _merged_issue_boundary(triggers, job):
+        return False
+    steps = [as_mapping(step) for step in as_list(job.get("steps"))]
+    holder = _download_holder(steps)
+    checkouts = [index for index, step in enumerate(steps) if str(step.get("uses", "")).startswith("actions/checkout@")]
+    return bool(
+        holder is not None
+        and _secret_expressions(job) == {_PHASE_E_CREDENTIAL}
+        and not _secret_expressions({key: value for key, value in job.items() if key != "steps"})
+        and all(index > holder for index in checkouts)
     )
 
 
@@ -119,6 +186,45 @@ def _merged_issue_boundary(triggers: object, job: Mapping[str, Any]) -> bool:
     )
 
 
+def _queue_label_events(triggers: object) -> bool:
+    """Return whether the workflow runs only on merge-queue entry, removal, and close events."""
+
+    events = as_mapping(triggers)
+    pull_request = as_mapping(events.get("pull_request"))
+    types = pull_request.get("types")
+    return bool(
+        set(events) == {"pull_request"}
+        and set(pull_request) <= {"types", "branches"}
+        and isinstance(types, list)
+        and set(types) <= _QUEUE_LABEL_TYPES
+    )
+
+
+def _queue_label_job(job: Mapping[str, Any]) -> bool:
+    """Return whether the job runs only shell steps, with no action, container, or secret."""
+
+    steps = as_list(job.get("steps"))
+    return bool(
+        job.get("permissions") == {"pull-requests": "write"}
+        and set(job) <= {"name", "runs-on", "timeout-minutes", "permissions", "steps"}
+        and job.get("runs-on") == "ubuntu-latest"
+        and steps
+        and all(set(as_mapping(step)) <= {"name", "env", "run"} for step in steps)
+        and not _secret_expressions(job)
+    )
+
+
+def _queue_label_boundary(path: str, name: str, job: Mapping[str, Any], triggers: object) -> bool:
+    """Admit the pull-request write token only in the reviewed merge-queue label job (#2052).
+
+    The job runs on merge-queue entry, removal, and close events only. It has no
+    ``uses`` step, so it checks out no code and runs no action. It receives no
+    secret and writes only pull request labels.
+    """
+
+    return (path, name) == (_QUEUE_LABEL_WORKFLOW, "label") and _queue_label_events(triggers) and _queue_label_job(job)
+
+
 def _codeql_step(step: Mapping[str, Any], expected: tuple[str, Mapping[str, Any]]) -> bool:
     uses = step.get("uses")
     return bool(
@@ -136,7 +242,7 @@ def _codeql_boundary(path: str, name: str, job: Mapping[str, Any], events: set[s
         return False
     steps = as_list(job.get("steps"))
     return bool(
-        events <= {"push", "pull_request", "schedule", "workflow_dispatch"}
+        events <= {"push", "pull_request", "merge_group", "schedule", "workflow_dispatch"}
         and job.get("runs-on") == "ubuntu-24.04"
         and job.get("permissions") == {"contents": "read", "security-events": "write"}
         and set(job) <= {"name", "runs-on", "if", "permissions", "strategy", "steps", "timeout-minutes"}
@@ -151,10 +257,13 @@ def _permission_failures(
     *,
     untrusted: bool,
     merged_issue_boundary: bool = False,
+    queue_label_boundary: bool = False,
     codeql_boundary: bool = False,
 ) -> list[PolicyFailure]:
     failures = []
     allowed_writes = {"issues"} if merged_issue_boundary else set()
+    if queue_label_boundary:
+        allowed_writes.add("pull-requests")
     if codeql_boundary:
         allowed_writes.add("security-events")
     # Tuple membership compares without hashing, so a level that is a list or a mapping is not scoped.
@@ -190,7 +299,12 @@ def _credential_failures(
 ) -> list[PolicyFailure]:
     failures = []
     workflow_secrets = _secret_expressions(workflow.get("env"))
-    exposed = workflow_secrets or (_secret_expressions(job) and not _sonar_boundary(path, name, job, workflows))
+    exposed = workflow_secrets or (
+        _secret_expressions(job)
+        and not _sonar_boundary(path, name, job, workflows)
+        and not _secret_scan_boundary(path, name, job)
+        and not _release_download_boundary(path, name, job, workflow.get("on", workflow.get(True, {})))
+    )
     if untrusted and exposed:
         failures.append(
             failure(
@@ -266,7 +380,7 @@ def action_failures(
         # Only event names decide the boundary; an entry that is a list, a set or a mapping names no event.
         trigger_names = triggers if isinstance(triggers, (Mapping, list)) else [triggers]
         events = {name for name in trigger_names if isinstance(name, str)}
-        untrusted = bool(events & {"pull_request", "pull_request_target", "workflow_call"})
+        untrusted = bool(events & _UNTRUSTED_EVENTS)
         if not isinstance(workflow.get("permissions"), Mapping):
             failures.append(
                 failure(
@@ -287,6 +401,7 @@ def action_failures(
                     permissions,
                     untrusted=untrusted and not protected,
                     merged_issue_boundary=_merged_issue_boundary(triggers, job),
+                    queue_label_boundary=_queue_label_boundary(path, str(name), job, triggers),
                     codeql_boundary=_codeql_boundary(path, str(name), job, events),
                 )
             )

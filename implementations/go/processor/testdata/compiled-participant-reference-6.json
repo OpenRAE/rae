@@ -1,5 +1,5 @@
 [
-{
+  {
     "name": "compiler_preserves_typed_control_addresses_order_dependencies_and_provenance",
     "source": {
       "name": "act-617",
@@ -1129,9 +1129,9 @@
           "node_name": "web",
           "node_kind": "compute",
           "os_family": "",
-          "os_distribution": "",
+          "os_distribution": null,
           "os_version": "",
-          "architecture": "",
+          "architecture": null,
           "count": null,
           "network_namespace_target": "",
           "domain_topology": null
@@ -1165,9 +1165,9 @@
           "node_name": "internal",
           "node_kind": "compute",
           "os_family": "",
-          "os_distribution": "",
+          "os_distribution": null,
           "os_version": "",
-          "architecture": "",
+          "architecture": null,
           "count": null,
           "network_namespace_target": "",
           "domain_topology": null
@@ -1683,6 +1683,7 @@
           "evidence_contract_refs": [],
           "tool_affordance_addresses": [],
           "participant_inject_delivery_addresses": [],
+          "episode_policy_address": "",
           "extension_policy": "closed",
           "extension_keys": []
         },
@@ -1700,7 +1701,7 @@
     },
     "diagnostics": []
   },
-{
+  {
     "name": "instantiation_preserves_mixed_control_meaning_before_compilation",
     "source": {
       "name": "act-617",
@@ -2830,9 +2831,9 @@
           "node_name": "web",
           "node_kind": "compute",
           "os_family": "",
-          "os_distribution": "",
+          "os_distribution": null,
           "os_version": "",
-          "architecture": "",
+          "architecture": null,
           "count": null,
           "network_namespace_target": "",
           "domain_topology": null
@@ -2866,9 +2867,9 @@
           "node_name": "internal",
           "node_kind": "compute",
           "os_family": "",
-          "os_distribution": "",
+          "os_distribution": null,
           "os_version": "",
-          "architecture": "",
+          "architecture": null,
           "count": null,
           "network_namespace_target": "",
           "domain_topology": null
@@ -3384,6 +3385,7 @@
           "evidence_contract_refs": [],
           "tool_affordance_addresses": [],
           "participant_inject_delivery_addresses": [],
+          "episode_policy_address": "",
           "extension_policy": "closed",
           "extension_keys": []
         },
@@ -3401,7 +3403,7 @@
     },
     "diagnostics": []
   },
-{
+  {
     "name": "participant_inject_delivery_parses_and_compiles_typed_metadata",
     "source": {
       "name": "dsl-142",
@@ -4672,9 +4674,9 @@
           "node_name": "web",
           "node_kind": "compute",
           "os_family": "",
-          "os_distribution": "",
+          "os_distribution": null,
           "os_version": "",
-          "architecture": "",
+          "architecture": null,
           "count": null,
           "network_namespace_target": "",
           "domain_topology": null
@@ -4957,6 +4959,7 @@
           "participant_inject_delivery_addresses": [
             "participant.behavior-specification.red-briefing.inject-delivery.briefing"
           ],
+          "episode_policy_address": "",
           "extension_policy": "governed-extension",
           "extension_keys": []
         },
@@ -5140,7 +5143,7 @@
     },
     "diagnostics": []
   },
-{
+  {
     "name": "participant_inject_delivery_is_a_valid_temporal_subject",
     "source": {
       "name": "dsl-142",
@@ -6411,9 +6414,9 @@
           "node_name": "web",
           "node_kind": "compute",
           "os_family": "",
-          "os_distribution": "",
+          "os_distribution": null,
           "os_version": "",
-          "architecture": "",
+          "architecture": null,
           "count": null,
           "network_namespace_target": "",
           "domain_topology": null
@@ -6696,6 +6699,7 @@
           "participant_inject_delivery_addresses": [
             "participant.behavior-specification.red-briefing.inject-delivery.briefing"
           ],
+          "episode_policy_address": "",
           "extension_policy": "governed-extension",
           "extension_keys": []
         },
@@ -6879,7 +6883,7 @@
     },
     "diagnostics": []
   },
-{
+  {
     "name": "compiler_preserves_inject_identity_without_copying_hidden_content",
     "source": {
       "name": "dsl-142",
@@ -8150,9 +8154,9 @@
           "node_name": "web",
           "node_kind": "compute",
           "os_family": "",
-          "os_distribution": "",
+          "os_distribution": null,
           "os_version": "",
-          "architecture": "",
+          "architecture": null,
           "count": null,
           "network_namespace_target": "",
           "domain_topology": null
@@ -8435,6 +8439,7 @@
           "participant_inject_delivery_addresses": [
             "participant.behavior-specification.red-briefing.inject-delivery.briefing"
           ],
+          "episode_policy_address": "",
           "extension_policy": "governed-extension",
           "extension_keys": []
         },
@@ -8618,7 +8623,7 @@
     },
     "diagnostics": []
   },
-{
+  {
     "name": "environment_only_injects_remain_orchestration_only",
     "source": {
       "name": "dsl-142",
@@ -9676,9 +9681,9 @@
           "node_name": "web",
           "node_kind": "compute",
           "os_family": "",
-          "os_distribution": "",
+          "os_distribution": null,
           "os_version": "",
-          "architecture": "",
+          "architecture": null,
           "count": null,
           "network_namespace_target": "",
           "domain_topology": null
@@ -9921,6 +9926,7 @@
           "evidence_contract_refs": [],
           "tool_affordance_addresses": [],
           "participant_inject_delivery_addresses": [],
+          "episode_policy_address": "",
           "extension_policy": "governed-extension",
           "extension_keys": []
         },

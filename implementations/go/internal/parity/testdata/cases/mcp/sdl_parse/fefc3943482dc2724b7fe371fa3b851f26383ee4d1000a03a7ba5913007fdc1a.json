@@ -1,0 +1,63 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:f8fb9e38bf3ad750cf632c76448064eed27e0e53e8273968961225bacf5d6699"
+  },
+  "name": "regression/28168591aa9726fd47d4c8a66a3435d9b89d6f35a6cbc9f3a9974bf3fd33cb2e",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "diagnostics": [
+            {
+              "code": "sdl.model.invalid",
+              "path": "/behavior_specifications/analyst-triage/episode_policy/reset_policy/participant_memory_scope",
+              "range": {
+                "end": {
+                  "column": 41,
+                  "line": 170
+                },
+                "start": {
+                  "column": 35,
+                  "line": 170
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            }
+          ],
+          "stage": "parse",
+          "status": "invalid"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "diagnostics": [
+          {
+            "code": "sdl.model.invalid",
+            "path": "/behavior_specifications/analyst-triage/episode_policy/reset_policy/participant_memory_scope",
+            "range": {
+              "end": {
+                "column": 41,
+                "line": 170
+              },
+              "start": {
+                "column": 35,
+                "line": 170
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          }
+        ],
+        "stage": "parse",
+        "status": "invalid"
+      }
+    }
+  },
+  "surface": "mcp"
+}

@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import copy
-import hashlib
 import json
 import subprocess
 from pathlib import Path
@@ -45,7 +44,6 @@ def _record(
         "record_class": record_class,
         "rationale": "Preserves a dated design decision from before the identity cutover.",
         "occurrences": occurrences,
-        "content_sha256": hashlib.sha256(content).hexdigest(),
     }
 
 
@@ -55,7 +53,6 @@ def _binding(path: str, content: bytes, *, occurrences: int = 1) -> dict[str, ob
         "binding_class": "external-service-project-key",
         "rationale": "Retains an exact service-owned project key.",
         "occurrences": occurrences,
-        "content_sha256": hashlib.sha256(content).hexdigest(),
     }
 
 
@@ -70,7 +67,6 @@ def _generated_record(
         "record_class": "generated-release-history",
         "rationale": "Pins the classified tail of a bot-maintained release history.",
         "occurrences": occurrences,
-        "content_sha256": hashlib.sha256(tail).hexdigest(),
         "classified_suffix_bytes": len(tail),
     }
 
@@ -87,7 +83,6 @@ def _seed_repo(
         _write(repo_root / relative_path, content)
     manifest = {
         "schema_version": "historical-identity-records/v3",
-        "hash_algorithm": "sha256",
         "generated_history_records": generated or [],
         "operational_bindings": bindings or [],
         "records": records or [],
@@ -136,7 +131,6 @@ def test_current_repository_satisfies_identity_cutover() -> None:
     ("field", "invalid_value"),
     [
         ("schema_version", "wrong-schema"),
-        ("hash_algorithm", "sha512"),
         ("records", {}),
         ("operational_bindings", {}),
     ],
@@ -194,7 +188,7 @@ def test_invalid_manifest_entry_shapes_fail(tmp_path: Path, collection: str, mut
     if mutation == "non-object":
         entries[0] = "not-an-object"
     elif mutation == "missing-key":
-        del entry["content_sha256"]
+        del entry["occurrences"]
     elif mutation == "extra-key":
         entry["unexpected"] = "field"
     elif mutation == "unknown-class":
@@ -203,7 +197,7 @@ def test_invalid_manifest_entry_shapes_fail(tmp_path: Path, collection: str, mut
     elif mutation == "blank-rationale":
         entry["rationale"] = " "
     else:
-        entry["content_sha256"] = "not-a-sha256"
+        entry["content_sha256"] = "0" * 64
 
     _write_manifest(tmp_path, manifest)
 
@@ -296,7 +290,7 @@ def test_exact_content_bound_lifecycle_record_passes(tmp_path: Path) -> None:
     assert evaluate_identity_cutover(tmp_path) == []
 
 
-def test_changed_historical_record_fails_closed(tmp_path: Path) -> None:
+def test_edited_historical_record_keeps_its_exemption_without_a_digest(tmp_path: Path) -> None:
     original = f"Historical {RETIRED_UPPER} record.\n".encode()
     path = "docs/decisions/issue-1-preflight.md"
     _seed_repo(
@@ -304,16 +298,17 @@ def test_changed_historical_record_fails_closed(tmp_path: Path) -> None:
         files={path: original},
         records=[_record(path, original)],
     )
-    _write(tmp_path / path, original + b"Changed after classification.\n")
+    _write(tmp_path / path, original + b"Amended after classification.\n")
 
+    assert evaluate_identity_cutover(tmp_path) == []
+
+    _write(tmp_path / path, original + f"A new {RETIRED_UPPER} mention.\n".encode())
     failures = evaluate_identity_cutover(tmp_path)
 
-    assert any(
-        failure.rule_id == "identity-cutover-historical-content" and failure.path == path for failure in failures
-    )
+    assert any(failure.rule_id == "identity-cutover-historical-count" and failure.path == path for failure in failures)
 
 
-def test_exact_content_bound_operational_binding_passes_and_fails_closed(tmp_path: Path) -> None:
+def test_operational_binding_is_bound_by_its_occurrence_count(tmp_path: Path) -> None:
     content = f"projectKey=Brad-Edwards_{RETIRED_LOWER}\n".encode()
     path = "sonar-project.properties"
     _seed_repo(
@@ -325,11 +320,12 @@ def test_exact_content_bound_operational_binding_passes_and_fails_closed(tmp_pat
     assert evaluate_identity_cutover(tmp_path) == []
 
     _write(tmp_path / path, content + b"changed=true\n")
+    assert evaluate_identity_cutover(tmp_path) == []
+
+    _write(tmp_path / path, content + f"other=service_{RETIRED_LOWER}\n".encode())
     failures = evaluate_identity_cutover(tmp_path)
 
-    assert any(
-        failure.rule_id == "identity-cutover-operational-content" and failure.path == path for failure in failures
-    )
+    assert any(failure.rule_id == "identity-cutover-operational-count" and failure.path == path for failure in failures)
 
 
 def test_historical_occurrence_count_is_verified(tmp_path: Path) -> None:
@@ -400,11 +396,11 @@ def test_generated_release_history_rejects_retired_identity_in_generated_head(tm
     assert "identity-cutover-generated-head" in _manifest_rule_ids(tmp_path)
 
 
-def test_generated_release_history_rejects_edited_tail(tmp_path: Path) -> None:
+def test_generated_release_history_accepts_an_edited_tail_with_the_same_count(tmp_path: Path) -> None:
     edited_tail = _GENERATED_TAIL.replace(b"1.0.0", b"1.0.1")
     _seed_generated_history(tmp_path, _GENERATED_HEAD + edited_tail)
 
-    assert "identity-cutover-generated-content" in _manifest_rule_ids(tmp_path)
+    assert evaluate_identity_cutover(tmp_path) == []
 
 
 def test_generated_release_history_rejects_truncated_tail(tmp_path: Path) -> None:

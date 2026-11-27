@@ -139,8 +139,8 @@ func TestSharedAPIFragmentsPreserveExactClosuresAndDuplicates(t *testing.T) {
 	}
 }
 
-func TestAPIFileSnapshotAggregateEighteenMiBBound(t *testing.T) {
-	const total = 18 * 1024 * 1024
+func TestAPIFileSnapshotAggregateBound(t *testing.T) {
+	const total = 32 * 1024 * 1024
 	if apiTotalLimit != total {
 		t.Fatalf("aggregate snapshot limit = %d", apiTotalLimit)
 	}

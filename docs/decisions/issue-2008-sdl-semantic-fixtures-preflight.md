@@ -121,6 +121,7 @@ The canonical Go CI job still calls `parity_authoring_vectors.py --semantic --ch
 Publication must replace that maintenance dependency with native integrity and behavior checks.
 Other callers include `tools/parity_shared_rule_vectors.py` and `implementations/python/tests/test_issue_1783_semantic_recorder.py`.
 They must not retain a competing authoritative corpus or become required to maintain this family.
+
 The recorder's formatter, imports, selection, and temporary MCP oracle modes remain separate concerns.
 Do not remove those checks wholesale; issue #1872 owns the wider tool removal.
 Keep `RAES_SEMANTIC_ORACLE` separate from this published manifest.
@@ -132,7 +133,7 @@ Consumers must not hard-code nine shards or cap the family at 824 cases.
 Keep stable case names so additions need no runner branches or renumbering of existing cases.
 A changed fixture format requires an explicit version decision, not heuristic shape detection.
 
-`implementations/architecture.json`, ADR-122, and `docs/develop/go-architecture.md` govern package and import changes, including test imports.
+`implementations/architecture.json`, ADR-124, and `docs/develop/go-architecture.md` govern package and import changes, including test imports.
 The existing model already permits the SDL owner to consume the corpus.
 This guidance introduces no package, import, or public API, so it requires no model change.
 Any implementation that changes those boundaries must declare and check its design first.

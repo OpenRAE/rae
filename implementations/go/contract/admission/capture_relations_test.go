@@ -46,7 +46,7 @@ func TestCaptureRelationBatchGuardsAggregateWorkBeforeModelValidation(t *testing
 	if decodeErr := json.Unmarshal([]byte(`{"title":"`+canary+strings.Repeat("x", 600000)+`"}`), &spec); decodeErr != nil {
 		t.Fatal(decodeErr)
 	}
-	specs := make([]binding.ExperimentCaptureSpecV1, 15)
+	specs := make([]binding.ExperimentCaptureSpecV1, 30)
 	for index := range specs {
 		specs[index] = spec
 	}

@@ -48,7 +48,7 @@ from raes_contracts.participant_episode import ParticipantEpisodeRestartRequest 
 from raes_contracts.participant_episode import ParticipantEpisodeStatus as ParticipantEpisodeStatus
 from raes_contracts.participant_episode import ParticipantEpisodeTerminalReason as ParticipantEpisodeTerminalReason
 from raes_contracts.participant_episode import ParticipantEpisodeTerminateRequest as ParticipantEpisodeTerminateRequest
-from raes_contracts.participant_episode import (
+from raes_contracts.participant_episode_snapshot import (
     iter_participant_episode_snapshot_violations as iter_participant_episode_snapshot_violations,
 )
 from raes_contracts.planning import ChangeAction as ChangeAction
@@ -171,6 +171,10 @@ from .outcome import (
 )
 from .outcome_interpretation_validation import validate_participant_outcome_interpretation_record
 from .participant_action_arguments import resolve_participant_action_arguments
+from .participant_episode_resources import (
+    ParticipantEpisodeConditionRuntime,
+    ParticipantEpisodePolicyRuntime,
+)
 from .participant_exposure_authority import (
     ParticipantExposureAssessment,
     ParticipantExposureAuthorizationRecord,
@@ -309,6 +313,8 @@ __all__ = [
     "ParticipantBehaviorProjectionAnchorRequestV2",
     "ParticipantBehaviorSpecificationRuntime",
     "ParticipantInjectDeliveryRuntime",
+    "ParticipantEpisodeConditionRuntime",
+    "ParticipantEpisodePolicyRuntime",
     "ParticipantAutonomousExecutionRuntime",
     "ParticipantExecutionBindingRuntime",
     "ParticipantInvocationToolBindingRuntime",

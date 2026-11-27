@@ -14,6 +14,7 @@ The Python reference and published schemas remain unchanged.
 Move the existing SDL reference tree to this shared owner.
 `RuntimeFamilies` returns independent collection trees with identity fields and addressable children.
 `RuntimeCollectionIdentity` returns the identity field for a registered collection pointer.
+
 An unknown family or malformed pointer returns an empty string.
 Literal collection names and canonical ASCII array indices are required.
 This lookup grants no comparison, closure, admission, or execution authority.
@@ -22,6 +23,7 @@ This lookup grants no comparison, closure, admission, or execution authority.
 `contract/admission` consumes the same tree for family collection identities.
 Keep owner-wide and collection-local uniqueness rules distinct.
 Nested datastore IDs share one service namespace.
+
 Forwarding agents retain qualified root identities.
 Process names, PIDs, package tuples, paths, and native unit names keep their separate rules.
 Family predicates remain in their existing family files.
@@ -30,6 +32,7 @@ The existing normalizer owns wire shapes, defaults, vocabulary spelling, and sca
 The shared field-predicate records also enforce numeric bounds during direct construction.
 Their recorder reuses the existing scalar-plan analysis.
 Optional text checks preserve empty defaults and reject invalid non-empty values.
+
 Family files retain database address, mail address, and permission-mode checks.
 Generated types keep supplied and absent fields distinct.
 Private semantic projections retain only facts used by their rules.
@@ -39,6 +42,7 @@ The existing process-selector rules retain their matching behavior.
 Keep process-limit projection, identity, and support checks in their existing owners.
 Reuse canonical JSON, digest, integer, and finite-domain helpers.
 Identity excludes soft and hard values and description.
+
 Projection retains supplied selector facts and reference defaults.
 A support claim must admit the resource and scope.
 It must also admit every soft and hard value.
@@ -52,6 +56,7 @@ Semantic admission collects independent errors in reference order.
 A missing target stops only dependent checks.
 Advisories stay warnings.
 The collector keeps canonical and original pointers.
+
 It also keeps source ranges.
 Authored formatting stops at construction.
 Materialized formatting requires semantic validity.
@@ -79,6 +84,7 @@ The caller supplies source values.
 It also grants source read access.
 The contracts and collection tree are trusted code.
 All inventory values are inert.
+
 There is no store or network call.
 The code does not run a shell or look up credentials.
 It does not expand environment values.
@@ -105,7 +111,8 @@ Reference cases and the behavior list address those risks.
 The model declares the changed shared interface before code changes.
 Both callers already use `internal/contract/sdlrules`.
 No new package, external dependency, import direction, schema, ADR, service, or policy gate is needed.
-ADR-121, ADR-122, ADR-116, and the runtime-family decisions govern this change.
+ADR-123, ADR-124, ADR-116, and the runtime-family decisions govern this change.
+
 Existing CI checks retain their coverage, race, mutation, regression, and parity responsibilities.
 The current architecture view binds the changed shared interface.
 This issue has no requirement UID.

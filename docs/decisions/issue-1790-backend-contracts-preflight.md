@@ -50,7 +50,7 @@ Neither `backend`, `backend/stub`, nor `contract/runtime` has an implemented pac
 Declare packages and imports in `implementations/architecture.json` before code.
 Declare exported names and typed API commitments there too.
 Keep the planned declarations, hashes and [system overview](../develop/go-architecture.md) aligned through the existing architecture tooling.
-Pass `archcheck -design` on that completed design before code, as ADR-122 requires.
+Pass `archcheck -design` on that completed design before code, as ADR-124 requires.
 This preflight changes no model or API commitments.
 
 ## Validation and security through the complete path
@@ -89,6 +89,7 @@ Untrusted DTOs remain mutable even when they use generated types.
 Recheck them at trust transitions, then retain owned copies.
 Reject foreign fragment implementations through the incumbent exact-owner checks.
 For concurrent operations, give each call an independent predecessor and bound workers.
+
 Runtime retains revision-checked merge and publication authority.
 Copies must own nested maps, slices and raw JSON too.
 Keep resource quantities exact when checking pool totals and parent budgets.
@@ -106,6 +107,7 @@ Keep the carrier's twelve governed concern disclosures.
 Keep their transformation/observation coupling too.
 Keep operating-system rows coupled to the operating-system concern.
 Use the reference's exact projection and sorted-JSON profile for configuration and envelope digests.
+
 Other commitments use JCS. `canonjson.JCS` and `canonjson.Sorted` are not interchangeable.
 Do not hash a raw DTO before applying the owning defaults and serializer omissions.
 Set-valued claims have stable order. Evidence and binding sequences retain their defined order.
@@ -115,11 +117,13 @@ Projected subtree membership does not prove whole-instance membership.
 Keep native field presence and missing/null distinctions.
 Keep record field order, token ancestry and indexed paths.
 Keep scope precedence, sibling conflicts, open overlays and non-overrideable widening refusal.
+
 Subsumption means requested is a subset of offered. Witness sampling cannot prove this.
 Keep governed-reference authority and Boolean/number distinctions.
 Keep interval endpoint rules too.
 Witnesses and positive/negative probes use ordinary SDL construction, instantiation and validation.
 A negative probe must be valid SDL outside the envelope.
+
 A witness proves neither subsumption nor backend honesty.
 Witness-policy seeds remain distinct from experiment seeds and random streams.
 `base/clock` supplies wall timestamps. `TimeRuntime` governs semantic time.
@@ -127,7 +131,9 @@ Neither is the runtime's monotonic execution watchdog.
 
 Keep manifest feature presence, API-407 support strength, realization posture, contextual willingness and observed delivery separate.
 Missing strength is not exact support. A method or schema's presence establishes no effective capability.
-Capture matching must satisfy all dimensions with one offer. Do not combine unrelated offers.
+Capture matching must satisfy all dimensions with one offer.
+
+Do not combine unrelated offers.
 Optional interfaces negotiate only the declared role. They do not justify reflection, discovery or default success.
 
 The portable stub is stateful test behavior, not an empty success response:
@@ -159,6 +165,7 @@ The corpus has manifest, profile, envelope and operation schema cases plus backe
 Schema cases do not alone exercise stub transitions, relation operations or trusted contextual joins.
 The runner inventory does not yet claim `cli conformance backend` implementation.
 Keep whole CLI composition with its owning port and runtime split. Reuse portable behavior here.
+
 Map every scoped Python limit and security/error/recovery behavior to a Go test.
 Map each defect case too. Existing equivalent tests can supply this coverage.
 Name runtime-owned cases. A Python import alone does not put the whole test in this issue.
@@ -170,9 +177,10 @@ Retain refusal-without-state-change and secret-sentinel cases, not only valid fi
 Use existing independent reference fixtures in `contract/admission/testdata/`; do not replace those tests with self-consistency checks.
 
 Repository-wide gates remain in `.ground-control.yaml`, `.gc/plan-rules.md`, `implementations/architecture.json` and `.github/workflows/canonical-verification.yml`.
-ADR-121, `implementations/.golangci.yml`, `.gremlins.yaml` and the existing tooling module govern Go checks.
+ADR-123, `implementations/.golangci.yml`, `.gremlins.yaml` and the existing tooling module govern Go checks.
 Use file-scoped policy, documentation checks and explicit test cases locally.
 Full tests, integration, fuzz, mutation, coverage and regression gates remain in CI/CD.
+
 Keep `GOTOOLCHAIN=local` and read-only module resolution.
 Add no dependency or tool download for this preflight.
 Do not invent a formal requirement UID for this requirement-free issue.
@@ -184,6 +192,7 @@ This issue changes neither Python nor published schemas, contract IDs, SDL seman
 It introduces no concrete backend, daemon integration, plugin discovery, transport protocol or consumer adapter.
 Go interfaces do not replace the language-neutral published wire contracts with Go-specific interoperability claims.
 It does not move repositories, publish modules or authorize data transfers.
+
 It adds no live registry, authorization system, durable store, worker, scheduler or runtime target factory to `rae`.
 It adds no parallel schema set, capability catalog, exception hierarchy, relation engine or workflow dispatcher.
 Existing public API declarations constrain design; they are not permission to omit missing reference behavior.

@@ -42,7 +42,9 @@ func crossingProfile(profile, parameters any) error {
 			return invalid()
 		}
 	}
-	return require(!equal(at(parameters, "left", "source_digest"), at(parameters, "right", "source_digest")))
+	// A current profile stores no source digest; present digests must still differ.
+	left := at(parameters, "left", "source_digest")
+	return require(left == nil || !equal(left, at(parameters, "right", "source_digest")))
 }
 func opacityParameters(v any) error {
 	for _, path := range [][]string{{"scheduler_refs"}, {"environment_refs"}, {termObservation, "observable_channels"}, {termOrder, "order_refs"}, {"strategy", "strategy_refs"}, {"observer", "member_refs"}} {

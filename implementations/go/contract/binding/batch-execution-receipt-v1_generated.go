@@ -11,8 +11,6 @@ type BatchExecutionReceiptV1 struct {
 	DispatchOrdinal      Field[json.Number]     "json:\"dispatch_ordinal,omitzero\""
 	EffectiveParallelism Field[json.Number]     "json:\"effective_parallelism,omitzero\""
 	ExecutionAttemptId   Field[string]          "json:\"execution_attempt_id,omitzero\""
-	IsolationProofRef    Field[json.RawMessage] "json:\"isolation_proof_ref,omitzero\""
-	LeaseEvidenceRefs    Field[[]string]        "json:\"lease_evidence_refs,omitzero\""
 	OperationRefs        Field[[]string]        "json:\"operation_refs,omitzero\""
 	PlanDigest           Field[string]          "json:\"plan_digest,omitzero\""
 	PlanEntryId          Field[string]          "json:\"plan_entry_id,omitzero\""

@@ -11,6 +11,8 @@ on:
       - .release-please-manifest.json
       - implementations/python/packages/raes/_version.py
       - implementations/go/processor/analysis/version.go
+  merge_group:
+    types: [checks_requested]
 
 permissions:
   contents: read
@@ -18,7 +20,7 @@ permissions:
   pull-requests: read
 
 concurrency:
-  group: pr-body-policy-${{ github.event.pull_request.number }}
+  group: pr-body-policy-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -31,13 +33,33 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
-          ref: ${{ github.event.pull_request.base.sha }}
+          ref: ${{ github.event.merge_group.base_sha || github.event.pull_request.base.sha }}
       - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version: "3.14.7"
+      - name: Resolve the queued pull request
+        # A merge group event carries no pull request. Read the queued pull
+        # request from the API so this check validates its current title and
+        # body, then write it in the pull_request event shape (#2026).
+        if: github.event_name == 'merge_group'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          QUEUE_REF: ${{ github.event.merge_group.head_ref }}
+        run: |
+          set -euo pipefail
+          pattern='^refs/heads/gh-readonly-queue/dev/pr-([0-9]+)-[0-9a-f]{40}$'
+          if [[ ! "${QUEUE_REF}" =~ ${pattern} ]]; then
+            echo "Unexpected merge group ref '${QUEUE_REF}'" >&2
+            exit 1
+          fi
+          gh api "repos/${GITHUB_REPOSITORY}/pulls/${BASH_REMATCH[1]}" \
+            | jq --arg repository "${GITHUB_REPOSITORY}" \
+              'if .base.ref == "dev" then {repository: {full_name: $repository}, pull_request: .} else error("not a dev pull request") end' \
+            > "${RUNNER_TEMP}/pull-request-event.json"
       - name: Validate pull request body
         env:
           GH_TOKEN: ${{ github.token }}
+          EVENT_PATH: ${{ github.event_name == 'merge_group' && format('{0}/pull-request-event.json', runner.temp) || github.event_path }}
         run: |
           validator=tools/check_pr_body.py
           base_digest=$(sha256sum "$validator" | cut -d ' ' -f 1)
@@ -49,16 +71,18 @@ jobs:
             bundle=$(mktemp -d "$RUNNER_TEMP/pr-body-policy.XXXXXX")
             mkdir "$bundle/tools"
             validator="$bundle/tools/check_pr_body.py"
-            gh api "repos/$GITHUB_REPOSITORY/git/blobs/9d9eb11a8929e4d3d9673d20eff83b99f6e7f0c4" \
+            gh api "repos/$GITHUB_REPOSITORY/git/blobs/8ed51fedcf61d92f662dbdb8a71bd0ff30f815f8" \
               --jq .content | base64 --decode > "$validator"
             gh api "repos/$GITHUB_REPOSITORY/git/blobs/2060ea8ea5bc8e3f9ee42d3707c1882f9990c052" \
               --jq .content | base64 --decode > "$bundle/tools/pr_body_issue_scope.py"
-            echo "6b8721dd738beb04f847d06b7294916a04749daf3afe48be39eb12d568f93cab  $validator" | sha256sum --check --strict
+            echo "0b8ec2a21b8004a4ed92019b06a02c92f305cc4e0f9f33df4dcf7888eb36dc88  $validator" | sha256sum --check --strict
             echo "271afe45e06d3d99a245f586ca0f797eae36de9ede7a6a6ee547d34e939af9a3  $bundle/tools/pr_body_issue_scope.py" | sha256sum --check --strict
           fi
-          python -I -S "$validator"
+          python -I -S "$validator" --event-path "$EVENT_PATH"
 
   go-body-guard:
+    # The native guard reads the pull request event; the Python job covers merge groups.
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     env:
@@ -74,7 +98,7 @@ jobs:
         with:
           python-version: "3.14.7"
       - name: Install uv
-        uses: astral-sh/setup-uv@18d369b23da25a81e9458561248e1aafff6a70fa # v10.3.1
+        uses: astral-sh/setup-uv@1db35dd8eee11c5894872e0b383ae6c406cf738d # v10.4.0
         with:
           enable-cache: false
           version: "0.13.4"

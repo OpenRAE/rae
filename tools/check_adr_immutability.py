@@ -1,27 +1,24 @@
 #!/usr/bin/env python3
 # ruff: noqa: E402, I001
-"""Acceptance-content pin gate for accepted ADRs (ADR-059).
+"""Amendment gate for accepted ADRs (ADR-059, amended by issue #1929).
 
-``docs/decisions/adrs/README.md`` claims the ADR corpus is citable — an
-accepted ADR's content does not silently change under you. ADR-059 makes that
-claim enforceable instead of aspirational: ``docs/decisions/adrs/adr-index.yaml``
-pins every *accepted* ADR to the ``sha256`` of its **canonical content** (the
-file with its ``## Amendments`` section removed), and a substantive change to an
-accepted ADR is only legitimate when it is recorded — as a new ``## Amendments``
-row plus an updated pin, or by superseding the ADR with a new one.
+``docs/decisions/adrs/README.md`` claims the ADR corpus is citable: an accepted
+ADR's content does not silently change under you. This gate compares each
+accepted ADR with the base revision. A change to its canonical content (the file
+without its ``## Amendments`` section) is legitimate only when the same change
+adds an ``## Amendments`` row, or when a new ADR supersedes it. No content digest
+is stored; git holds the history.
 
 What this gate enforces, filesystem-only and deterministically (it never calls
 Ground Control, so it cannot become flaky in CI):
 
-* the manifest is well-formed: a mapping with ``hash_algorithm: sha256`` and an
-  ``adrs`` list of ``{id, path, pin, amendments?}`` entries, unique ids, repo-
+* the manifest is well-formed: a mapping with an ``adrs`` list of
+  ``{id, path, amendments?}`` entries, unique ids, repo-
   relative non-escaping paths (via the shared ``safe_repo_path``);
 * every ADR whose on-disk status is ``accepted`` has exactly one manifest entry
   (``adr-pin-missing``), and every manifest entry names an ADR that is
   ``accepted`` on disk (``adr-pin-orphan``) — only ``accepted`` ADRs are pinned;
   ``proposed`` stay mutable and ``superseded``/``deprecated`` leave the pin set;
-* each pinned ADR's current canonical hash equals its pin (``adr-pin-stale``) —
-  the unrecorded-edit detector;
 * the manifest ``amendments[]`` refs match the ADR's ``## Amendments`` table rows
   1:1 (``adr-amendment-record-mismatch``);
 * with ``--base-rev``/``--staged``: an accepted ADR whose canonical content
@@ -72,16 +69,13 @@ from tools.policy.common import (
 
 ADR_DIR = "docs/decisions/adrs"
 MANIFEST_PATH = f"{ADR_DIR}/adr-index.yaml"
-SUPPORTED_HASH_ALGORITHM = "sha256"
 
 ADR_ID_RE = re.compile(r"^ADR-\d{3}$")
-SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 AMENDMENTS_HEADING_RE = re.compile(r"##\s+Amendments\s*")
 SECTION_HEADING_RE = re.compile(r"##\s+")
 
 RULE_MALFORMED = "adr-manifest-malformed"
 RULE_PATH_UNSAFE = "adr-manifest-path-unsafe"
-RULE_PIN_STALE = "adr-pin-stale"
 RULE_PIN_MISSING = "adr-pin-missing"
 RULE_PIN_ORPHAN = "adr-pin-orphan"
 RULE_AMENDMENT_MISMATCH = "adr-amendment-record-mismatch"
@@ -184,9 +178,8 @@ def _coerce_manifest(raw: object, manifest_rel: str) -> tuple[list[dict] | None,
 
     if not isinstance(raw, dict):
         return None, [fail("manifest root must be a mapping")]
-    algorithm = raw.get("hash_algorithm")
-    if algorithm != SUPPORTED_HASH_ALGORITHM:
-        return None, [fail(f"hash_algorithm must be '{SUPPORTED_HASH_ALGORITHM}'; got {algorithm!r}")]
+    if "hash_algorithm" in raw:
+        return None, [fail("hash_algorithm is retired; git holds ADR history (issue #1929)")]
     entries = raw.get("adrs")
     if not isinstance(entries, list):
         return None, [fail("'adrs' must be a list")]
@@ -200,7 +193,6 @@ def _coerce_manifest(raw: object, manifest_rel: str) -> tuple[list[dict] | None,
             continue
         adr_id = entry.get("id")
         path = entry.get("path")
-        pin = entry.get("pin")
         if not isinstance(adr_id, str) or not ADR_ID_RE.match(adr_id):
             failures.append(fail(f"adrs[{index}].id must match ADR-NNN; got {adr_id!r}"))
             continue
@@ -211,8 +203,8 @@ def _coerce_manifest(raw: object, manifest_rel: str) -> tuple[list[dict] | None,
         if not isinstance(path, str) or not path:
             failures.append(fail(f"{adr_id}: path must be a non-empty string"))
             continue
-        if not isinstance(pin, str) or not SHA256_RE.match(pin):
-            failures.append(fail(f"{adr_id}: pin must be a 64-character sha256 hex digest"))
+        if "pin" in entry:
+            failures.append(fail(f"{adr_id}: pin is retired; the base-revision check detects an edit"))
             continue
         amendments = entry.get("amendments") or []
         if not isinstance(amendments, list):
@@ -228,7 +220,7 @@ def _coerce_manifest(raw: object, manifest_rel: str) -> tuple[list[dict] | None,
             refs.append(amendment["ref"])
         if malformed_amendment:
             continue
-        normalized.append({"id": adr_id, "path": path, "pin": pin, "amendment_refs": refs})
+        normalized.append({"id": adr_id, "path": path, "amendment_refs": refs})
 
     if failures:
         return None, failures
@@ -476,15 +468,6 @@ def evaluate_adr_immutability(
             )
             continue
         text = disk_path.read_text(encoding="utf-8")
-        if content_hash(text) != entry["pin"]:
-            failures.append(
-                PolicyFailure(
-                    RULE_PIN_STALE,
-                    f"{adr_id} content differs from its pinned hash; record an amendment "
-                    "(and update the pin) or supersede it with a new ADR",
-                    entry["path"],
-                )
-            )
         document_refs = amendment_refs(text)
         if sorted(document_refs) != sorted(entry["amendment_refs"]):
             failures.append(

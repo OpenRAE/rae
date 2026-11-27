@@ -22,6 +22,13 @@ func rewritePolicyReferences(value map[string]any, symbols importSymbols, namesp
 		}
 		value["execution_policy"] = preserved
 	}
+	if original := object(value[safeStateSection]); original != nil {
+		preserved, err := preserveRewrittenShape(original, rewriteSafeState(original, symbols, namespace), namespace == "")
+		if err != nil {
+			return err
+		}
+		value[safeStateSection] = preserved
+	}
 	return nil
 }
 func preserveRewrittenShape(original, rewritten any, preserveSequences bool) (any, error) {

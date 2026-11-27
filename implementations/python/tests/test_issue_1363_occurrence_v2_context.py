@@ -34,10 +34,10 @@ from raes_contracts.contracts import (
     fold_participant_control_episode_v2,
     participant_control_history_verifiability,
     participant_control_target_authorization,
-    schema_bundle,
     validate_participant_control_occurrence_context,
 )
-from raes_contracts.contracts.participant_control import ParticipantControlTargetKind as TargetKind
+from raes_contracts.participant_mixed_control_vocabulary import ParticipantControlTargetKind as TargetKind
+from raes_schemas import schema_bundle
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 

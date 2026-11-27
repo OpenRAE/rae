@@ -15,10 +15,14 @@ var experimentFactoryJSON = map[string]string{ //nolint:gochecknoglobals // Fixe
 	termCleanupObligationResultModel:               `{"evidence_refs":[],"residual_state_refs":[]}`,
 	"DifficultyDecisionRecordModel":                `{"affected_refs":[],"observation_refs":[]}`,
 	"DifficultyInterventionRecordModel":            `{"evidence_refs":[],"occurrence_refs":[]}`,
-	"DifficultyPolicyModel":                        `{"actions":{},"observation_sources":{},"threshold_rules":{}}`,
+	modelDifficultyPolicy:                          `{"actions":{},"observation_sources":{},"threshold_rules":{}}`,
 	"DifficultyRunProvenanceModel":                 `{"decisions":[],"interventions":[]}`,
 	"DifficultyVariantModel":                       `{"action_refs":[],"scaffold_refs":[],"selection_policy_refs":[]}`,
 	"ExecutionRetryPolicyModel":                    `{"compensation_refs":[],"reset_obligation_refs":[]}`,
+	"ExecutionPolicy":                              `{"retry":{"after_effect_policy":"disallow","compensation_refs":[],"max_attempts":1,"reset_obligation_refs":[]}}`,
+	"EffectiveExecutionPolicy":                     `{"evidence_requirements":{}}`,
+	"EvidenceRequirement":                          `{"channel_refs":[],"field_selectors":[],"media_types":[],"notes":[],"scope_refs":[],"source_refs":[]}`,
+	"WorkflowStepDispatch":                         `{"observation_digests":{}}`,
 	"ExperimentApparatusComponentModel":            `{"compatibility_refs":[],"limitations":[]}`,
 	"ExperimentApparatusConstraintModel":           `{"allowed_backend_refs":[],"allowed_processor_refs":[],"notes":[],"required_capabilities":[],"required_manifest_refs":[]}`,
 	termExperimentArtifactRefModel:                 `{"satisfies_refs":[]}`,
@@ -38,6 +42,8 @@ var experimentFactoryJSON = map[string]string{ //nolint:gochecknoglobals // Fixe
 	termExperimentEvidenceRequirementRelationModel: `{"provenance_refs":[],"refinement_dimensions":[]}`,
 	"ExperimentExecutionAccountingModel":           `{"participant_configurations":[]}`,
 	"ExperimentFactorLevelEffectsModel":            `{"bindings":[],"selections":[]}`,
+	"ExperimentFactorialDesignModel":               `{"excluded_combinations":[]}`,
+	"ExperimentFactorialTreatmentDesignModel":      `{"excluded_combinations":[]}`,
 	"ExperimentRunAllocationPlanModel":             `{"blocking_factors":[]}`,
 	modelExperimentRun:                             `{"augmentation_disclosures":[],"derived_from_refs":[],"deviations":[],"evidence_artifacts":[],"evidence_requirement_relations":[],"generated_refs":[],"materialization_attestations":[],"parameter_set":[],"realized_bindings":[],"realized_form_disclosures":[],"realized_selections":[],"result_summaries":{},"stochastic_controls":[],"stochastic_draws":[],"used_refs":[],"validation_basis_disclosures":[]}`,
 	modelExperimentRunPlan:                         `{"evidence_requirement_relations":[],"red_variant_selections":{},"selection_policies":{},"stochastic_controls":[]}`,
@@ -50,7 +56,6 @@ var experimentFactoryJSON = map[string]string{ //nolint:gochecknoglobals // Fixe
 	"ParticipantExposurePolicyModel":               `{"constraints":{},"disclosed_refs":[],"tool_affordance_refs":[],"visibility_scope_refs":[],"withheld_refs":[]}`,
 	"ParticipantImplementationProvenanceModel":     `{"metadata":{}}`,
 	"RealizedTimeModelProvenanceModel":             `{"deviations":[],"timing_limits":[]}`,
-	"SchedulerIsolationProofModel":                 `{"dimensions":[]}`,
 	"TimeApparatusBindingModel":                    `{"limitations":[]}`,
 	"TimeDomainMappingDeclarationModel":            `{"scale":{"denominator":1,"numerator":1}}`,
 	"TimeModelDeclarationModel":                    `{"mappings":{},"progression_policies":{},"temporal_constraints":{}}`,
@@ -108,6 +113,8 @@ func experimentRootModel(id string) string {
 		return "ParticipantConfigurationResultModel"
 	case "trial-cleanup-plan-v1":
 		return "TrialCleanupPlanModel"
+	case contractWorkflowStepDispatch:
+		return "WorkflowStepDispatch"
 	case termTrialCleanupReceiptV1:
 		return "TrialCleanupReceiptModel"
 	}

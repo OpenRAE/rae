@@ -58,10 +58,12 @@ func (selection *preparedSelection) preparedConcernDeliveryViolation(authority r
 	expected, hasExpected := preparedPointer(expectedPayload, authority.PayloadPath)
 	actual, hasActual := preparedPointer(actualPayload, authority.PayloadPath)
 	actual, hasActual = preparedDeliveredValue(authority, snapshot, actual, hasActual)
-	if !hasExpected && !hasActual {
+	if !hasExpected {
+		// The completion selected nothing here, so it carries no delivery
+		// obligation. The realization gate still checks the delivered value.
 		return "", nil
 	}
-	if !hasExpected || !hasActual {
+	if !hasActual {
 		return "Backend did not deliver its admitted realization completion.", nil
 	}
 	requirement, found := selection.requirementByConcern[preparedConcernKey{authority.Address, authority.FieldPath, authority.Concern}]
@@ -109,7 +111,20 @@ func preparedDeliveryConcernEqual(requirement realization.Requirement, expected,
 	if err != nil {
 		return false, err
 	}
-	return preparedJSONEqual(expectedProjection.Document(), actualProjection.Document()), nil
+	expectedValue, actualValue := expectedProjection.Document(), actualProjection.Document()
+	if requirement.Constraint != nil {
+		document, _ := requirement.Constraint.Document().(map[string]any)
+		root, _ := document["root"].(map[string]any)
+		definitions, _ := document["definitions"].(map[string]any)
+		ordering := identityOrdering{definitions: definitions}
+		if expectedValue, err = ordering.order(expectedValue, root, 0); err != nil {
+			return false, err
+		}
+		if actualValue, err = ordering.order(actualValue, root, 0); err != nil {
+			return false, err
+		}
+	}
+	return preparedJSONEqual(expectedValue, actualValue), nil
 }
 func preparedDeliveredValue(authority realization.Authority, snapshot binding.RuntimeSnapshotV1, fallback any, present bool) (any, bool) {
 	field, operatingSystem := map[string]string{termOsFamily: "family", termOsDistribution: "distribution", termOsVersion: "version"}[authority.Concern]

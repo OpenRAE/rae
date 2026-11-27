@@ -13,7 +13,11 @@ from dataclasses import dataclass
 from typing import Literal, Self
 
 from pydantic import Field, model_validator
-from raes.participant_mixed_control_vocabulary import MixedControlTransitionKind, ParticipantControlTargetKind
+
+from raes_contracts.participant_mixed_control_vocabulary import (
+    MixedControlTransitionKind,
+    ParticipantControlTargetKind,
+)
 
 from .base import ContractModel, NonEmptyString
 from .participant_control_coordinates import ControlCount, ControlRef

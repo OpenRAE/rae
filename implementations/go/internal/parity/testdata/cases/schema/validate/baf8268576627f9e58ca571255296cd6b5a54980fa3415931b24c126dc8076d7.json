@@ -1,0 +1,14 @@
+{
+  "args": [
+    "participant-delivery-invocation-request-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:7ce4c72f2575edecfc6b45920cc67e65812fd7b653ccd134fbceb4429e1d726f"
+  },
+  "name": "contracts/fixtures/participant-runtime/participant-delivery-invocation-request-v1/invalid/inconsistent",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

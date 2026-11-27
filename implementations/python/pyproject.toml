@@ -1,5 +1,5 @@
 [build-system]
-requires = ["hatchling==1.32.4"]
+requires = ["hatchling==1.33.0"]
 build-backend = "hatchling.build"
 
 [project]
@@ -44,7 +44,7 @@ dependencies = [
     # profile makes formal satisfiability evidence unreproducible.
     "z3-solver==4.16.0.0",
     "anyio>=4.14.2,<5",
-    "rpds-py==0.30.0",
+    "rpds-py==2026.9.1",
 ]
 
 [project.optional-dependencies]
@@ -67,8 +67,8 @@ docs = [
     "sphinx-reredirects==1.1.0",
 ]
 distributed = [
-    "psycopg[binary]==3.3.6",
-    "temporalio==1.34.0",
+    "psycopg[binary]==3.3.8",
+    "temporalio==1.35.0",
 ]
 
 [project.scripts]
@@ -99,6 +99,7 @@ packages = [
     "packages/raes_mcp",
     "packages/raes_processor",
     "packages/raes_runtime",
+    "packages/raes_schemas",
     "packages/raes",
 ]
 
@@ -254,4 +255,3 @@ ignore = [
 "packages/raes/composition/__init__.py" = ["F401"]  # intentional facade re-exports
 "packages/raes/orchestration/__init__.py" = ["F401"]  # intentional facade re-exports
 "packages/raes/participant_behavior/__init__.py" = ["F401"]  # intentional facade re-exports
-"packages/raes_contracts/realization_envelope.py" = ["E402"]  # late import breaks a carrier dependency cycle

@@ -9,7 +9,7 @@ def test_vocabulary_ownership_includes_its_authoring_and_publication_surfaces():
     policy = load_policy(Path(__file__).resolve().parents[3])
     phase = match_phase(policy, "GOV-922")
     paths = [
-        "implementations/python/packages/raes/runtime_values.py",
+        "implementations/python/packages/raes_contracts/runtime_values.py",
         "contracts/schemas/sdl/instantiated-scenario-v1.json",
         "contracts/schema-publication/entries/instantiated-scenario-v1.json",
         "specs/sdl/runtime-inventory.md",

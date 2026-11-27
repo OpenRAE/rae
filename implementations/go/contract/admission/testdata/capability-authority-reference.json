@@ -1,1 +1,489 @@
-{"reference":"Native manifest authority tables, time capability vocabulary and operating-system families","cases":[{"kind":"contracts","key":"backend","values":["artifact-requirement-v1","backend-augmentation-scope-v1","backend-manifest-v2","backend-materialization-attestation-v1","backend-operation-capabilities-v1","backend-operation-control-v1","backend-operation-request-v1","backend-operation-response-v1","backend-realization-preparation-v1","backend-runtime-descendants-v1","evaluation-history-event-stream-v1","evaluation-plan-v1","evaluation-result-envelope-v1","experiment-binding-descriptors-v1","experiment-capture-spec-v1","experiment-derived-measure-v1","experiment-evidence-record-v1","experiment-run-v1","inject-occurrence-outcome-v1","inject-occurrence-v1","mixed-backend-execution-binding-v1","mixed-backend-stage-report-v1","operation-receipt-v1","operation-status-v1","orchestration-plan-v1","participant-behavior-history-event-stream-v1","participant-control-evaluation-v1","participant-control-evaluation-v2","participant-control-occurrence-v1","participant-control-selection-v1","participant-control-selection-v2","participant-crossing-occurrence-v1","participant-episode-history-event-stream-v1","participant-episode-state-envelope-v1","participant-execution-binding-v1","participant-execution-control-v1","participant-execution-service-state-v1","participant-flow-control-relation-v1","participant-joint-action-record-v1","participant-lifecycle-event-v1","participant-observation-envelope-v1","participant-outcome-report-v1","participant-resource-budget-event-v1","participant-resource-budget-policy-v1","participant-resource-budget-state-v1","participant-resource-pool-capacity-v1","participant-shared-state-record-v1","participant-time-management-context-v1","plan-realization-profiles-v1","proposition-truth-result-v1","provisioning-plan-v1","realization-envelope-v1","realized-time-model-v1","runtime-snapshot-v1","time-model-v1","time-runtime-state-v1","trial-cleanup-plan-v1","trial-cleanup-receipt-v1","workflow-history-event-stream-v1","workflow-result-envelope-v1"]},{"kind":"contracts","key":"processor","values":["evaluation-history-event-stream-v1","evaluation-plan-v1","evaluation-result-envelope-v1","experiment-binding-descriptors-v1","operation-receipt-v1","operation-status-v1","orchestration-plan-v1","participant-behavior-history-event-stream-v1","participant-episode-history-event-stream-v1","participant-episode-state-envelope-v1","participant-resource-budget-policy-v1","processor-manifest-v2","proposition-truth-result-v1","provisioning-plan-v1","runtime-snapshot-v1","time-model-v1","workflow-cancellation-request-v1","workflow-history-event-stream-v1","workflow-result-envelope-v1"]},{"kind":"contracts","key":"participant","values":["experiment-binding-descriptors-v1","participant-behavior-history-event-stream-v1","participant-configuration-result-v1","participant-decision-surface-v2","participant-episode-history-event-stream-v1","participant-episode-state-envelope-v1","participant-implementation-manifest-v1","participant-implementation-provenance-v1"]},{"kind":"contracts","key":"sdl","values":["sdl-authoring-input-v1"]},{"kind":"participant","key":"tool_affordances","values":["participant-behavior-history-event-stream-v1","runtime-snapshot-v1"]},{"kind":"participant","key":"scoped_tool_affordances","values":["participant-behavior-history-event-stream-v1","runtime-snapshot-v1"]},{"kind":"participant","key":"action_contracts","values":["participant-behavior-history-event-stream-v1","runtime-snapshot-v1"]},{"kind":"participant","key":"autonomous_execution","values":["operation-receipt-v1","operation-status-v1","participant-behavior-history-event-stream-v1","participant-execution-binding-v1","participant-execution-control-v1","participant-execution-service-state-v1","participant-joint-action-record-v1","participant-shared-state-record-v1","participant-time-management-context-v1","runtime-snapshot-v1"]},{"kind":"participant","key":"attribution_support","values":["participant-behavior-history-event-stream-v1","runtime-snapshot-v1"]},{"kind":"participant","key":"behavior_history","values":["participant-behavior-history-event-stream-v1","runtime-snapshot-v1"]},{"kind":"participant","key":"effects","values":["participant-behavior-history-event-stream-v1","runtime-snapshot-v1"]},{"kind":"participant","key":"failure_classes","values":["participant-behavior-history-event-stream-v1","runtime-snapshot-v1"]},{"kind":"participant","key":"observation_boundaries","values":["participant-behavior-history-event-stream-v1","runtime-snapshot-v1"]},{"kind":"participant","key":"outcome_interpretation","values":["participant-behavior-history-event-stream-v1","runtime-snapshot-v1"]},{"kind":"participant","key":"participant_predicate_opacity","values":["operation-receipt-v1","operation-status-v1","participant-behavior-history-event-stream-v1","participant-control-occurrence-v1","participant-crossing-occurrence-v1","participant-episode-history-event-stream-v1","participant-episode-state-envelope-v1","participant-observation-envelope-v1","runtime-snapshot-v1"]},{"kind":"participant","key":"participant_modular_control","values":["participant-control-evaluation-v1","participant-control-selection-v1"]},{"kind":"participant","key":"participant_declassification","values":["participant-crossing-occurrence-v1"]},{"kind":"participant","key":"participant_directed_inject_delivery","values":["orchestration-plan-v1","participant-crossing-occurrence-v1"]},{"kind":"participant","key":"participant_egress_projection","values":["participant-crossing-occurrence-v1","participant-observation-envelope-v1"]},{"kind":"participant","key":"participant_ingress_admission","values":["participant-control-occurrence-v1","participant-crossing-occurrence-v1"]},{"kind":"participant","key":"participant_intervention","values":["participant-control-occurrence-v1","participant-crossing-occurrence-v1"]},{"kind":"participant","key":"participant_transformation","values":["participant-crossing-occurrence-v1"]},{"kind":"participant","key":"participant_boundary_flow_resolution","values":["participant-crossing-occurrence-v1","participant-flow-control-relation-v1"]},{"kind":"participant","key":"participant_final_sink_mediation","values":["participant-crossing-occurrence-v1","participant-flow-control-relation-v1"]},{"kind":"participant","key":"participant_quarantined_processing","values":["participant-crossing-occurrence-v1","participant-flow-control-relation-v1"]},{"kind":"participant","key":"participant_processing_role_trust","values":["participant-control-occurrence-v1","participant-crossing-occurrence-v1"]},{"kind":"participant","key":"participant_monitor_topology","values":["experiment-evidence-record-v1"]},{"kind":"participant","key":"preconditions","values":["participant-behavior-history-event-stream-v1","runtime-snapshot-v1"]},{"kind":"participant","key":"state_transitions","values":["participant-behavior-history-event-stream-v1","runtime-snapshot-v1"]},{"kind":"participant","key":"temporal_contracts","values":["participant-behavior-history-event-stream-v1","runtime-snapshot-v1"]},{"kind":"time","key":"supported_domain_kinds","values":["external","logical","monotonic","simulated","wall_clock"]},{"kind":"time","key":"supported_authority_kinds","values":["backend","external","runtime","system"]},{"kind":"time","key":"supported_advancement_modes","values":["dilated","event_driven","externally_paced","real_time","stepped"]},{"kind":"time","key":"supported_synchronization_modes","values":["authority","barrier","conservative","none"]},{"kind":"time","key":"supported_mapping_kinds","values":["affine_rational","identity"]},{"kind":"time","key":"supported_constraint_kinds","values":["cadence","deadline","duration","precedence","window"]},{"kind":"time","key":"supported_reset_behaviors","values":["new_segment_preserve_value","new_segment_zero","unsupported"]},{"kind":"time","key":"supported_replay_behaviors","values":["restart_from_anchor","restore_recorded_advances","unsupported"]},{"kind":"distribution","key":"ubuntu","values":["linux"]},{"kind":"distribution","key":"debian","values":["linux"]},{"kind":"distribution","key":"rocky-linux","values":["linux"]},{"kind":"distribution","key":"red-hat-enterprise-linux","values":["linux"]},{"kind":"distribution","key":"windows-server","values":["windows"]},{"kind":"distribution","key":"windows-client","values":["windows"]},{"kind":"distribution","key":"solaris","values":["other"]},{"kind":"contracts","key":"unknown","values":[]},{"kind":"participant","key":"unknown","values":[]},{"kind":"time","key":"unknown","values":[]},{"kind":"distribution","key":"unknown","values":[]}]}
+{
+  "cases": [
+    {
+      "key": "backend",
+      "kind": "contracts",
+      "values": [
+        "artifact-requirement-v1",
+        "backend-augmentation-scope-v1",
+        "backend-manifest-v2",
+        "backend-materialization-attestation-v1",
+        "backend-operation-capabilities-v1",
+        "backend-operation-control-v1",
+        "backend-operation-request-v1",
+        "backend-operation-response-v1",
+        "backend-realization-preparation-v1",
+        "backend-runtime-descendants-v1",
+        "evaluation-history-event-stream-v1",
+        "evaluation-plan-v1",
+        "evaluation-result-envelope-v1",
+        "experiment-binding-descriptors-v1",
+        "experiment-capture-spec-v1",
+        "experiment-derived-measure-v1",
+        "experiment-evidence-record-v1",
+        "experiment-run-v1",
+        "inject-occurrence-outcome-v1",
+        "inject-occurrence-v1",
+        "mixed-backend-execution-binding-v1",
+        "mixed-backend-stage-report-v1",
+        "operation-receipt-v1",
+        "operation-status-v1",
+        "orchestration-plan-v1",
+        "participant-behavior-history-event-stream-v1",
+        "participant-control-evaluation-v1",
+        "participant-control-evaluation-v2",
+        "participant-control-occurrence-v1",
+        "participant-control-selection-v1",
+        "participant-control-selection-v2",
+        "participant-crossing-occurrence-v1",
+        "participant-episode-history-event-stream-v1",
+        "participant-episode-state-envelope-v1",
+        "participant-execution-binding-v1",
+        "participant-execution-control-v1",
+        "participant-execution-service-state-v1",
+        "participant-flow-control-relation-v1",
+        "participant-joint-action-record-v1",
+        "participant-lifecycle-event-v1",
+        "participant-observation-envelope-v1",
+        "participant-outcome-report-v1",
+        "participant-resource-budget-event-v1",
+        "participant-resource-budget-policy-v1",
+        "participant-resource-budget-state-v1",
+        "participant-resource-pool-capacity-v1",
+        "participant-shared-state-record-v1",
+        "participant-time-management-context-v1",
+        "plan-realization-profiles-v1",
+        "proposition-truth-result-v1",
+        "provisioning-plan-v1",
+        "realization-envelope-v1",
+        "realized-time-model-v1",
+        "runtime-snapshot-v1",
+        "time-model-v1",
+        "time-runtime-state-v1",
+        "trial-cleanup-plan-v1",
+        "trial-cleanup-receipt-v1",
+        "workflow-history-event-stream-v1",
+        "workflow-result-envelope-v1",
+        "workflow-step-dispatch-v1",
+        "workflow-step-response-v1"
+      ]
+    },
+    {
+      "key": "processor",
+      "kind": "contracts",
+      "values": [
+        "evaluation-history-event-stream-v1",
+        "evaluation-plan-v1",
+        "evaluation-result-envelope-v1",
+        "experiment-binding-descriptors-v1",
+        "operation-receipt-v1",
+        "operation-status-v1",
+        "orchestration-plan-v1",
+        "participant-behavior-history-event-stream-v1",
+        "participant-episode-history-event-stream-v1",
+        "participant-episode-state-envelope-v1",
+        "participant-resource-budget-policy-v1",
+        "processor-manifest-v2",
+        "proposition-truth-result-v1",
+        "provisioning-plan-v1",
+        "runtime-snapshot-v1",
+        "time-model-v1",
+        "workflow-cancellation-request-v1",
+        "workflow-history-event-stream-v1",
+        "workflow-result-envelope-v1",
+        "workflow-step-dispatch-v1",
+        "workflow-step-response-v1"
+      ]
+    },
+    {
+      "key": "participant",
+      "kind": "contracts",
+      "values": [
+        "experiment-binding-descriptors-v1",
+        "participant-behavior-history-event-stream-v1",
+        "participant-configuration-result-v1",
+        "participant-decision-surface-v2",
+        "participant-episode-history-event-stream-v1",
+        "participant-episode-state-envelope-v1",
+        "participant-implementation-manifest-v1",
+        "participant-implementation-provenance-v1"
+      ]
+    },
+    {
+      "key": "sdl",
+      "kind": "contracts",
+      "values": [
+        "sdl-authoring-input-v1"
+      ]
+    },
+    {
+      "key": "tool_affordances",
+      "kind": "participant",
+      "values": [
+        "participant-behavior-history-event-stream-v1",
+        "runtime-snapshot-v1"
+      ]
+    },
+    {
+      "key": "scoped_tool_affordances",
+      "kind": "participant",
+      "values": [
+        "participant-behavior-history-event-stream-v1",
+        "runtime-snapshot-v1"
+      ]
+    },
+    {
+      "key": "action_contracts",
+      "kind": "participant",
+      "values": [
+        "participant-behavior-history-event-stream-v1",
+        "runtime-snapshot-v1"
+      ]
+    },
+    {
+      "key": "autonomous_execution",
+      "kind": "participant",
+      "values": [
+        "operation-receipt-v1",
+        "operation-status-v1",
+        "participant-behavior-history-event-stream-v1",
+        "participant-execution-binding-v1",
+        "participant-execution-control-v1",
+        "participant-execution-service-state-v1",
+        "participant-joint-action-record-v1",
+        "participant-shared-state-record-v1",
+        "participant-time-management-context-v1",
+        "runtime-snapshot-v1"
+      ]
+    },
+    {
+      "key": "attribution_support",
+      "kind": "participant",
+      "values": [
+        "participant-behavior-history-event-stream-v1",
+        "runtime-snapshot-v1"
+      ]
+    },
+    {
+      "key": "behavior_history",
+      "kind": "participant",
+      "values": [
+        "participant-behavior-history-event-stream-v1",
+        "runtime-snapshot-v1"
+      ]
+    },
+    {
+      "key": "effects",
+      "kind": "participant",
+      "values": [
+        "participant-behavior-history-event-stream-v1",
+        "runtime-snapshot-v1"
+      ]
+    },
+    {
+      "key": "failure_classes",
+      "kind": "participant",
+      "values": [
+        "participant-behavior-history-event-stream-v1",
+        "runtime-snapshot-v1"
+      ]
+    },
+    {
+      "key": "observation_boundaries",
+      "kind": "participant",
+      "values": [
+        "participant-behavior-history-event-stream-v1",
+        "runtime-snapshot-v1"
+      ]
+    },
+    {
+      "key": "outcome_interpretation",
+      "kind": "participant",
+      "values": [
+        "participant-behavior-history-event-stream-v1",
+        "runtime-snapshot-v1"
+      ]
+    },
+    {
+      "key": "participant_predicate_opacity",
+      "kind": "participant",
+      "values": [
+        "operation-receipt-v1",
+        "operation-status-v1",
+        "participant-behavior-history-event-stream-v1",
+        "participant-control-occurrence-v1",
+        "participant-crossing-occurrence-v1",
+        "participant-episode-history-event-stream-v1",
+        "participant-episode-state-envelope-v1",
+        "participant-observation-envelope-v1",
+        "runtime-snapshot-v1"
+      ]
+    },
+    {
+      "key": "participant_modular_control",
+      "kind": "participant",
+      "values": [
+        "participant-control-evaluation-v1",
+        "participant-control-selection-v1"
+      ]
+    },
+    {
+      "key": "participant_declassification",
+      "kind": "participant",
+      "values": [
+        "participant-crossing-occurrence-v1"
+      ]
+    },
+    {
+      "key": "participant_directed_inject_delivery",
+      "kind": "participant",
+      "values": [
+        "orchestration-plan-v1",
+        "participant-crossing-occurrence-v1"
+      ]
+    },
+    {
+      "key": "participant_egress_projection",
+      "kind": "participant",
+      "values": [
+        "participant-crossing-occurrence-v1",
+        "participant-observation-envelope-v1"
+      ]
+    },
+    {
+      "key": "participant_ingress_admission",
+      "kind": "participant",
+      "values": [
+        "participant-control-occurrence-v1",
+        "participant-crossing-occurrence-v1"
+      ]
+    },
+    {
+      "key": "participant_intervention",
+      "kind": "participant",
+      "values": [
+        "participant-control-occurrence-v1",
+        "participant-crossing-occurrence-v1"
+      ]
+    },
+    {
+      "key": "participant_transformation",
+      "kind": "participant",
+      "values": [
+        "participant-crossing-occurrence-v1"
+      ]
+    },
+    {
+      "key": "participant_boundary_flow_resolution",
+      "kind": "participant",
+      "values": [
+        "participant-crossing-occurrence-v1",
+        "participant-flow-control-relation-v1"
+      ]
+    },
+    {
+      "key": "participant_final_sink_mediation",
+      "kind": "participant",
+      "values": [
+        "participant-crossing-occurrence-v1",
+        "participant-flow-control-relation-v1"
+      ]
+    },
+    {
+      "key": "participant_quarantined_processing",
+      "kind": "participant",
+      "values": [
+        "participant-crossing-occurrence-v1",
+        "participant-flow-control-relation-v1"
+      ]
+    },
+    {
+      "key": "participant_processing_role_trust",
+      "kind": "participant",
+      "values": [
+        "participant-control-occurrence-v1",
+        "participant-crossing-occurrence-v1"
+      ]
+    },
+    {
+      "key": "participant_monitor_topology",
+      "kind": "participant",
+      "values": [
+        "experiment-evidence-record-v1"
+      ]
+    },
+    {
+      "key": "preconditions",
+      "kind": "participant",
+      "values": [
+        "participant-behavior-history-event-stream-v1",
+        "runtime-snapshot-v1"
+      ]
+    },
+    {
+      "key": "state_transitions",
+      "kind": "participant",
+      "values": [
+        "participant-behavior-history-event-stream-v1",
+        "runtime-snapshot-v1"
+      ]
+    },
+    {
+      "key": "temporal_contracts",
+      "kind": "participant",
+      "values": [
+        "participant-behavior-history-event-stream-v1",
+        "runtime-snapshot-v1"
+      ]
+    },
+    {
+      "key": "supported_domain_kinds",
+      "kind": "time",
+      "values": [
+        "external",
+        "logical",
+        "monotonic",
+        "simulated",
+        "wall_clock"
+      ]
+    },
+    {
+      "key": "supported_authority_kinds",
+      "kind": "time",
+      "values": [
+        "backend",
+        "external",
+        "runtime",
+        "system"
+      ]
+    },
+    {
+      "key": "supported_advancement_modes",
+      "kind": "time",
+      "values": [
+        "dilated",
+        "event_driven",
+        "externally_paced",
+        "real_time",
+        "stepped"
+      ]
+    },
+    {
+      "key": "supported_synchronization_modes",
+      "kind": "time",
+      "values": [
+        "authority",
+        "barrier",
+        "conservative",
+        "none"
+      ]
+    },
+    {
+      "key": "supported_mapping_kinds",
+      "kind": "time",
+      "values": [
+        "affine_rational",
+        "identity"
+      ]
+    },
+    {
+      "key": "supported_constraint_kinds",
+      "kind": "time",
+      "values": [
+        "cadence",
+        "deadline",
+        "duration",
+        "precedence",
+        "window"
+      ]
+    },
+    {
+      "key": "supported_reset_behaviors",
+      "kind": "time",
+      "values": [
+        "new_segment_preserve_value",
+        "new_segment_zero",
+        "unsupported"
+      ]
+    },
+    {
+      "key": "supported_replay_behaviors",
+      "kind": "time",
+      "values": [
+        "restart_from_anchor",
+        "restore_recorded_advances",
+        "unsupported"
+      ]
+    },
+    {
+      "key": "ubuntu",
+      "kind": "distribution",
+      "values": [
+        "linux"
+      ]
+    },
+    {
+      "key": "debian",
+      "kind": "distribution",
+      "values": [
+        "linux"
+      ]
+    },
+    {
+      "key": "rocky-linux",
+      "kind": "distribution",
+      "values": [
+        "linux"
+      ]
+    },
+    {
+      "key": "red-hat-enterprise-linux",
+      "kind": "distribution",
+      "values": [
+        "linux"
+      ]
+    },
+    {
+      "key": "windows-server",
+      "kind": "distribution",
+      "values": [
+        "windows"
+      ]
+    },
+    {
+      "key": "windows-client",
+      "kind": "distribution",
+      "values": [
+        "windows"
+      ]
+    },
+    {
+      "key": "solaris",
+      "kind": "distribution",
+      "values": [
+        "other"
+      ]
+    },
+    {
+      "key": "unknown",
+      "kind": "contracts",
+      "values": []
+    },
+    {
+      "key": "unknown",
+      "kind": "participant",
+      "values": []
+    },
+    {
+      "key": "unknown",
+      "kind": "time",
+      "values": []
+    },
+    {
+      "key": "unknown",
+      "kind": "distribution",
+      "values": []
+    }
+  ],
+  "reference": "Native manifest authority tables, time capability vocabulary and operating-system families"
+}

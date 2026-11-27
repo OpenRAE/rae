@@ -2,11 +2,11 @@
 
 from __future__ import annotations
 
-from raes.explicitness import ExplicitnessClass
 from raes.runtime_resource_limits import process_resource_limit_identity_digest
 from raes_backend_protocols.capabilities import BackendManifest
 from raes_contracts.bounded_domains import EnumDomain, scalar_in_domain
 from raes_contracts.diagnostics import Diagnostic, Severity
+from raes_contracts.explicitness import ExplicitnessClass
 from raes_contracts.json_pointer import array_index, pointer_from_tokens, pointer_tokens
 from raes_contracts.planning import (
     ChangeAction,
@@ -19,6 +19,7 @@ from raes_contracts.planning import (
 from raes_contracts.realization_authority import planned_realization_selection_diagnostics
 from raes_contracts.realization_structure import evaluate_realization_constraint, realization_constraint_binding
 from raes_contracts.runtime_state import RealizationProvenanceEntry, RuntimeSnapshot
+from raes_contracts.runtime_value_limits import PLAN_AUTHORITY_LIMITS
 from raes_contracts.vocabulary import ProcessResourceLimitKind, ProcessResourceLimitScope
 
 from ..semantics.realization import (
@@ -143,7 +144,7 @@ def _manifest_authority_diagnostic(
     manifest: BackendManifest,
 ) -> Diagnostic | None:
     target_envelope = manifest.realization_envelope.identity if manifest.realization_envelope is not None else None
-    envelope_mismatch = _requires_realization_envelope(plan) and (
+    envelope_mismatch = (plan.realization_envelope is not None or _requires_realization_envelope(plan)) and (
         plan.realization_envelope is None or target_envelope is None or plan.realization_envelope != target_envelope
     )
     diagnostic = None
@@ -196,10 +197,14 @@ def _recursive_binding_diagnostic(plan: ProvisioningPlan) -> Diagnostic | None:
         try:
             # The projection and binding owners refuse a malformed submitted value (E3).
             projected = project_realization_concern(authority.requirement_kind, selected, recursive=True)
-            binding = realization_constraint_binding(authority.constraint_document, projected)
+            binding = realization_constraint_binding(
+                authority.constraint_document, projected, limits=PLAN_AUTHORITY_LIMITS
+            )
             valid = binding == authority.constraint_binding
             if valid and authority.mode is not RealizationAuthorityMode.OPEN:
-                valid = evaluate_realization_constraint(authority.constraint_document, projected).conformant
+                valid = evaluate_realization_constraint(
+                    authority.constraint_document, projected, limits=PLAN_AUTHORITY_LIMITS
+                ).conformant
         except TypeError, ValueError:
             valid = False
         if not valid:

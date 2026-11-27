@@ -241,11 +241,12 @@ func (plan *executionPlan) finalizePlanning(view processor.CompiledScenario, ent
 	if checkErr := plan.attachExecutionPolicies(view.ExecutionPolicies); checkErr != nil {
 		return checkErr
 	}
-	plan.materializationSource, plan.materializationDiagnostics, err = plannedMaterializationSource(view, manifest, context.Scope)
+	plan.materializationSource, plan.materializationDiagnostics, err = plannedMaterializationSource(view, manifest, context.Scope, context.MaterializationReporting)
 	if err != nil {
 		return err
 	}
 	plan.augmentationScopeRequired = view.AugmentationScopeRequired
+	plan.safeStates = view.SafeStates
 	if view.Descriptive {
 		plan.purpose = "inspection"
 	}

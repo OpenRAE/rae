@@ -177,7 +177,9 @@ type CompiledScenario struct {
 	ObservationDemands                     []ObservationDemand
 	CaptureDemands                         []CaptureDemand
 	ExecutionPolicies                      []ExecutionPolicy
-	Diagnostics                            []diagnostic.Diagnostic
+	// SafeStates are the resolved safe-state declarations, separate from effect permission.
+	SafeStates  []json.RawMessage
+	Diagnostics []diagnostic.Diagnostic
 }
 
 // ObservationDemand binds a sealed effective demand to its owning requirement.

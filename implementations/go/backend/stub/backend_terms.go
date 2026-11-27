@@ -23,6 +23,8 @@ const (
 	termStatus              = "status"
 	termTerminate           = "terminate"
 	termTerminated          = "terminated"
+	termSchemaVersion       = "schema_version"
+	termFailed              = "failed"
 )
 
 const (

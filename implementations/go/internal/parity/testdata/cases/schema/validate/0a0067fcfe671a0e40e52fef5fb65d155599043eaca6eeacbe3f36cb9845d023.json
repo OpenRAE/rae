@@ -1,0 +1,14 @@
+{
+  "args": [
+    "workflow-step-response-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:cebbb6973768302787b8718c5f4adb8cacd975c601f4130f9cf6b5e66f2f8a78"
+  },
+  "name": "contracts/fixtures/control-plane/workflow-step-response-v1/valid/objective",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

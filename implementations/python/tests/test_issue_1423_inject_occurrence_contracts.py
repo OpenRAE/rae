@@ -12,6 +12,7 @@ from pydantic import ValidationError
 from raes.parser import parse_sdl, parse_sdl_file
 from raes_contracts import contracts
 from raes_processor.compiler import compile_runtime_model
+from raes_schemas import schema_bundle
 
 ROOT = Path(__file__).resolve().parents[3]
 FIXTURES = ROOT / "contracts/fixtures/control-plane"
@@ -111,7 +112,7 @@ def test_fixture_corpus_separates_structure_from_contextual_claims(contract_id, 
 
 
 def test_published_schemas_are_the_reference_bundle_with_semantic_bindings():
-    bundle = contracts.schema_bundle()
+    bundle = schema_bundle()
     for contract_id in MODELS:
         published = schema(contract_id)
         assert published == bundle[contract_id]

@@ -159,6 +159,12 @@ func resolveRecords(ctx context.Context, files fs.FS, root string, r *Registry, 
 	if err != nil {
 		return result, err
 	}
+	// The root passes the parser's authored admission, so a lock never records a rejected root.
+	if admitter != nil {
+		if err = admitter.AdmitModuleSource(append([]byte(nil), raw...)); err != nil {
+			return result, err
+		}
+	}
 	rows, _ := payload["imports"].([]any)
 	for _, row := range rows {
 		if err = ctx.Err(); err != nil {

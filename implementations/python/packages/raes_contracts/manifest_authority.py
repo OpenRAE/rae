@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Iterable
 
-from .versions import BACKEND_OPERATION_CONTRACT_IDS, MIXED_BACKEND_CONTRACT_IDS
+from .versions import BACKEND_OPERATION_CONTRACT_IDS, MIXED_BACKEND_CONTRACT_IDS, WORKFLOW_DISPATCH_CONTRACTS
 
 PROCESSOR_SUPPORTED_SDL_VERSION_IDS = ("sdl-authoring-input-v1",)
 
@@ -13,6 +13,7 @@ PROCESSOR_SUPPORTED_SDL_VERSION_IDS = ("sdl-authoring-input-v1",)
 # profiles, backend manifests, and authoring-side request artifacts are
 # separate authority surfaces and do not belong in this declaration field.
 PROCESSOR_SUPPORTED_CONTRACT_IDS = (
+    *WORKFLOW_DISPATCH_CONTRACTS,
     "processor-manifest-v2",
     "experiment-binding-descriptors-v1",
     "provisioning-plan-v1",
@@ -39,6 +40,7 @@ PROCESSOR_SUPPORTED_CONTRACT_IDS = (
 # profiles, processor manifests, and authoring-side request artifacts are
 # separate authority surfaces and do not belong in this declaration field.
 BACKEND_SUPPORTED_CONTRACT_IDS = (
+    *WORKFLOW_DISPATCH_CONTRACTS,
     *BACKEND_OPERATION_CONTRACT_IDS,
     *MIXED_BACKEND_CONTRACT_IDS,
     "backend-materialization-attestation-v1",

@@ -447,8 +447,8 @@ class TestNodeArchitectureTargetDomain:
     """SAT finite-domain capture for `nodes.architecture` (issue #674)."""
 
     def test_architecture_address_captures_canonical_vocabulary(self):
-        from raes_contracts.satisfiability import ConstraintSort, ConstraintSymbolModel
         from raes_processor.satisfiability._translation import _target_domain
+        from raes_processor.satisfiability.evidence import ConstraintSort, ConstraintSymbolModel
 
         symbol = ConstraintSymbolModel(
             symbol_id="symbol.web-arch",
@@ -464,7 +464,7 @@ class TestRealizerConfigurationArchitecture:
     """`RealizerConfigurationModel.architecture` is a governed canonical term (issue #674)."""
 
     def _config(self, architecture: str):
-        from raes_contracts.realization_envelope_carrier import RealizerConfigurationModel
+        from raes_contracts.realization_envelope import RealizerConfigurationModel
 
         return RealizerConfigurationModel(
             mode="techvault-appliance",

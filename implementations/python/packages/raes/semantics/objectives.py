@@ -6,7 +6,7 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 from enum import Enum
 
-from .._identifiers import QualifiedName
+from raes_contracts.identifiers import QualifiedName
 
 
 class ObjectiveWindowReferenceKind(str, Enum):

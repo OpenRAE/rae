@@ -1,10 +1,5 @@
 {
   "contract_id": "inject-occurrence-v1",
   "schema_path": "contracts/schemas/control-plane/inject-occurrence-v1.json",
-  "stability": "draft",
-  "content_hash": "9bbf0023fa9201cba2c0c5274eb509fabf87da68d03cfd84694d1b54ce86b22c",
-  "last_change": {
-    "content_hash": "9bbf0023fa9201cba2c0c5274eb509fabf87da68d03cfd84694d1b54ce86b22c",
-    "summary": "Remove the Python validator paths from the semantic invariants (#1776)."
-  }
+  "stability": "draft"
 }

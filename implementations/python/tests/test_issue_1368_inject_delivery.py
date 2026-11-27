@@ -372,6 +372,14 @@ def test_transformation_cannot_replace_the_authored_delivery_coordinates(tmp_pat
         assert backend.starts == 1
 
 
+@pytest.fixture
+def held_observation_clock(monkeypatch):
+    # The runtime drops the capture when its wall-clock observation window elapses.
+    # A held clock keeps a slow or loaded host from closing that window during these tests.
+    monkeypatch.setattr("raes_runtime.inject_outcomes.monotonic", lambda: 1024.0)
+
+
+@pytest.mark.usefixtures("held_observation_clock")
 @pytest.mark.parametrize("available", [False, True])
 def test_optional_capture_unavailability_or_failure_does_not_veto_world_or_delivery(tmp_path, available):
     from participant_inject_runtime_fixtures import caller, configured_plane
@@ -395,6 +403,7 @@ def test_optional_capture_unavailability_or_failure_does_not_veto_world_or_deliv
         assert backend.starts == 1
 
 
+@pytest.mark.usefixtures("held_observation_clock")
 def test_optional_capture_failure_cannot_discard_successful_mandatory_capture(tmp_path):
     from participant_inject_runtime_fixtures import caller, configured_plane
 

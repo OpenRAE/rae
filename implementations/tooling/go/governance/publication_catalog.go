@@ -33,7 +33,7 @@ func publicationCatalog(r *repository) (*mapping, error) {
 	if raw.get("schema_version") == "schema-publication-manifest/v1" {
 		return raw, nil
 	}
-	if raw.size() != 4 || !raw.has("schema_version") || !raw.has("hash_algorithm") || !raw.has("entries_directory") || !raw.has("tombstones_directory") {
+	if raw.size() != 3 || !raw.has("schema_version") || !raw.has("entries_directory") || !raw.has("tombstones_directory") {
 		return nil, policyInputError("schema publication manifest has invalid fields")
 	}
 	entries, entryErr := publicationRecords(r, raw.get("entries_directory"), publicationEntries, false)
@@ -49,7 +49,6 @@ func publicationCatalog(r *repository) (*mapping, error) {
 	}
 	result := newMapping()
 	result.set("schema_version", raw.get("schema_version"))
-	result.set("hash_algorithm", raw.get("hash_algorithm"))
 	result.set("schemas", entries)
 	result.set("removed_schemas", tombstones)
 	return result, nil

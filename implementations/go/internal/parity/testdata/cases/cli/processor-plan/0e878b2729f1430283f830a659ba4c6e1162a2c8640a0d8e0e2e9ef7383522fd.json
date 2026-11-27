@@ -82,14 +82,14 @@
               "provision.network.lab"
             ],
             "payload": {
-              "architecture": "",
+              "architecture": null,
               "count": 1,
               "domain_topology": null,
               "name": "workload",
               "network_namespace_target": "",
               "node_kind": "compute",
               "node_name": "workload",
-              "os_distribution": "",
+              "os_distribution": null,
               "os_family": "",
               "os_version": "",
               "spec": {

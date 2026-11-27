@@ -87,6 +87,9 @@ def require_delivery_control(
     delivery: ParticipantInjectDeliveryRuntime,
     expected_order: int,
     identity: ControlPlaneIdentity,
+    *,
+    live_cut: ParticipantControlLiveCut | None = None,
+    request_ref: str | None = None,
 ) -> None:
     if delivery.delivery_kind == "disclosure":
         if application.control is not None:
@@ -108,9 +111,9 @@ def require_delivery_control(
     _require_accepted_event(application, delivery, event, folded)
     _require_policy_binding(delivery, event, folded)
     required_evidence = _require_controller_evidence(application, delivery, event, identity)
-    cut = _resolve_live_cut(plane, policy, application)
+    cut = _resolve_live_cut(plane, policy, application) if live_cut is None else live_cut
     current = policy.state(folded.state.state_ref)
-    _require_current_validity(application, event, current, cut, expected_order)
+    _require_current_validity(application, event, current, cut, expected_order, request_ref=request_ref)
     _require_active_grants(event, current, cut, required_evidence)
 
 
@@ -209,10 +212,12 @@ def _require_current_validity(
     current: object,
     cut: ParticipantControlLiveCut,
     expected_order: int,
+    *,
+    request_ref: str | None = None,
 ) -> None:
     detail = event.occurrence
     if (
-        cut.request_ref != application.request_key
+        cut.request_ref != (application.request_key if request_ref is None else request_ref)
         or cut.effective_order != expected_order
         or cut.effective_order < detail.effective_order
         or not detail.valid_from_order <= cut.effective_order <= detail.valid_until_order

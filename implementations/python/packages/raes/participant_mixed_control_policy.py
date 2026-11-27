@@ -14,10 +14,8 @@ from __future__ import annotations
 from typing import Annotated, Any, Literal
 
 from pydantic import ConfigDict, Field, StrictInt, field_validator, model_validator
-
-from ._base import SDLModel
-from ._identifiers import PortableIdentifier, portable_identifier_map_schema
-from .participant_mixed_control_vocabulary import (
+from raes_contracts.identifiers import PortableIdentifier, portable_identifier_map_schema
+from raes_contracts.participant_mixed_control_vocabulary import (
     MIXED_CONTROL_COORDINATE_LIMIT,
     MixedControlControllerState,
     MixedControlDispositionRules,
@@ -26,6 +24,7 @@ from .participant_mixed_control_vocabulary import (
     ParticipantControlTargetKind,
     omit_property_titles,
 )
+from raes_contracts.sdl_model import SDLModel
 
 MIXED_CONTROL_POLICY_SEMANTICS = "mixed-control-policy-occurrence/rev1"
 MixedControlCoordinate = Annotated[StrictInt, Field(ge=0, le=MIXED_CONTROL_COORDINATE_LIMIT)]

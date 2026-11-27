@@ -329,6 +329,7 @@ _SATISFIABILITY_CONTROL_OUTCOMES = {
 # metadata cannot rebind these frozen shapes or evidence records.
 _ARCHIVAL_MANIFEST_SHA256 = "2c99aa95a6429ba9ec31eb2b34f312f0fa7cd8df4a17084eb7782a5ba7ba0560"
 _ARCHIVAL_MANIFEST_V2_SHA256 = "b8a83a91bc50a4f1af8ebb214f3c2a38ec636e2a84fdd9d7440c0a3070285ecf"
+_ARCHIVAL_MANIFEST_V3_SHA256 = "81c039d57d7263cf35ab208caadf906db2f63d3a4eddb0e2aa944cee13401fac"
 _RETAINED_PRODUCTION_EVIDENCE_DIGESTS = frozenset(
     {
         "sha256:03925bfe0b209c3c77069c97061aa63e8795389be7ed7b78376020b7dc87853c",  # finite-domain-satisfiable-v2.json
@@ -346,5 +347,9 @@ _RETAINED_PRODUCTION_EVIDENCE_DIGESTS = frozenset(
         "sha256:0683b55cd2a52ba626bb5cfbf10de109798d8d31ba467aabd13d4930df204798",  # typed-exploit-path-valid-v2.json
         "sha256:1c0fc5c8ecadc14e14b8993b4a3b59562a64bc35ef7dbf64f43ff7df9b5da472",  # typed-exploit-path-valid-v3.json
         "sha256:2d4d1a362751abd9544beb8af7f8c6331d04dac8f4abc315fb261f81fbaf4387",  # typed-exploit-path-valid-v4.json
+        # Satisfiability evidence v2 retained by capture
+        # 79da43a654967a598cdfb403ad8cf4020db5a05cede641ad288be886697043a7.
+        "sha256:80c5cc78c7ea1b5b0d14bc79fcf902e690641fd703b810e619e14e77de787739",
+        "sha256:5ec3fbdbbbdfa06eec8d879dcae1cf33c51be8928099c5d7eca76df2a48ba783",
     }
 )

@@ -15,6 +15,7 @@ from collections.abc import Buffer
 from typing import Final, Protocol
 
 __all__ = (
+    "SHA256_DIGEST_PATTERN",
     "SHA256_PREFIX",
     "Sha256Hasher",
     "sha256_bytes",
@@ -25,6 +26,7 @@ __all__ = (
 
 #: Algorithm label of a prefixed digest such as ``sha256:<64 lowercase hex digits>``.
 SHA256_PREFIX: Final = "sha256:"
+SHA256_DIGEST_PATTERN: Final = r"^sha256:[a-f0-9]{64}$"
 
 
 class Sha256Hasher(Protocol):

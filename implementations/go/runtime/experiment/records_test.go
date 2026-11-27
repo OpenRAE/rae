@@ -18,9 +18,8 @@ type recordReferenceCase struct {
 	Run          json.RawMessage   `json:"run"`
 }
 type recordReference struct {
-	EntryID    string                `json:"entry_id"`
-	Commitment string                `json:"commitment"`
-	Cases      []recordReferenceCase `json:"cases"`
+	EntryID string                `json:"entry_id"`
+	Cases   []recordReferenceCase `json:"cases"`
 }
 
 func recordReferences(t *testing.T) recordReference {

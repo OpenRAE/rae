@@ -1,10 +1,5 @@
 {
   "contract_id": "participant-flow-control-relation-v1",
   "schema_path": "contracts/schemas/participant-runtime/participant-flow-control-relation-v1.json",
-  "stability": "draft",
-  "content_hash": "eac045ab97463ec20a70c3cc4107a25108bd951fac45755aab5f5555d3501d19",
-  "last_change": {
-    "content_hash": "eac045ab97463ec20a70c3cc4107a25108bd951fac45755aab5f5555d3501d19",
-    "summary": "Remove the Python validator paths from the semantic invariants (#1776)."
-  }
+  "stability": "draft"
 }

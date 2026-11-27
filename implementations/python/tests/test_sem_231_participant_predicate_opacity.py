@@ -5,13 +5,13 @@ from __future__ import annotations
 from copy import deepcopy
 
 import pytest
+from raes_contracts.behavioral_claims import BehavioralClaimBindingModel
 from raes_contracts.behavioral_relations import (
     RelationAssuranceModel,
     load_behavioral_relation_catalog,
     load_behavioral_relation_catalog_revision,
     validate_behavioral_claim_binding,
 )
-from raes_contracts.contracts import BehavioralClaimBindingModel
 
 
 def _opacity_binding(**overrides: object) -> BehavioralClaimBindingModel:

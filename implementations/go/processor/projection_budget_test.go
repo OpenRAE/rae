@@ -12,7 +12,7 @@ import (
 func TestCompiledProjectionConsumesOneAggregateBudget(t *testing.T) {
 	payload := json.RawMessage(`{"value":"` + strings.Repeat("x", 750000) + `"}`)
 	model := CompiledScenario{Name: "aggregate", Resources: []Resource{}}
-	for i := range 12 {
+	for i := range 24 {
 		model.Resources = append(model.Resources, Resource{Address: "provision.node.host" + strings.Repeat("x", i), Kind: termNode, Payload: ResourcePayload{data: payload}})
 	}
 	raw, err := compiledProjection(model)

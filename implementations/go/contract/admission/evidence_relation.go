@@ -106,7 +106,9 @@ func refinementDimension(dimension string, base, scoped any) (bool, error) {
 		if integrity := stringAt(base, "integrity"); integrity != postureNone && integrity != "" {
 			left[integrity] = true
 		}
+		// An explicit lack of an integrity requirement is not a stricter mode.
 		right = set(at(scoped, "integrity_requirements"))
+		delete(right, postureNone)
 	case "loss-disclosure":
 		required := stringAt(base, "loss_disclosure") == requirementRequired
 		provided := boolean(at(scoped, "loss_disclosure_required"))

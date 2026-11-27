@@ -1,10 +1,10 @@
 // Command archcheck checks the repository's Go code against the architecture
-// model in implementations/architecture.json (ADR-122).
+// model in implementations/architecture.json (ADR-124).
 //
 // Run it from the repository root. With -design, it checks only the model:
 // the design step runs it after a change declares its new or changed packages
 // in the model and before the change writes their code. Without -design, it
-// also checks the code and the rule table of ADR-122.
+// also checks the code and the rule table of ADR-124.
 //
 //	archcheck [-design]
 package main
@@ -25,7 +25,7 @@ import (
 // The repository paths of the model and of the ADR that states the rules.
 const (
 	modelPath = "implementations/architecture.json"
-	rulesPath = "docs/decisions/adrs/adr-122-go-architecture-model.md"
+	rulesPath = "docs/decisions/adrs/adr-124-go-architecture-model.md"
 )
 
 func main() {

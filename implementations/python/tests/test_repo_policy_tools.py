@@ -69,7 +69,6 @@ from tools.check_generated_schemas import _extra_published_schema_paths
 from tools.check_json_artifacts import ValidationTarget, collect_validation_targets, should_run_full_validation
 from tools.check_schema_publication import (
     load_schema_publication_catalog,
-    schema_content_hash,
     validate_schema_publication_manifest,
 )
 from tools.gitleaks_tool import gitleaks_binary_path
@@ -647,17 +646,12 @@ def test_completion_uses_targeted_feedback(monkeypatch: pytest.MonkeyPatch) -> N
     assert calls == [["--base-rev", "base"]]
 
 
-@pytest.mark.parametrize(
-    "posargs,entrypoint",
-    [([], "replay"), (["--publish"], "implementations.formal.participant_crossing.machine_check_publication")],
-)
-def test_machine_check_session_dispatches_declared_modes(monkeypatch, posargs, entrypoint) -> None:
+def test_machine_check_session_runs_the_live_check(monkeypatch) -> None:
     noxfile = load_noxfile_with_fake_nox(monkeypatch)
     calls = []
     messages = []
-    session = types.SimpleNamespace(
-        posargs=posargs, run=lambda *args, **kwargs: calls.append(args), log=messages.append
-    )
+    entrypoint = "check"
+    session = types.SimpleNamespace(posargs=[], run=lambda *args, **kwargs: calls.append(args), log=messages.append)
 
     noxfile.participant_crossing_machine_check(session)
 
@@ -667,7 +661,7 @@ def test_machine_check_session_dispatches_declared_modes(monkeypatch, posargs, e
     assert any("PASS" in message for message in messages)
 
 
-@pytest.mark.parametrize("posargs", [["--unknown"], ["--publish", "extra"]])
+@pytest.mark.parametrize("posargs", [["--unknown"], ["--publish"]])
 def test_machine_check_session_rejects_extra_arguments_before_execution(monkeypatch, posargs) -> None:
     noxfile = load_noxfile_with_fake_nox(monkeypatch)
     messages = []
@@ -681,7 +675,7 @@ def test_machine_check_session_rejects_extra_arguments_before_execution(monkeypa
         error=refuse,
         log=messages.append,
     )
-    with pytest.raises(InvalidInputError, match="Use no arguments"):
+    with pytest.raises(InvalidInputError, match="takes no arguments"):
         noxfile.participant_crossing_machine_check(session)
     assert any("SKIP no stages executed" in message for message in messages)
 
@@ -886,10 +880,14 @@ def test_python_compatibility_graph_builds_and_checks_clean_distribution(
         "python compatibility / direct wheel metadata and imports",
         "python compatibility / direct wheel CLI version",
         "python compatibility / direct wheel CLI help",
+        "python compatibility / direct wheel assigned trial inputs",
+        "python compatibility / direct wheel assigned trial processes",
         "python compatibility / install sdist-built wheel",
         "python compatibility / sdist-built wheel metadata and imports",
         "python compatibility / sdist-built wheel CLI version",
         "python compatibility / sdist-built wheel CLI help",
+        "python compatibility / sdist-built wheel assigned trial inputs",
+        "python compatibility / sdist-built wheel assigned trial processes",
     ]
     assert len(sync_calls) == 1
     assert pytest_calls == [("-q",)]
@@ -910,6 +908,17 @@ def test_python_compatibility_graph_builds_and_checks_clean_distribution(
     install_command = next(command for command in commands if "tools.python_closure" in command and "smoke" in command)
     assert "--offline" in install_command
     assert "--wheelhouse" in install_command
+    assigned = [
+        command for command in commands if any(arg.endswith("installed_assigned_trial_consumer.py") for arg in command)
+    ]
+    assert len(assigned) == 2
+    assert all("-I" in command and command[-1].endswith("assigned-trial-inputs.json") for command in assigned)
+    generated = [
+        command for command in commands if any(arg.endswith("tests/assigned_trial_inputs.py") for arg in command)
+    ]
+    assert [command[0] for command in generated] == [command[0] for command in assigned]
+    assert all("-I" not in command for command in generated)
+    assert [Path(command[-1]).parent for command in assigned] == [Path(command[-1]) for command in generated]
 
 
 def test_python_compatibility_smoke_omits_redundant_hermetic_suite(
@@ -1143,6 +1152,8 @@ def test_docs_graph_uses_curated_root_and_reader_style_gate(
     fake_vale = tmp_path / "vale"
     fake_vale.write_text("", encoding="utf-8")
     monkeypatch.setattr(nox_test_lanes, "ensure_vale", lambda _repo_root: fake_vale)
+    monkeypatch.setattr(nox_test_lanes, "ensure_doc_tools", lambda _repo_root: tmp_path / "doc-tools")
+    monkeypatch.setattr(nox_test_lanes, "sync_doc_tools_styles", lambda *_args: None)
     monkeypatch.setattr(nox_test_lanes, "REPO_ROOT", tmp_path)
     monkeypatch.setattr(nox_test_lanes, "PROJECT_ROOT", tmp_path / "implementations" / "python")
     public_root = tmp_path / "docs" / "public"
@@ -1170,17 +1181,16 @@ def test_docs_graph_uses_curated_root_and_reader_style_gate(
     assert len(sphinx_commands) == 2
     assert all(str(public_root) in command for command in sphinx_commands)
     assert all("-W" in command and "--keep-going" in command for command in sphinx_commands)
-    vale_command = next(command for command in commands if command and command[0] == str(fake_vale))
+    vale_command = next(command for command in commands if str(fake_vale) in command)
+    assert vale_command[:6] == ("uv", "run", "--project", str(nox_test_lanes.PROJECT_ROOT), "--frozen", str(fake_vale))
     assert "--config=.vale.ini" in vale_command
+    assert "--glob=*.{md,rst}" in vale_command
     assert "README.md" in vale_command
     assert str(public_root) in vale_command
     pytest_command = next(command for command in commands if "pytest" in command)
+    assert "implementations/python/tests/test_public_guide_examples.py" in pytest_command
     assert (
         "implementations/python/tests/test_public_docs_policy.py::test_checked_in_quickstart_scenario_parses"
-        in pytest_command
-    )
-    assert (
-        "implementations/python/tests/test_public_docs_policy.py::test_readme_quickstart_matches_checked_in_scenario"
         in pytest_command
     )
 
@@ -1201,6 +1211,8 @@ def test_local_docs_graph_excludes_external_link_check(
     fake_vale = tmp_path / "vale"
     fake_vale.write_text("", encoding="utf-8")
     monkeypatch.setattr(nox_test_lanes, "ensure_vale", lambda _repo_root: fake_vale)
+    monkeypatch.setattr(nox_test_lanes, "ensure_doc_tools", lambda _repo_root: tmp_path / "doc-tools")
+    monkeypatch.setattr(nox_test_lanes, "sync_doc_tools_styles", lambda *_args: None)
     monkeypatch.setattr(nox_test_lanes, "REPO_ROOT", tmp_path)
     monkeypatch.setattr(nox_test_lanes, "PROJECT_ROOT", tmp_path / "implementations" / "python")
     monkeypatch.setattr(nox_test_lanes, "PUBLIC_DOCS_ROOT", tmp_path / "docs" / "public")
@@ -1281,6 +1293,7 @@ def setup_policy_repo(tmp_path: Path) -> Path:
         "raes_cli",
         "raes_mcp",
         "raes_contracts",
+        "raes_schemas",
     ):
         write_text(
             tmp_path / "implementations" / "python" / "packages" / package / "__init__.py",
@@ -1366,7 +1379,7 @@ def test_structural_policy_runner_receives_policy_input(tmp_path: Path) -> None:
 
     assert captured["changed"] == ["contracts/schemas/backend-manifest/schema.json"]
     assert captured["check_set"] == "full"
-    assert "generated_contracts" in captured["policy"]
+    assert "concept_authority" in captured["policy"]
     assert [failure.rule_id for failure in failures] == ["structural-check"]
 
 
@@ -1979,7 +1992,7 @@ def test_malformed_policy_config_produces_structured_failure(tmp_path: Path, mut
     repo_root = setup_policy_repo(tmp_path)
     # Replace the whole adr_policy.yaml with a minimal-but-malformed config.
     # Keep the keys other parts of the policy need (adr_index, source_roots,
-    # generated_contracts, concept_authority) by
+    # concept_authority) by
     # appending the mutation onto the real config.
     base = (REPO_ROOT / "tools" / "policy" / "adr_policy.yaml").read_text()
     # Drop the real layering_rules / oversized_source_files blocks so the
@@ -2295,15 +2308,10 @@ def write_schema_publication_manifest(
         normalized_entry = dict(entry)
         if fill_defaults:
             normalized_entry.setdefault("stability", "draft")
-            schema_path = normalized_entry.get("schema_path")
-            if "content_hash" not in normalized_entry and isinstance(schema_path, str):
-                path = repo_root / schema_path
-                normalized_entry["content_hash"] = schema_content_hash(path) if path.is_file() else "0" * 64
         normalized.append(normalized_entry)
 
     document: dict[str, Any] = {
         "schema_version": "schema-publication-manifest/v1",
-        "hash_algorithm": "sha256",
         "schemas": normalized,
     }
     if removed_schemas is not None:
@@ -2358,7 +2366,7 @@ def test_schema_publication_manifest_accepts_complete_current_schema_inventory(t
     assert validate_schema_publication_manifest(repo_root) == []
 
 
-def test_schema_publication_manifest_requires_stability_and_content_hash(tmp_path: Path) -> None:
+def test_schema_publication_manifest_requires_stability(tmp_path: Path) -> None:
     repo_root = tmp_path
     write_text(repo_root / "contracts" / "schemas" / "sdl" / "sdl-authoring-input-v1.json", "{}\n")
     write_schema_publication_manifest(
@@ -2374,7 +2382,6 @@ def test_schema_publication_manifest_requires_stability_and_content_hash(tmp_pat
 
     assert validate_schema_publication_manifest(repo_root) == [
         "schema manifest entry sdl-authoring-input-v1 stability must be one of: draft, stable",
-        "schema manifest entry sdl-authoring-input-v1 content_hash must be a 64-character sha256 hex digest",
     ]
 
 
@@ -2433,7 +2440,7 @@ def test_schema_publication_manifest_rejects_resolved_schema_path_escape(tmp_pat
     ]
 
 
-def test_schema_publication_manifest_allows_recorded_draft_schema_churn(tmp_path: Path) -> None:
+def test_schema_publication_manifest_allows_draft_schema_churn_without_a_record_edit(tmp_path: Path) -> None:
     repo_root = tmp_path
     schema_path = repo_root / "contracts" / "schemas" / "sdl" / "draft-contract-v1.json"
     write_text(schema_path, _published_schema({"name": {"type": "string"}}))
@@ -2458,10 +2465,6 @@ def test_schema_publication_manifest_allows_recorded_draft_schema_churn(tmp_path
                 "contract_id": "draft-contract-v1",
                 "schema_path": "contracts/schemas/sdl/draft-contract-v1.json",
                 "stability": "draft",
-                "last_change": {
-                    "summary": "Retype name to integer for the draft contract.",
-                    "content_hash": schema_content_hash(schema_path),
-                },
             },
         ],
     )
@@ -2497,10 +2500,6 @@ def test_schema_publication_manifest_allows_stable_additive_schema_change(tmp_pa
                 "contract_id": "stable-contract-v1",
                 "schema_path": "contracts/schemas/sdl/stable-contract-v1.json",
                 "stability": "stable",
-                "last_change": {
-                    "summary": "Add optional display_name property.",
-                    "content_hash": schema_content_hash(schema_path),
-                },
             },
         ],
     )
@@ -2536,10 +2535,6 @@ def test_schema_publication_manifest_allows_stable_enum_addition(tmp_path: Path)
                 "contract_id": "stable-contract-v1",
                 "schema_path": "contracts/schemas/sdl/stable-contract-v1.json",
                 "stability": "stable",
-                "last_change": {
-                    "summary": "Add enum value beta to kind.",
-                    "content_hash": schema_content_hash(schema_path),
-                },
             },
         ],
     )
@@ -2580,10 +2575,6 @@ def test_schema_publication_manifest_rejects_stable_default_change_without_versi
                 "contract_id": "stable-contract-v1",
                 "schema_path": "contracts/schemas/sdl/stable-contract-v1.json",
                 "stability": "stable",
-                "last_change": {
-                    "summary": "Change default value of name.",
-                    "content_hash": schema_content_hash(schema_path),
-                },
             },
         ],
     )
@@ -2620,10 +2611,6 @@ def test_schema_publication_manifest_rejects_stable_breaking_schema_change_witho
                 "contract_id": "stable-contract-v1",
                 "schema_path": "contracts/schemas/sdl/stable-contract-v1.json",
                 "stability": "stable",
-                "last_change": {
-                    "summary": "Retype name to integer.",
-                    "content_hash": schema_content_hash(schema_path),
-                },
             },
         ],
     )
@@ -2670,7 +2657,6 @@ def test_schema_publication_manifest_rejects_missing_base_schema_for_stable_sche
                 "contract_id": "stable-contract-v1",
                 "schema_path": "contracts/schemas/sdl/stable-contract-v1.json",
                 "stability": "stable",
-                "content_hash": "0" * 64,
             },
         ],
         fill_defaults=False,
@@ -2687,10 +2673,6 @@ def test_schema_publication_manifest_rejects_missing_base_schema_for_stable_sche
                 "contract_id": "stable-contract-v1",
                 "schema_path": "contracts/schemas/sdl/stable-contract-v1.json",
                 "stability": "stable",
-                "last_change": {
-                    "summary": "Publish the stable contract.",
-                    "content_hash": schema_content_hash(schema_path),
-                },
             },
         ],
     )
@@ -2700,7 +2682,14 @@ def test_schema_publication_manifest_rejects_missing_base_schema_for_stable_sche
     ]
 
 
-def test_schema_publication_manifest_accepts_valid_last_change_ledger(tmp_path: Path) -> None:
+@pytest.mark.parametrize(
+    "retired",
+    [
+        {"content_hash": "0" * 64},
+        {"last_change": {"summary": "Initial draft.", "content_hash": "0" * 64}},
+    ],
+)
+def test_schema_publication_manifest_rejects_retired_record_keys(tmp_path: Path, retired: dict[str, Any]) -> None:
     repo_root = tmp_path
     schema_path = repo_root / "contracts" / "schemas" / "sdl" / "draft-contract-v1.json"
     write_text(schema_path, _published_schema({"name": {"type": "string"}}))
@@ -2711,15 +2700,15 @@ def test_schema_publication_manifest_accepts_valid_last_change_ledger(tmp_path: 
                 "contract_id": "draft-contract-v1",
                 "schema_path": "contracts/schemas/sdl/draft-contract-v1.json",
                 "stability": "draft",
-                "last_change": {
-                    "summary": "Initial draft of the authoring contract.",
-                    "content_hash": schema_content_hash(schema_path),
-                },
+                **retired,
             },
         ],
     )
 
-    assert validate_schema_publication_manifest(repo_root) == []
+    key = next(iter(retired))
+    assert validate_schema_publication_manifest(repo_root) == [
+        f"schema manifest entry draft-contract-v1 must not record {key}; git holds schema history"
+    ]
 
 
 def test_schema_publication_manifest_accepts_independent_v2_records(tmp_path: Path) -> None:
@@ -2728,13 +2717,11 @@ def test_schema_publication_manifest_accepts_independent_v2_records(tmp_path: Pa
     repo_root = tmp_path
     schema_path = repo_root / "contracts" / "schemas" / "sdl" / "draft-contract-v1.json"
     write_text(schema_path, _published_schema({"name": {"type": "string"}}))
-    digest = schema_content_hash(schema_path)
     write_text(
         repo_root / "contracts" / "schema-publication-manifest.json",
         json.dumps(
             {
                 "schema_version": "schema-publication-manifest/v2",
-                "hash_algorithm": "sha256",
                 "entries_directory": "contracts/schema-publication/entries",
                 "tombstones_directory": "contracts/schema-publication/tombstones",
             }
@@ -2748,8 +2735,6 @@ def test_schema_publication_manifest_accepts_independent_v2_records(tmp_path: Pa
                 "contract_id": "draft-contract-v1",
                 "schema_path": "contracts/schemas/sdl/draft-contract-v1.json",
                 "stability": "draft",
-                "content_hash": digest,
-                "last_change": {"summary": "Initial publication.", "content_hash": digest},
             }
         )
         + "\n",
@@ -2799,13 +2784,11 @@ def test_schema_publication_manifest_accepts_coverage_metadata_in_both_storage_f
     sharded_root = tmp_path / "sharded"
     sharded_schema = sharded_root / "contracts" / "schemas" / "sdl" / "draft-contract-v1.json"
     write_text(sharded_schema, _published_schema({"name": {"type": "string"}}))
-    digest = schema_content_hash(sharded_schema)
     write_text(
         sharded_root / "contracts" / "schema-publication-manifest.json",
         json.dumps(
             {
                 "schema_version": "schema-publication-manifest/v2",
-                "hash_algorithm": "sha256",
                 "entries_directory": "contracts/schema-publication/entries",
                 "tombstones_directory": "contracts/schema-publication/tombstones",
             }
@@ -2819,7 +2802,6 @@ def test_schema_publication_manifest_accepts_coverage_metadata_in_both_storage_f
                 "contract_id": "draft-contract-v1",
                 "schema_path": "contracts/schemas/sdl/draft-contract-v1.json",
                 "stability": "draft",
-                "content_hash": digest,
                 "coverage": coverage,
             }
         )
@@ -2831,108 +2813,43 @@ def test_schema_publication_manifest_accepts_coverage_metadata_in_both_storage_f
     assert load_schema_publication_catalog(sharded_root)["schemas"][0]["coverage"] == coverage
 
 
-def test_schema_publication_manifest_rejects_last_change_without_summary(tmp_path: Path) -> None:
+def test_schema_publication_manifest_rejects_a_retired_manifest_hash_algorithm(tmp_path: Path) -> None:
+    import json
+
     repo_root = tmp_path
-    schema_path = repo_root / "contracts" / "schemas" / "sdl" / "draft-contract-v1.json"
-    write_text(schema_path, _published_schema({"name": {"type": "string"}}))
+    write_text(repo_root / "contracts" / "schemas" / "sdl" / "draft-contract-v1.json", "{}\n")
     write_schema_publication_manifest(
         repo_root,
-        [
-            {
-                "contract_id": "draft-contract-v1",
-                "schema_path": "contracts/schemas/sdl/draft-contract-v1.json",
-                "stability": "draft",
-                "last_change": {"content_hash": schema_content_hash(schema_path)},
-            },
-        ],
+        [{"contract_id": "draft-contract-v1", "schema_path": "contracts/schemas/sdl/draft-contract-v1.json"}],
     )
+    manifest = repo_root / "contracts" / "schema-publication-manifest.json"
+    manifest.write_text(json.dumps({**json.loads(manifest.read_text()), "hash_algorithm": "sha256"}) + "\n")
 
-    failures = validate_schema_publication_manifest(repo_root)
-    assert any("last_change.summary" in failure for failure in failures)
-
-
-def test_schema_publication_manifest_rejects_last_change_hash_mismatch(tmp_path: Path) -> None:
-    repo_root = tmp_path
-    schema_path = repo_root / "contracts" / "schemas" / "sdl" / "draft-contract-v1.json"
-    write_text(schema_path, _published_schema({"name": {"type": "string"}}))
-    write_schema_publication_manifest(
-        repo_root,
-        [
-            {
-                "contract_id": "draft-contract-v1",
-                "schema_path": "contracts/schemas/sdl/draft-contract-v1.json",
-                "stability": "draft",
-                "last_change": {"summary": "stale ledger entry", "content_hash": "0" * 64},
-            },
-        ],
-    )
-
-    failures = validate_schema_publication_manifest(repo_root)
-    assert any("last_change.content_hash" in failure and "does not match" in failure for failure in failures)
+    assert validate_schema_publication_manifest(repo_root) == [
+        "schema manifest must not record hash_algorithm; git holds schema history"
+    ]
 
 
-def test_schema_publication_manifest_requires_ledger_when_schema_changes(tmp_path: Path) -> None:
-    repo_root = tmp_path
-    schema_path = repo_root / "contracts" / "schemas" / "sdl" / "draft-contract-v1.json"
-    write_text(schema_path, _published_schema({"name": {"type": "string"}}))
-    write_schema_publication_manifest(
-        repo_root,
-        [
-            {
-                "contract_id": "draft-contract-v1",
-                "schema_path": "contracts/schemas/sdl/draft-contract-v1.json",
-                "stability": "draft",
-            },
-        ],
-    )
-    _init_git_repo(repo_root)
-    _git_commit_all(repo_root, "base")
-
-    # Schema content changes vs base, manifest hash bumps, but no contract-facing
-    # ledger entry records why — the process gate must reject this.
-    write_text(schema_path, _published_schema({"name": {"type": "integer"}}))
-    write_schema_publication_manifest(
-        repo_root,
-        [
-            {
-                "contract_id": "draft-contract-v1",
-                "schema_path": "contracts/schemas/sdl/draft-contract-v1.json",
-                "stability": "draft",
-            },
-        ],
-    )
-
-    failures = validate_schema_publication_manifest(repo_root, base_rev="HEAD")
-    assert any("contract-facing change description" in failure for failure in failures)
-
-
-def test_schema_publication_manifest_requires_ledger_for_new_schema(tmp_path: Path) -> None:
+def test_schema_publication_manifest_accepts_a_new_schema_with_only_its_record(tmp_path: Path) -> None:
     repo_root = tmp_path
     existing = repo_root / "contracts" / "schemas" / "sdl" / "existing-contract-v1.json"
     write_text(existing, _published_schema({"name": {"type": "string"}}))
-    write_schema_publication_manifest(
-        repo_root,
-        [
-            {
-                "contract_id": "existing-contract-v1",
-                "schema_path": "contracts/schemas/sdl/existing-contract-v1.json",
-                "stability": "draft",
-            },
-        ],
-    )
+    entries = [
+        {
+            "contract_id": "existing-contract-v1",
+            "schema_path": "contracts/schemas/sdl/existing-contract-v1.json",
+            "stability": "draft",
+        },
+    ]
+    write_schema_publication_manifest(repo_root, entries)
     _init_git_repo(repo_root)
     _git_commit_all(repo_root, "base")
 
-    new_schema = repo_root / "contracts" / "schemas" / "sdl" / "new-contract-v1.json"
-    write_text(new_schema, _published_schema({"id": {"type": "string"}}))
+    write_text(repo_root / "contracts" / "schemas" / "sdl" / "new-contract-v1.json", _published_schema({}))
     write_schema_publication_manifest(
         repo_root,
         [
-            {
-                "contract_id": "existing-contract-v1",
-                "schema_path": "contracts/schemas/sdl/existing-contract-v1.json",
-                "stability": "draft",
-            },
+            *entries,
             {
                 "contract_id": "new-contract-v1",
                 "schema_path": "contracts/schemas/sdl/new-contract-v1.json",
@@ -2941,11 +2858,10 @@ def test_schema_publication_manifest_requires_ledger_for_new_schema(tmp_path: Pa
         ],
     )
 
-    failures = validate_schema_publication_manifest(repo_root, base_rev="HEAD")
-    assert any("new-contract-v1" in failure and "contract-facing change description" in failure for failure in failures)
+    assert validate_schema_publication_manifest(repo_root, base_rev="HEAD") == []
 
 
-def test_schema_publication_manifest_unchanged_schema_needs_no_ledger(tmp_path: Path) -> None:
+def test_schema_publication_manifest_unchanged_schema_passes_against_base(tmp_path: Path) -> None:
     repo_root = tmp_path
     schema_path = repo_root / "contracts" / "schemas" / "sdl" / "draft-contract-v1.json"
     write_text(schema_path, _published_schema({"name": {"type": "string"}}))
@@ -2962,8 +2878,6 @@ def test_schema_publication_manifest_unchanged_schema_needs_no_ledger(tmp_path: 
     _init_git_repo(repo_root)
     _git_commit_all(repo_root, "base")
 
-    # No schema change vs base: an existing entry without a ledger stays valid,
-    # so the gate never forces backfilling ledgers onto unchanged schemas.
     assert validate_schema_publication_manifest(repo_root, base_rev="HEAD") == []
 
 
@@ -3007,8 +2921,8 @@ def test_schema_publication_manifest_requires_tombstone_for_removed_schema(tmp_p
     repo_root = tmp_path
     _seed_two_schema_repo(repo_root)
 
-    # Removing the file and its manifest entry without a tombstone bypasses the
-    # contract-facing ledger the gate requires for every other schema change.
+    # Removing the file and its manifest entry without a tombstone leaves no
+    # recorded reason for the removal.
     failures = validate_schema_publication_manifest(repo_root, base_rev="HEAD")
     assert any(
         "drop-contract-v1.json" in failure and "removed without a contract-facing removal description" in failure
@@ -3642,23 +3556,19 @@ def _make_adr(
     return text
 
 
-def _write_manifest(adr_dir: Path, entries: list[dict], *, algorithm: str = "sha256") -> None:
-    write_text(
-        adr_dir / "adr-index.yaml",
-        yaml.safe_dump({"hash_algorithm": algorithm, "adrs": entries}, sort_keys=False),
-    )
+def _write_manifest(adr_dir: Path, entries: list[dict], *, algorithm: str | None = None) -> None:
+    document: dict = {"adrs": entries}
+    if algorithm is not None:
+        document["hash_algorithm"] = algorithm
+    write_text(adr_dir / "adr-index.yaml", yaml.safe_dump(document, sort_keys=False))
 
 
 def _entry(number: str, text: str, *, pin_text: str | None = None, amendments: list[dict] | None = None) -> dict:
-    # ``pin_text`` lets a caller pin over content that is NOT byte-identical to the
-    # on-disk ADR (``text``). Recorded-amendment tests rely on this to pin over the
-    # *unamended* body so the gate only stays green if ``canonical_content`` truly
-    # strips the ``## Amendments`` section — pinning over the amended text would be
-    # tautological (both sides hashed from the same amended bytes).
+    # The manifest stores no content pin (issue #1929); ``text`` and ``pin_text`` stay for call-site stability.
+    del text, pin_text
     entry = {
         "id": f"ADR-{number}",
         "path": f"docs/decisions/adrs/adr-{number}-example.md",
-        "pin": content_hash(pin_text if pin_text is not None else text),
     }
     if amendments is not None:
         entry["amendments"] = amendments
@@ -3701,25 +3611,19 @@ def test_adr_pin_gate_passes_on_pinned_accepted_corpus(tmp_path: Path) -> None:
     assert evaluate_adr_immutability(tmp_path) == []
 
 
-def test_adr_pin_gate_flags_unrecorded_edit(tmp_path: Path) -> None:
+def test_adr_pin_gate_rejects_a_retired_content_pin(tmp_path: Path) -> None:
+    # The base-revision check detects an unrecorded edit, so a stored pin is a retired key (issue #1929).
     adr_dir = _adr_dir(tmp_path)
     original = _make_adr(adr_dir, "001")
-    _write_manifest(adr_dir, [_entry("001", original)])
-    # Edit the ADR body without updating the pin.
-    _make_adr(adr_dir, "001", body="\n## Context\n\nA substantively different body.\n")
+    _write_manifest(adr_dir, [{**_entry("001", original), "pin": content_hash(original)}])
 
     failures = evaluate_adr_immutability(tmp_path)
-    assert "adr-pin-stale" in _rule_ids(failures)
+    assert _rule_ids(failures) == ["adr-manifest-malformed"]
 
 
 def test_adr_pin_gate_accepts_recorded_amendment(tmp_path: Path) -> None:
     adr_dir = _adr_dir(tmp_path)
     text = _make_adr(adr_dir, "001", amendment_rows=[("2026-06-07", "abc1234", "added a field")])
-    # Pin over the *unamended* body. If canonical_content stops stripping the
-    # ## Amendments section, the on-disk (amended) hash diverges from this pin and
-    # the gate fires adr-pin-stale — so this assertion genuinely verifies the
-    # "amendment records never change the pin" invariant rather than tautologically
-    # hashing the same amended bytes on both sides.
     _write_manifest(
         adr_dir,
         [
@@ -3732,8 +3636,7 @@ def test_adr_pin_gate_accepts_recorded_amendment(tmp_path: Path) -> None:
         ],
     )
 
-    # The pin is over canonical content (amendments excluded), so the recorded
-    # amendment does not perturb it, and the manifest refs match the table 1:1.
+    # The manifest refs match the table 1:1.
     assert evaluate_adr_immutability(tmp_path) == []
 
 
@@ -3787,7 +3690,7 @@ def test_adr_pin_gate_rejects_unsafe_path(tmp_path: Path) -> None:
     adr_dir = _adr_dir(tmp_path)
     _write_manifest(
         adr_dir,
-        [{"id": "ADR-001", "path": "../outside-the-repo.md", "pin": "0" * 64}],
+        [{"id": "ADR-001", "path": "../outside-the-repo.md"}],
     )
 
     failures = evaluate_adr_immutability(tmp_path)
@@ -4044,7 +3947,7 @@ def test_a_defect_while_loading_the_adr_manifest_is_not_reported_as_invalid_yaml
 
     manifest = tmp_path / adr_gate.MANIFEST_PATH
     manifest.parent.mkdir(parents=True)
-    manifest.write_text("hash_algorithm: sha256\nadrs: []\n", encoding="utf-8")
+    manifest.write_text("adrs: []\n", encoding="utf-8")
 
     def defective(_path: Path) -> dict:
         raise TypeError("manifest loader defect")

@@ -16,17 +16,13 @@ from raes.runtime_inventory import runtime_inventory_collection_identity
 
 RUNTIME_NON_REALIZATION_FIELDS = frozenset({"description", "evidence_refs", "readiness"})
 
-# This adoption uses the existing portable reference identities. Other concern
-# families keep their negotiated comparison contract until explicitly migrated.
-_KEYED_INVENTORIES = frozenset(
-    {"runtime-datastore-services", "runtime-app-authorizations", "runtime-orchestration-authorities"}
-)
-
 
 def runtime_collection_identity(kind: str, pointer: str = "") -> tuple[str, ...]:
-    """Resolve a collection's canonical ID from its registered reference tree."""
-    if kind not in _KEYED_INVENTORIES:
-        return ()
+    """Resolve a collection's canonical ID from its registered reference tree.
+
+    Every registered runtime service family compares its members by identity, as
+    the exact projection does. A kind without a registered family has no identity.
+    """
     return runtime_inventory_collection_identity(kind.removeprefix("runtime-"), pointer)
 
 

@@ -1,0 +1,37 @@
+{
+  "args": [
+    "sdl",
+    "resolve",
+    "input/root.sdl.yaml"
+  ],
+  "command": "sdl resolve",
+  "files": {
+    "input/root.sdl.yaml": "sha256:14996d6233bd97896c04320c0fca80cfb0339721bf14cd3dfad986abe2842ae9",
+    "input/unit.sdl.yaml": "sha256:d92bcab51e971f1c1160c2e3719cc9df4300bfb6d1db680a19e00d2ed66df379"
+  },
+  "name": "regression/e4a554fbf1730ddf7373459e9d3a766a1ab78a66062c3726ec627e3f1b5689e7",
+  "result": {
+    "exit_code": 0,
+    "generated_files": {
+      "input/raes.lock.json": {
+        "imports": [
+          {
+            "content_digest": "sha256:d92bcab51e971f1c1160c2e3719cc9df4300bfb6d1db680a19e00d2ed66df379",
+            "export_hash": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+            "manifest_digest": "",
+            "module_id": "example/unit",
+            "module_version": "1.0.0",
+            "namespace": "u",
+            "requested_version": "*",
+            "resolved_source": "unit.sdl.yaml",
+            "signer_id": "",
+            "source": "local:unit.sdl.yaml"
+          }
+        ],
+        "schema_version": "raes-lock/v1"
+      }
+    },
+    "stdout": null
+  },
+  "surface": "cli"
+}

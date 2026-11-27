@@ -63,9 +63,11 @@
               "trial-cleanup-plan-v1",
               "trial-cleanup-receipt-v1",
               "workflow-history-event-stream-v1",
-              "workflow-result-envelope-v1"
+              "workflow-result-envelope-v1",
+              "workflow-step-dispatch-v1",
+              "workflow-step-response-v1"
             ],
-            "version": "10.2.0"
+            "version": "12.0.0"
           },
           "plan": {
             "diagnostic_count": 1,
@@ -193,9 +195,11 @@
             "trial-cleanup-plan-v1",
             "trial-cleanup-receipt-v1",
             "workflow-history-event-stream-v1",
-            "workflow-result-envelope-v1"
+            "workflow-result-envelope-v1",
+            "workflow-step-dispatch-v1",
+            "workflow-step-response-v1"
           ],
-          "version": "10.2.0"
+          "version": "12.0.0"
         },
         "plan": {
           "diagnostic_count": 1,

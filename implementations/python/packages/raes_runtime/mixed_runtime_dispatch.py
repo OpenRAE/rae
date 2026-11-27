@@ -10,8 +10,8 @@ from raes_contracts.contracts.mixed_runtime import (
     MixedCompositionRuntimeEventModel,
     MixedCompositionRuntimeStateModel,
 )
+from raes_contracts.contracts.participant_action_admission import ParticipantActionAdmissionRequest
 from raes_contracts.errors import AuthorizationError, ConflictError
-from raes_contracts.participant_binding import ParticipantActionAdmissionRequest
 from raes_contracts.runtime_state import ApplyResult, OperationReceipt, RuntimeSnapshot
 
 from .control_plane_security import ControlPlaneIdentity

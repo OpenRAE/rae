@@ -128,7 +128,7 @@ func behaviorSpecificationModel(v any) error {
 			return nil
 		}
 	}
-	for _, field := range []string{"behavior_mode", "autonomous_execution", "mixed_control", "realization_profile_ref"} {
+	for _, field := range []string{"behavior_mode", "autonomous_execution", "mixed_control", "realization_profile_ref", "episode_policy"} {
 		if at(v, field) != nil {
 			return nil
 		}

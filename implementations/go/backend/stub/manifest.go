@@ -147,7 +147,7 @@ func manifestEnvelope(document map[string]any) error {
 	if err != nil || owner.CheckPortable("realization-envelope-v1", raw, ingress.Limits{MaxBytes: 8 << 20, MaxDepth: 64}) != nil {
 		return invalid()
 	}
-	document["realization_envelope"] = map[string]any{"contract_id": envelope["contract_id"], "envelope_id": envelope["id"], "schema_version": envelope["schema_version"], "digest": envelope["digest"], termConfigurationDigest: object(envelope, "configuration")[termConfigurationDigest]}
+	document["realization_envelope"] = map[string]any{"contract_id": envelope["contract_id"], "envelope_id": envelope["id"], termSchemaVersion: envelope[termSchemaVersion], "digest": envelope["digest"], termConfigurationDigest: object(envelope, "configuration")[termConfigurationDigest]}
 	supports := array(document["realization_support"])
 	if len(supports) == 0 {
 		return invalid()

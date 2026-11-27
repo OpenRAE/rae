@@ -10,7 +10,7 @@ from raes_contracts.diagnostics import Diagnostic
 
 from raes_conformance.conformance.diagnostics import (
     _OBSERVABILITY_EVIDENCE_INVALID_DIAGNOSTIC_CODE,
-    _diagnostic,
+    conformance_diagnostic,
 )
 
 _PORTABLE_AUGMENTATION_CARRIER_KINDS = frozenset(
@@ -56,7 +56,7 @@ def _augmentation_conformance_diagnostics(run: ExperimentRunModel) -> list[Diagn
         address = f"experiment-run-v1.augmentation_disclosures.{disclosure.augmentation_id}"
         if not disclosure.affected_refs:
             diagnostics.append(
-                _diagnostic(
+                conformance_diagnostic(
                     _OBSERVABILITY_EVIDENCE_INVALID_DIAGNOSTIC_CODE,
                     f"{address}.affected_refs",
                     (
@@ -67,7 +67,7 @@ def _augmentation_conformance_diagnostics(run: ExperimentRunModel) -> list[Diagn
             )
         if not any(ref.ref_kind in _PORTABLE_AUGMENTATION_CARRIER_KINDS for ref in disclosure.carrier_refs):
             diagnostics.append(
-                _diagnostic(
+                conformance_diagnostic(
                     _OBSERVABILITY_EVIDENCE_INVALID_DIAGNOSTIC_CODE,
                     f"{address}.carrier_refs",
                     "augmentation disclosures must cite at least one portable carrier_ref",
@@ -75,7 +75,7 @@ def _augmentation_conformance_diagnostics(run: ExperimentRunModel) -> list[Diagn
             )
         if disclosure.purpose in {"evidence", "evaluation", "comparability"} and not disclosure.evidence_refs:
             diagnostics.append(
-                _diagnostic(
+                conformance_diagnostic(
                     _OBSERVABILITY_EVIDENCE_INVALID_DIAGNOSTIC_CODE,
                     f"{address}.evidence_refs",
                     f"{disclosure.purpose} augmentation disclosures must preserve supporting evidence_refs",
@@ -92,7 +92,7 @@ def _run_refinement_conformance_diagnostics(run: ExperimentRunModel) -> list[Dia
         address = f"experiment-run-v1.realized_form_disclosures.{disclosure.concern_id}"
         if disclosure.authored_ref is None:
             diagnostics.append(
-                _diagnostic(
+                conformance_diagnostic(
                     _OBSERVABILITY_EVIDENCE_INVALID_DIAGNOSTIC_CODE,
                     f"{address}.authored_ref",
                     (
@@ -103,7 +103,7 @@ def _run_refinement_conformance_diagnostics(run: ExperimentRunModel) -> list[Dia
             )
         if not disclosure.evidence_refs:
             diagnostics.append(
-                _diagnostic(
+                conformance_diagnostic(
                     _OBSERVABILITY_EVIDENCE_INVALID_DIAGNOSTIC_CODE,
                     f"{address}.evidence_refs",
                     "run-level evidence requirement refinements must preserve supporting evidence_refs",

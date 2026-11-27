@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from raes.identifiers import is_portable_identifier
+from raes_contracts.identifiers import is_portable_identifier
 
 if TYPE_CHECKING:
     from .difficulty_adaptation import DifficultyPolicyRegistryModel

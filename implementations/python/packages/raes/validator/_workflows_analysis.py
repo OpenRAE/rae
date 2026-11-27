@@ -3,9 +3,11 @@
 Part of the SemanticValidator mixin composition; see __init__.py.
 """
 
+from raes_contracts.graphs import stable_topological_order
+from raes_contracts.propositions import AssertionRole
+from raes_contracts.workflow.semantics import workflow_step_semantic_contract
+
 from ..orchestration import Workflow, WorkflowPredicate, WorkflowStep, WorkflowStepType
-from ..propositions import AssertionRole
-from ..semantics.workflow import workflow_step_semantic_contract
 from ._support import _AvailableStateContext, _CompensationState, _WorkflowBuildState
 
 
@@ -109,88 +111,20 @@ class _WorkflowAnalysisMixin:
             return None
         return target
 
-    def _all_paths_reach_join(
-        self,
-        node: str,
-        join: str,
-        graph: dict[str, list[str]],
-        *,
-        memo: dict[str, bool],
-        visiting: set[str],
-    ) -> bool:
-        if node == join:
-            return True
-        if node not in memo and node not in visiting:
-            visiting.add(node)
-            successors = graph.get(node, [])
-            memo[node] = bool(successors) and all(
-                self._all_paths_reach_join(successor, join, graph, memo=memo, visiting=visiting)
-                for successor in successors
-            )
-            visiting.discard(node)
-        return memo.get(node, False)
+    def _compute_available_step_states(self, ctx: _AvailableStateContext) -> None:
+        for step_name in stable_topological_order(ctx.predecessors, key=str):
+            step = ctx.workflow_steps[step_name]
+            if step_name == ctx.start:
+                result: set[str] = set()
+            elif step.type == WorkflowStepType.JOIN and ctx.join_targets.get(step_name):
+                result = self._join_available_state(step_name, ctx)
+            else:
+                result = self._incoming_available_state(step_name, ctx)
+            ctx.available_memo[step_name] = result
 
-    def _branch_guaranteed_states(
-        self,
-        node: str,
-        join: str,
-        graph: dict[str, list[str]],
-        workflow_steps: dict[str, WorkflowStep],
-        *,
-        memo: dict[tuple[str, str], set[str]],
-        visiting: set[tuple[str, str]],
-    ) -> set[str]:
-        if node == join:
-            return set()
-        key = (node, join)
-        if key not in memo and key not in visiting:
-            visiting.add(key)
-            memo[key] = self._branch_guaranteed_states_uncached(
-                node, join, graph, workflow_steps, memo=memo, visiting=visiting
-            )
-            visiting.discard(key)
-        return set(memo.get(key, set()))
-
-    def _branch_guaranteed_states_uncached(
-        self,
-        node: str,
-        join: str,
-        graph: dict[str, list[str]],
-        workflow_steps: dict[str, WorkflowStep],
-        *,
-        memo: dict[tuple[str, str], set[str]],
-        visiting: set[tuple[str, str]],
-    ) -> set[str]:
-        successors = graph.get(node, [])
-        guaranteed_after: set[str] = set()
-        if successors:
-            successor_sets: list[set[str]] = []
-            for successor in successors:
-                if successor == join:
-                    successor_sets.append(set())
-                    continue
-                if successor not in workflow_steps:
-                    continue
-                successor_sets.append(
-                    self._branch_guaranteed_states(
-                        successor,
-                        join,
-                        graph,
-                        workflow_steps,
-                        memo=memo,
-                        visiting=visiting,
-                    )
-                )
-            if successor_sets:
-                guaranteed_after = set.intersection(*successor_sets)
-        result = set(guaranteed_after)
-        step = workflow_steps[node]
-        if self._is_executable_workflow_step(step):
-            result.add(node)
-        return result
-
-    def _edge_available_state(self, step_name: str, successor: str, ctx: _AvailableStateContext) -> set[str]:
-        available = self._available_step_state_before(step_name, ctx)
+    @staticmethod
+    def _edge_available_state(step_name: str, successor: str, ctx: _AvailableStateContext) -> set[str]:
+        available = set(ctx.available_memo.get(step_name, ()))
         step = ctx.workflow_steps[step_name]
         if step.type in {
             WorkflowStepType.OBJECTIVE,
@@ -200,37 +134,16 @@ class _WorkflowAnalysisMixin:
             available.add(step_name)
         return available
 
-    def _available_step_state_before(self, step_name: str, ctx: _AvailableStateContext) -> set[str]:
-        if step_name in ctx.available_memo:
-            return set(ctx.available_memo[step_name])
-        if step_name in ctx.visiting:
-            return set()
-
-        ctx.visiting.add(step_name)
-        step = ctx.workflow_steps[step_name]
-        if step_name == ctx.start:
-            result: set[str] = set()
-        elif step.type == WorkflowStepType.JOIN and ctx.join_targets.get(step_name):
-            result = self._join_available_state(step_name, ctx)
-        else:
-            result = self._incoming_available_state(step_name, ctx)
-        ctx.visiting.remove(step_name)
-        ctx.available_memo[step_name] = set(result)
-        return result
-
-    def _join_available_state(self, step_name: str, ctx: _AvailableStateContext) -> set[str]:
+    @staticmethod
+    def _join_available_state(step_name: str, ctx: _AvailableStateContext) -> set[str]:
         owner = ctx.join_targets[step_name][0]
-        result = self._available_step_state_before(owner, ctx)
+        result = set(ctx.available_memo.get(owner, ()))
         result.add(owner)
         owner_step = ctx.workflow_steps[owner]
         for branch in owner_step.branches:
             if branch not in ctx.workflow_steps:
                 continue
-            result.update(
-                self._branch_guaranteed_states(
-                    branch, step_name, ctx.graph, ctx.workflow_steps, memo=ctx.branch_memo, visiting=set()
-                )
-            )
+            result.update(ctx.join_states[step_name].get(branch, ()))
         return result
 
     def _incoming_available_state(self, step_name: str, ctx: _AvailableStateContext) -> set[str]:

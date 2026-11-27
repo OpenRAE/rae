@@ -9,6 +9,7 @@ Inspection baseline: `e71ddbc29e9e06658ddbe2b2c12edf8ed424f044`.
 Keep one native typed SDL document model in `rae`, independent of runtime imports.
 The published schemas remain authoritative. Generated transport bindings are not a second semantic model.
 Use explicit types and closed variants for semantic rules.
+
 Avoid reflection, arbitrary property lookup and a Pydantic-shaped class tree.
 Keep absent fields distinct from explicit nulls.
 Keep supplied defaults distinct from computed defaults where the reference does.
@@ -30,6 +31,7 @@ The existing owners already cover substantial parts of this issue:
 Reuse these owners through declared APIs. Do not copy their rules into a new validator.
 If shared rules need to move, keep one owner.
 Keep the same import direction for existing callers.
+
 Contract packages must not import SDL packages. Public consumer signatures must not expose private package types.
 The planned `sdl.Scenario` interface is sealed and returns document copies.
 It does not require an untyped internal model.
@@ -49,6 +51,7 @@ Source success and construction success grant no semantic authority.
 Authored formatting stops at construction and import checks; materialized formatting already checks semantics.
 Preserve that difference when sharing admission logic.
 Instantiation has its own phase gate and later owner.
+
 Direct instantiated-artifact admission also keeps its own gate.
 Caller flags and JSON fields cannot grant semantic admission.
 Neither can cached results or prior digests.
@@ -77,6 +80,7 @@ The reference `validator/_core.py` records declaration collisions first.
 It then runs the fixed `VALIDATION_PASSES` order and collects advisories.
 Match the corpus order within each pass, including nested findings.
 Keep codes, severity, stage, pointers, addresses, domains and source ranges.
+
 Map iteration, alphabetical rule sorting and parallel append are not diagnostic ordering policies.
 Missing references must not panic or prevent unrelated rules from reporting their findings.
 Shared typed indexes must keep reference purposes distinct: declared, targetable, actionable and authority.
@@ -86,6 +90,7 @@ Do not parse qualified addresses with ad hoc string splitting.
 Use `contract/diagnostic.Error` with standard error wrapping and `base/fault` categories.
 Fault codes accept lowercase letters, digits and hyphens; diagnostic codes can contain dots.
 Keep these code domains separate. Do not rename published diagnostic codes to fit fault validation.
+
 Source key-conflict diagnostics also carry related ranges; preserve that metadata when adapting results.
 The current public diagnostic record has only one range.
 If related locations need an API change, declare it in the model before code.
@@ -107,6 +112,7 @@ If related locations need an API change, declare it in the model before code.
 Check limits before allocating, expanding graphs, walking values, copying and hashing.
 Apply them to already-decoded inputs too.
 Reuse iterative graph operations where applicable. Do not add arbitrary caps that reject documents accepted by the reference.
+
 Collect-all does not permit unbounded findings or work.
 Keep the existing limits and refusal behavior.
 Runtime-named declarations can require SDL validation without importing runtime execution code.
@@ -119,6 +125,7 @@ The projection contains the exact SDL profile and the scenario's supplied fields
 It also contains both module-variable metadata maps.
 It excludes expansion provenance and omits empty variation points as the reference does.
 Keep aliases, serializer omissions, numeric semantics and explicit field presence.
+
 Defaults used for validation must not silently enter the projection.
 Sorted Python JSON, formatter YAML and raw source hashes are different identities.
 JCS number/domain refusals must become controlled errors, never rounded or truncated successes.
@@ -129,6 +136,7 @@ Keep authored, expanded, instantiated-snapshot and materialized profiles distinc
 Do not let a profile string select a stronger phase or reuse an authoring digest for another artifact.
 Use the existing parse options and explicit limits as extension seams.
 Keep semantic revision, source context and sealed phase handles explicit too.
+
 Future composition and instantiation must feed the same typed model and rules.
 They must retain field presence, module metadata and source locations.
 Use explicit phase/context parameters where behavior differs.
@@ -146,8 +154,9 @@ Full corpus, race, coverage, mutation, fuzz and regression gates remain in CI un
 
 Before code, declare exact owners and imports in `implementations/architecture.json`.
 Declare exported identifiers and typed interfaces there too.
-Bind the owning design and API commitments, then pass `archcheck -design` under ADR-122.
+Bind the owning design and API commitments, then pass `archcheck -design` under ADR-124.
 This preflight does not select those package interfaces.
+
 It does not approve the implementation design.
 Reuse `.ground-control.yaml`, `.gc/plan-rules.md`, the existing policy tools, Go lint/mutation configurations and canonical verification workflow.
 This requirement-free issue must not acquire an invented requirement UID.

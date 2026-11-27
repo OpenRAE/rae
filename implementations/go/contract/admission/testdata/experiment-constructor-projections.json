@@ -648,6 +648,7 @@
         "description": "Pre-run design comparing aggressive vs stealthy red tactics over the fixed TechVault task, with seeded replication.",
         "factorial_design": {
           "condition_bound": 4,
+          "excluded_combinations": [],
           "factor_ids": [
             "agent",
             "path"
@@ -1824,6 +1825,7 @@
         "description": "Pre-run design comparing aggressive vs stealthy red tactics over the fixed TechVault task, with seeded replication.",
         "factorial_design": {
           "condition_bound": 4,
+          "excluded_combinations": [],
           "factor_ids": [
             "path"
           ],
@@ -2159,6 +2161,7 @@
         "description": "Pre-run design comparing aggressive vs stealthy red tactics over the fixed TechVault task, with seeded replication.",
         "factorial_design": {
           "condition_bound": 4,
+          "excluded_combinations": [],
           "factor_ids": [
             "agent",
             "path"
@@ -5789,33 +5792,13 @@
     }
   ],
   "sources": {
-    "contracts/fixtures/experiment-core/experiment-apparatus-context-v1/valid/reference.json": "e6fa559c5e961f0aab448d0f70dead24aa74fa8ba5f20e1b72f88e11473c9299",
-    "contracts/fixtures/experiment-core/experiment-authoring-input-v1/valid/bounded-replacement.json": "af60deea90cd4326b33bdf76b5ac57ea86b0e46dee75759204e846c8acd83ab4",
-    "contracts/fixtures/experiment-core/experiment-authoring-input-v1/valid/enumerate-selection.json": "78a31eb16c49ef037a1f32c774ee7f50a9059cd9f7f086f2ea5d5e6f4922c0f0",
-    "contracts/fixtures/experiment-core/experiment-authoring-input-v1/valid/factorial.json": "2fe070446e4c267e58327d8f4ce61cb698a60b9881dc9e1c4845f0b366aa7f04",
-    "contracts/fixtures/experiment-core/experiment-authoring-input-v1/valid/fixed-selection.json": "e9ee14a26b118ed1a3ff222babe677bbf34968ce442d381f70bb9d166188357c",
-    "contracts/fixtures/experiment-core/experiment-authoring-input-v1/valid/no-replacement.json": "155a429ad8f3ee239c9e2434aa82ac0642504869893ec85e9bc531a61034bba2",
-    "contracts/fixtures/experiment-core/experiment-authoring-input-v1/valid/product-selection.json": "9d3407be136dca3805bfafbb6828c1f0ca1d0809353f5bd1b353c5a8c640181c",
-    "contracts/fixtures/experiment-core/experiment-authoring-input-v1/valid/reference.json": "337b742c028e82e4b2d881ada32a8e8003e562da80947b88e1c94558ed6d9956",
-    "contracts/fixtures/experiment-core/experiment-authoring-input-v1/valid/sample-selection.json": "b62f0252051e7399c8a977876b96ca7dae00629532e16e4e38d338b0ea6f7433",
-    "contracts/fixtures/experiment-core/experiment-authoring-input-v1/valid/stratified-selection.json": "725c821c5bba89135e705266d1181a70fabf0b0c8b18d36a9b4846cee0bb484b",
-    "contracts/fixtures/experiment-core/experiment-authoring-input-v1/valid/typed-factorial-selection-only.json": "29e11677f7536c22d69add61a4b52096426457760597279a2e63b7c84ca74b4f",
-    "contracts/fixtures/experiment-core/experiment-authoring-input-v1/valid/typed-factorial.json": "cf79196fb76c31460bf1fba8763ddce16b60c4355497619125a73f75c7641a9b",
-    "contracts/fixtures/experiment-core/experiment-binding-descriptors-v1/valid/reference.json": "358304e9b58e40211dfd8c62764924fad67013933251c413697018b6884a047e",
-    "contracts/fixtures/experiment-core/experiment-capture-spec-v1/valid/reference.json": "b161b35e10eb8988214d89396023b364c3a2f256d626f84fa31a714a5a93cc75",
-    "contracts/fixtures/experiment-core/experiment-derived-measure-v1/valid/reference.json": "24e610c8b1ba84e0521d416fd603047c31253d831b9312fca2f15c750846cef5",
-    "contracts/fixtures/experiment-core/experiment-derived-measure-v1/valid/vulnerability-severity-summary.json": "14aa432aee2f86d4faeafcf7890c725abc88b20d3824b302403883eae7e1a6bb",
-    "contracts/fixtures/experiment-core/experiment-evidence-record-v1/valid/docker-network-endpoint-observation.json": "cf2485c923ecedc32219107ad35b612b464dcef46caa6a58955cef3c5a0b85a6",
-    "contracts/fixtures/experiment-core/experiment-evidence-record-v1/valid/partial-description.json": "553d6205c46719ce06442e86d127bc82512b765751faf7fc9ab2e4de4ab98b6b",
-    "contracts/fixtures/experiment-core/experiment-evidence-record-v1/valid/reference.json": "d1bbe05227a609f85c9ad9688319d9e1bef06efca22a8543a655d76e85a35cc8",
-    "contracts/fixtures/experiment-core/experiment-evidence-record-v1/valid/runtime-health-observation.json": "9315cb95072e7fbf2f555c2ee9dd6b9468cc4a7b4bb30e4233016735b610f08a",
-    "contracts/fixtures/experiment-core/experiment-evidence-record-v1/valid/scanner-vulnerability-observation.json": "203e205f065f842d15e1982ec4192f857a46a5e9a347bb27caeab8f9e6e6fdcf",
-    "contracts/fixtures/experiment-core/experiment-run-v1/valid/augmentation-classifications.json": "58b79cfc2567e1d77ecba75fb7cc6eab94fe183bb7d78e283c581ed34777c033",
-    "contracts/fixtures/experiment-core/experiment-run-v1/valid/reference.json": "211316cefa82cd6b4bb917294da9476520ba00155d0046ae0904656c33ca8aee",
-    "contracts/fixtures/experiment-core/experiment-run-v1/valid/typed-treatment.json": "c06b72d1ed7f6653a03e64b0ac4af52da3cfbfebdfa2ba5dfa80e2b3d2d7c6e6",
-    "contracts/fixtures/experiment-core/experiment-study-v1/valid/reference.json": "7b4c9ead6395eec1eab0bdc6dbc3553a6f71438d711ef252d598e4f632cd1068",
-    "contracts/fixtures/experiment-core/experiment-study-v1/valid/required-bindings.json": "acf246ac975e21ff01c8e285a8df988f42d3fc9815704eec6c552ce13bfc9903",
-    "contracts/fixtures/experiment-core/experiment-study-v1/valid/typed-treatment.json": "275cddeb6d13fa7717be3bd6f4940b95b75a9f4d3d61ed2948a0592ba70ce5a3",
-    "contracts/fixtures/experiment-core/experiment-task-v1/valid/reference.json": "f3edf713ac6af26bad609136851c6dd434bfb87ce919a2d8c4414c1035deeafc"
+    "implementations/python/packages/raes_contracts/contracts/experiment_apparatus.py": "c2d287bf0a9c667386c5cbfd3a4cc2637618403231e22c452202c1173f07f100",
+    "implementations/python/packages/raes_contracts/contracts/experiment_bindings.py": "8279e1d733f8eac74ff17b7ebcf61bc40d57b143e18f9dd2065776cd3460e095",
+    "implementations/python/packages/raes_contracts/contracts/experiment_capture.py": "7e3b8ec389d340ed241fa6e7244989d568c3f652eef372ec9fea28f2536cf2d5",
+    "implementations/python/packages/raes_contracts/contracts/experiment_evidence.py": "410c2ad98c45b310575112f515b72d10f41d46cc6ab44363ef6d79da46a731c0",
+    "implementations/python/packages/raes_contracts/contracts/experiment_run.py": "0ffab46f9dd7a0637daa49fdfe4db44af3ddc9f0d091777338906742615387dc",
+    "implementations/python/packages/raes_contracts/contracts/experiment_spec.py": "f8ff7f70743902b1a55c4e0488166d8ff632fb8a9c0a085313fa8313de72a2e2",
+    "implementations/python/packages/raes_contracts/contracts/experiment_study_contract.py": "9c88e9a28b36b71f2d54525abe7bc2805d0c0e5dc16eccde1bda90202a97aab1",
+    "implementations/python/packages/raes_contracts/contracts/experiment_task.py": "197b2372f0de6deda25eecab7c694f2a56212d66a8e518ac10160f64fc098505"
   }
 }

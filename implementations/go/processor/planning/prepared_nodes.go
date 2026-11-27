@@ -171,21 +171,9 @@ func preparedOperatingSystemsSupported(entries map[string]snapshotEntry, manifes
 }
 
 func preparedOperatingSystemSupported(payload map[string]any, manifest binding.BackendManifestV2) bool {
-	choice := make([]string, 3)
-	domains := make([][]string, 3)
-	for i, key := range []string{"os_family", "os_distribution", "os_version"} {
-		value, present := payload[key]
-		if !present {
-			continue
-		}
-		text, ok := value.(string)
-		if !ok || text == "unknown" || text == "other" {
-			return false
-		}
-		choice[i] = text
-		if text != "" {
-			domains[i] = []string{text}
-		}
+	choice, domains, known := preparedOperatingSystem(payload)
+	if !known {
+		return false
 	}
 	if choice[0] == "" && choice[1] == "" && choice[2] == "" {
 		return true
@@ -198,6 +186,32 @@ func preparedOperatingSystemSupported(payload map[string]any, manifest binding.B
 		return choice[0] != ""
 	}
 	return jointOperatingSystemOffered(manifest, domains[0], domains[1], domains[2])
+}
+
+// preparedOperatingSystem returns the family, distribution and version
+// choices, and refuses an unknown or unclassified value.
+func preparedOperatingSystem(payload map[string]any) ([]string, [][]string, bool) {
+	choice := make([]string, 3)
+	domains := make([][]string, 3)
+	for i, key := range []string{"os_family", "os_distribution", "os_version"} {
+		value, present := payload[key]
+		if !present {
+			continue
+		}
+		if value == nil && key == "os_distribution" {
+			// The offer checker compares an absent distribution as the empty string.
+			value = ""
+		}
+		text, ok := value.(string)
+		if !ok || text == "unknown" || text == "other" {
+			return nil, nil, false
+		}
+		choice[i] = text
+		if text != "" {
+			domains[i] = []string{text}
+		}
+	}
+	return choice, domains, true
 }
 func (selection *preparedSelection) selectedInventory() (binding.RuntimeSnapshotV1, map[string]snapshotEntry, error) {
 	entries := map[string]snapshotEntry{}

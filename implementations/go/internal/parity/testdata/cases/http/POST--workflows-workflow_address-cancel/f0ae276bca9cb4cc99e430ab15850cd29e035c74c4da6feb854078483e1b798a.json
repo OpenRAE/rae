@@ -1,0 +1,42 @@
+{
+  "args": [],
+  "command": "POST /workflows/{workflow_address}/cancel",
+  "files": {
+    "body.bin": "sha256:45a133952ba85471eafbcd7938e7651b16ae128cf384f97c7bf27044dea9ad09",
+    "request.json": "sha256:1f157dd390e7ffee74a382799f6c9c44c20a43e8e607b73cb9d26190964bc39c"
+  },
+  "name": "regression/8d81e1b7d63167654320ef979aba2674bd87ff1bad9507b7858aa3eb35fb7d2a",
+  "result": {
+    "body": {
+      "accepted": false,
+      "context": {
+        "actor_id": "backend-service",
+        "authorization_scope": [
+          "role:backend"
+        ],
+        "operation_kind": "workflow-cancellation",
+        "parent_operation_id": null,
+        "request_commitment": "sha256:db32c3956d392c2c460b510462436551c95900870ba8c49a27f48ef9fd7b9a03",
+        "run_scope": "run:default",
+        "target_scope": "target:stub"
+      },
+      "diagnostics": [
+        {
+          "address": "/runtime.control-plane.orchestration",
+          "code": "runtime.control-plane.rejected",
+          "domain": "runtime",
+          "severity": "error"
+        }
+      ],
+      "domain": "orchestration",
+      "operation_id": "06e51601-4e66-4d82-bcdf-b7dffc1e6ed0",
+      "schema_version": "runtime-operation/v1",
+      "submitted_at": "2026-01-01T00:00:00Z"
+    },
+    "headers": {
+      "content-type": "application/json"
+    },
+    "status_code": 200
+  },
+  "surface": "http"
+}

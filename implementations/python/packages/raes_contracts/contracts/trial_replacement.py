@@ -9,7 +9,7 @@ from pydantic.json_schema import JsonSchemaValue
 from pydantic_core import CoreSchema
 
 from .base import ContractModel, NonEmptyString, PrefixedDigestString
-from .schema_invariants import _add_raes_invariant
+from .schema_invariants import add_raes_invariant
 
 ReplacementOrdinal = Annotated[int, Field(strict=True, ge=1, le=1000)]
 
@@ -39,7 +39,7 @@ class TrialReplacementPolicyModel(ContractModel):
                 "else": {"properties": {"replace_on": {"minItems": 1}}},
             }
         )
-        _add_raes_invariant(
+        add_raes_invariant(
             schema,
             "trial-replacement-policy-explicit-and-bounded",
             "Replacement triggers are unique; a positive additional-trial bound requires selected triggers, "

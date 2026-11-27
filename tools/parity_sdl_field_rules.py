@@ -20,10 +20,6 @@ sys.path.insert(0, str(ROOT / "implementations/python/packages"))
 
 from parity_authoring_layout import scalar_plan  # noqa: E402
 from parity_sdl_constructors import model_fields_schema, reference_definitions  # noqa: E402
-from raes._identifiers import (  # noqa: E402
-    require_portable_identifier,
-    require_qualified_identifier,
-)
 from raes._runtime_datastore_support import (  # noqa: E402
     _require_object_name as datastore_object_name,
 )
@@ -33,14 +29,18 @@ from raes.runtime_mail_service._elements import (  # noqa: E402
     _domain_name_or_var,
     _mail_address_or_var,
 )
-from raes.runtime_values import (  # noqa: E402
+from raes.scenario import Scenario  # noqa: E402
+from raes.stateful_resources import _validate_relative_path, validate_mount_destination  # noqa: E402
+from raes_contracts.identifiers import (  # noqa: E402
+    require_portable_identifier,
+    require_qualified_identifier,
+)
+from raes_contracts.runtime_values import (  # noqa: E402
     absolute_path_or_var,
     control_interface_path_or_var,
     require_non_empty,
     require_symbol,
 )
-from raes.scenario import Scenario  # noqa: E402
-from raes.stateful_resources import _validate_relative_path, validate_mount_destination  # noqa: E402
 
 HELPERS = {
     require_non_empty: "nonblank",

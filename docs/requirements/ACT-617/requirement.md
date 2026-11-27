@@ -68,7 +68,7 @@ runtime admission refuse that form, so no executable adoption is claimed.
 
 - IMPLEMENTS → GITHUB_ISSUE `1363` (Reusable mixed-control authoring; executable adoption not claimed)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/participant_mixed_control_policy.py` (Rev1 reusable-policy and finite-script authoring models)
-- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/participant_mixed_control_vocabulary.py` (Mixed-control vocabulary shared by both forms)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/participant_mixed_control_vocabulary.py` (Mixed-control vocabulary shared by both forms)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/validator/_mixed_control_policy.py` (Rev1 semantic validation)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/compiler/_mixed_control_policy.py` (Rev1 compiled children and occurrence-policy projection)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/models/mixed_control_resources.py` (Compiled rev1 policy children)

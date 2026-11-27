@@ -10,22 +10,9 @@ from enum import Enum
 from typing import Any
 
 from pydantic import ConfigDict, Field, ValidationInfo, field_validator, model_validator
-
-from raes.runtime_filesystem import redacted_raw_value_schema
-from raes.runtime_vocabulary import GovernedVocabulary
-
-from ._base import SDLModel, parse_int_or_var
-from .runtime_filesystem import RuntimeSensitivityClassification
-from .runtime_identity_resources import (
-    RuntimeIdentityAccessObservation,
-    RuntimeIdentityPermissionBinding,
-    RuntimeIdentityPolicyCondition,
-    RuntimeIdentityResourceAccess,
-    RuntimeIdentityResourceScope,
-    RuntimeIdentityUse,
-    reject_identity_resource_duplicates,
-)
-from .runtime_values import (
+from raes_contracts.governed_vocabulary import GovernedVocabulary
+from raes_contracts.runtime_values import (
+    RuntimeSensitivityClassification,
     coerce_string_list,
     enforce_observed_value_redaction,
     parse_optional_bool_or_var,
@@ -34,9 +21,25 @@ from .runtime_values import (
     require_non_empty,
     require_symbol,
 )
+from raes_contracts.sdl_model import SDLModel
+from raes_contracts.variable_references import parse_int_or_var
+
+from raes.runtime_filesystem import redacted_raw_value_schema
+
+from .runtime_identity_resources import (
+    RuntimeIdentityAccessObservation,
+    RuntimeIdentityAuditLog,
+    RuntimeIdentityPermissionBinding,
+    RuntimeIdentityPolicyCondition,
+    RuntimeIdentityResourceAccess,
+    RuntimeIdentityResourceScope,
+    RuntimeIdentityUse,
+    reject_identity_resource_duplicates,
+)
 
 __all__ = [
     "RuntimeIdentityAccessObservation",
+    "RuntimeIdentityAuditLog",
     "RuntimeIdentityPermissionBinding",
     "RuntimeIdentityPolicyCondition",
     "RuntimeIdentityResourceAccess",

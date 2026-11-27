@@ -5,6 +5,8 @@ from __future__ import annotations
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass, field
 
+from raes_contracts.observation_demand import validate_observation_lifecycle_plan
+
 from .observation_demand import (
     EffectiveObservationDemand,
     ObservationDemandMode,
@@ -16,7 +18,6 @@ from .observation_demand import (
     ObservationSelector,
     observation_selector_has_more_specific_policy,
 )
-from .observation_demand_validation import validate_observation_lifecycle_plan
 from .operational_logging import foreign_failure_record, get_logger
 
 _LOGGER = get_logger(__name__)

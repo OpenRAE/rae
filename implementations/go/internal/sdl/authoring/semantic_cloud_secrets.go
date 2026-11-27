@@ -1,7 +1,11 @@
 package authoring
 
 func (c *semanticCloud) secret(secret *semanticCloudSecret) {
-	c.scope(secret.Scope, "secret scope")
+	if secret.Scope != "" && c.exactModel(secret.Scope, cloudScopes, "secret scope") && secret.Replication != nil {
+		if scope := c.scopes[secret.Scope]; scope != nil && scope.Provider != "gcp" && !variable(scope.Provider) {
+			c.report("cloud-provider: GCP Secret Manager replication requires a gcp scope")
+		}
+	}
 	for _, field := range []struct{ label, ref string }{{"encryption_key_ref", secret.Key}, {"reset_owner_ref", secret.Reset}, {"deletion_owner_ref", secret.Deletion}} {
 		if field.ref != "" {
 			c.resource(field.ref, field.label, false)

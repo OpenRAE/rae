@@ -1,0 +1,49 @@
+{
+  "args": [
+    "semantic",
+    "conformance",
+    "--output",
+    "json",
+    "--contract",
+    "assigned-trial-v1",
+    "input.json"
+  ],
+  "command": "semantic conformance",
+  "files": {
+    "input.json": "sha256:5e78edaa86d60e29a9aeaff41e0e8c2485cac32ba80e33b74730d4fe929e9674"
+  },
+  "name": "contracts/fixtures/control-plane/assigned-trial-v1/invalid/unauthorized-attempt",
+  "result": {
+    "exit_code": 1,
+    "stdout": {
+      "contract_id": "assigned-trial-v1",
+      "diagnostics": [
+        {
+          "address": "assigned-trial-v1",
+          "code": "conformance.schema-invalid",
+          "domain": "conformance",
+          "severity": "error"
+        }
+      ],
+      "migration_policy": null,
+      "normalization_profile": null,
+      "operation": "conformance",
+      "payload": {
+        "check": "registered-contract",
+        "passed": false,
+        "phase": "contract-conformance",
+        "root_type": "object"
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": null,
+      "status": "invalid",
+      "transform_profile": null,
+      "validation_strength": "structural"
+    }
+  },
+  "surface": "cli"
+}

@@ -46,12 +46,11 @@ class ContentServices(TrialServices):
         )
         self.record = record
         self.owned_evidence[record.evidence_record_id] = record
-        return result, TrialCaptureObservation(complete=True, evidence=(record,))
+        return result, TrialCaptureObservation(complete=not self.capture_fails, evidence=(record,))
 
 
 def metadata_for(runtime, experiment_id, source):
     experiment = runtime._experiments[experiment_id]
-    entry = source.plan.entries[source.attempts[0].plan_entry_id]
     slot = next(
         slot
         for slot in experiment._slots(runtime._store.load_runtime_decisions())
@@ -59,6 +58,12 @@ def metadata_for(runtime, experiment_id, source):
     )
     unit = experiment._unit(slot, source.attempts[-1], None)
     legacy = TrialArchive().build_run(unit.request, source.realization, (unit.result(),))
+    record = experiment.services.owned_evidence[source.attempts[-1].execution_attempt_id + ":content"]
+    return metadata_from_observed_trial(source, legacy, record)
+
+
+def metadata_from_observed_trial(source, legacy, record):
+    entry = source.plan.entries[source.attempts[0].plan_entry_id]
     context = legacy.apparatus_context.model_dump(mode="json")
     context["components"] = {}
     context["selected_manifests"] = [item.model_dump(mode="json") for item in entry.apparatus.manifest_refs]
@@ -72,7 +77,6 @@ def metadata_for(runtime, experiment_id, source):
         }
     _, template, _, _, _ = _evidence_bundle()
     artifact = template.evidence_artifacts[0]
-    record = experiment.services.owned_evidence[source.attempts[-1].execution_attempt_id + ":content"]
     return ExperimentRunMetadata(
         outcome_status=template.outcome_status,
         apparatus_context=context,

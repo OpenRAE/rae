@@ -10,6 +10,12 @@ import (
 	"github.com/OpenRAE/rae/implementations/go/contract/validation"
 )
 
+// maxExpandedTreatmentBytes bounds an expanded factorial input, as the reference does.
+const maxExpandedTreatmentBytes = 256 << 20
+
+// maxFactorialEffectWork bounds typed runs times the combined effect work of one condition.
+const maxFactorialEffectWork = 1_000_000
+
 func (e *Validator) factorialRules() map[string]definition {
 	return map[string]definition{"experiment-factorial-generation-valid": {check: func(i validation.Invocation) error { _, err := e.factorialExpand(i.Instance); return err }}}
 }
@@ -33,7 +39,7 @@ func (e *Validator) prepare(id string, data []byte, limits ingress.Limits) ([]by
 		return nil, err
 	}
 	raw, err := json.Marshal(prepared)
-	if err != nil || len(raw) > 8*1048576 || len(raw) > limits.MaxBytes {
+	if err != nil || len(raw) > maxExpandedTreatmentBytes || len(raw) > limits.MaxBytes {
 		return nil, invalid()
 	}
 	return raw, nil
@@ -73,7 +79,7 @@ func (e *Validator) factorialExpand(input any) (any, error) {
 	object(at(v, "run_plan"))["allocation"] = allocation
 	object(v)["binding_descriptors"], object(v)["binding_semantics"] = descriptors, termExplicitRequired
 	raw, err := json.Marshal(v)
-	if err != nil || shape.typed && len(raw) > 8*1048576 {
+	if err != nil || shape.typed && len(raw) > maxExpandedTreatmentBytes {
 		return nil, invalid()
 	}
 	return v, nil
@@ -83,6 +89,8 @@ type factorialShape struct {
 	factors     []string
 	levels      map[string][]string
 	count, runs int
+	product     int
+	excluded    map[string]bool
 	typed       bool
 	fixed       []any
 }
@@ -103,27 +111,67 @@ func factorialDimensions(v, design any) (factorialShape, error) {
 	if !bok || !rok {
 		return shape, invalid()
 	}
+	excluded := array(at(design, "excluded_combinations"))
+	// Exclusions leave at most the bound, so the product never exceeds the bound plus the exclusions.
+	limit := bound + len(excluded)
 	for _, factor := range shape.factors {
 		levels := stringsOf(at(v, "factors", factor, "levels"))
-		if len(levels) == 0 || !unique(levels) || !sameKeys(at(design, section, factor), set(at(v, "factors", factor, "levels"))) || len(levels) > bound/shape.count {
+		if len(levels) == 0 || !unique(levels) || !sameKeys(at(design, section, factor), set(at(v, "factors", factor, "levels"))) || len(levels) > limit/shape.count {
 			return shape, invalid()
 		}
 		slices.Sort(levels)
 		shape.levels[factor] = levels
 		shape.count *= len(levels)
 	}
-	if perCondition > 10000/shape.count {
+	var err error
+	if shape.excluded, err = factorialExclusions(excluded, shape); err != nil {
+		return shape, err
+	}
+	shape.product = shape.count
+	shape.count -= len(shape.excluded)
+	if shape.count < 1 || shape.count > bound || perCondition > 10000/shape.count {
 		return shape, invalid()
 	}
 	shape.runs = perCondition * shape.count
 	if shape.typed {
-		var err error
 		shape.fixed, err = factorialFixed(at(v, "run_plan", "selection_policies"))
 		if err != nil {
 			return shape, err
 		}
 	}
 	return shape, nil
+}
+
+// factorialExclusions requires unique excluded combinations that each name
+// one declared level for every factor.
+func factorialExclusions(combinations []any, shape factorialShape) (map[string]bool, error) {
+	excluded := map[string]bool{}
+	for _, combination := range combinations {
+		levels := object(combination)
+		if len(levels) != len(shape.factors) {
+			return nil, invalid()
+		}
+		for _, factor := range shape.factors {
+			level, ok := levels[factor].(string)
+			if !ok || !slices.Contains(shape.levels[factor], level) {
+				return nil, invalid()
+			}
+		}
+		key := factorialLevelsKey(levels, shape)
+		if excluded[key] {
+			return nil, invalid()
+		}
+		excluded[key] = true
+	}
+	return excluded, nil
+}
+
+func factorialLevelsKey(levels map[string]any, shape factorialShape) string {
+	values := make([]string, len(shape.factors))
+	for index, factor := range shape.factors {
+		values[index] = text(levels[factor])
+	}
+	return join(values...)
 }
 
 func factorialFixed(policies any) ([]any, error) {
@@ -184,15 +232,31 @@ func factorialCondition(design any, shape factorialShape, levels map[string]any)
 	return map[string]any{"condition_id": id, "factor_levels": maps.Clone(levels), "difficulty_condition": conditionFixed, "difficulty_policy_id": nil, "required_refs": []any{}, "required_parameters": []any{}, termRequiredBindings: bindings, termRequiredSelections: selections, termDescription: nil}, nil
 }
 
+// factorialConditionChecks checks one condition's sources and, for a typed
+// design, keeps the selected points consistent across conditions.
+func factorialConditionChecks(condition any, shape factorialShape, points map[string]bool) (map[string]bool, error) {
+	if err := conditionSources(condition); err != nil {
+		return nil, err
+	}
+	if !shape.typed {
+		return points, nil
+	}
+	return factorialConsistentPoints(condition, shape.fixed, points)
+}
+
 func factorialChildren(design any, shape factorialShape) (any, any, error) {
 	assignments := map[string]any{}
 	descriptors := []any{}
 	indices := make([]int, len(shape.factors))
 	var points map[string]bool
-	for range shape.count {
+	for range shape.product {
 		levels := map[string]any{}
 		for index, factor := range shape.factors {
 			levels[factor] = shape.levels[factor][indices[index]]
+		}
+		if shape.excluded[factorialLevelsKey(levels, shape)] {
+			factorialNext(indices, shape)
+			continue
 		}
 		condition, err := factorialCondition(design, shape, levels)
 		if err != nil {
@@ -202,15 +266,8 @@ func factorialChildren(design any, shape factorialShape) (any, any, error) {
 		if assignments[id] != nil {
 			return nil, nil, invalid()
 		}
-		if err := conditionSources(condition); err != nil {
+		if points, err = factorialConditionChecks(condition, shape, points); err != nil {
 			return nil, nil, err
-		}
-		if shape.typed {
-			current, err := factorialConsistentPoints(condition, shape.fixed, points)
-			if err != nil {
-				return nil, nil, err
-			}
-			points = current
 		}
 		assignments[id] = condition
 		descriptors = append(descriptors, array(at(condition, termRequiredBindings))...)

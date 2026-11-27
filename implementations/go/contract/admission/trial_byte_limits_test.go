@@ -2,7 +2,6 @@ package admission
 
 import (
 	"encoding/json"
-	"os"
 	"strings"
 	"testing"
 
@@ -15,7 +14,7 @@ func TestTrialSealingKeepsExplicitByteAllowanceAboveDefault(t *testing.T) {
 		Digest string `json:"plan_digest"`
 	}
 	readFullReferenceJSON(t, "testdata/large-byte-limit-reference.json", &reference)
-	raw, err := os.ReadFile("../../../../contracts/fixtures/plans/admitted-trial-plan-v1/valid/minimal.json")
+	raw, err := repoFixtureBytes(t, "../../../../contracts/fixtures/plans/admitted-trial-plan-v1/valid/minimal.json")
 	if err != nil {
 		t.Fatal(err)
 	}

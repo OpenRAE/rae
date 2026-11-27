@@ -93,8 +93,11 @@ func TestValueBudgetsCoverKeysTypesDepthAndCycles(t *testing.T) {
 	if err := Validate(DeclaredDocument(text), Runtime()); err != nil {
 		t.Errorf("Validate(declared document) error = %v, want accepted body allowance", err)
 	}
-	if Runtime().MaxNodes != 65536 || Plan().MaxNodes != 262144 || Plan().MaxScalarBytes != Runtime().MaxScalarBytes {
+	if Runtime().MaxNodes != 65536 || Plan().MaxNodes != 524288 || Plan().MaxScalarBytes != Runtime().MaxScalarBytes || Plan().MaxTotalScalarBytes != 16*1048576 {
 		t.Error("runtime/plan aggregate budgets differ from the published defaults")
+	}
+	if Materialization().MaxNodes != 262144 || Materialization().MaxMembers != 65536 || Materialization().MaxScalarBytes != Runtime().MaxScalarBytes {
+		t.Error("materialization document budget differs from the published defaults")
 	}
 }
 
@@ -151,7 +154,7 @@ func TestPublishedLimitDefinitionBoundaries(t *testing.T) {
 			}
 		}
 	}
-	if Plan().MaxOperations != 1048576 || Runtime().MaxDocumentScalarBytes != 4194304 {
+	if Plan().MaxOperations != 4*524288 || Materialization().MaxOperations != 4*262144 || Runtime().MaxDocumentScalarBytes != 4194304 {
 		t.Error("published plan operations or materialization ceiling changed")
 	}
 }

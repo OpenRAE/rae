@@ -1,0 +1,14 @@
+{
+  "args": [],
+  "command": "encode",
+  "files": {
+    "value.json": "sha256:4474960a0c43239aefee79f17b66a81f8177ce16da79196385f0f8c00eba4031"
+  },
+  "name": "contracts/fixtures/participant-runtime/participant-delivery-invocation-context-v1/invalid/inconsistent",
+  "result": {
+    "jcs": "sha256:cb4aba123f13618f6b0598663fcc00bfb8b28350c1acd38f419fe05939b422aa",
+    "sorted_ascii": "sha256:cb4aba123f13618f6b0598663fcc00bfb8b28350c1acd38f419fe05939b422aa",
+    "sorted_unicode": "sha256:cb4aba123f13618f6b0598663fcc00bfb8b28350c1acd38f419fe05939b422aa"
+  },
+  "surface": "canonical"
+}

@@ -84,7 +84,7 @@ func mixedStagePublishedRecords(t *testing.T, id, name string) [][]byte {
 	}
 	result := make([][]byte, 0, len(paths))
 	for _, path := range paths {
-		raw, err := fs.ReadFile(source, path)
+		raw, err := sealedFixtureBytes(t, source, path)
 		if err != nil {
 			t.Fatal(err)
 		}

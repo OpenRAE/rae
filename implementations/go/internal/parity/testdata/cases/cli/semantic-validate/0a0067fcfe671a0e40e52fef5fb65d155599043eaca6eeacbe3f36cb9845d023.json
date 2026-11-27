@@ -1,0 +1,42 @@
+{
+  "args": [
+    "semantic",
+    "validate",
+    "--output",
+    "json",
+    "--contract",
+    "workflow-step-response-v1",
+    "input.json"
+  ],
+  "command": "semantic validate",
+  "files": {
+    "input.json": "sha256:cebbb6973768302787b8718c5f4adb8cacd975c601f4130f9cf6b5e66f2f8a78"
+  },
+  "name": "contracts/fixtures/control-plane/workflow-step-response-v1/valid/objective",
+  "result": {
+    "exit_code": 0,
+    "stdout": {
+      "contract_id": "workflow-step-response-v1",
+      "diagnostics": [],
+      "migration_policy": null,
+      "normalization_profile": null,
+      "operation": "validate",
+      "payload": {
+        "admitted": true,
+        "member_count": 6,
+        "phase": "contract-admission",
+        "root_type": "object"
+      },
+      "processor_profile": null,
+      "provenance": {
+        "filesystem": "read-only",
+        "network": "disabled"
+      },
+      "source_format": null,
+      "status": "success",
+      "transform_profile": null,
+      "validation_strength": "structural"
+    }
+  },
+  "surface": "cli"
+}

@@ -1,5 +1,5 @@
 [
-{
+  {
     "name": "behavior_specification_runtime_carries_authority_scope_addresses",
     "source": {
       "name": "act-607-authority-scope",
@@ -1468,9 +1468,9 @@
           "node_name": "web",
           "node_kind": "compute",
           "os_family": "",
-          "os_distribution": "",
+          "os_distribution": null,
           "os_version": "",
-          "architecture": "",
+          "architecture": null,
           "count": 1,
           "network_namespace_target": "",
           "domain_topology": null
@@ -1943,6 +1943,7 @@
           "evidence_contract_refs": [],
           "tool_affordance_addresses": [],
           "participant_inject_delivery_addresses": [],
+          "episode_policy_address": "",
           "extension_policy": "governed-extension",
           "extension_keys": []
         },
@@ -1960,7 +1961,7 @@
     },
     "diagnostics": []
   },
-{
+  {
     "name": "behavior_specification_refs_are_namespaced_during_module_composition-0",
     "source": {
       "name": "root",
@@ -2985,9 +2986,9 @@
           "node_name": "shared.__private.web",
           "node_kind": "compute",
           "os_family": "",
-          "os_distribution": "",
+          "os_distribution": null,
           "os_version": "",
-          "architecture": "",
+          "architecture": null,
           "count": null,
           "network_namespace_target": "",
           "domain_topology": null
@@ -3302,6 +3303,7 @@
             "participant.behavior-specification.shared.red-scan-behavior.tool-affordance.network-scanner"
           ],
           "participant_inject_delivery_addresses": [],
+          "episode_policy_address": "",
           "extension_policy": "governed-extension",
           "extension_keys": []
         },
@@ -3357,7 +3359,7 @@
     },
     "diagnostics": []
   },
-{
+  {
     "name": "behavior_specification_refs_are_namespaced_during_module_composition-1",
     "source": {
       "name": "root",
@@ -4382,9 +4384,9 @@
           "node_name": "shared.__private.web",
           "node_kind": "compute",
           "os_family": "",
-          "os_distribution": "",
+          "os_distribution": null,
           "os_version": "",
-          "architecture": "",
+          "architecture": null,
           "count": null,
           "network_namespace_target": "",
           "domain_topology": null
@@ -4699,6 +4701,7 @@
             "participant.behavior-specification.shared.red-scan-behavior.tool-affordance.network-scanner"
           ],
           "participant_inject_delivery_addresses": [],
+          "episode_policy_address": "",
           "extension_policy": "governed-extension",
           "extension_keys": []
         },
@@ -4754,7 +4757,7 @@
     },
     "diagnostics": []
   },
-{
+  {
     "name": "behavior_specification_optional_fields_compile_empty_when_omitted",
     "source": {
       "name": "sem-208",
@@ -6302,9 +6305,9 @@
           "node_name": "web",
           "node_kind": "compute",
           "os_family": "",
-          "os_distribution": "",
+          "os_distribution": null,
           "os_version": "",
-          "architecture": "",
+          "architecture": null,
           "count": null,
           "network_namespace_target": "",
           "domain_topology": null
@@ -6795,6 +6798,7 @@
           "evidence_contract_refs": [],
           "tool_affordance_addresses": [],
           "participant_inject_delivery_addresses": [],
+          "episode_policy_address": "",
           "extension_policy": "governed-extension",
           "extension_keys": []
         },
@@ -6807,7 +6811,7 @@
     },
     "diagnostics": []
   },
-{
+  {
     "name": "behavior_specification_behavior_mode_allows_governed_extensions",
     "source": {
       "name": "sem-208",
@@ -8362,9 +8366,9 @@
           "node_name": "web",
           "node_kind": "compute",
           "os_family": "",
-          "os_distribution": "",
+          "os_distribution": null,
           "os_version": "",
-          "architecture": "",
+          "architecture": null,
           "count": null,
           "network_namespace_target": "",
           "domain_topology": null
@@ -8855,6 +8859,7 @@
           "evidence_contract_refs": [],
           "tool_affordance_addresses": [],
           "participant_inject_delivery_addresses": [],
+          "episode_policy_address": "",
           "extension_policy": "governed-extension",
           "extension_keys": []
         },
@@ -8867,7 +8872,7 @@
     },
     "diagnostics": []
   },
-{
+  {
     "name": "compiler_maps_participant_behavior_to_runtime_addresses",
     "source": {
       "name": "sem-208",
@@ -10327,9 +10332,9 @@
           "node_name": "web",
           "node_kind": "compute",
           "os_family": "",
-          "os_distribution": "",
+          "os_distribution": null,
           "os_version": "",
-          "architecture": "",
+          "architecture": null,
           "count": null,
           "network_namespace_target": "",
           "domain_topology": null

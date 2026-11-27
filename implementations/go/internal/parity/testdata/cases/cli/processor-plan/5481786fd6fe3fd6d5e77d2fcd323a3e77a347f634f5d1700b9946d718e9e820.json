@@ -59,14 +59,14 @@
             "address": "provision.node.customer-portal",
             "ordering_dependencies": [],
             "payload": {
-              "architecture": "",
+              "architecture": null,
               "count": 1,
               "domain_topology": null,
               "name": "customer-portal",
               "network_namespace_target": "",
               "node_kind": "compute",
               "node_name": "customer-portal",
-              "os_distribution": "",
+              "os_distribution": null,
               "os_family": "",
               "os_version": "",
               "spec": {

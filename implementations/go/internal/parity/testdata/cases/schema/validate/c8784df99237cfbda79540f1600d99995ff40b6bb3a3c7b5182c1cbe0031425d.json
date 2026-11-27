@@ -1,0 +1,14 @@
+{
+  "args": [
+    "sdl-candidate-synthesis-input-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:1cf894be6b95110b51298fe7402f63822a9b92cb5fec943ebd9005c4054dd346"
+  },
+  "name": "regression/43baddd892845e644eb9efae7c4ff6e18fbdc7d815a19905a4616f4dd6afaf3d",
+  "result": {
+    "valid": false
+  },
+  "surface": "schema"
+}

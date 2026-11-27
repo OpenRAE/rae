@@ -5,7 +5,7 @@ from itertools import product
 import pytest
 from jsonschema import Draft202012Validator
 from pydantic import ValidationError
-from raes_contracts.satisfiability import SolverConfigurationModel
+from raes_processor.satisfiability.evidence import SolverConfigurationModel
 
 
 @pytest.mark.parametrize(

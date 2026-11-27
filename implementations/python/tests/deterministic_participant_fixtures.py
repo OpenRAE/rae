@@ -22,7 +22,7 @@ from raes_contracts.contracts import (
     ParticipantImplementationManifestModel,
     ParticipantImplementationSelectionModel,
 )
-from raes_contracts.participant_binding import ParticipantActionAdmissionRequest
+from raes_contracts.contracts.participant_action_admission import ParticipantActionAdmissionRequest
 
 
 class ActionContract(Protocol):

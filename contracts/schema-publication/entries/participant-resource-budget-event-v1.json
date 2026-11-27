@@ -1,10 +1,5 @@
 {
   "contract_id": "participant-resource-budget-event-v1",
   "schema_path": "contracts/schemas/participant-runtime/participant-resource-budget-event-v1.json",
-  "stability": "draft",
-  "content_hash": "709963bc6f9eeded417062e1037530fdc74c0af38d695d63272cafb90fc08000",
-  "last_change": {
-    "summary": "Preserve pinned private resource-measure coordinates alongside the six built-in kinds in portable quantities, accounting and history for issue #1208.",
-    "content_hash": "709963bc6f9eeded417062e1037530fdc74c0af38d695d63272cafb90fc08000"
-  }
+  "stability": "draft"
 }

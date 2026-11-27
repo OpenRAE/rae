@@ -1,0 +1,17 @@
+{
+  "args": [
+    "semantic",
+    "validate",
+    "input/first-scenario.sdl.yaml"
+  ],
+  "command": "semantic validate",
+  "files": {
+    "input/first-scenario.sdl.yaml": "sha256:4748f4baf1b4b679e81fe6fd16259808588735c0db766f69cb071457f5d173a3"
+  },
+  "name": "regression/10cb9c67d80e998217bdd31879f91d45744a624789c31053ec3ceee9bb901ec5",
+  "result": {
+    "exit_code": 0,
+    "stdout": null
+  },
+  "surface": "cli"
+}

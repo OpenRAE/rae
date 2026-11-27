@@ -1,10 +1,5 @@
 {
   "contract_id": "participant-information-state-record-v1",
   "schema_path": "contracts/schemas/participant-runtime/participant-information-state-record-v1.json",
-  "stability": "draft",
-  "content_hash": "c01745749737e9a328c6b74852cb7e422e0384d246306870ce5733f6810b23eb",
-  "last_change": {
-    "content_hash": "c01745749737e9a328c6b74852cb7e422e0384d246306870ce5733f6810b23eb",
-    "summary": "Remove the Python validator paths from the semantic invariants (#1776)."
-  }
+  "stability": "draft"
 }

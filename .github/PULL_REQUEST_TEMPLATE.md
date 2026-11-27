@@ -1,3 +1,5 @@
+<!-- Keep exact guard section names. -->
+<!-- vale RAES.HeadingCase = NO -->
 ## Summary
 
 <!-- What this pull request changes and why, in plain language a reviewer can evaluate. -->
@@ -32,8 +34,8 @@ as a closing route.
 ## Test Plan
 
 - [ ] Unit tests pass
-- [ ] Integration tests pass if applicable
-- [ ] Completion command passes
+- [ ] Required integration checks pass in CI
+- [ ] Targeted local checks pass; full completion runs in CI
 - [ ] No coverage regression
 
 <!-- Checkboxes are not evidence. Below them, record the commands run and their
@@ -42,7 +44,7 @@ outcomes, or a substantive reason a check was not run. -->
 ## Ground Control Checks
 
 - [ ] Repository policy command passes
-- [ ] Pre-push code review and test-quality review completed, or not run for this lane
+- [ ] Required pre-push review completed, or not run for this lane
 
 ## Traceability
 
@@ -59,3 +61,5 @@ outcomes, or a substantive reason a check was not run. -->
 ## Documentation
 
 <!-- Optional: "Updated: ..." or "Verified unchanged: ...". Remove this section if unused. -->
+
+<!-- vale RAES.HeadingCase = YES -->

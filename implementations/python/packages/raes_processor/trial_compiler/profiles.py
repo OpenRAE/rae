@@ -59,7 +59,6 @@ def admitted_profiles(
         random_stream_profile=RANDOM_STREAM_PROFILE_ID,
         execution_control_profile="attempt-control-v1",
         cleanup_profile="trial-cleanup-v1",
-        isolation_profile="scheduler-isolation-v1",
         allocation_profile="fisher-yates-allocation-v1" if allocation else "none",
         treatment_profile="factorial-treatments-v1" if treatments else None,
     )

@@ -4,11 +4,11 @@
   ],
   "command": "validate",
   "files": {
-    "payload.json": "sha256:9ef640f9e79919276ea6400cb9b9b3ea405a4f17b55c6feb4148eea28b850757"
+    "payload.json": "sha256:a439aa4f429152959d9f6a73f07b6561a105a7f101dc3fde846c50b065716c34"
   },
   "name": "semantic-comparison-request-v1/routed/contracts/fixtures/semantic-comparison/semantic-comparison-request-v1/valid/external-concept-bindings.json",
   "result": {
-    "valid": true
+    "valid": false
   },
   "surface": "schema"
 }

@@ -62,7 +62,7 @@ func referenceCompilations(t *testing.T) []referenceCompilation {
 	if json.Unmarshal(raw, &reference) != nil {
 		t.Fatal("invalid compiler reference")
 	}
-	if len(reference.Cases) != 9 {
+	if len(reference.Cases) != 10 {
 		t.Fatal("compiler reference inventory changed")
 	}
 	return reference.Cases

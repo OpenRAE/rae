@@ -6,9 +6,10 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 
 from pydantic import BaseModel, ValidationError
-from raes.explicitness import ExplicitnessClass, ExplicitnessRecord
+from raes.explicitness import ExplicitnessRecord
 from raes.scenario import InstantiatedScenario
 from raes_contracts.errors import RaesError
+from raes_contracts.explicitness import ExplicitnessClass
 from raes_contracts.json_pointer import escape_token
 from raes_contracts.realization_structure import (
     ExactRealizationValue,

@@ -1,10 +1,5 @@
 {
   "contract_id": "behavioral-relations-v1",
   "schema_path": "contracts/schemas/concept-authority/behavioral-relations-v1.json",
-  "stability": "draft",
-  "content_hash": "f6bcf13e056f0bc4b3fb8f645323d36625398b93935abbc7a8c51994cd09faa1",
-  "last_change": {
-    "content_hash": "f6bcf13e056f0bc4b3fb8f645323d36625398b93935abbc7a8c51994cd09faa1",
-    "summary": "Remove the Python validator paths from the semantic invariants (#1776)."
-  }
+  "stability": "draft"
 }

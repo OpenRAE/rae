@@ -13,13 +13,16 @@ or runtime-realization result.
 The separate #971 `participant-crossing-dpbb-finite-v1@rev2` profile, its model
 sources and published artifacts retain their identities and semantics.
 
-The environment admits **at most two** fresh durable operations, A then B.
+The environment admits **at most two** fresh durable operations, A and then B in that order.
 The key, operation and receipt identities for A are `key-a`, `operation-a`,
-`receipt-a`; B has the corresponding distinct `-b` identities. No key is
-recycled. Each fresh request selects all six declared input classes and the
+`receipt-a`; B has the corresponding distinct `-b` identities. No key is recycled.
+
+Each fresh request selects all six declared input classes and the
 original body. Retrying either retained key selects every input class and
 either original or changed body, including a changed body within the same
-class. These are the complete declared synthetic requests, not samples of all
+class.
+
+These are the complete declared synthetic requests, not samples of all
 runtime payloads. An accepted governed refusal and an unresolved-policy failure
 each consume a fresh identity. Unclaimed authentication/admission rejections
 are excluded. Exhaustion disables only fresh requests; retries, authorized
@@ -28,48 +31,54 @@ status reads and clean restart remain enabled indefinitely.
 `receipt-a` and `receipt-b` are formal references to retained receipt objects.
 Runtime receipt binding uses the existing `OperationReceipt.operation_id` field.
 
-An attempt is a traversal of a request edge. Its fresh/retry role is finite;
-it has no stored counter, UUID or timestamp. The API-423 request occurrence is
-a transient preparation identity, distinct from the retained operation/key
-and original receipt. The projection discards its value. Equality of those
-transient names is never tested by these rules or disclosed by their labels,
-so replacing fresh transient names by their role changes neither enabledness,
-retry equality, result provenance nor divergence in this declared carrier.
+An attempt traverses a request edge.
+Its fresh/retry role is finite, with no stored counter, UUID, or timestamp.
+The API-423 request occurrence is a transient preparation identity, distinct from the retained operation/key and original receipt.
+The projection discards its value.
+These rules neither test equality of transient names nor disclose that equality through labels.
+
+Replacing fresh transient names with their role therefore leaves enabledness, retry equality, result provenance, and divergence unchanged in this declared carrier.
 This does not abstract runtime histories containing all such identities.
 
 Every state coordinate has a finite domain in the profile. Ledger length is
 0, 1 or 2; entries retain `(input, body, policy-or-none, decision-head,
 result-head, outcome)`. Their ordinal selects the distinct key/operation/receipt
 mapping. Intent is absent or `(ordinal, input, body, fresh-or-retry)`. Policy
-is p0 or p1. Head is h0, h1 or h2; effects are e0, e1 or e2. Caller knowledge
+is p0 or p1. Head is h0, h1 or h2; effects are e0, e1 or e2.
+
+Caller knowledge
 is the two-bit mask k0 through k3 of observed cached results, separate from
-the durable ledger. Abstract/concrete phases and gate/capability domains are
-also declared. Integers in state maps are ordinals of these named domains.
+the durable ledger.
+
+Abstract/concrete phases and gate/capability domains are also declared. Integers in state maps are ordinals of these named domains.
 The carrier is the complete least reachable fixed point of the rules below;
 inconsistent ambient products are not additional initial states. Both models
 have one initial state: idle, p0, h0, empty ledger, e0 and k0, no intent.
 
 ## Context and history boundary
 
-Retry eligibility compares the original request commitment (input **and**
-body), the applicable current policy and the current history head against the
-retained decision or result head. Participant, episode, actor, authorization
-scope, target/run, kind, audience, controller, authority, subject mapping,
-action/projection, marking/evidence/provenance, gates, support/downgrade and
-transformation/opacity coordinates are fixed by the synthetic fixture and input
-class. Their runtime owners are `OperationAdmissionContext`, `_semantic_request()`
-and `_require_same_idempotency_replay()`. Changing any of those fixed coordinates
-is outside this profile; input-class equality alone is not general runtime
-retry equality. Empty keys, migrated legacy claims and sensitive ephemeral
-retry proofs are excluded.
+Retry eligibility compares the original request commitment (input **and** body), applicable current policy, and current history head against the retained decision or result head.
+The synthetic fixture and input class fix these other coordinates:
+
+- Participant, episode, actor, authorization scope, target/run, and kind.
+- Audience, controller, authority, and subject mapping.
+- Action/projection and marking/evidence/provenance.
+- Gates, support/downgrade, and transformation/opacity.
+
+Their runtime owners are `OperationAdmissionContext`, `_semantic_request()`, and `_require_same_idempotency_replay()`.
+Changing any fixed coordinate is outside this profile.
+Input-class equality alone is not general runtime retry equality.
+Empty keys, migrated legacy claims, and sensitive ephemeral retry proofs are excluded.
 
 The admitted history vector has four constant components (episode, behavior,
 control and control-evaluation) and one crossing-batch component. A governed
 result batch appends a new opaque crossing head; its decision/result coordinates
 are hN/h(N+1). Unresolved policy persists a failed operation without participant
-facts, retaining hN/hN. No other history writer is admitted. Within this carrier
-each head denotes exactly one distinct vector, so vector equality is equivalent
-to head equality; no unequal heads are merged. h2 is reachable only after two
+facts, retaining hN/hN. No other history writer is admitted.
+
+Within this carrier
+each head denotes exactly one distinct vector, so vector equality is equivalent to head equality.
+No unequal heads are merged. h2 is reachable only after two
 history-advancing results. Policy advancement never changes any head.
 There is no saturation, wraparound, deletion or exploration depth limit.
 
@@ -90,8 +99,8 @@ accepted failed operation with no resolved policy coordinate.
 1. Idle enables fresh A, then fresh B, plus all retained-key retries. Requests
    enter offered. Status reads are self-loops. p0 can visibly advance to p1.
 2. A retry compares its request/body, applicable policy and recorded head pair.
-   Conflict emits only rejection and preserves the ledger. An eligible retry
-   observes the retained result and sets the caller's knowledge bit, or loses
+   Conflict emits only rejection and preserves the ledger. An eligible retry observes the retained result and sets the caller's knowledge bit.
+   Alternatively, it loses
    that reply/restarts while preserving prior knowledge. It performs no
    decision, change, delivery, effect or logical commit.
 3. A fresh refusal emits deny, unsupported or unresolved and records its result.
@@ -118,8 +127,8 @@ transition function or candidate correspondence.
    delivery.
 3. Fresh gating selects unresolved, then deny first, unsupported capability,
    transform/declassify or permit. Change emits once before record preparation.
-4. Preparation changes no durable coordinate. Atomic commit appends exactly one
-   fresh ledger entry; a resolved result advances the crossing-batch head and an
+4. Preparation changes no durable coordinate. Atomic commit appends exactly one fresh ledger entry.
+   A resolved result advances the crossing-batch head and an
    unresolved result does not. Refusals proceed directly to responding.
 5. Deliverable results perform one delivery/effect before responding. Response
    observation, loss and clean restart behave as independent concrete rules.
@@ -147,10 +156,10 @@ explicit mapping obligations.
 Response loss is untimed and occurs only **after durable completion** and any
 admitted effect. It makes the attempt's response unknown without inventing a
 persisted unknown state or asserting effect absence. A clean P1 service restart
-preserves an intact authoritative ledger/history and caller knowledge. Loss or
-restart before claim, during an effect, before durable terminalization, corrupt
-storage, uncertain commits, INDETERMINATE resolution, reconciliation, cancellation,
-late effects and P0 process loss are excluded. The completed-result retry is
+preserves an intact authoritative ledger/history and caller knowledge.
+
+Loss or restart before claim, during an effect, or before durable terminalization is excluded.
+Corrupt storage, uncertain commits, INDETERMINATE resolution, reconciliation, cancellation, late effects and P0 process loss are also excluded. The completed-result retry is
 safe within the declared exact context; a fresh key may perform the same effect
 again. A conflict gives no advice or authorization to rekey a retry.
 
@@ -166,8 +175,8 @@ Both independent builders close all admitted transitions without sampled
 schedules. Safety caps fail instead of returning prefixes. Export checks
 domain membership, initial membership, closure, reachability, independence,
 strict AUT readback, exact source/profile identities and artifact counts.
-Complete bundles use trusted fixed repository paths and exclusive staged
-publication; changed published bytes are never overwritten.
+Each run builds the complete bundle from the current sources; no bundle is
+committed.
 
 Construction establishes no DPBB result, runtime realization, backend
 conformance, noninterference, opacity, latency, throughput, concurrency, handoff,

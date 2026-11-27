@@ -2,7 +2,6 @@ package admission
 
 import (
 	"encoding/json"
-	"maps"
 	"strconv"
 
 	"github.com/OpenRAE/rae/implementations/go/contract/validation"
@@ -76,7 +75,7 @@ func projectionProfile(v any) error {
 	if stringAt(v, termProfileID) != "semantic-projection-"+predicate+"-"+posture+"/v1" || stringAt(v, "profile_version") != "1" || stringAt(v, "adapter_id") != predicate+"-owner-adapter" || stringAt(v, "adapter_version") != "1" || stringAt(v, "producer_contract_id") != producer {
 		return invalid()
 	}
-	adapter, err := jsonDigest(map[string]any{"adapter_id": at(v, "adapter_id"), "adapter_version": at(v, "adapter_version")})
+	adapter, err := projectionAdapterDigest(v)
 	if err != nil {
 		return err
 	}
@@ -95,13 +94,27 @@ func projectionProfile(v any) error {
 			return invalid()
 		}
 	}
-	payload := maps.Clone(object(v))
-	delete(payload, "profile_digest")
-	digest, err := jsonDigest(payload)
+	digest, err := selfDigest(v, "profile_digest")
 	if err != nil {
 		return err
 	}
 	return require(digest == stringAt(v, "profile_digest"))
+}
+
+// projectionAdapterDigest identifies the fixed trusted adapter of a profile.
+func projectionAdapterDigest(profile any) (string, error) {
+	return jsonDigest(map[string]any{"adapter_id": at(profile, "adapter_id"), "adapter_version": at(profile, "adapter_version")})
+}
+
+// projectionQualifiedFraction names the predicate, the witness count over
+// the included denominator, and the frame digest of a summary.
+func projectionQualifiedFraction(summary any, frameDigest string) (string, error) {
+	witnesses, witnessOK := integer(at(summary, classificationWitness+"_count"))
+	total, totalOK := integer(at(summary, "included_denominator"))
+	if !witnessOK || !totalOK {
+		return "", invalid()
+	}
+	return stringAt(summary, "predicate_id") + ":" + strconv.Itoa(witnesses) + "/" + strconv.Itoa(total) + "@" + frameDigest, nil
 }
 
 func (e *Validator) projectionWitnesses(i validation.Invocation) error {
@@ -172,5 +185,9 @@ func projectionCounts(v, frame, summary any, digest string) error {
 	if total != len(included) || !numericEqual(at(summary, "included_denominator"), json.Number(strconv.Itoa(total))) {
 		return invalid()
 	}
-	return require(stringAt(summary, "qualified_fraction") == stringAt(summary, "predicate_id")+":"+strconv.Itoa(counts[classificationWitness])+"/"+strconv.Itoa(total)+"@"+digest)
+	fraction, err := projectionQualifiedFraction(summary, digest)
+	if err != nil {
+		return err
+	}
+	return require(stringAt(summary, "qualified_fraction") == fraction)
 }

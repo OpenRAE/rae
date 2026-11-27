@@ -30,6 +30,7 @@ type comparisonProjection struct {
 
 // ComparisonProjection derives the reference comparison facts from the
 // original native authored constructor, retaining its presence and model types.
+// The projection covers one SDL document, so it uses the document budget.
 func (p *Parser) ComparisonProjection(document *Document, version string) ([]byte, error) {
 	if p == nil || document == nil || document.source == nil || document.contract != authoringContract || version != "1" && version != "2" {
 		return nil, invalid()
@@ -53,7 +54,7 @@ func (p *Parser) ComparisonProjection(document *Document, version string) ([]byt
 	if version == "1" {
 		editorial = modelEditorialAll
 	}
-	walk := comparisonWalk{modelProjection: &modelProjection{queries: queries, editorial: editorial, modelNames: version == "1", remaining: value.Plan().MaxNodes}}
+	walk := comparisonWalk{modelProjection: &modelProjection{queries: queries, editorial: editorial, modelNames: version == "1", remaining: value.Materialization().MaxNodes}}
 	root := p.schemas[authoringContract]
 	semantics, err := walk.project(selected, root, "#", 0)
 	if err != nil {
@@ -65,7 +66,7 @@ func (p *Parser) ComparisonProjection(document *Document, version string) ([]byt
 	if err != nil {
 		return nil, err
 	}
-	canonicalProjection := modelProjection{queries: newScopeQueries(p, authoringContract, full), modelNames: true, remaining: value.Plan().MaxNodes}
+	canonicalProjection := modelProjection{queries: newScopeQueries(p, authoringContract, full), modelNames: true, remaining: value.Materialization().MaxNodes}
 	canonical, err := canonicalProjection.project(full, root, "#", 0)
 	if err != nil {
 		return nil, err
@@ -82,7 +83,7 @@ func (p *Parser) ComparisonProjection(document *Document, version string) ([]byt
 		return nil, err
 	}
 	result.CanonicalDigest = digest.SHA256(encoded)
-	if err := value.ValidateProjected(result, value.Plan(), comparisonBudgetValue); err != nil {
+	if err := value.ValidateProjected(result, value.Materialization(), comparisonBudgetValue); err != nil {
 		return nil, err
 	}
 	return json.Marshal(result)
@@ -176,7 +177,7 @@ func comparisonBudgetValue(input any) (any, error) {
 	case comparisonSubject:
 		return map[string]any{"Family": data.Family, "Name": data.Name, "ModelType": data.ModelType, "PresentFields": data.PresentFields, "Semantic": data.Semantic}, nil
 	case []comparisonSubject:
-		if len(data) > value.Plan().MaxMembers {
+		if len(data) > value.Materialization().MaxMembers {
 			return nil, value.ErrLimit
 		}
 		output := make([]any, len(data))
@@ -185,7 +186,7 @@ func comparisonBudgetValue(input any) (any, error) {
 		}
 		return output, nil
 	case []string:
-		if len(data) > value.Plan().MaxMembers {
+		if len(data) > value.Materialization().MaxMembers {
 			return nil, value.ErrLimit
 		}
 		output := make([]any, len(data))

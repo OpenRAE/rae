@@ -1,0 +1,14 @@
+{
+  "args": [],
+  "command": "encode",
+  "files": {
+    "value.json": "sha256:efc36746f0933850a2d15a39712f15599deddc6410ab41a804f621e658c762c0"
+  },
+  "name": "contracts/fixtures/control-plane/trial-outcome-v1/invalid/invented-completion",
+  "result": {
+    "jcs": "sha256:93439a2718495a62339ea340b2c51e3d05e878de3f11977cb53df7b5011d98b6",
+    "sorted_ascii": "sha256:93439a2718495a62339ea340b2c51e3d05e878de3f11977cb53df7b5011d98b6",
+    "sorted_unicode": "sha256:93439a2718495a62339ea340b2c51e3d05e878de3f11977cb53df7b5011d98b6"
+  },
+  "surface": "canonical"
+}

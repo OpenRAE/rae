@@ -48,6 +48,7 @@ def check_processor(processor, planning_backend_manifest):
 `requested_features` selects the requested feature subset.
 The current suite checks compilation and planning.
 Other requested features remain unverified, even when declared.
+
 A negative probe with no error codes requires a parser refusal.
 A semantic negative names its required error codes.
 An unrelated exception never satisfies a negative check.
@@ -88,6 +89,7 @@ New fixture reports retain exact fixture-byte digests.
 Unknown fixture producer origin remains unknown.
 Schema content pins use the existing schema-publication JSON encoding.
 Profiles and selected probe sets retain their exact content pins.
+
 Reports retain safe references rather than source plans, credentials, or raw exceptions.
 A digest identifies content; it authenticates no producer.
 Producer authenticity remains the caller's trust boundary.
@@ -219,7 +221,7 @@ The conformance path touches these gates:
 The seam is the published contract id and backend profile artifact. It is not
 a Python enum branch or hard-coded path. To add a backend profile or contract
 family, you should only need to add the contract schema/fixtures/profile
-artifact and register the matching validator once. You should not need to edit
+artifact. Then register the matching validator once. You should not need to edit
 every call site.
 
 Keep the profile loader parameterized by `profiles_root`. Keep the fixture
@@ -323,9 +325,8 @@ Avoid:
   profile artifacts exist
 - accepting `backend-manifest-v1` or legacy conformance paths as current
   defaults
-- changing `contracts/schemas/` without the
-  `contracts/schema-publication-manifest.json` change ledger, or changing only
-  reference implementation models and not the published schema authority
+- changing only reference implementation models and not the published schema
+  authority under `contracts/schemas/`
 - validating fixtures with ad hoc JSON key checks when contract models already
   exist
 - adding a conformance-specific exception hierarchy, logging stack, schema
@@ -353,7 +354,9 @@ code.
 The canonical CLI surface is `raes conformance backend`. It is registered on
 the Typer `raes_cli` app next to `raes sdl` and `raes processor`. It accepts
 `--profile`, `--fixtures-root`, and `--profiles-root` overrides. The defaults
-point at the canonical `contracts/` tree. The runner exits non-zero when the
+point at the canonical `contracts/` tree.
+
+The runner exits non-zero when the
 report has any failing case or top-level diagnostic. Thus CI gates can run the
 command directly. If a fixture file cannot be read, the command writes an error
 to standard error, writes no report, and exits with status 1.
@@ -458,7 +461,9 @@ with a new `PlanScope`. The scope binds `RuntimeTarget.name` and a fresh
 The runner also supplies a `RunMaterializationArchive` in a private temporary
 directory. The runner removes the directory after every probe runtime closes.
 If a runtime cannot drain its backend calls, the directory stays and the runner
-raises the drain error. The report contains no archive path. The backend must return a valid report, and
+raises the drain error. The report contains no archive path.
+
+The backend must return a valid report, and
 the runtime must admit and archive it. Otherwise the provisioning probe fails.
 The snapshot probe then requires an archived attestation record
 (`conformance.materialization-not-archived`).
@@ -478,15 +483,17 @@ with a support strength. A declaration is not a realization. Thus
 
 **The runner owns execution and the verdict.** The harness supplies
 declarative case inputs only. These inputs are the validated exact-cut policy
-resolver of the deployment, the participant, audience, policy, projection and
-state-cut coordinates, the typed carriers, the operation kind, and the expected
-disposition. The harness supplies no control plane and no outcome.
+resolver of the deployment, and the participant, audience, policy, projection
+and state-cut coordinates. They also include the typed carriers, the operation
+kind, and the expected disposition. The harness supplies no control plane and no outcome.
 
 The runner constructs the real `RuntimeControlPlane` on the target under
 evaluation. It wraps the participant runtime of that target in a call counter.
 It invokes the typed boundary itself and derives every reported fact. A
 harness that could supply the execution object or the verdict could certify a
-backend that it never ran. The harness is a typed in-process option. It is
+backend that it never ran.
+
+The harness is a typed in-process option. It is
 never a module path, remote URL, or policy bag. Operation kinds, not backend
 names, are the dispatch key of the runner.
 
@@ -521,12 +528,15 @@ adapter probes use is not participant-policy evidence.
 Every participant-policy case carries a `policy_binding`. The `claim` of that
 binding is a real `BehavioralClaimBindingModel`. Thus relation identity,
 carriers, quantifier and evidence scope, assurance status, limitations, and
-nonclaims go through the same catalog authority as the report claim. The
-binding also carries the participant, audience, memory scope, policy
-id/revision/decision ref/state-cut ref, declassification schedule, and
-counterexample ref. It also carries the named order, scheduler, environment,
-nondeterminism, termination/progress, timing, probability, and partial-order
-assumptions. These are declared fields, so the bindings stay
+nonclaims go through the same catalog authority as the report claim. The binding also
+carries the participant, audience and memory scope.
+
+It carries the policy
+id/revision/decision ref/state-cut ref fields. It also carries the
+declassification schedule and the counterexample ref. It also
+carries the named order, scheduler and environment assumptions. The other named
+assumptions are nondeterminism, termination/progress, timing, probability, and
+partial order. These are declared fields, so the bindings stay
 machine-reviewable and are not encoded in case names.
 
 Finite probe results do not change what the report claims. The report relation
@@ -600,8 +610,8 @@ method shape or a published fixture never passes a case.
 typed, in-process adapter of the trusted embedder. For each probe request, it
 realizes the requested backend condition and time cut. It then returns fresh
 configuration: the `MixedRuntimeBinding` with installed services, the primary
-target, the crossing policy resolver, a seeded control-plane store, the identity
-and the governed carriers. The harness supplies no expected outcome, stage fact,
+target and the crossing policy resolver. The configuration also has a seeded
+control-plane store, the identity and the governed carriers. The harness supplies no expected outcome, stage fact,
 digest or verdict.
 
 The runner wraps each installed role and records its calls. The wrappers keep
@@ -638,17 +648,20 @@ payload = backend_conformance_report_payload(report)
 
 A negative case passes only when the correct rejection occurs. The runner
 first checks the baseline inputs. It then requires evidence that the intended
-owner refused: the backend admission refusal code, the binding validator, the
-current-state claim boundary, or a dispatch refusal after the unmodified
-configuration executed. A missing configuration or an unrealized condition
+owner refused. The evidence is the backend admission refusal code, the binding
+validator, the current-state claim boundary, or a dispatch refusal after the
+unmodified configuration executed.
+
+A missing configuration or an unrealized condition
 makes the case `unsupported`. An observed failure or a failed close still makes
 it `failed`. An unsupported case never passes, and the report lists it in
 `unsupported_capability_gaps`. The report passes only when every selected case
 passes.
 
 Each case records `mixed_binding` coordinates. These hold the profile, plan and
-run identity, the binding digest, the time requirement and declared loss, and
-each component's backend, manifest, envelope and configuration identity. They
+run identity, the binding digest, and the time requirement and declared loss.
+They also hold the backend, manifest, envelope and configuration identity of
+each component. They
 also hold each pinned service and every retained stage report with its producer
 and digest. The case records the expected and observed role calls, residual
 state, cleanup and the configuration, tool and environment digests.

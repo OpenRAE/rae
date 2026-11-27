@@ -24,6 +24,11 @@ from raes.stateful_resources import (
 )
 from raes_backend_protocols.provisioner_capabilities import ProvisionerCapabilities
 from raes_contracts.contracts import ProvisionerCapabilitiesModel
+from raes_contracts.contracts.plan_projection import (
+    evaluation_plan_model,
+    provisioning_plan_model,
+    runtime_plan_digest,
+)
 from raes_contracts.errors import ConflictError
 from raes_contracts.vocabulary import GeneratedArtifactKind
 
@@ -931,11 +936,6 @@ class TestDirectPlanContentAdmission:
 
 # --- run-identity plumbing through published models + digest (finding #2) -----
 
-from raes_contracts.plan_projection import (  # noqa: E402
-    evaluation_plan_model,
-    provisioning_plan_model,
-    runtime_plan_digest,
-)
 from raes_contracts.planning import EvaluationPlan, ProvisioningPlan  # noqa: E402
 from raes_runtime.control_plane_api_models import _provisioning_plan  # noqa: E402
 
@@ -1148,7 +1148,7 @@ class TestPreparedNodeContentPlacement:
 
     def test_unchanged_text_from_plan_reaches_backend_apply(self) -> None:
         from raes_backend_stubs.stubs import StubProvisioner, create_stub_target
-        from raes_contracts.realization_preparation import RealizationPreparation
+        from raes_contracts.contracts.realization_preparation import RealizationPreparation
         from raes_runtime.manager import RuntimeManager
 
         base = create_stub_target()

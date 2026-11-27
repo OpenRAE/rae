@@ -2,13 +2,13 @@
   "args": [],
   "command": "encode",
   "files": {
-    "value.json": "sha256:222896ae54f75ae68e2ac2e669f17342180e68b64d60e2be55abc9ca153bd9f2"
+    "value.json": "sha256:eb4a905667e829f20c1d0dc1a399d1ecc4eb4259e4c9f46194d9f8aa11edf790"
   },
   "name": "contracts/fixtures/experiment-core/experiment-authoring-input-v1/context-invalid/typed-factorial-source-level",
   "result": {
-    "jcs": "sha256:dd7373da5900fae332d118533e010b612e723e38e1a329524bc0dd4d21b1c33b",
-    "sorted_ascii": "sha256:16f784667a8b10dd4c4fd2ea39eb3d4054e9d53e5eca3141eae3945513a33a8e",
-    "sorted_unicode": "sha256:16f784667a8b10dd4c4fd2ea39eb3d4054e9d53e5eca3141eae3945513a33a8e"
+    "jcs": "sha256:7c6b4ba30b9f0e6d70a72db9f4487ca7bec2d403d3d54fe9e38b0c78d8b384ef",
+    "sorted_ascii": "sha256:4e83bb45a33be235425972b44b06d1980837ce8a26be44a77f9fc52dc2864fd9",
+    "sorted_unicode": "sha256:4e83bb45a33be235425972b44b06d1980837ce8a26be44a77f9fc52dc2864fd9"
   },
   "surface": "canonical"
 }

@@ -61,6 +61,7 @@ def test_rewrite_recording_retains_published_semantic_inputs(recorder, monkeypat
         "workflow-predicate-impossible",
         "canonical-materialized",
         "materialized-portable-defaults-3853",
+        "materialized-portable-defaults-16000",
         "descriptor-portable-scalar-4097",
         "explicitness-enum-and-literal",
         "explicitness-atomic-child-variable",
@@ -108,7 +109,7 @@ def test_materialized_portable_limit_precedes_semantic_rules(recorder, monkeypat
         raise RuntimeError("semantic rules must not run after portable refusal")
 
     monkeypatch.setattr(recorder.SemanticValidator, "validate", unexpected_semantics)
-    result = recorder.semantic([vector("materialized-portable-defaults-3853")])[0]
+    result = recorder.semantic([vector("materialized-portable-defaults-16000")])[0]
     assert not result["accepted"]
     assert result["admission_error"] == "materialized SDL exceeds portable bounds"
     assert result["findings"] == result["advisories"] == []

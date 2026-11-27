@@ -19,11 +19,11 @@ func factorialWork(input, design any, shape factorialShape) error {
 		}
 		work += maximum
 	}
-	units := shape.count
+	limit, units := 10000, shape.count
 	if shape.typed {
-		units = shape.runs
+		limit, units = maxFactorialEffectWork, shape.runs
 	}
-	if work > 10000/units {
+	if work > limit/units {
 		return invalid()
 	}
 	if shape.typed {
@@ -64,7 +64,7 @@ func factorialByteBound(input, design any, shape factorialShape) error {
 		}
 		conditionBytes += maximum
 	}
-	return require(sourceBytes+2*shape.count*conditionBytes <= 8*1048576)
+	return require(sourceBytes+2*shape.count*conditionBytes <= maxExpandedTreatmentBytes)
 }
 
 func factorialCanonicalLen(v any) (int, error) {
@@ -120,7 +120,7 @@ func factorialFactorWork(design any, shape factorialShape, factor string) (int, 
 			effects := at(design, "level_effects", factor, level)
 			cost = len(array(at(effects, termBindings)))
 			count := cost + len(array(at(effects, "selections")))
-			if count < 1 || count > 16 {
+			if count < 1 || count > 32 {
 				return 0, invalid()
 			}
 			for _, selection := range array(at(effects, "selections")) {
@@ -133,6 +133,9 @@ func factorialFactorWork(design any, shape factorialShape, factor string) (int, 
 }
 
 func factorialEffectDefaults(design any) {
+	if at(design, "excluded_combinations") == nil {
+		object(design)["excluded_combinations"] = []any{}
+	}
 	for _, levels := range object(at(design, "level_effects")) {
 		for _, effects := range object(levels) {
 			for _, field := range []string{termBindings, "selections"} {

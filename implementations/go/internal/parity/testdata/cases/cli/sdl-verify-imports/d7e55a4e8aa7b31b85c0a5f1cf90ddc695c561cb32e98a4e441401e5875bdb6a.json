@@ -6,18 +6,12 @@
   ],
   "command": "sdl verify-imports",
   "files": {
-    "repo/examples/library/templates/run/timed-run-control.yaml": "sha256:3d61f09a725caa2032c323d45734d58ca38e58e7849b3ca8b0933bb3eae024a6",
+    "repo/examples/library/templates/run/timed-run-control.yaml": "sha256:0578dd3b84b751ef7a13fa2d089ae865a992fa0ec39d1f8b9216fd3ba7108375",
     "setup.json": "sha256:2cf23db8cb29218b20eeab7386f9da7e3ef19441d1748e2ba2f9cb48994dd5fd"
   },
   "name": "examples/library/templates/run/timed-run-control.yaml/resolved",
   "result": {
-    "exit_code": 1,
-    "generated_files": {
-      "repo/examples/library/templates/run/raes.lock.json": {
-        "imports": [],
-        "schema_version": "raes-lock/v1"
-      }
-    },
+    "exit_code": 2,
     "stdout": null
   },
   "surface": "cli"

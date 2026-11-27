@@ -9,9 +9,8 @@ import (
 
 func (e *Validator) cleanupRules() map[string]definition {
 	return map[string]definition{
-		"trial-cleanup-plan-references-and-retry-safe":                   {check: cleanupPlan},
-		"scheduler-isolation-serial-default-and-complete-parallel-proof": {check: isolationProof},
-		"trial-cleanup-receipt-binds-plan-and-required-outcomes":         {check: e.cleanupReceipt, contextual: true, requiresContext: true},
+		"trial-cleanup-plan-references-and-retry-safe":           {check: cleanupPlan},
+		"trial-cleanup-receipt-binds-plan-and-required-outcomes": {check: e.cleanupReceipt, contextual: true, requiresContext: true},
 	}
 }
 func cleanupPlan(i validation.Invocation) error {
@@ -115,31 +114,6 @@ func resetCoverage(obligations any, refs []string) error {
 	}
 	return nil
 }
-func isolationProof(i validation.Invocation) error {
-	v := i.Instance
-	if !fieldsUnique(v, "plan_entry_ids") || !unique(rowIDs(at(v, "dimensions"), "dimension")) {
-		return invalid()
-	}
-	parallel, ok := defaultNumber(v, "requested_parallelism", 1)
-	if !ok {
-		return invalid()
-	}
-	if parallel.Cmp(big.NewRat(1, 1)) <= 0 {
-		return require(len(array(at(v, "dimensions"))) == 0)
-	}
-	if parallel.Cmp(big.NewRat(int64(len(array(at(v, "plan_entry_ids")))), 1)) > 0 {
-		return invalid()
-	}
-	independent := map[string]bool{}
-	for _, dimension := range array(at(v, "dimensions")) {
-		if !fieldsUnique(dimension, fieldEvidenceRefs) || !boolean(at(dimension, termIndependent)) {
-			return invalid()
-		}
-		independent[stringAt(dimension, "dimension")] = true
-	}
-	return require(subset([]string{"range-instance", "host-capacity", "ports", "storage", "control-plane-locks", "secret-scope", termCleanup}, independent))
-}
-
 func cleanupReceiptLocal(v any) error {
 	if equal(at(v, "execution_attempt_id"), at(v, termRunID)) || !keyed(at(v, "obligation_results"), "obligation_id") {
 		return invalid()

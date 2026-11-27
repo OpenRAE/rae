@@ -1,8 +1,8 @@
-# Control-Plane Recovery Operations
+# Control-plane recovery operations
 
 This runbook covers the reference runtime control plane's supported recovery,
 health, shutdown, backup, restore, and upgrade procedures. It composes the
-existing CP-3, CP-5, and CP-6 lifecycle rules; it does not introduce a second
+existing CP-3, CP-5, and CP-6 lifecycle rules. It does not introduce a second
 recovery state machine or infer an operation outcome from process failure.
 
 The durability profiles have different boundaries:
@@ -27,10 +27,10 @@ HTTP security configuration rejects empty configured credentials or principal
 names. Configured identity and verification headers must be valid, distinct
 HTTP field names and cannot alias `Authorization`. Strict defaults still reject
 caller-supplied proxy identity. Exceptions from backend calls and observation
-adapters produce bounded diagnostics without exception names or text. A failure
-to persist a planner-denial audit
-keeps the intended forbidden response and emits only a stable error log label;
-operators should investigate that label as an audit availability failure.
+adapters produce bounded diagnostics without exception names or text. A failure to persist
+a planner-denial audit keeps the intended forbidden response and emits only a
+stable error log label. Operators should investigate that label as an audit
+availability failure.
 
 The [operation supervision decision](../../decisions/issue-1348-operation-lifecycle.md)
 defines the required separation between stopping admission, requesting backend
@@ -38,7 +38,7 @@ interruption and establishing cessation. It is design authority: the current
 runtime retains its mutation permit across external calls and can drain without
 a bound. Do not infer bounded shutdown or checkpoint resumption from P1/P2.
 
-## Classify Recovery Before Acting
+## Classify recovery before acting
 
 Inspect the operation through the authenticated status API and use only its
 durable terminal state and recovery diagnostic:
@@ -63,7 +63,7 @@ remain governed by SCE-007; a new trial requires its own admitted allocation.
 Keep externally uncertain resources isolated until the applicable guarantees
 are established, even when an administrative receipt reports success.
 
-## Health and Startup
+## Health and startup
 
 The public probes are deliberately value-free:
 
@@ -78,15 +78,15 @@ Neither probe authenticates a caller or appends audit events. Probe output never
 contains target, run, actor, operation, timestamp, revision, count, path,
 provider, exception, SQL, credential, or snapshot values.
 
-Readiness remains false when startup is incomplete, the owner lease is absent
-or lost, durability is poisoned, shutdown is draining or complete, or an
-unresolved indeterminate operation requires recovery. A successful startup
+Readiness remains false when startup is incomplete, the owner lease is absent or
+lost, or durability is poisoned. It also remains false when shutdown is draining
+or complete, or an unresolved indeterminate operation requires recovery. A successful startup
 follows this order:
 
 1. Validate trusted composition and the one-worker configuration.
 2. Secure the store root and acquire its owner lease.
-3. Verify target/run scope, schema, supported migrations, codecs, digests, and
-   SQLite integrity.
+3. Verify target/run scope, schema, supported migrations, codecs, digests,
+   operation claim columns, and SQLite integrity.
 4. Load and validate authoritative runtime state.
 5. Reconcile admitted operations without replaying unknown effects.
 6. Publish derived state, then report ready.
@@ -94,13 +94,13 @@ follows this order:
 Construction failure is pre-readiness failure. Do not put a partially
 initialized control plane behind a ready HTTP listener.
 
-## Stop and Drain
+## Stop and drain
 
 Stopping admission does not interrupt work already executing. Current drain can
 wait indefinitely on a backend or observer. The supervision design requires
 bounded interruption/observation/drain stages, but this runbook does not claim
 they are implemented. If the embedder terminates a process, record that loss and
-reconcile external effects before reuse; local process exit or lease release
+reconcile external effects before reuse. Local process exit or lease release
 does not stop a remote job. Never force a second writer into the live store.
 
 Before P1 maintenance or a deployment change:
@@ -119,7 +119,7 @@ owner file, close the store directly from a signal handler, or run maintenance
 against a live service. If close cannot be confirmed, retain the lease and fail
 closed.
 
-## Check and Backup
+## Check and backup
 
 With the owning runtime stopped and drained, validate a store:
 
@@ -140,10 +140,10 @@ raes runtime store backup STORE_DIR BACKUP.sqlite3 --target TARGET --run-scope R
 ```
 
 The operation acquires the same exclusive lease as the runtime, verifies the
-exact target/run scope, uses SQLite's backup API, validates the resulting
-schema, records, audit history, payload digests, and integrity, synchronizes the
-private temporary file, publishes it atomically, and synchronizes its
-directory. Never copy the main database and `-wal`, `-shm`, or `-journal` files
+exact target/run scope, and uses SQLite's backup API. It then validates the
+resulting schema, records, operation claim columns, audit history, payload
+digests, and integrity. Last, it synchronizes the private temporary file,
+publishes it atomically, and synchronizes its directory. Never copy the main database and `-wal`, `-shm`, or `-journal` files
 as an independently meaningful set.
 
 Success and failure output are fixed codes such as
@@ -166,10 +166,10 @@ raes runtime store restore BACKUP.sqlite3 STORE_DIR --target TARGET --run-scope 
 
 An existing destination is refused unless `--replace` is present. Replacement
 first retains a validated `pre-restore-*.sqlite3` copy in the private store
-directory. The supplied backup remains immutable: the tool copies it to a
-private working database, applies only supported transactional migrations to
-that copy, validates the complete store, rejects stale SQLite sidecars, then
-atomically publishes and synchronizes the destination.
+directory. The supplied backup remains immutable. The tool copies it to a
+private working database and applies only supported transactional migrations to
+that copy. It then validates the complete store, rejects stale SQLite sidecars,
+and atomically publishes and synchronizes the destination.
 
 Do not start the service merely because the database restore succeeded. A
 database backup cannot prove that an external target is at the same state cut.
@@ -183,7 +183,7 @@ admission repeats schema, integrity, codec, lease, and reconciliation checks
 before readiness. Preserve the supplied backup and any pre-restore copy until
 the deployment's retention policy confirms recovery.
 
-## Upgrade and Migration
+## Upgrade and migration
 
 Use this order for an upgrade:
 
@@ -192,7 +192,8 @@ Use this order for an upgrade:
 3. Install the new code.
 4. Start with the same explicit target and run scope.
 5. Let normal admission acquire the lease, run the supported transactional
-   schema migration, validate the store, reconcile, and only then become ready.
+   schema migration and validate the store. Then let it reconcile, and only then
+   become ready.
 
 Unknown or newer schemas fail without mutation. A failed migration leaves the
 old database or transaction authoritative and the service unready; it does not
@@ -204,12 +205,13 @@ timestamps use apparatus wall or monotonic time. SDL timelines, participant
 clocks, `TimeRuntime`, and caller-authored scenario time never drive these
 operations.
 
-## Deployment Responsibilities
+## Deployment responsibilities
 
-The deployment owner must provide TLS termination, proxy identity trust,
-service accounts, secret resolution, one-worker process supervision,
-readiness-based routing, private filesystem access, backup encryption and
-retention, off-host copies, and backend-native backup or state alignment. Logs
+The deployment owner must provide TLS termination, proxy identity trust, service
+accounts, secret resolution, one-worker process supervision and readiness-based
+routing. The owner must also provide private filesystem access, backup
+encryption and retention, off-host copies, and backend-native backup or state
+alignment. Logs
 and health are not audit evidence. The append-only operational audit is not
 tamper evidence, participant observation, run provenance, or captured
 experiment evidence.

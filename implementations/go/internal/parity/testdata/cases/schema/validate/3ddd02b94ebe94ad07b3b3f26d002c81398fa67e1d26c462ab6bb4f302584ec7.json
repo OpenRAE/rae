@@ -1,0 +1,14 @@
+{
+  "args": [
+    "provisioning-plan-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:476f1e72a98b1a3fdb204793d88e60132d3eea1ca2ea39e698e535575cae6f56"
+  },
+  "name": "contracts/fixtures/plans/provisioning-plan-v1/invalid/safe-state-proof-key",
+  "result": {
+    "valid": false
+  },
+  "surface": "schema"
+}

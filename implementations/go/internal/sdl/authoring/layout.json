@@ -221,7 +221,7 @@
         "media_type"
       ],
       "model_type": "ArtifactIdentity",
-      "native_sdl": true,
+      "native_sdl": false,
       "omit": {},
       "scalar": {}
     },
@@ -262,7 +262,7 @@
         "digest"
       ],
       "model_type": "ArtifactMechanismProfile",
-      "native_sdl": true,
+      "native_sdl": false,
       "omit": {},
       "scalar": {}
     },
@@ -313,7 +313,7 @@
         "polarity"
       ],
       "model_type": "Assertion",
-      "native_sdl": true,
+      "native_sdl": false,
       "omit": {},
       "scalar": {}
     },
@@ -407,7 +407,7 @@
         "expected"
       ],
       "model_type": "BooleanPredicate",
-      "native_sdl": true,
+      "native_sdl": false,
       "omit": {},
       "scalar": {
         "expected": {
@@ -496,6 +496,38 @@
             "integer",
             "null",
             "string"
+          ]
+        }
+      }
+    },
+    "#/$defs/ConstrainedTrialParallelismModel": {
+      "factory_defaults": {},
+      "fields": [
+        "posture",
+        "minimum",
+        "maximum"
+      ],
+      "model_type": "ConstrainedTrialParallelismModel",
+      "native_sdl": false,
+      "omit": {
+        "maximum": [
+          "null"
+        ],
+        "minimum": [
+          "null"
+        ]
+      },
+      "scalar": {
+        "maximum": {
+          "shapes": [
+            "integer!",
+            "null"
+          ]
+        },
+        "minimum": {
+          "shapes": [
+            "integer!",
+            "null"
           ]
         }
       }
@@ -1847,7 +1879,7 @@
         "observation_demand"
       ],
       "model_type": "EvidenceRequirement",
-      "native_sdl": true,
+      "native_sdl": false,
       "omit": {},
       "scalar": {
         "channel": {
@@ -2021,6 +2053,23 @@
         "numerator": {
           "shapes": [
             "integer"
+          ]
+        }
+      }
+    },
+    "#/$defs/ExactTrialParallelismModel": {
+      "factory_defaults": {},
+      "fields": [
+        "posture",
+        "count"
+      ],
+      "model_type": "ExactTrialParallelismModel",
+      "native_sdl": false,
+      "omit": {},
+      "scalar": {
+        "count": {
+          "shapes": [
+            "integer!"
           ]
         }
       }
@@ -2286,7 +2335,7 @@
         "output"
       ],
       "model_type": "GeneratedArtifactValueSource",
-      "native_sdl": true,
+      "native_sdl": false,
       "omit": {},
       "scalar": {}
     },
@@ -2659,7 +2708,7 @@
         "effect_id"
       ],
       "model_type": "LocalOutcomeCriterion",
-      "native_sdl": true,
+      "native_sdl": false,
       "omit": {},
       "scalar": {}
     },
@@ -2675,7 +2724,7 @@
         "episode_policy"
       ],
       "model_type": "LocalOutcomeDefinition",
-      "native_sdl": true,
+      "native_sdl": false,
       "omit": {},
       "scalar": {}
     },
@@ -2692,7 +2741,7 @@
         "evidence_refs"
       ],
       "model_type": "MixedControlControllerState",
-      "native_sdl": true,
+      "native_sdl": false,
       "omit": {},
       "scalar": {
         "valid_from_order": {
@@ -2718,7 +2767,7 @@
         "conflict"
       ],
       "model_type": "MixedControlDispositionRules",
-      "native_sdl": true,
+      "native_sdl": false,
       "omit": {},
       "scalar": {}
     },
@@ -2971,7 +3020,7 @@
         "unit_semantic_ref"
       ],
       "model_type": "NumericPredicate",
-      "native_sdl": true,
+      "native_sdl": false,
       "omit": {},
       "scalar": {
         "expected": {
@@ -3123,6 +3172,16 @@
         }
       }
     },
+    "#/$defs/OpenTrialParallelismModel": {
+      "factory_defaults": {},
+      "fields": [
+        "posture"
+      ],
+      "model_type": "OpenTrialParallelismModel",
+      "native_sdl": false,
+      "omit": {},
+      "scalar": {}
+    },
     "#/$defs/OperatorSecretCredentialMaterial": {
       "capability_classified": true,
       "factory_defaults": {},
@@ -3152,7 +3211,7 @@
         "diagnostics"
       ],
       "model_type": "OutcomeInterpretationRule",
-      "native_sdl": true,
+      "native_sdl": false,
       "omit": {},
       "scalar": {}
     },
@@ -3172,7 +3231,7 @@
         "diagnostics"
       ],
       "model_type": "OutcomeInterpretationSourceBinding",
-      "native_sdl": true,
+      "native_sdl": false,
       "omit": {},
       "scalar": {}
     },
@@ -3193,7 +3252,7 @@
         "diagnostics"
       ],
       "model_type": "OutcomeInterpretationTargetBinding",
-      "native_sdl": true,
+      "native_sdl": false,
       "omit": {},
       "scalar": {}
     },
@@ -3355,7 +3414,7 @@
         "evidence_refs"
       ],
       "model_type": "ParticipantActionEffect",
-      "native_sdl": true,
+      "native_sdl": false,
       "omit": {},
       "scalar": {}
     },
@@ -3372,7 +3431,7 @@
         "evidence_refs"
       ],
       "model_type": "ParticipantActionPrecondition",
-      "native_sdl": true,
+      "native_sdl": false,
       "omit": {},
       "scalar": {}
     },
@@ -3642,7 +3701,7 @@
         "diagnostic"
       ],
       "model_type": "ParticipantBackendFailureMapping",
-      "native_sdl": true,
+      "native_sdl": false,
       "omit": {},
       "scalar": {
         "failure_class": {
@@ -3702,6 +3761,7 @@
         "evidence_contract_refs",
         "tool_affordances",
         "participant_inject_deliveries",
+        "episode_policy",
         "extension_policy",
         "extensions"
       ],
@@ -3714,6 +3774,9 @@
           "empty-sequence",
           "blank",
           "false"
+        ],
+        "episode_policy": [
+          "null"
         ]
       },
       "scalar": {}
@@ -3760,6 +3823,93 @@
         "disposition"
       ],
       "model_type": "ParticipantControlContextReference",
+      "native_sdl": true,
+      "omit": {},
+      "scalar": {}
+    },
+    "#/$defs/ParticipantEpisodeCompletionCondition": {
+      "factory_defaults": {},
+      "fields": [
+        "terminal_reason",
+        "assertion_refs",
+        "evidence_requirement_refs"
+      ],
+      "model_type": "ParticipantEpisodeCompletionCondition",
+      "native_sdl": true,
+      "omit": {},
+      "scalar": {}
+    },
+    "#/$defs/ParticipantEpisodeInitialization": {
+      "factory_defaults": {},
+      "fields": [
+        "assertion_refs"
+      ],
+      "model_type": "ParticipantEpisodeInitialization",
+      "native_sdl": true,
+      "omit": {},
+      "scalar": {}
+    },
+    "#/$defs/ParticipantEpisodeInteractionStructure": {
+      "factory_defaults": {},
+      "fields": [
+        "order_basis",
+        "action_contract_refs"
+      ],
+      "model_type": "ParticipantEpisodeInteractionStructure",
+      "native_sdl": true,
+      "omit": {},
+      "scalar": {}
+    },
+    "#/$defs/ParticipantEpisodePolicy": {
+      "factory_defaults": {
+        "terminal_conditions": {},
+        "truncation_conditions": {}
+      },
+      "fields": [
+        "profile",
+        "initialization",
+        "interaction_structure",
+        "terminal_conditions",
+        "truncation_conditions",
+        "reset_policy"
+      ],
+      "model_type": "ParticipantEpisodePolicy",
+      "native_sdl": true,
+      "omit": {},
+      "scalar": {}
+    },
+    "#/$defs/ParticipantEpisodeResetPolicy": {
+      "factory_defaults": {},
+      "fields": [
+        "control_actions",
+        "participant_memory_scope",
+        "memory_reset_authority_ref",
+        "evidence_requirement_refs"
+      ],
+      "model_type": "ParticipantEpisodeResetPolicy",
+      "native_sdl": true,
+      "omit": {},
+      "scalar": {}
+    },
+    "#/$defs/ParticipantEpisodeTimeoutCondition": {
+      "factory_defaults": {},
+      "fields": [
+        "terminal_reason",
+        "temporal_constraint_ref",
+        "evidence_requirement_refs"
+      ],
+      "model_type": "ParticipantEpisodeTimeoutCondition",
+      "native_sdl": true,
+      "omit": {},
+      "scalar": {}
+    },
+    "#/$defs/ParticipantEpisodeTruncationCondition": {
+      "factory_defaults": {},
+      "fields": [
+        "assertion_refs",
+        "evidence_requirement_refs"
+      ],
+      "model_type": "ParticipantEpisodeTruncationCondition",
       "native_sdl": true,
       "omit": {},
       "scalar": {}
@@ -3811,7 +3961,7 @@
         "control"
       ],
       "model_type": "ParticipantInjectDelivery",
-      "native_sdl": true,
+      "native_sdl": false,
       "omit": {},
       "scalar": {
         "control_effective_order": {
@@ -3845,7 +3995,7 @@
         "evidence_refs"
       ],
       "model_type": "ParticipantInjectDeliveryControl",
-      "native_sdl": true,
+      "native_sdl": false,
       "omit": {},
       "scalar": {}
     },
@@ -3860,7 +4010,7 @@
         "disclosure_basis_ref"
       ],
       "model_type": "ParticipantInjectDeliveryPolicy",
-      "native_sdl": true,
+      "native_sdl": false,
       "omit": {},
       "scalar": {}
     },
@@ -3872,7 +4022,7 @@
         "story_ref"
       ],
       "model_type": "ParticipantInjectOccurrenceAnchor",
-      "native_sdl": true,
+      "native_sdl": false,
       "omit": {},
       "scalar": {}
     },
@@ -4225,7 +4375,7 @@
         "operator"
       ],
       "model_type": "PresencePredicate",
-      "native_sdl": true,
+      "native_sdl": false,
       "omit": {},
       "scalar": {}
     },
@@ -4243,7 +4393,7 @@
         "evidence_requirements"
       ],
       "model_type": "Proposition",
-      "native_sdl": true,
+      "native_sdl": false,
       "omit": {},
       "scalar": {
         "threshold": {
@@ -7894,6 +8044,7 @@
             "api_pull",
             "other",
             "queue",
+            "socket",
             "tailed_path",
             "unknown"
           ],
@@ -8070,6 +8221,21 @@
           ]
         }
       }
+    },
+    "#/$defs/RuntimeIdentityAuditLog": {
+      "factory_defaults": {
+        "exempted_principal_refs": []
+      },
+      "fields": [
+        "audit_log_id",
+        "service",
+        "log_type",
+        "exempted_principal_refs"
+      ],
+      "model_type": "RuntimeIdentityAuditLog",
+      "native_sdl": true,
+      "omit": {},
+      "scalar": {}
     },
     "#/$defs/RuntimeIdentityAuthority": {
       "factory_defaults": {
@@ -8316,7 +8482,9 @@
       "scalar": {}
     },
     "#/$defs/RuntimeIdentityResourceScope": {
-      "factory_defaults": {},
+      "factory_defaults": {
+        "audit_logs": []
+      },
       "fields": [
         "scope_id",
         "provider",
@@ -8325,7 +8493,8 @@
         "native_id",
         "incarnation_id",
         "parent_ref",
-        "description"
+        "description",
+        "audit_logs"
       ],
       "model_type": "RuntimeIdentityResourceScope",
       "native_sdl": true,
@@ -11234,6 +11403,32 @@
       "omit": {},
       "scalar": {}
     },
+    "#/$defs/RuntimeSecretReplica": {
+      "factory_defaults": {},
+      "fields": [
+        "location",
+        "kms_key_name"
+      ],
+      "model_type": "RuntimeSecretReplica",
+      "native_sdl": true,
+      "omit": {},
+      "scalar": {}
+    },
+    "#/$defs/RuntimeSecretReplication": {
+      "factory_defaults": {
+        "replicas": []
+      },
+      "fields": [
+        "provider",
+        "mode",
+        "replicas",
+        "kms_key_name"
+      ],
+      "model_type": "RuntimeSecretReplication",
+      "native_sdl": true,
+      "omit": {},
+      "scalar": {}
+    },
     "#/$defs/RuntimeSecretSelector": {
       "factory_defaults": {},
       "fields": [
@@ -12198,6 +12393,7 @@
       },
       "fields": [
         "secret_id",
+        "replication",
         "resource_scope_ref",
         "native_id",
         "versions",
@@ -12224,6 +12420,7 @@
       "fields": [
         "component_id",
         "name",
+        "model",
         "presence",
         "version",
         "version_constraint",
@@ -12247,7 +12444,11 @@
       ],
       "model_type": "RuntimeSoftwareComponent",
       "native_sdl": true,
-      "omit": {},
+      "omit": {
+        "model": [
+          "null"
+        ]
+      },
       "scalar": {
         "component_type": {
           "convert": [
@@ -12581,6 +12782,54 @@
           "convert": [
             "strings"
           ]
+        }
+      }
+    },
+    "#/$defs/SafeState": {
+      "factory_defaults": {},
+      "fields": [
+        "schema_version",
+        "kind",
+        "continuing_mode",
+        "assertion_refs"
+      ],
+      "model_type": "SafeState",
+      "native_sdl": false,
+      "omit": {},
+      "scalar": {
+        "assertion_refs": {
+          "explicitness_atomic": true
+        }
+      }
+    },
+    "#/$defs/SafeStateDocument": {
+      "factory_defaults": {},
+      "fields": [
+        "default",
+        "scopes"
+      ],
+      "model_type": "SafeStateDocument",
+      "native_sdl": false,
+      "omit": {},
+      "scalar": {
+        "scopes": {
+          "explicitness_atomic": true
+        }
+      }
+    },
+    "#/$defs/SafeStateScope": {
+      "factory_defaults": {},
+      "fields": [
+        "namespace",
+        "scope",
+        "state"
+      ],
+      "model_type": "SafeStateScope",
+      "native_sdl": false,
+      "omit": {},
+      "scalar": {
+        "namespace": {
+          "explicitness_atomic": true
         }
       }
     },
@@ -13206,7 +13455,7 @@
         "expected_from"
       ],
       "model_type": "StringPredicate",
-      "native_sdl": true,
+      "native_sdl": false,
       "omit": {
         "expected_from": [
           "null"
@@ -13580,6 +13829,7 @@
         "name",
         "version",
         "description",
+        "trial_parallelism",
         "semantic_revision",
         "nodes",
         "infrastructure",
@@ -13610,6 +13860,7 @@
         "outcome_interpretation_rules",
         "behavior_specifications",
         "evidence_requirements",
+        "safe_state",
         "execution_policy",
         "augmentation_scope",
         "time_domains",
@@ -13637,7 +13888,13 @@
         "execution_policy": [
           "null"
         ],
+        "safe_state": [
+          "null"
+        ],
         "semantic_revision": [
+          "null"
+        ],
+        "trial_parallelism": [
           "null"
         ]
       },
@@ -13986,6 +14243,7 @@
         "name",
         "version",
         "description",
+        "trial_parallelism",
         "semantic_revision",
         "nodes",
         "infrastructure",
@@ -14016,6 +14274,7 @@
         "outcome_interpretation_rules",
         "behavior_specifications",
         "evidence_requirements",
+        "safe_state",
         "execution_policy",
         "augmentation_scope",
         "time_domains",
@@ -14043,7 +14302,13 @@
         "execution_policy": [
           "null"
         ],
+        "safe_state": [
+          "null"
+        ],
         "semantic_revision": [
+          "null"
+        ],
+        "trial_parallelism": [
           "null"
         ]
       },
@@ -14290,6 +14555,7 @@
         "name",
         "version",
         "description",
+        "trial_parallelism",
         "semantic_revision",
         "nodes",
         "infrastructure",
@@ -14320,6 +14586,7 @@
         "outcome_interpretation_rules",
         "behavior_specifications",
         "evidence_requirements",
+        "safe_state",
         "execution_policy",
         "augmentation_scope",
         "time_domains",
@@ -14351,7 +14618,13 @@
         "execution_policy": [
           "null"
         ],
+        "safe_state": [
+          "null"
+        ],
         "semantic_revision": [
+          "null"
+        ],
+        "trial_parallelism": [
           "null"
         ]
       },
@@ -14971,6 +15244,7 @@
         "name",
         "version",
         "description",
+        "trial_parallelism",
         "semantic_revision",
         "nodes",
         "infrastructure",
@@ -15001,6 +15275,7 @@
         "outcome_interpretation_rules",
         "behavior_specifications",
         "evidence_requirements",
+        "safe_state",
         "execution_policy",
         "augmentation_scope",
         "time_domains",
@@ -15030,7 +15305,13 @@
         "execution_policy": [
           "null"
         ],
+        "safe_state": [
+          "null"
+        ],
         "semantic_revision": [
+          "null"
+        ],
+        "trial_parallelism": [
           "null"
         ]
       },

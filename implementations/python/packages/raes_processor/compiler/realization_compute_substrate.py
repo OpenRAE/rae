@@ -1,9 +1,9 @@
 """Compile the addressed substrate concern independently of node-kind authority."""
 
-from raes.explicitness import ExplicitnessClass, ExplicitnessProvenance
 from raes.nodes import NodeType
 from raes.realization_designation import RealizationConstraintPosture
 from raes.scenario import InstantiatedScenario
+from raes_contracts.explicitness import ExplicitnessClass, ExplicitnessProvenance
 from raes_contracts.json_pointer import escape_token
 
 from ..semantics.realization import REALIZATION_DOMAIN, CompiledRealizationRequirement

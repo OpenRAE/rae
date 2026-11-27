@@ -11,14 +11,14 @@ from jsonschema import Draft202012Validator
 from mixed_control_v2_support import History
 from pydantic import TypeAdapter, ValidationError
 from raes.participant_mixed_control_policy import MixedControlCoordinate
-from raes.participant_mixed_control_vocabulary import MIXED_CONTROL_COORDINATE_LIMIT
 from raes_contracts.contracts import (
     ParticipantControlOccurrenceModel,
     ParticipantControlOccurrenceV2Model,
     parse_participant_control_occurrence,
-    schema_bundle,
 )
 from raes_contracts.contracts.participant_control_coordinates import ControlCount, ControlPosition
+from raes_contracts.participant_mixed_control_vocabulary import MIXED_CONTROL_COORDINATE_LIMIT
+from raes_schemas import schema_bundle
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 FIXTURES = REPO_ROOT / "contracts/fixtures/participant-runtime/participant-control-occurrence-v2"

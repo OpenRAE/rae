@@ -40,7 +40,6 @@
     "progress": "progress-insensitive",
     "probability": "outside-baseline"
   },
-  "assumptions_digest": "sha256:10bf3bfb177e5ddbaaa49f16cf6a1911639b9b22931dcf4203374fa0e6f94d42",
   "checker_configuration": {
     "profile": "raes-participant-opacity-explicit-state/v1",
     "tool_id": "raes-processor-participant-opacity-model-check",
@@ -55,7 +54,6 @@
     "max_states": 4096,
     "max_transitions": 65536
   },
-  "checker_configuration_digest": "sha256:6f5d96e71996016254e71a9af79fd654df97b3a925fcadd10108a8a5fde274ca",
   "derived_carrier_digest": "sha256:69392d361f73c0ffad0118e93a3bde7dbc5f6aab1c8e58e11b08a32e3c7c37da",
   "claim": {
     "taxonomy_id": "raes-behavioral-relations",

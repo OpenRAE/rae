@@ -2,13 +2,14 @@
 
 from typing import Protocol
 
+from raes_contracts.contracts.participant_action_admission import ParticipantActionAdmissionRequest
 from raes_contracts.contracts.participant_resource_budgets import (
     ParticipantResourceMeasurementModel,
     ParticipantResourceMeasurementRequirementModel,
     participant_resource_budget_state_ref,
 )
 from raes_contracts.diagnostics import Diagnostic
-from raes_contracts.participant_binding import ParticipantActionAdmissionRequest, ParticipantActionApplyResult
+from raes_contracts.participant_binding import ParticipantActionApplyResult
 from raes_contracts.runtime_state import ApplyResult
 
 from .participant_resource_accounting import (

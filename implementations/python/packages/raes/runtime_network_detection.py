@@ -3,11 +3,8 @@
 from enum import Enum
 
 from pydantic import Field, ValidationInfo, field_validator, model_validator
-
-from raes.runtime_vocabulary import GovernedVocabulary
-
-from ._base import SDLModel, parse_int_or_var
-from .runtime_values import (
+from raes_contracts.governed_vocabulary import GovernedVocabulary
+from raes_contracts.runtime_values import (
     absolute_path_or_var,
     coerce_string_list,
     control_interface_path_or_var,
@@ -16,6 +13,8 @@ from .runtime_values import (
     require_symbol,
     validate_absolute_paths,
 )
+from raes_contracts.sdl_model import SDLModel
+from raes_contracts.variable_references import parse_int_or_var
 
 __all__ = [
     "RuntimeNetworkDetectionAppProtocol",

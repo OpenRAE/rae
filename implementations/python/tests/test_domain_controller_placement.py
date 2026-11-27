@@ -21,8 +21,8 @@ from raes_backend_protocols.domain_topology import DomainTopologyBinding, domain
 from raes_backend_stubs.stubs import create_stub_manifest
 from raes_conformance._realization_validation import operation_inventory_diagnostics
 from raes_conformance.realization import RealizationProbeEvidence
-from raes_contracts.contracts import ProvisioningPlanModel, schema_bundle
-from raes_contracts.plan_projection import planned_provisioning_resources, provisioning_plan_model
+from raes_contracts.contracts import ProvisioningPlanModel
+from raes_contracts.contracts.plan_projection import planned_provisioning_resources, provisioning_plan_model
 from raes_contracts.planning import (
     PLAN_RESOURCE_TYPES_BY_DOMAIN,
     ChangeAction,
@@ -36,6 +36,7 @@ from raes_processor.compiler import compile_runtime_model
 from raes_processor.models import DomainControllerPlacement, resource_payload
 from raes_processor.planner import plan
 from raes_processor.semantics.realization import realization_disclosure
+from raes_schemas import schema_bundle
 
 _RESOURCE_TYPE = "domain-controller-placement"
 

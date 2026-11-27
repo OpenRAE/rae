@@ -14,11 +14,11 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
+from raes_contracts.identifiers import QualifiedName, is_portable_identifier
 from raes_contracts.json_pointer import pointer_from_tokens
 from yaml.nodes import MappingNode, Node, ScalarNode, SequenceNode
 
 from ._errors import SDLParseDiagnostic, SDLSourcePosition, SDLSourceRange
-from ._identifiers import QualifiedName, is_portable_identifier
 from ._mapping_scopes import PROFILE_JSON_FIELDS, MappingScope, is_literal_map_field, normalize_field_key
 from ._source_identifier_paths import is_declaration_key_path, is_scalar_identifier_path
 from ._source_profile import SDLMigrationPolicy

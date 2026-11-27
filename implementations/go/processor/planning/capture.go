@@ -5,6 +5,7 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/OpenRAE/rae/implementations/go/contract/admission"
 	"github.com/OpenRAE/rae/implementations/go/contract/diagnostic"
 	"github.com/OpenRAE/rae/implementations/go/internal/base/value"
 	"github.com/OpenRAE/rae/implementations/go/processor"
@@ -107,6 +108,9 @@ func captureDemandFailures(demand processor.CaptureDemand, prepared []captureOff
 	switch {
 	case demand.CaptureSpecRef != "" || demand.CaptureRequirementRef != "":
 		failures = []string{"reference-unresolved"}
+	case !admission.EvidenceIntegrityModes(demand.IntegrityModes):
+		// A guarantee needs a response verifier, not only a declared offer.
+		failures = []string{"integrity-verifier-unavailable"}
 	case len(prepared) == 0:
 		failures = []string{"offer-missing"}
 	default:

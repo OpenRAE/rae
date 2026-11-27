@@ -43,13 +43,9 @@ func (p *Parser) Select(document *Document, outcomes []byte, trial []byte) (*Doc
 	if !model.selectionRelations(recorded) {
 		return nil, selectionInvalid()
 	}
+	// Select from field presence, so the selected family keeps omitted fields absent.
 	input := model.document
-	value, err := p.modelValue(input)
-	if err != nil {
-		return nil, err
-	}
-	c := composition{parser: p}
-	original, err := c.bindingPayload(value, model.order)
+	original, err := p.modelValue(input)
 	if err != nil {
 		return nil, err
 	}
@@ -57,7 +53,7 @@ func (p *Parser) Select(document *Document, outcomes []byte, trial []byte) (*Doc
 	if err != nil {
 		return nil, err
 	}
-	payload, err := c.bindingPayload(value, model.order)
+	payload, err := p.modelValue(input)
 	if err != nil {
 		return nil, err
 	}

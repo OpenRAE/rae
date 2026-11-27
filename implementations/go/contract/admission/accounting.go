@@ -97,7 +97,7 @@ func accountingAttempt(v, run any, partial bool) error {
 	return require(partial)
 }
 func accountingRunStatus(v, latest any) error {
-	expected := map[string]string{statusUnknown: outcomeIndeterminate, statusRunning: statusInProgress, outcomeSucceeded: "completed", outcomeFailed: outcomeFailed, "timed-out": outcomeFailed, outcomeCancelled: outcomeAborted, outcomeAborted: outcomeAborted}[stringAt(latest, "execution_status")]
+	expected := map[string]string{statusUnknown: outcomeIndeterminate, statusRunning: statusInProgress, outcomeSucceeded: statusCompleted, outcomeFailed: outcomeFailed, "timed-out": outcomeFailed, outcomeCancelled: outcomeAborted, outcomeAborted: outcomeAborted}[stringAt(latest, "execution_status")]
 	status := stringAt(v, "run_status")
 	if status != expected && status != "invalidated" && status != statusSuperseded && (stringAt(latest, "execution_status") != outcomeSucceeded || status != "sealed") {
 		return invalid()
@@ -132,14 +132,7 @@ func batchReceipt(i validation.Invocation) error {
 			return invalid()
 		}
 	}
-	if !fieldsUnique(v, "lease_evidence_refs", "operation_refs") {
-		return invalid()
-	}
-	parallel := defaultMember(v, "effective_parallelism", jsonOne)
-	if numericEqual(parallel, jsonOne) {
-		return require(at(v, "isolation_proof_ref") == nil && len(array(at(v, "lease_evidence_refs"))) == 0)
-	}
-	return require(at(v, "isolation_proof_ref") != nil && len(array(at(v, "lease_evidence_refs"))) > 0)
+	return require(fieldsUnique(v, "operation_refs"))
 }
 
 func accountingAttemptTime(v, run any) error {

@@ -6,17 +6,11 @@
   ],
   "command": "sdl resolve",
   "files": {
-    "repo/examples/experiments/techvault-smoke-run.exp.yaml": "sha256:bc39d050c465fd28abe27c1db25cfd3ee1c08c8578d8b972d67e90dd46071103"
+    "repo/examples/experiments/techvault-smoke-run.exp.yaml": "sha256:8b1681534761e074ad3b5c0a51c2fb2fec3c52e1a796b769ea38f6a726d7eb4a"
   },
   "name": "examples/experiments/techvault-smoke-run.exp.yaml",
   "result": {
-    "exit_code": 0,
-    "generated_files": {
-      "repo/examples/experiments/raes.lock.json": {
-        "imports": [],
-        "schema_version": "raes-lock/v1"
-      }
-    },
+    "exit_code": 1,
     "stdout": null
   },
   "surface": "cli"

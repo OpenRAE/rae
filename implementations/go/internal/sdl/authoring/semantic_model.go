@@ -257,6 +257,7 @@ func (m *semanticModel) check(c *semanticCollector) error {
 	m.checkEvidence(c)
 	m.checkAugmentation(c)
 	m.checkExecution(c)
+	m.checkSafeState(c)
 	m.checkTime(c)
 	if err := m.checkVariables(c); err != nil {
 		return err

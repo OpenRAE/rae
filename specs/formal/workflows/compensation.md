@@ -1,4 +1,4 @@
-# Workflow Compensation Semantics
+# Workflow compensation semantics
 
 ## Scope
 
@@ -65,14 +65,14 @@ Non-compensable step kinds:
   completion time
 - only successfully completed compensable steps participate
 
-## Graph Rules
+## Graph rules
 
 - every compensation target must resolve to a declared workflow
 - the combined graph of normal `call` edges and `compensate-with` edges must
   remain acyclic
 - a compensation workflow may not itself declare `compensate-with` steps
 
-## Runtime Observation
+## Runtime observation
 
 Workflow execution state includes:
 
@@ -95,11 +95,11 @@ Compensation status is separate from the primary terminal workflow status. A
 workflow can be `cancelled` or `timed_out` while compensation is `running` or
 `succeeded`.
 
-## Implementation Mapping
+## Implementation mapping
 
 - SDL authoring models: `implementations/python/packages/raes/orchestration/__init__.py`
 - semantic validation: `implementations/python/packages/raes/validator/`
 - compiled contracts: `implementations/python/packages/raes_processor/compiler/`
 - runtime state/history models: `implementations/python/packages/raes_processor/models/`
-- manager validation: `implementations/python/packages/raes_processor/manager.py`
-- control-plane lifecycle handling: `implementations/python/packages/raes_processor/control_plane.py`
+- manager validation: `implementations/python/packages/raes_runtime/manager.py`
+- control-plane lifecycle handling: `implementations/python/packages/raes_runtime/control_plane.py`

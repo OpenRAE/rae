@@ -5651,14 +5651,6 @@
           "flow"
         ],
         "pointer": null
-      },
-      {
-        "message": "Workflow 'flow' contains unreachable steps: done",
-        "owner": [
-          "workflows",
-          "flow"
-        ],
-        "pointer": null
       }
     ],
     "locations": [
@@ -5667,26 +5659,6 @@
         "severity": "error",
         "code": "sdl.semantic",
         "message": "Workflow 'flow' graph contains a cycle",
-        "path": "/workflows/flow",
-        "range": {
-          "start": {
-            "line": 1,
-            "column": 2388
-          },
-          "end": {
-            "line": 1,
-            "column": 2394
-          }
-        },
-        "source": "main.yaml",
-        "original_path": "/workflows/flow",
-        "canonical_address": "workflows.flow"
-      },
-      {
-        "stage": "semantic_validation",
-        "severity": "error",
-        "code": "sdl.semantic",
-        "message": "Workflow 'flow' contains unreachable steps: done",
         "path": "/workflows/flow",
         "range": {
           "start": {

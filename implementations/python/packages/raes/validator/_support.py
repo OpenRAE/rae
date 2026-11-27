@@ -31,13 +31,11 @@ class _CompensationState:
 
 @dataclass
 class _AvailableStateContext:
-    """State threaded through the predicate available-step-state recursion."""
+    """State for ordered predicate visibility and shared join analysis."""
 
     workflow_steps: dict[str, WorkflowStep]
-    graph: dict[str, list[str]]
     predecessors: dict[str, set[str]]
     start: str
     join_targets: dict[str, list[str]]
+    join_states: dict[str, dict[str, frozenset[str]]]
     available_memo: dict[str, set[str]] = field(default_factory=dict)
-    branch_memo: dict[tuple[str, str], set[str]] = field(default_factory=dict)
-    visiting: set[str] = field(default_factory=set)

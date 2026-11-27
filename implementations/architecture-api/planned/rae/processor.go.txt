@@ -140,6 +140,7 @@ type CompiledScenario struct {
 	ObservationDemands     []ObservationDemand
 	CaptureDemands         []CaptureDemand
 	ExecutionPolicies      []ExecutionPolicy
+	SafeStates             []json.RawMessage
 	Diagnostics            []diagnostic.Diagnostic
 }
 type ObservationDemand struct {

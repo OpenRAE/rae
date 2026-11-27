@@ -312,8 +312,8 @@ def test_current_retest_requires_drift_disposition_for_production_evidence_cases
 
 
 def test_retest_production_evidence_contains_governed_payloads() -> None:
-    from raes_contracts.exploit_path import ExploitPathAnalysisEvidenceModel
-    from raes_contracts.satisfiability import ScenarioSatisfiabilityEvidenceV2Model
+    from raes_processor.exploit_path.evidence import ExploitPathAnalysisEvidenceModel
+    from raes_processor.satisfiability.evidence import ScenarioSatisfiabilityEvidenceV2Model
 
     _, _, _, snapshot, _ = copy_bundle(load_retest_bundle, REPO_ROOT)
     paths = {
@@ -388,11 +388,11 @@ def test_retest_gate_rejects_forged_production_configuration_digest(case_id) -> 
 @pytest.mark.parametrize(
     ("case_id", "expected_rule", "expected_message"),
     [
-        # Current satisfiability evidence is v2, so the frozen v1 archival shape rejects it.
+        # A frozen archival shape admits current evidence v2, and the recorded evidence join rejects it.
         (
             "finite-domain-satisfiable-v2",
-            "formal-validation-production-replay",
-            "case 'finite-domain-satisfiable-v2' production replay failed (EvidenceIntegrityError)",
+            "formal-validation-production-evidence-join",
+            "case 'finite-domain-satisfiable-v2' source, configuration, outcome, CLI, replay, or evidence joins drifted",
         ),
         (
             "typed-exploit-path-valid-v2",

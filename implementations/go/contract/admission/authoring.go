@@ -26,6 +26,13 @@ func jsonDigest(v any) (string, error) {
 	}
 	return digest.SHA256(canonical), nil
 }
+
+// selfDigest digests an object without the field that carries the digest.
+func selfDigest(v any, field string) (string, error) {
+	payload := maps.Clone(object(v))
+	delete(payload, field)
+	return jsonDigest(payload)
+}
 func authoringObservation(v any) bool {
 	success := stringAt(v, messageOutcome) == outcomeSuccess
 	return success == (at(v, "artifact_coordinate") != nil) && success == (at(v, "canonical_artifact_digest") != nil)
@@ -36,21 +43,28 @@ func authoringVector(i validation.Invocation) error {
 	if len(source) > 65536 || len([]byte(stringAt(v, "contrast", "output_source"))) > 65536 || stringAt(v, "input_digest") != digest.SHA256(source) {
 		return invalid()
 	}
-	operation := maps.Clone(object(at(v, "operation")))
+	operation := object(at(v, "operation"))
 	rename := stringAt(operation, termProfile) == "rename-sdl-declaration/v1"
 	if rename != (at(operation, "target_address") != nil) || rename != (at(operation, "new_local_name") != nil) {
 		return invalid()
 	}
+	actual, err := authoringOperationDigest(v)
+	if err != nil {
+		return err
+	}
+	return require(actual == stringAt(v, "operation_digest") && authoringObservation(at(v, "expected")))
+}
+
+// authoringOperationDigest digests the operation with its optional rename
+// fields present, as the published operation model serializes them.
+func authoringOperationDigest(v any) (string, error) {
+	operation := maps.Clone(object(at(v, "operation")))
 	for _, field := range []string{"target_address", "new_local_name"} {
 		if _, present := operation[field]; !present {
 			operation[field] = nil
 		}
 	}
-	actual, err := jsonDigest(operation)
-	if err != nil {
-		return err
-	}
-	return require(actual == stringAt(v, "operation_digest") && authoringObservation(at(v, "expected")))
+	return jsonDigest(operation)
 }
 func authoringComparison(i validation.Invocation) error {
 	v := i.Instance

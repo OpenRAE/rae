@@ -1,5 +1,0 @@
-[
-  "func github.com/OpenRAE/rae/implementations/go/sdl.EnvelopeProbes(envelope github.com/OpenRAE/rae/implementations/go/contract/binding.RealizationEnvelopeV1, positive bool) ([]github.com/OpenRAE/rae/implementations/go/sdl.EnvelopeProbe, []github.com/OpenRAE/rae/implementations/go/contract/diagnostic.Diagnostic, error)",
-  "func github.com/OpenRAE/rae/implementations/go/sdl.EnvelopeWitness(envelope github.com/OpenRAE/rae/implementations/go/contract/binding.RealizationEnvelopeV1) (github.com/OpenRAE/rae/implementations/go/sdl.InstantiatedScenario, []github.com/OpenRAE/rae/implementations/go/contract/diagnostic.Diagnostic, error)",
-  "type github.com/OpenRAE/rae/implementations/go/sdl.EnvelopeProbe constraints[] struct{Path string \"\" embedded=false; DomainKind string \"\" embedded=false; Variation string \"\" embedded=false; Digest string \"\" embedded=false; Payload github.com/OpenRAE/rae/implementations/go/contract/admission.Fragment \"\" embedded=false; Scenario github.com/OpenRAE/rae/implementations/go/sdl.InstantiatedScenario \"\" embedded=false} unexported-fields=false comparable=true"
-]

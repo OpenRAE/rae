@@ -69,14 +69,14 @@
             "address": "provision.node.web",
             "ordering_dependencies": [],
             "payload": {
-              "architecture": "",
+              "architecture": null,
               "count": null,
               "domain_topology": null,
               "name": "web",
               "network_namespace_target": "",
               "node_kind": "compute",
               "node_name": "web",
-              "os_distribution": "",
+              "os_distribution": null,
               "os_family": "",
               "os_version": "",
               "spec": {

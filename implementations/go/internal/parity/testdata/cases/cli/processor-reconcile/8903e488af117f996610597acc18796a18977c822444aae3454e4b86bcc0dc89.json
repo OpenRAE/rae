@@ -1,0 +1,50 @@
+{
+  "args": [
+    "processor",
+    "reconcile",
+    "repo/contracts/fixtures/sdl/participant-episode-policy-v1/valid/standalone-episode-structure.yaml",
+    "repo/contracts/fixtures/sdl/participant-episode-policy-v1/valid/standalone-episode-structure.yaml",
+    "--format",
+    "json"
+  ],
+  "command": "processor reconcile",
+  "files": {
+    "repo/contracts/fixtures/sdl/participant-episode-policy-v1/valid/standalone-episode-structure.yaml": "sha256:bf2f66701c27305dc2dfa8e2b5d9ffe53d8bf27f447a3b47542c23cdb5b65592"
+  },
+  "name": "contracts/fixtures/sdl/participant-episode-policy-v1/valid/standalone-episode-structure.yaml",
+  "result": {
+    "exit_code": 1,
+    "stdout": {
+      "actions": null,
+      "baseline": {
+        "diagnostics": [
+          {
+            "address": "time.model",
+            "code": "time.unsupported-capability",
+            "domain": "time",
+            "severity": "error"
+          },
+          {
+            "address": "evidence_requirements.replay-clock-evidence",
+            "code": "capture.offer-missing",
+            "domain": "capture",
+            "severity": "error"
+          },
+          {
+            "address": "evidence_requirements.replay-reset-evidence",
+            "code": "capture.offer-missing",
+            "domain": "capture",
+            "severity": "error"
+          }
+        ],
+        "scenario_name": "act-623",
+        "snapshot": null
+      },
+      "candidate": null,
+      "operations": null,
+      "snapshot_kind": "planned-state-projection",
+      "status": "baseline_rejected"
+    }
+  },
+  "surface": "cli"
+}

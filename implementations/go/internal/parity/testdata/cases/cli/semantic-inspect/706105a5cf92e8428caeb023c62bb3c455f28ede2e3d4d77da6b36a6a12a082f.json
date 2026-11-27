@@ -10,14 +10,21 @@
   ],
   "command": "semantic inspect",
   "files": {
-    "input.json": "sha256:972ed481422002a0a6b77ee702092a9163cf5fab54406086fd057adbae3498fa"
+    "input.json": "sha256:3dbcf128a10b49756a098b54944d7cf58b1b184d6cd5193148d87290a9bbf521"
   },
   "name": "contracts/fixtures/profiles/domain-profile-definition-v1/valid/reference",
   "result": {
-    "exit_code": 0,
+    "exit_code": 1,
     "stdout": {
       "contract_id": "domain-profile-definition-v1",
-      "diagnostics": [],
+      "diagnostics": [
+        {
+          "address": "domain-profile-definition-v1",
+          "code": "conformance.schema-invalid",
+          "domain": "conformance",
+          "severity": "error"
+        }
+      ],
       "migration_policy": null,
       "normalization_profile": null,
       "operation": "inspect",
@@ -39,7 +46,7 @@
         "network": "disabled"
       },
       "source_format": null,
-      "status": "success",
+      "status": "invalid",
       "transform_profile": null,
       "validation_strength": "structural"
     }

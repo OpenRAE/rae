@@ -396,6 +396,104 @@
           }
         ]
       },
+      "ParticipantEpisodeCompletionCondition": {
+        "assertion_refs": [
+          {
+            "min_length": 1,
+            "path": [
+              "items"
+            ],
+            "pattern": "\\S"
+          }
+        ],
+        "evidence_requirement_refs": [
+          {
+            "min_length": 1,
+            "path": [
+              "items"
+            ],
+            "pattern": "\\S"
+          }
+        ]
+      },
+      "ParticipantEpisodeInitialization": {
+        "assertion_refs": [
+          {
+            "min_length": 1,
+            "path": [
+              "items"
+            ],
+            "pattern": "\\S"
+          }
+        ]
+      },
+      "ParticipantEpisodeInteractionStructure": {
+        "action_contract_refs": [
+          {
+            "min_length": 1,
+            "path": [
+              "items"
+            ],
+            "pattern": "\\S"
+          }
+        ]
+      },
+      "ParticipantEpisodeResetPolicy": {
+        "evidence_requirement_refs": [
+          {
+            "min_length": 1,
+            "path": [
+              "items"
+            ],
+            "pattern": "\\S"
+          }
+        ],
+        "memory_reset_authority_ref": [
+          {
+            "min_length": 1,
+            "path": [],
+            "pattern": "\\S"
+          }
+        ]
+      },
+      "ParticipantEpisodeTimeoutCondition": {
+        "evidence_requirement_refs": [
+          {
+            "min_length": 1,
+            "path": [
+              "items"
+            ],
+            "pattern": "\\S"
+          }
+        ],
+        "temporal_constraint_ref": [
+          {
+            "min_length": 1,
+            "path": [],
+            "pattern": "\\S"
+          }
+        ]
+      },
+      "ParticipantEpisodeTruncationCondition": {
+        "assertion_refs": [
+          {
+            "min_length": 1,
+            "path": [
+              "items"
+            ],
+            "pattern": "\\S"
+          }
+        ],
+        "evidence_requirement_refs": [
+          {
+            "min_length": 1,
+            "path": [
+              "items"
+            ],
+            "pattern": "\\S"
+          }
+        ]
+      },
       "ParticipantInjectDeliveryControl": {
         "controller_ref": [
           {
@@ -602,6 +700,50 @@
             "path": [],
             "pattern": "^(?:https://[^\\s#]+|\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\})$",
             "schema_sha256": "68a4ed6785b12980e14c18b1654491542c1828107d57db7311bab4934818cf58"
+          }
+        ]
+      },
+      "RuntimeSecretReplica": {
+        "kms_key_name": [
+          {
+            "path": [],
+            "pattern": "^projects/[^/\\s]+/locations/[^/\\s]+/keyRings/[^/\\s]+/cryptoKeys/[^/\\s]+$"
+          }
+        ]
+      },
+      "RuntimeSecretReplication": {
+        "kms_key_name": [
+          {
+            "path": [],
+            "pattern": "^projects/[^/\\s]+/locations/[^/\\s]+/keyRings/[^/\\s]+/cryptoKeys/[^/\\s]+$"
+          }
+        ]
+      },
+      "RuntimeSoftwareComponent": {
+        "model": [
+          {
+            "min_length": 1,
+            "path": [],
+            "pattern": "\\S"
+          }
+        ]
+      },
+      "SafeState": {
+        "continuing_mode": [
+          {
+            "max_length": 2048,
+            "min_length": 1,
+            "path": [],
+            "pattern": "^\\S+$"
+          }
+        ]
+      },
+      "SafeStateScope": {
+        "scope": [
+          {
+            "max_length": 4096,
+            "path": [],
+            "pattern": "^(?:/(?:[^~/]|~[01])*)*$"
           }
         ]
       },
@@ -1115,6 +1257,104 @@
           }
         ]
       },
+      "ParticipantEpisodeCompletionCondition": {
+        "assertion_refs": [
+          {
+            "min_length": 1,
+            "path": [
+              "items"
+            ],
+            "pattern": "\\S"
+          }
+        ],
+        "evidence_requirement_refs": [
+          {
+            "min_length": 1,
+            "path": [
+              "items"
+            ],
+            "pattern": "\\S"
+          }
+        ]
+      },
+      "ParticipantEpisodeInitialization": {
+        "assertion_refs": [
+          {
+            "min_length": 1,
+            "path": [
+              "items"
+            ],
+            "pattern": "\\S"
+          }
+        ]
+      },
+      "ParticipantEpisodeInteractionStructure": {
+        "action_contract_refs": [
+          {
+            "min_length": 1,
+            "path": [
+              "items"
+            ],
+            "pattern": "\\S"
+          }
+        ]
+      },
+      "ParticipantEpisodeResetPolicy": {
+        "evidence_requirement_refs": [
+          {
+            "min_length": 1,
+            "path": [
+              "items"
+            ],
+            "pattern": "\\S"
+          }
+        ],
+        "memory_reset_authority_ref": [
+          {
+            "min_length": 1,
+            "path": [],
+            "pattern": "\\S"
+          }
+        ]
+      },
+      "ParticipantEpisodeTimeoutCondition": {
+        "evidence_requirement_refs": [
+          {
+            "min_length": 1,
+            "path": [
+              "items"
+            ],
+            "pattern": "\\S"
+          }
+        ],
+        "temporal_constraint_ref": [
+          {
+            "min_length": 1,
+            "path": [],
+            "pattern": "\\S"
+          }
+        ]
+      },
+      "ParticipantEpisodeTruncationCondition": {
+        "assertion_refs": [
+          {
+            "min_length": 1,
+            "path": [
+              "items"
+            ],
+            "pattern": "\\S"
+          }
+        ],
+        "evidence_requirement_refs": [
+          {
+            "min_length": 1,
+            "path": [
+              "items"
+            ],
+            "pattern": "\\S"
+          }
+        ]
+      },
       "ParticipantInjectDeliveryControl": {
         "controller_ref": [
           {
@@ -1284,7 +1524,7 @@
             "min_length": 1,
             "path": [],
             "pattern": "^(?:https://[^\\s#]+|\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\})$",
-            "schema_sha256": "38a1094070dbfb13f9b4de0c952c6c0bcdbf8eb3be7d2c73d95a6002478b3cbc"
+            "schema_sha256": "5814e31bc4dad0561455f25f4015d0ef1f862bd8327acba46ff160d98d331f91"
           }
         ]
       },
@@ -1383,7 +1623,51 @@
             "min_length": 1,
             "path": [],
             "pattern": "^(?:https://[^\\s#]+|\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\})$",
-            "schema_sha256": "e697b3cc83b2505dccd639c6b101fbe14284cc4d11d087cf30ab48fc87b9bda1"
+            "schema_sha256": "907f575b690e98af3941cde4df672cf377b13ec44b6d0a15705bf9db98cc5ad3"
+          }
+        ]
+      },
+      "RuntimeSecretReplica": {
+        "kms_key_name": [
+          {
+            "path": [],
+            "pattern": "^projects/[^/\\s]+/locations/[^/\\s]+/keyRings/[^/\\s]+/cryptoKeys/[^/\\s]+$"
+          }
+        ]
+      },
+      "RuntimeSecretReplication": {
+        "kms_key_name": [
+          {
+            "path": [],
+            "pattern": "^projects/[^/\\s]+/locations/[^/\\s]+/keyRings/[^/\\s]+/cryptoKeys/[^/\\s]+$"
+          }
+        ]
+      },
+      "RuntimeSoftwareComponent": {
+        "model": [
+          {
+            "min_length": 1,
+            "path": [],
+            "pattern": "\\S"
+          }
+        ]
+      },
+      "SafeState": {
+        "continuing_mode": [
+          {
+            "max_length": 2048,
+            "min_length": 1,
+            "path": [],
+            "pattern": "^\\S+$"
+          }
+        ]
+      },
+      "SafeStateScope": {
+        "scope": [
+          {
+            "max_length": 4096,
+            "path": [],
+            "pattern": "^(?:/(?:[^~/]|~[01])*)*$"
           }
         ]
       },
@@ -1793,6 +2077,104 @@
           }
         ]
       },
+      "ParticipantEpisodeCompletionCondition": {
+        "assertion_refs": [
+          {
+            "min_length": 1,
+            "path": [
+              "items"
+            ],
+            "pattern": "\\S"
+          }
+        ],
+        "evidence_requirement_refs": [
+          {
+            "min_length": 1,
+            "path": [
+              "items"
+            ],
+            "pattern": "\\S"
+          }
+        ]
+      },
+      "ParticipantEpisodeInitialization": {
+        "assertion_refs": [
+          {
+            "min_length": 1,
+            "path": [
+              "items"
+            ],
+            "pattern": "\\S"
+          }
+        ]
+      },
+      "ParticipantEpisodeInteractionStructure": {
+        "action_contract_refs": [
+          {
+            "min_length": 1,
+            "path": [
+              "items"
+            ],
+            "pattern": "\\S"
+          }
+        ]
+      },
+      "ParticipantEpisodeResetPolicy": {
+        "evidence_requirement_refs": [
+          {
+            "min_length": 1,
+            "path": [
+              "items"
+            ],
+            "pattern": "\\S"
+          }
+        ],
+        "memory_reset_authority_ref": [
+          {
+            "min_length": 1,
+            "path": [],
+            "pattern": "\\S"
+          }
+        ]
+      },
+      "ParticipantEpisodeTimeoutCondition": {
+        "evidence_requirement_refs": [
+          {
+            "min_length": 1,
+            "path": [
+              "items"
+            ],
+            "pattern": "\\S"
+          }
+        ],
+        "temporal_constraint_ref": [
+          {
+            "min_length": 1,
+            "path": [],
+            "pattern": "\\S"
+          }
+        ]
+      },
+      "ParticipantEpisodeTruncationCondition": {
+        "assertion_refs": [
+          {
+            "min_length": 1,
+            "path": [
+              "items"
+            ],
+            "pattern": "\\S"
+          }
+        ],
+        "evidence_requirement_refs": [
+          {
+            "min_length": 1,
+            "path": [
+              "items"
+            ],
+            "pattern": "\\S"
+          }
+        ]
+      },
       "ParticipantInjectDeliveryControl": {
         "controller_ref": [
           {
@@ -2003,6 +2385,50 @@
           }
         ]
       },
+      "RuntimeSecretReplica": {
+        "kms_key_name": [
+          {
+            "path": [],
+            "pattern": "^projects/[^/\\s]+/locations/[^/\\s]+/keyRings/[^/\\s]+/cryptoKeys/[^/\\s]+$"
+          }
+        ]
+      },
+      "RuntimeSecretReplication": {
+        "kms_key_name": [
+          {
+            "path": [],
+            "pattern": "^projects/[^/\\s]+/locations/[^/\\s]+/keyRings/[^/\\s]+/cryptoKeys/[^/\\s]+$"
+          }
+        ]
+      },
+      "RuntimeSoftwareComponent": {
+        "model": [
+          {
+            "min_length": 1,
+            "path": [],
+            "pattern": "\\S"
+          }
+        ]
+      },
+      "SafeState": {
+        "continuing_mode": [
+          {
+            "max_length": 2048,
+            "min_length": 1,
+            "path": [],
+            "pattern": "^\\S+$"
+          }
+        ]
+      },
+      "SafeStateScope": {
+        "scope": [
+          {
+            "max_length": 4096,
+            "path": [],
+            "pattern": "^(?:/(?:[^~/]|~[01])*)*$"
+          }
+        ]
+      },
       "ServiceManagerUnit": {
         "unit_name": [
           {
@@ -2031,5 +2457,5 @@
       }
     }
   },
-  "reference": "e5d8f6c1b10adaa66bb15b415e9f9a7263bd44f8"
+  "reference": "39481bb657acab4f58687f27e8bb3357ba3c8226"
 }

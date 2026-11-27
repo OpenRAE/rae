@@ -2,7 +2,7 @@
 
 Run after archcheck, which owns architecture validation and module discovery.
 This adapter checks consumer inventories without loading or compiling Go code.
-The ADR-121 workflow tests own the gate commands. This check owns their reach:
+The ADR-123 workflow tests own the gate commands. This check owns their reach:
 each declared module must receive every module gate in a required job.
 """
 

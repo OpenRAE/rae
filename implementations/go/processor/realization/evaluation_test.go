@@ -174,7 +174,7 @@ func TestEvaluationRefusesUnverifiedSubstrateDisclosureAtInputBoundary(t *testin
 
 func TestEvaluationBoundsAggregateRequirementScalarsBeforePhaseChecks(t *testing.T) {
 	requirement := exactRequirement("provision.node.server", strings.Repeat("x", 4096), "node-type", "author-declared", "#/nodes/server/type")
-	batch := make([]Requirement, 2100)
+	batch := make([]Requirement, 4200)
 	for index := range batch {
 		batch[index] = requirement
 	}

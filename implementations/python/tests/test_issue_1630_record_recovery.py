@@ -91,12 +91,17 @@ def test_completed_replacement_publishes_accounting_and_exact_scientific_version
     from contextlib import ExitStack
 
     from raes_contracts.contracts import ExperimentStudyModel, validate_experiment_run_against_task
+    from raes_runtime.operation_supervision_configuration import OperationSupervisionConfiguration
     from raes_runtime.runtime_experiment_replacement import ExperimentReplacementBinding
 
     request, inputs, target = factorial_inputs(lambda value: record_request(replacement_request(value)))
     services = ContentServices(target)
     services.execution_fails = True
-    with RuntimeControlPlane(target) as runtime:
+    # This test checks accounting and record versions, not the default latency bound. Study
+    # validation reads the evidence of 16 runs in one observation call, and a loaded CI
+    # runner can take longer than the 2000 ms default.
+    supervision = OperationSupervisionConfiguration(admission_ms=10000, observation_ms=10000, commit_ms=10000)
+    with RuntimeControlPlane(target, supervision=supervision) as runtime:
         archive = RuntimeArchive(runtime)
         experiment = runtime.admit_experiment(
             inputs, services=services, replacement=ExperimentReplacementBinding(request, archive)

@@ -1,0 +1,25 @@
+{
+  "args": [],
+  "command": "sdl_check_references",
+  "files": {
+    "arguments.json": "sha256:7316d6714691460638db649ff7a5784e6c5bfa3cdd6191efedc2f151c5598108"
+  },
+  "name": "contracts/fixtures/sdl/participant-episode-policy-v1/valid/analyst-shift-episode.yaml",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "Cross-reference graph": "agents.analyst -> blue-team assertions.console-ready -> console-ready assertions.queue-stalled -> queue-stalled assertions.ticket-closed -> ticket-closed propositions.console-ready -> nodes.siem.services.console propositions.queue-stalled -> nodes.siem.services.console, queue-evidence propositions.ticket-closed -> nodes.siem.services.console, ticket-evidence"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "Cross-reference graph": "agents.analyst -> blue-team assertions.console-ready -> console-ready assertions.queue-stalled -> queue-stalled assertions.ticket-closed -> ticket-closed propositions.console-ready -> nodes.siem.services.console propositions.queue-stalled -> nodes.siem.services.console, queue-evidence propositions.ticket-closed -> nodes.siem.services.console, ticket-evidence"
+      }
+    }
+  },
+  "surface": "mcp"
+}

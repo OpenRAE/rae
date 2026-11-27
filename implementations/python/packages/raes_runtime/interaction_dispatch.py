@@ -5,10 +5,13 @@ from __future__ import annotations
 from collections.abc import Callable
 from dataclasses import dataclass, replace
 from typing import TYPE_CHECKING, TypedDict, Unpack, cast
+from uuid import uuid4
 
+from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.operation_lifecycle import OperationAdmissionContext
 from raes_contracts.planning import EvaluationPlan, OrchestrationPlan, ProvisioningPlan, RuntimeDomain
 from raes_contracts.runtime_state import ApplyResult, OperationKind, OperationReceipt, OperationState, RuntimeSnapshot
+from raes_processor.planner import realization_authority_diagnostics
 
 from .backend_calls import _BackendCallContext, _call_backend_apply, _RealizationApplyContext
 from .backend_observation_calls import _RuntimePlanApplyRequest
@@ -16,6 +19,7 @@ from .control_plane_execution import OperationExecutionRequest, execute_operatio
 from .control_plane_operation_context import operation_admission_context
 from .control_plane_submission import control_plane_plan_diagnostics
 from .participant_activity import resolve_participant_activity_controls
+from .workflow_execution import has_workflow_program
 
 if TYPE_CHECKING:
     from .control_plane_configuration import ControlPlaneConfiguration
@@ -104,6 +108,14 @@ def _interaction_invoker(
     return invoke
 
 
+def _interaction_authority_diagnostics(target: RuntimeTarget, args: tuple[object, ...]) -> list[Diagnostic]:
+    """Check provisioning authority without treating snapshot callbacks as plans."""
+
+    if args and isinstance(args[0], ProvisioningPlan):
+        return realization_authority_diagnostics(args[0], target.manifest)
+    return []
+
+
 class RuntimeInteractionDispatchMixin:
     def _initialize_interaction(self, target: RuntimeTarget, config: ControlPlaneConfiguration) -> None:
         from .registry import RuntimeTargetComponents, _validate_runtime_target_shape
@@ -136,6 +148,11 @@ class RuntimeInteractionDispatchMixin:
         idempotency_key: str = "",
         identity: object | None = None,
     ) -> ApplyResult:
+        if has_workflow_program(phase):
+            receipt = self.submit_orchestration(
+                phase, base_snapshot=snapshot, idempotency_key=idempotency_key or str(uuid4()), identity=identity
+            )
+            return self._interaction_phase_result(receipt, [])
         domain = _phase_domain(phase)
         results = []
         context = operation_admission_context(self, kind=OperationKind(domain.value), request=phase, identity=identity)
@@ -221,6 +238,7 @@ class RuntimeInteractionDispatchMixin:
                 execute_observation=False,
                 result_sink=results.append,
                 cancellation_result=_cancellation_reader(self, cancelled, address) if runtime_composition else None,
+                admission_diagnostics=lambda: _interaction_authority_diagnostics(self._target, args),
             ),
         )
         return self._interaction_phase_result(receipt, results)

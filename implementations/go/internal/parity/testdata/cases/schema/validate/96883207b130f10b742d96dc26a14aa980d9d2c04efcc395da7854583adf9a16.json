@@ -1,0 +1,14 @@
+{
+  "args": [
+    "participant-opacity-model-check-evidence-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:4f62929450974c0e05df32c095aae6417fdb2ede3d83cb353e4c69ae394523dc"
+  },
+  "name": "regression/5b09e75ba1fb485f9324f6f8c7cbb25a9bdcb174124e8cae7895a2663b0b99bb",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

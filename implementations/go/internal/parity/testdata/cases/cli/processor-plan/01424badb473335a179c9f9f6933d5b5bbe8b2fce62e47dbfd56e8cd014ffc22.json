@@ -101,14 +101,14 @@
             "address": "provision.node.carrier",
             "ordering_dependencies": [],
             "payload": {
-              "architecture": "",
+              "architecture": null,
               "count": null,
               "domain_topology": null,
               "name": "carrier",
               "network_namespace_target": "",
               "node_kind": "compute",
               "node_name": "carrier",
-              "os_distribution": "",
+              "os_distribution": null,
               "os_family": "linux",
               "os_version": "",
               "spec": {
@@ -141,7 +141,7 @@
             "address": "provision.node.dc",
             "ordering_dependencies": [],
             "payload": {
-              "architecture": "",
+              "architecture": null,
               "count": null,
               "domain_topology": {
                 "authority_account_address": "provision.account.domain-admin",
@@ -158,7 +158,7 @@
               "network_namespace_target": "",
               "node_kind": "compute",
               "node_name": "dc",
-              "os_distribution": "",
+              "os_distribution": null,
               "os_family": "windows",
               "os_version": "",
               "spec": {
@@ -191,14 +191,14 @@
             "address": "provision.node.idp",
             "ordering_dependencies": [],
             "payload": {
-              "architecture": "",
+              "architecture": null,
               "count": null,
               "domain_topology": null,
               "name": "idp",
               "network_namespace_target": "",
               "node_kind": "compute",
               "node_name": "idp",
-              "os_distribution": "",
+              "os_distribution": null,
               "os_family": "linux",
               "os_version": "",
               "spec": {
@@ -238,14 +238,14 @@
             "address": "provision.node.inference",
             "ordering_dependencies": [],
             "payload": {
-              "architecture": "",
+              "architecture": null,
               "count": null,
               "domain_topology": null,
               "name": "inference",
               "network_namespace_target": "",
               "node_kind": "compute",
               "node_name": "inference",
-              "os_distribution": "",
+              "os_distribution": null,
               "os_family": "linux",
               "os_version": "",
               "spec": {
@@ -285,14 +285,14 @@
             "address": "provision.node.workforce",
             "ordering_dependencies": [],
             "payload": {
-              "architecture": "",
+              "architecture": null,
               "count": null,
               "domain_topology": null,
               "name": "workforce",
               "network_namespace_target": "",
               "node_kind": "compute",
               "node_name": "workforce",
-              "os_distribution": "",
+              "os_distribution": null,
               "os_family": "windows",
               "os_version": "",
               "spec": {

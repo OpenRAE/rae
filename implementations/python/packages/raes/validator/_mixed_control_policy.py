@@ -2,18 +2,19 @@
 
 from __future__ import annotations
 
+from raes_contracts.participant_mixed_control_vocabulary import (
+    MixedControlAuthorityStatus,
+    MixedControlControllerState,
+    MixedControlTransitionKind,
+    ParticipantControlTargetKind,
+)
+
 from .._reference_targetability import ReferencePurpose
 from ..participant_behavior_specification import ParticipantBehaviorSpecification
 from ..participant_mixed_control_policy import (
     MixedControlPermittedTransition,
     MixedControlPolicy,
     MixedControlScriptStep,
-)
-from ..participant_mixed_control_vocabulary import (
-    MixedControlAuthorityStatus,
-    MixedControlControllerState,
-    MixedControlTransitionKind,
-    ParticipantControlTargetKind,
 )
 from ._mixed_control import transition_pointer
 

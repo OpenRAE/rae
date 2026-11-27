@@ -14,7 +14,7 @@ func TestRuntimeConstructorReference(t *testing.T) {
 		CaseFiles []string                   `json:"case_files"`
 	}
 	readFullReferenceJSON(t, "testdata/runtime-constructors.json", &manifest)
-	if len(manifest.Models) != 180 || len(manifest.CaseFiles) == 0 {
+	if len(manifest.Models) != 182 || len(manifest.CaseFiles) == 0 {
 		t.Fatal("incomplete runtime constructor inventory")
 	}
 	owner, err := New()

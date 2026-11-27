@@ -1,0 +1,14 @@
+{
+  "args": [
+    "assigned-trial-control-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:81bfd5807b85768a415468fca7d993d545ee72ccc1be05aeffc4c197d86de67d"
+  },
+  "name": "contracts/fixtures/control-plane/assigned-trial-control-v1/invalid/unsupported-version",
+  "result": {
+    "valid": false
+  },
+  "surface": "schema"
+}

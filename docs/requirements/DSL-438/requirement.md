@@ -40,7 +40,7 @@ Issue #674: the SDL Node model had no CPU architecture attribute — Resources c
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_backend_stubs/manifest.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/capabilities.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/base.py`
-- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/realization_envelope_carrier.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/realization_envelope.py`
 - TESTS → TEST `implementations/python/tests/test_node_architecture.py`
 - TESTS → TEST `implementations/python/tests/test_sdl_models.py`
 - TESTS → TEST `implementations/python/tests/test_controlled_vocabularies.py`

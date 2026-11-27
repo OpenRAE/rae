@@ -27,6 +27,7 @@ The compiler admits inputs once and builds typed request-local state.
 Each pass returns its own diagnostics.
 The compiler combines them in the reference order.
 Generated DTOs remain transport values; they do not replace admitted handles.
+
 The compiler uses public SDL operations to select and instantiate a family.
 It uses the public processor to compile and plan.
 It does not copy those owners' rules.
@@ -35,6 +36,7 @@ Runtime experiment coordination and record production have one runtime owner.
 That owner receives explicit host and store interfaces.
 It also receives a clock, bounded call adapter, archive, and evidence reader.
 The shared runtime checks operation inputs and authority.
+
 It owns execution, leases, and atomic claims.
 Experiment code supplies experiment transitions and record rules.
 It does not implement another operation engine, store, worker pool, or authorization system.
@@ -44,11 +46,13 @@ The shared runtime packages currently have declarations but no Go implementation
 #1792 adds the stores.
 `runtime/experiment` owns the experiment transitions and record rules.
 Its typed `Host`, `Journal`, and `OwnerCaller` interfaces form the join to the shared runtime.
+
 All three are required injected owners.
 There is no default engine or store.
 `OwnerCaller` delegates to the shared runtime's bounded call adapter.
 It keeps the adapter's lane capacity, retained physical slots, cancellation, and drain rules.
 The experiment package does not create a worker pool.
+
 Each foreign host, store, archive, and evidence call crosses this boundary.
 The future control-plane composition supplies these three interfaces through narrow forwarding adapters.
 It does not copy experiment rules into the control plane.
@@ -59,6 +63,7 @@ Runtime record types retain every durable start and observed attempt.
 They keep execution, capture, cleanup, scientific outcome, and validation facts separate.
 Absent measurements remain absent.
 The record producer freezes candidates before archive calls and checks exact readback.
+
 The runtime code stays in this checkout.
 #1894 moves it to the approved runtime repository.
 No source transfer is part of this issue.
@@ -73,6 +78,7 @@ The Sonar findings require small structural changes to this design.
 Constructor defaults and binary text paths use private lookup tables.
 The tables hold fixed strings and no caller data.
 Each lookup still returns fresh mutable values.
+
 Private record types name nested wire shapes and pair parent evidence with its receipts.
 Single-method interfaces use the names `ControlContextProvider` and `OwnerCaller`.
 Their method sets and required owners stay the same.
@@ -94,6 +100,7 @@ Their method sets and required owners stay the same.
 `Compile` retains its signature and delegates to `CompileContext` with a background context.
 The context-aware operation passes cancellation to installed pure hooks.
 It does not claim forced cancellation of a hook that ignores its context.
+
 Live runtime calls retain the separate shared adapter boundary.
 `ControlContextProvider.ForScenario` receives the concrete selected scenario before its hook is called.
 Registry lookup uses the exact `ValidatorID` and `ValidatorVersion` pair.
@@ -103,19 +110,23 @@ There is no implementation-name fallback.
 It seals entries before the enclosing plan.
 The returned value passes complete semantic admission.
 Trial-plan semantic and model traversal reuse the validation owner's finite schema-graph work bound multiplied by bounded input bytes.
+
 Entry defaults use separate schema fragments, so large entry sets do not consume
 the generic single-value defaults budget or repeat a whole-plan projection per entry.
 `TrialEntryOrder` reads retained input member order before it applies the stable coordinate sort.
 Recorded allocation order, when present, takes precedence.
 `ResolveBindingTarget` uses the native SDL variation index and declaration resolver.
 It returns the canonical scalar target, strict value type, and installed SDL owner.
+
 Structural and collection targets remain outside scalar binding admission.
 `ExperimentProjection` accepts an admitted document with an exact experiment-family contract ID.
 It checks local owner rules and adds the model's collection defaults.
 The resulting bytes form a model projection; they grant no new contextual or execution authority.
+
 The contract owner holds the frozen reference models' constructor-factory defaults.
 Published schema instances select each native model and its defaults.
 Caller field names cannot select a constructor.
+
 Each inserted map is fresh; the implementation caches no caller data.
 The existing trial fragment admission also returns its native constructor projection.
 It applies defaults and omissions for input references, apparatus, and cleanup authority
@@ -127,6 +138,7 @@ Runtime decisions have a sealed native owner.
 `DecodeDecision` bounds bytes and rejects unknown shapes before creating a handle.
 The journal atomically claims each domain decision by its stable ID.
 The shared provider adapter retains that owner's bytes and conflict rules.
+
 It does not define a second decision schema.
 The Go store format remains separate from Python-written stores, as issue #1792 requires.
 This port keeps decision meaning and identity; it does not add a Python store reader.
@@ -170,6 +182,7 @@ Compile one complete plan or return bounded diagnostics.
 Refuse the whole plan when any entry fails.
 Select failures and combine capture errors in the reference order.
 For readmission, compile a new plan from trusted original inputs.
+
 Compare the complete canonical plans.
 For replacement, check parent evidence and reusable state.
 Check the original policy and bounded lineage history too.
@@ -218,7 +231,7 @@ The generated architecture view must match the checked model.
 
 Use existing policy, lint, contract, parity, regression, and documentation checks.
 No new gate, service, hosting destination, or dependency registry is required.
-ADR-121, ADR-122, and the experiment ADRs govern these owners.
+ADR-123, ADR-124, and the experiment ADRs govern these owners.
 No replacement ADR is proposed.
 
 Map each input limit and security check to its Go test.
@@ -251,11 +264,11 @@ A clean prose checker does not establish complete STE dictionary conformance.
 
 ## Typed API commitments
 
-<!-- go-api implementations/go/contract/admission 56df334438fde58614877b975811bed80dc71c5746ed845b8cf1acbbe032cac4 -->
-<!-- go-api implementations/go/internal/sdl/authoring d800801f0dd67354522ca62000cb3e74e884ba3b4a0cc4fe711be7d5d9bc8709 -->
+<!-- go-api implementations/go/contract/admission 71163768113401b0ffa8e0dbd5a7e9cd7a12d4877411bf4329a122aa61607d4c -->
+<!-- go-api implementations/go/internal/sdl/authoring e6991ca1212d70d636bcb59f4da299f482ccc7e81903fe61876082a17066ffd0 -->
 <!-- go-api implementations/go/sdl ec51c7e22544b4cf42006b37d12dce96f7769b0aca2bd1f939ac56949cd8ca4b -->
-<!-- go-api implementations/go/processor/trial a5cc41ce59ae7ce0fdf342588dcf957b14dc94355fc1e69a529d00c0596881b4 -->
-<!-- go-api implementations/go/runtime/experiment f1c5fe270c3495789980c160969d1dc29973d718dad4192b44c680d7f1d4afca -->
+<!-- go-api implementations/go/processor/trial cff2870a5253b514e0df3afaae8827898d203f9e75baad26aaa71cb9cf264f31 -->
+<!-- go-api implementations/go/runtime/experiment bde07dbad0faf616add22de2b39186f6cc9a97ac05561067b0bfd30d64a54a5c -->
 
 ### Archival model construction
 
@@ -263,7 +276,9 @@ A clean prose checker does not establish complete STE dictionary conformance.
 or cleanup receipt. It checks the local schema and model rules and applies the
 owner defaults and omissions. These bytes grant no contextual authority.
 `ValidateTrialRunJSON` checks those local rules and reconciles the run and every
-retained receipt with the supplied sealed plan. The value-based operation uses
+retained receipt with the supplied sealed plan.
+
+The value-based operation uses
 the same reconciliation. Neither operation manufactures a context-free
 `validation.Value`. The replacement compiler uses these operations to preserve
 archival records without asserting task-evidence admission.
@@ -305,6 +320,7 @@ They reconcile started or unknown phases before dispatch.
 The experiment coordinator does not provide a second phase engine.
 `Host.Records` supplies detached operation receipts, phase states, operation references,
 and execution snapshots from that shared owner.
+
 Journal starts and observations remain the authority for experiment accounting.
 The host cannot replace those records.
 `Archive.BuildRun` supplies the original archive owner's scientific run construction
@@ -333,6 +349,7 @@ Configuration, plan advancement, capture, cleanup, stop and retry preparation
 return this carrier. `Host.Observe` remains a separate read-only execution check.
 The coordinator can retain verified observations while a phase is pending.
 It cannot advance past pending or indeterminate phase work.
+
 Each repeated call reconciles the shared engine's existing deterministic phase.
 The journal retains the first observation's exact bytes and time.
 A resumed phase cannot rewrite them or create permission to dispatch again.
@@ -347,6 +364,7 @@ It is separate from `Host.Stop`, which reconciles the authored trial stop phase.
 Cancellation records its durable decision before invoking active operation controls.
 It does not acquire the experiment progress lease.
 A short lock protects copies of the admitted slot list during child restoration.
+
 The lock is never held across a host call.
 The installed shared call adapter keeps its existing control lane and capacity rules.
 Cancellation acknowledgement does not prove cessation or release reservations.
@@ -360,7 +378,9 @@ Terminal results retain the exact observed execution snapshot and the shared
 engine's receipts for that attempt. General evidence and cleanup evidence remain
 separate through `Observation.Evidence` and `Observation.CleanupEvidence`.
 Each collection rejects duplicate evidence identities. Operation receipts remain
-unique and bound to the run. The installed verifier checks the trusted target.
+unique and bound to the run.
+
+The installed verifier checks the trusted target.
 Returned configurations, snapshots, receipts and evidence are detached copies.
 The same separation does not remove any evidence from execution accounting.
 
@@ -371,6 +391,7 @@ The same separation does not remove any evidence from execution accounting.
 It runs only after terminal cleanup permits reuse and retry or replacement has
 been resolved. Replacement allocation is retained before parent retirement.
 `Host.IsRetired` reads that owner's durable state before an entry can advance.
+
 A lost acknowledgement therefore cannot repeat archive or participant work after
 restart. Failed cleanup keeps its reservation. Retired runs remain available
 through record and result reads. The coordinator adds no retirement store or
@@ -390,7 +411,9 @@ serialization. Projection does not grant task, evidence, or execution authority.
 Compilation keeps the caller's positive plan byte allowance. The default remains
 32 MiB. Digest verification reconstructs an already bounded instance with space
 for omitted schema defaults. Its private work allowance derives from that
-instance's byte count and checks integer overflow. The final published projection
+instance's byte count and checks integer overflow.
+
+The final published projection
 still obeys the caller's byte ceiling. A source-produced digest checks a plan
 above the default ceiling. No published schema or global snapshot cap changes.
 

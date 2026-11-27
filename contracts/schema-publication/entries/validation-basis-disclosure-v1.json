@@ -1,10 +1,5 @@
 {
   "contract_id": "validation-basis-disclosure-v1",
   "schema_path": "contracts/schemas/profiles/validation-basis-disclosure-v1.json",
-  "stability": "draft",
-  "content_hash": "2a56021125c99ca562198e6d23cc807e1653605cac8f7b0eadf5c4961efba81b",
-  "last_change": {
-    "content_hash": "2a56021125c99ca562198e6d23cc807e1653605cac8f7b0eadf5c4961efba81b",
-    "summary": "Remove the Python validator paths from the semantic invariants (#1776)."
-  }
+  "stability": "draft"
 }

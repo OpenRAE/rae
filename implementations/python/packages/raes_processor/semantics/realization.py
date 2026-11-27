@@ -6,7 +6,6 @@ strings remain opaque; matching is exact membership plus support compatibility.
 
 from __future__ import annotations
 
-from raes.explicitness import ExplicitnessClass
 from raes.realization_envelope import effective_constraints, subsumes, tokenize_path
 from raes_backend_protocols.capabilities import BackendManifest
 from raes_contracts.apparatus import (
@@ -16,6 +15,7 @@ from raes_contracts.apparatus import (
 from raes_contracts.artifact_requirements import ArtifactAvailabilityContext
 from raes_contracts.bounded_domains import scalar_in_domain
 from raes_contracts.diagnostics import Diagnostic, Severity
+from raes_contracts.explicitness import ExplicitnessClass
 from raes_contracts.planning import ProvisioningPlan
 from raes_contracts.realization_envelope import (
     BackendRealizationEnvelopeModel,

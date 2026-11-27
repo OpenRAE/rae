@@ -29,8 +29,8 @@ func coerceADRPins(raw any) ([]adrPin, []Finding) {
 	if !ok {
 		return nil, []Finding{malformedADR("manifest root must be a mapping")}
 	}
-	if root.get("hash_algorithm") != sha256Algorithm {
-		return nil, []Finding{malformedADR("hash_algorithm must be 'sha256'; got " + pythonRepr(root.get("hash_algorithm")))}
+	if root.has("hash_algorithm") {
+		return nil, []Finding{malformedADR("hash_algorithm is retired; git holds ADR history (issue #1929)")}
 	}
 	entries, ok := root.get("adrs").([]any)
 	if !ok {
@@ -70,12 +70,11 @@ func coerceADRPin(value any, index int, seen map[string]bool) (adrPin, []Finding
 	if !ok || name == "" {
 		return fail(id + ": path must be a non-empty string")
 	}
-	pin, ok := entry.get("pin").(string)
-	if !ok || !regexp.MustCompile(`^[0-9a-f]{64}\n?$`).MatchString(pin) {
-		return fail(id + ": pin must be a 64-character sha256 hex digest")
+	if entry.has("pin") {
+		return fail(id + ": pin is retired; the base-revision check detects an edit")
 	}
 	refs, failures := coerceADRAmendments(id, entry.get("amendments"))
-	return adrPin{id: id, path: name, pin: pin, refs: refs}, failures
+	return adrPin{id: id, path: name, refs: refs}, failures
 }
 
 func coerceADRAmendments(id string, value any) ([]string, []Finding) {

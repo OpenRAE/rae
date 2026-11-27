@@ -161,8 +161,12 @@ func (b *constraintAdmission) node(node *constraintNode, path string, depth int)
 	if origin == "" {
 		origin = termAuthor
 	}
-	if !b.metadataAt(constraintMetadata{{termKind, node.Kind}, {termPresence, presence}, {termOrigin, origin}}, path+"/$header", 0) {
-		return false
+	// Admit supplied values directly; fixed internal keys need no admission.
+	header := constraintMetadata{{termKind, node.Kind}, {termPresence, presence}, {termOrigin, origin}}
+	for _, field := range header {
+		if !b.metadataAt(field.value, path+"/$header/"+field.name, 0) {
+			return false
+		}
 	}
 	return b.nodeContents(node, path, depth)
 }
@@ -299,7 +303,7 @@ func constraintDomainMetadata(input map[string]any) constraintMetadata {
 	result := constraintMetadata{{termKind, kind}}
 	fields := []string{}
 	switch kind {
-	case "exact", "boolean":
+	case postureExact, "boolean":
 		fields = []string{termValue}
 	case "enum":
 		fields = []string{"values"}

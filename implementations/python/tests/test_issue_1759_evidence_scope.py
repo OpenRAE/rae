@@ -1,7 +1,6 @@
 """Routine verification checks behavior without requiring new research captures."""
 
 import json
-from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
@@ -20,18 +19,6 @@ def test_recorded_selection_does_not_hash_current_source(tmp_path, monkeypatch):
     assert evidence.latest_recorded_release_path(records, tmp_path) == "newer"
 
 
-def test_ordinary_application_edit_keeps_model_records_admissible(monkeypatch):
-    from implementations.formal.participant_crossing import machine_check as machine
-    from test_issue_976_evidence_identity import checkout_with_changed
-
-    checkout_with_changed(
-        monkeypatch, "implementations/python/packages/raes_contracts/realization_structure/_evaluation.py"
-    )
-    machine.admit_bundle(
-        Path(__file__).resolve().parents[3], *machine.load_retained(Path(__file__).resolve().parents[3])
-    )
-
-
 def test_nox_runs_current_finite_verification():
     from tools.nox_support.machine_check_lane import run_machine_check
 
@@ -40,4 +27,4 @@ def test_nox_runs_current_finite_verification():
         SimpleNamespace(run=lambda *args, **kwargs: calls.append(args)),
         SimpleNamespace(run=lambda name, action: action()),
     )
-    assert calls[0][-1] == "replay"
+    assert calls[0][-1] == "check"

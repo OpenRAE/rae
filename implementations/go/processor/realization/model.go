@@ -25,8 +25,10 @@ type Requirement struct {
 	RecursivePending, Delegated                                  bool
 	ConstraintProvenance, ConstraintBinding                      string
 	StructureError                                               bool
-	ValueConstraints                                             []ValueConstraint
-	ProcessResourceLimits                                        []ProcessResourceLimit
+	// StructureLimit is the work-limit message when recursive authority exhausted its budget.
+	StructureLimit        string
+	ValueConstraints      []ValueConstraint
+	ProcessResourceLimits []ProcessResourceLimit
 }
 
 // ValueConstraint binds a finite leaf domain to a collection identity and parameter.

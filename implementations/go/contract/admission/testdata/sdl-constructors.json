@@ -1,5 +1,5 @@
 {
-  "reference": "e5d8f6c1b10adaa66bb15b415e9f9a7263bd44f8",
+  "reference": "39481bb657acab4f58687f27e8bb3357ba3c8226",
   "sources": [
     "examples/scenarios/techvault-operational.sdl.yaml",
     "examples/scenarios/techvault-enterprise-web.sdl.yaml",
@@ -18608,6 +18608,85 @@
         ]
       },
       "accepted": true
+    },
+    {
+      "name": "RuntimeSecretReplica.constructor-baseline",
+      "pointer": "#/$defs/RuntimeSecretReplica",
+      "accepted": true,
+      "data": {
+        "location": "us-east1"
+      }
+    },
+    {
+      "name": "RuntimeSecretReplica.same-location-key",
+      "pointer": "#/$defs/RuntimeSecretReplica",
+      "accepted": true,
+      "data": {
+        "location": "us-east1",
+        "kms_key_name": "projects/p/locations/us-east1/keyRings/r/cryptoKeys/k"
+      }
+    },
+    {
+      "name": "RuntimeSecretReplica.other-location-key",
+      "pointer": "#/$defs/RuntimeSecretReplica",
+      "accepted": false,
+      "data": {
+        "location": "us-east1",
+        "kms_key_name": "projects/p/locations/europe-west1/keyRings/r/cryptoKeys/k"
+      }
+    },
+    {
+      "name": "RuntimeServiceSecret.typed-replication",
+      "pointer": "#/$defs/RuntimeServiceSecret",
+      "accepted": true,
+      "data": {
+        "secret_id": "s",
+        "replication": {
+          "provider": "gcp-secret-manager",
+          "mode": "automatic"
+        }
+      }
+    },
+    {
+      "name": "RuntimeServiceSecret.typed-replication-with-location",
+      "pointer": "#/$defs/RuntimeServiceSecret",
+      "accepted": false,
+      "data": {
+        "secret_id": "s",
+        "location": "us-east1",
+        "replication": {
+          "provider": "gcp-secret-manager",
+          "mode": "automatic"
+        }
+      }
+    },
+    {
+      "name": "RuntimeServiceSecret.typed-replication-with-replica-locations",
+      "pointer": "#/$defs/RuntimeServiceSecret",
+      "accepted": false,
+      "data": {
+        "secret_id": "s",
+        "replica_locations": [
+          "us-east1"
+        ],
+        "replication": {
+          "provider": "gcp-secret-manager",
+          "mode": "automatic"
+        }
+      }
+    },
+    {
+      "name": "RuntimeServiceSecret.typed-replication-with-encryption-key",
+      "pointer": "#/$defs/RuntimeServiceSecret",
+      "accepted": false,
+      "data": {
+        "secret_id": "s",
+        "encryption_key_ref": "k",
+        "replication": {
+          "provider": "gcp-secret-manager",
+          "mode": "automatic"
+        }
+      }
     }
   ]
 }

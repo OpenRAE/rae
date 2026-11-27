@@ -1,5 +1,5 @@
 {
-  "reference": "e5d8f6c1b10adaa66bb15b415e9f9a7263bd44f8",
+  "reference": "39481bb657acab4f58687f27e8bb3357ba3c8226",
   "cases": [
     {"name":"ContainerImageBuildProvenance.runtime-baseline","pointer":"#/$defs/ContainerImageBuildProvenance","accepted":true},
     {"name":"ContainerImageBuildProvenance.base_image-null","pointer":"#/$defs/ContainerImageBuildProvenance","accepted":false,"changes":[{"path":["base_image"],"value":null}]},
@@ -344,15 +344,6 @@
     {"name":"DockerfileInstruction.description-empty","pointer":"#/$defs/DockerfileInstruction","accepted":true},
     {"name":"DockerfileInstruction.description-blank","pointer":"#/$defs/DockerfileInstruction","accepted":true,"changes":[{"path":["description"],"value":" "}]},
     {"name":"DockerfileInstruction.unknown-field","pointer":"#/$defs/DockerfileInstruction","accepted":false,"changes":[{"path":["unrecognized_runtime_field"],"value":"sample"}]},
-    {"name":"GeneratedArtifactValueSource.runtime-baseline","pointer":"#/$defs/GeneratedArtifactValueSource","accepted":true},
-    {"name":"GeneratedArtifactValueSource.generated_artifact-null","pointer":"#/$defs/GeneratedArtifactValueSource","accepted":false,"changes":[{"path":["generated_artifact"],"value":null}]},
-    {"name":"GeneratedArtifactValueSource.generated_artifact-empty","pointer":"#/$defs/GeneratedArtifactValueSource","accepted":false,"changes":[{"path":["generated_artifact"],"value":""}]},
-    {"name":"GeneratedArtifactValueSource.generated_artifact-blank","pointer":"#/$defs/GeneratedArtifactValueSource","accepted":true,"changes":[{"path":["generated_artifact"],"value":" "}]},
-    {"name":"GeneratedArtifactValueSource.output-null","pointer":"#/$defs/GeneratedArtifactValueSource","accepted":false,"changes":[{"path":["output"],"value":null}]},
-    {"name":"GeneratedArtifactValueSource.output-empty","pointer":"#/$defs/GeneratedArtifactValueSource","accepted":false,"changes":[{"path":["output"],"value":""}]},
-    {"name":"GeneratedArtifactValueSource.output-blank","pointer":"#/$defs/GeneratedArtifactValueSource","accepted":false,"changes":[{"path":["output"],"value":" "}]},
-    {"name":"GeneratedArtifactValueSource.output-maxLength","pointer":"#/$defs/GeneratedArtifactValueSource","accepted":false,"changes":[{"path":["output"],"value":"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"}]},
-    {"name":"GeneratedArtifactValueSource.unknown-field","pointer":"#/$defs/GeneratedArtifactValueSource","accepted":false,"changes":[{"path":["unrecognized_runtime_field"],"value":"sample"}]},
     {"name":"ImageAttestation.runtime-baseline","pointer":"#/$defs/ImageAttestation","accepted":true},
     {"name":"ImageAttestation.status-null","pointer":"#/$defs/ImageAttestation","accepted":false,"changes":[{"path":["status"],"value":null}]},
     {"name":"ImageAttestation.status-empty","pointer":"#/$defs/ImageAttestation","accepted":false,"changes":[{"path":["status"],"value":""}]},

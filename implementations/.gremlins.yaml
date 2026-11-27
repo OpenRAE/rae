@@ -1,4 +1,4 @@
-# Mutation testing thresholds of the Go modules (ADR-121).
+# Mutation testing thresholds of the Go modules (ADR-123).
 #
 # Gremlins v0.6.0 reads a threshold flag of its command line as text and then
 # ignores it. This file gives each threshold as a number. Gremlins fails when a

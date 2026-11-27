@@ -7,11 +7,9 @@ from uuid import uuid4
 
 from pydantic import ValidationError
 from raes_contracts.contracts import ParticipantControlOccurrenceModel
-from raes_contracts.contracts.participant_control import (
-    ParticipantCancellationEffect,
-    ParticipantControlTargetKind,
-)
+from raes_contracts.contracts.participant_control import ParticipantCancellationEffect
 from raes_contracts.errors import InvalidInputError
+from raes_contracts.participant_mixed_control_vocabulary import ParticipantControlTargetKind
 from raes_contracts.timestamps import isoformat_z
 from raes_processor.models import (
     MixedControlControllerStateRuntime,

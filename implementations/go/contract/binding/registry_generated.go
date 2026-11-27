@@ -8,25 +8,25 @@ const unknownContractMessage = "unknown contract"
 
 // Decode decodes schema-checked transport bytes. It grants no semantic authority.
 func Decode(id string, data []byte) (any, error) {
-	if id <= "controlled-vocabularies-v1" {
+	if id <= "behavioral-relations-v1" {
 		return decodeGroup0(id, data)
 	}
-	if id <= "inject-trigger-request-v1" {
+	if id <= "inject-occurrence-outcome-v1" {
 		return decodeGroup1(id, data)
 	}
-	if id <= "participant-control-occurrence-v2" {
+	if id <= "participant-control-evaluation-v2" {
 		return decodeGroup2(id, data)
 	}
-	if id <= "participant-opacity-analysis-evidence-v1" {
+	if id <= "participant-inject-application-v1" {
 		return decodeGroup3(id, data)
 	}
-	if id <= "reference-models-v1" {
+	if id <= "raes-semantic-invariants-v1" {
 		return decodeGroup4(id, data)
 	}
-	if id <= "uco-alignment-v1" {
+	if id <= "semantic-projection-report-v1" {
 		return decodeGroup5(id, data)
 	}
-	if id <= "workflow-result-envelope-v1" {
+	if id <= "workflow-step-response-v1" {
 		return decodeGroup6(id, data)
 	}
 	return nil, &json.UnsupportedValueError{Str: unknownContractMessage}
@@ -47,6 +47,18 @@ func decodeGroup0(id string, data []byte) (any, error) {
 		return v, nil
 	case "artifact-transformation-report-v1":
 		var v ArtifactTransformationReportV1
+		if err := json.Unmarshal(data, &v); err != nil {
+			return nil, err
+		}
+		return v, nil
+	case "assigned-trial-control-v1":
+		var v AssignedTrialControlV1
+		if err := json.Unmarshal(data, &v); err != nil {
+			return nil, err
+		}
+		return v, nil
+	case "assigned-trial-v1":
+		var v AssignedTrialV1
 		if err := json.Unmarshal(data, &v); err != nil {
 			return nil, err
 		}
@@ -165,6 +177,12 @@ func decodeGroup0(id string, data []byte) (any, error) {
 			return nil, err
 		}
 		return v, nil
+	default:
+		return nil, &json.UnsupportedValueError{Str: unknownContractMessage}
+	}
+}
+func decodeGroup1(id string, data []byte) (any, error) {
+	switch id {
 	case "concept-families-v1":
 		var v ConceptFamiliesV1
 		if err := json.Unmarshal(data, &v); err != nil {
@@ -177,12 +195,6 @@ func decodeGroup0(id string, data []byte) (any, error) {
 			return nil, err
 		}
 		return v, nil
-	default:
-		return nil, &json.UnsupportedValueError{Str: unknownContractMessage}
-	}
-}
-func decodeGroup1(id string, data []byte) (any, error) {
-	switch id {
 	case "domain-profile-admission-policy-v1":
 		var v DomainProfileAdmissionPolicyV1
 		if err := json.Unmarshal(data, &v); err != nil {
@@ -315,6 +327,12 @@ func decodeGroup1(id string, data []byte) (any, error) {
 			return nil, err
 		}
 		return v, nil
+	default:
+		return nil, &json.UnsupportedValueError{Str: unknownContractMessage}
+	}
+}
+func decodeGroup2(id string, data []byte) (any, error) {
+	switch id {
 	case "inject-occurrence-v1":
 		var v InjectOccurrenceV1
 		if err := json.Unmarshal(data, &v); err != nil {
@@ -327,12 +345,6 @@ func decodeGroup1(id string, data []byte) (any, error) {
 			return nil, err
 		}
 		return v, nil
-	default:
-		return nil, &json.UnsupportedValueError{Str: unknownContractMessage}
-	}
-}
-func decodeGroup2(id string, data []byte) (any, error) {
-	switch id {
 	case "instantiated-scenario-snapshot-v1":
 		var v InstantiatedScenarioSnapshotV1
 		if err := json.Unmarshal(data, &v); err != nil {
@@ -465,6 +477,12 @@ func decodeGroup2(id string, data []byte) (any, error) {
 			return nil, err
 		}
 		return v, nil
+	default:
+		return nil, &json.UnsupportedValueError{Str: unknownContractMessage}
+	}
+}
+func decodeGroup3(id string, data []byte) (any, error) {
+	switch id {
 	case "participant-control-occurrence-v1":
 		var v ParticipantControlOccurrenceV1
 		if err := json.Unmarshal(data, &v); err != nil {
@@ -477,12 +495,6 @@ func decodeGroup2(id string, data []byte) (any, error) {
 			return nil, err
 		}
 		return v, nil
-	default:
-		return nil, &json.UnsupportedValueError{Str: unknownContractMessage}
-	}
-}
-func decodeGroup3(id string, data []byte) (any, error) {
-	switch id {
 	case "participant-control-selection-v1":
 		var v ParticipantControlSelectionV1
 		if err := json.Unmarshal(data, &v); err != nil {
@@ -501,6 +513,12 @@ func decodeGroup3(id string, data []byte) (any, error) {
 			return nil, err
 		}
 		return v, nil
+	case "participant-crossing-evidence-v1":
+		var v ParticipantCrossingEvidenceV1
+		if err := json.Unmarshal(data, &v); err != nil {
+			return nil, err
+		}
+		return v, nil
 	case "participant-crossing-occurrence-v1":
 		var v ParticipantCrossingOccurrenceV1
 		if err := json.Unmarshal(data, &v); err != nil {
@@ -515,6 +533,24 @@ func decodeGroup3(id string, data []byte) (any, error) {
 		return v, nil
 	case "participant-decision-surface-v2":
 		var v ParticipantDecisionSurfaceV2
+		if err := json.Unmarshal(data, &v); err != nil {
+			return nil, err
+		}
+		return v, nil
+	case "participant-delivery-invocation-context-v1":
+		var v ParticipantDeliveryInvocationContextV1
+		if err := json.Unmarshal(data, &v); err != nil {
+			return nil, err
+		}
+		return v, nil
+	case "participant-delivery-invocation-outcome-v1":
+		var v ParticipantDeliveryInvocationOutcomeV1
+		if err := json.Unmarshal(data, &v); err != nil {
+			return nil, err
+		}
+		return v, nil
+	case "participant-delivery-invocation-request-v1":
+		var v ParticipantDeliveryInvocationRequestV1
 		if err := json.Unmarshal(data, &v); err != nil {
 			return nil, err
 		}
@@ -591,6 +627,12 @@ func decodeGroup3(id string, data []byte) (any, error) {
 			return nil, err
 		}
 		return v, nil
+	default:
+		return nil, &json.UnsupportedValueError{Str: unknownContractMessage}
+	}
+}
+func decodeGroup4(id string, data []byte) (any, error) {
+	switch id {
 	case "participant-inject-delivery-receipt-v1":
 		var v ParticipantInjectDeliveryReceiptV1
 		if err := json.Unmarshal(data, &v); err != nil {
@@ -627,12 +669,6 @@ func decodeGroup3(id string, data []byte) (any, error) {
 			return nil, err
 		}
 		return v, nil
-	default:
-		return nil, &json.UnsupportedValueError{Str: unknownContractMessage}
-	}
-}
-func decodeGroup4(id string, data []byte) (any, error) {
-	switch id {
 	case "participant-opacity-analysis-input-v1":
 		var v ParticipantOpacityAnalysisInputV1
 		if err := json.Unmarshal(data, &v); err != nil {
@@ -741,6 +777,12 @@ func decodeGroup4(id string, data []byte) (any, error) {
 			return nil, err
 		}
 		return v, nil
+	default:
+		return nil, &json.UnsupportedValueError{Str: unknownContractMessage}
+	}
+}
+func decodeGroup5(id string, data []byte) (any, error) {
+	switch id {
 	case "random-stream-profile-v1":
 		var v RandomStreamProfileV1
 		if err := json.Unmarshal(data, &v); err != nil {
@@ -777,12 +819,6 @@ func decodeGroup4(id string, data []byte) (any, error) {
 			return nil, err
 		}
 		return v, nil
-	default:
-		return nil, &json.UnsupportedValueError{Str: unknownContractMessage}
-	}
-}
-func decodeGroup5(id string, data []byte) (any, error) {
-	switch id {
 	case "reusable-asset-trust-policy-v1":
 		var v ReusableAssetTrustPolicyV1
 		if err := json.Unmarshal(data, &v); err != nil {
@@ -815,12 +851,6 @@ func decodeGroup5(id string, data []byte) (any, error) {
 		return v, nil
 	case "scenario-satisfiability-evidence-v2":
 		var v ScenarioSatisfiabilityEvidenceV2
-		if err := json.Unmarshal(data, &v); err != nil {
-			return nil, err
-		}
-		return v, nil
-	case "scheduler-isolation-proof-v1":
-		var v SchedulerIsolationProofV1
 		if err := json.Unmarshal(data, &v); err != nil {
 			return nil, err
 		}
@@ -897,6 +927,12 @@ func decodeGroup5(id string, data []byte) (any, error) {
 			return nil, err
 		}
 		return v, nil
+	default:
+		return nil, &json.UnsupportedValueError{Str: unknownContractMessage}
+	}
+}
+func decodeGroup6(id string, data []byte) (any, error) {
+	switch id {
 	case "time-model-v1":
 		var v TimeModelV1
 		if err := json.Unmarshal(data, &v); err != nil {
@@ -921,18 +957,18 @@ func decodeGroup5(id string, data []byte) (any, error) {
 			return nil, err
 		}
 		return v, nil
+	case "trial-outcome-v1":
+		var v TrialOutcomeV1
+		if err := json.Unmarshal(data, &v); err != nil {
+			return nil, err
+		}
+		return v, nil
 	case "uco-alignment-v1":
 		var v UcoAlignmentV1
 		if err := json.Unmarshal(data, &v); err != nil {
 			return nil, err
 		}
 		return v, nil
-	default:
-		return nil, &json.UnsupportedValueError{Str: unknownContractMessage}
-	}
-}
-func decodeGroup6(id string, data []byte) (any, error) {
-	switch id {
 	case "validation-basis-disclosure-v1":
 		var v ValidationBasisDisclosureV1
 		if err := json.Unmarshal(data, &v); err != nil {
@@ -965,6 +1001,18 @@ func decodeGroup6(id string, data []byte) (any, error) {
 		return v, nil
 	case "workflow-result-envelope-v1":
 		var v WorkflowResultEnvelopeV1
+		if err := json.Unmarshal(data, &v); err != nil {
+			return nil, err
+		}
+		return v, nil
+	case "workflow-step-dispatch-v1":
+		var v WorkflowStepDispatchV1
+		if err := json.Unmarshal(data, &v); err != nil {
+			return nil, err
+		}
+		return v, nil
+	case "workflow-step-response-v1":
+		var v WorkflowStepResponseV1
 		if err := json.Unmarshal(data, &v); err != nil {
 			return nil, err
 		}

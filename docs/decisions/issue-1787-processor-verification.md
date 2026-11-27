@@ -98,6 +98,7 @@ Each map states its scope and mixed-owner exclusions.
 Runtime execution assertions do not prove a pure compiler relation.
 The maps identify the pure assertions separately.
 Trial work belongs to issue 1788.
+
 Satisfiability, exploit paths and participant opacity belong to issue 1789.
 Decision and exposure authority belong to issue 1794.
 These boundaries follow the issue's stated scope.
@@ -126,6 +127,7 @@ Prepared plan tests use the actual selected resource specifications.
 Frozen source definitions cannot replace those inputs.
 Snapshot checks retain ordinary string limits for arbitrary payload keys.
 Only existing source document owners have the larger document limit.
+
 Sanitization visits every registered runtime concern at selected node addresses.
 It preserves safe sequence order and removes protected values.
 Unknown private payload fields keep the reference projection behavior.
@@ -196,6 +198,7 @@ The standard Go JSON compactor produced identical bytes before and after each ch
 The largest resulting line is 129,908 bytes.
 Fixture hash pins are refreshed after this format change.
 No Go source or expected result changes are part of this repair.
+
 All 325 participant, tool and comparison reference cases pass after the format change.
 The augmentation preparation reference test also passes.
 All recorded source and fixture hashes match.
@@ -223,6 +226,7 @@ The capability repair passed 16 named tests with 97 cases.
 These include 50 new cases.
 The OS repair passed 48 guard and success cases.
 The closest reference groups contain 469 relation, 62 portable and 15 evaluation cases.
+
 The final CLI run still passed all 272 recorded cases after the repairs.
 Combined strict lint reports zero issues after the review repairs.
 The final actual API and dependency check also reports zero findings.
@@ -266,6 +270,7 @@ Six reference fixtures exceeded it.
 Each now has JSON parts below that limit.
 All original record tokens, order, metadata and expected values are unchanged.
 The test loaders combine the parts and retain their complete inventory checks.
+
 They retain 48 comparison artifacts, 8 coordinates, 77 analyses and 15 augmentation records.
 They also retain 39 participant compilations, 120 history and joint cases, and 531 realization relation cases.
 The old loaders failed those checks after the split.
@@ -291,10 +296,11 @@ The package-only CI profile reported both files at zero.
 Native `covdata merge` and `textfmt` retained those executed statements.
 These probes selected the comparison projection and software refinement tests only.
 
-ADR-121 requires 25-minute normal Go jobs and 90-percent coverage of each module.
+ADR-123 requires 25-minute normal Go jobs and 90-percent coverage of each module.
 The workflow now uses four product test groups and one tooling group.
 An explicit inventory check proves that every module package occurs exactly once.
 The package timeout remains 20 minutes.
+
 Each group has separate required race and atomic module-coverage jobs at the same revision.
 Module jobs require all group results, complete native data and the same 90-percent floor.
 Existing module coverage artifact names still feed Sonar.
@@ -328,6 +334,7 @@ All ten workers then passed on the coverage-repair commit.
 Its uploaded native data covers 90.02 percent of product statements and 91.28 percent of tooling statements.
 Both complete statement inventories match their package profiles.
 The tooling module job rejected the single artifact because the download action extracted it at the destination root.
+
 The reducer now accepts that root layout and named group folders, and still counts every data directory.
 Eighteen targeted shell cases check both layouts, multiple groups, extra groups, duplicate packages, missing counters, incomplete statements and the coverage floor.
 The actual reducer also passes with retained hosted native data in both single-artifact layouts and the four-group product layout.
@@ -336,6 +343,7 @@ The repaired hosted run passes all ten Go workers and both complete module gates
 The first complete Sonar analysis reports 48 code quality findings and no open security hotspots.
 The repairs reuse package constants, group related helper arguments and name private wire records.
 Ownership marker bodies now explain their empty implementation.
+
 The comparison marker uses `isArtifact`, with matching intended declarations and API commitments.
 Public API names, callable methods, schema fields, diagnostic text and serialized reference results remain unchanged.
 Targeted reference, ownership and refusal tests pass after these changes.
@@ -345,6 +353,7 @@ The next hosted run passes all ten Go workers and both module gates.
 Sonar clears 47 findings and reports one remaining interface naming finding.
 The private sealed interface is now `artifactMarker`; `Artifact` remains its public alias.
 Public function signatures and exact native-owner admission stay unchanged.
+
 The design declaration and typed snapshot precede the source change.
 Six targeted comparison reference and ownership tests pass with race detection.
 Lint and both architecture checks report no findings; all 288 unique pinned hashes match.
@@ -375,6 +384,7 @@ The changed documents use the repository documentation style guide.
 The review uses the pinned `OpenRAE/doc-tools` skill at commit `9c5c00a892285a0e95bbaccb404b4ae8ca96e865`.
 Claims were compared with the current source and recorded results.
 Code fences, API names, hashes and normative meaning were preserved.
+
 Vale checks prose style on explicit changed paths.
 It does not establish factual accuracy or complete STE conformance.
 The official STE source could not be accessed; no dictionary-conformance claim is made.

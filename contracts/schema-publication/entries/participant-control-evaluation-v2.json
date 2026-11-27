@@ -1,10 +1,5 @@
 {
   "contract_id": "participant-control-evaluation-v2",
   "schema_path": "contracts/schemas/participant-runtime/participant-control-evaluation-v2.json",
-  "stability": "draft",
-  "content_hash": "4c2606116c2262f1c7360b84488c0d125f0e975c2aea94d459a0988df034c9bf",
-  "last_change": {
-    "content_hash": "4c2606116c2262f1c7360b84488c0d125f0e975c2aea94d459a0988df034c9bf",
-    "summary": "Remove the Python validator paths from the semantic invariants (#1776)."
-  }
+  "stability": "draft"
 }

@@ -1,0 +1,63 @@
+{
+  "args": [],
+  "command": "sdl_parse",
+  "files": {
+    "arguments.json": "sha256:603a0b4ef28eba8d554dc7eb7500712aef409ee9958bc231ea5125d313653e03"
+  },
+  "name": "regression/dac7ab890b0658739d04cbbe84eff46b9554d2f4941913422fa34be6b511fb7b",
+  "result": {
+    "content": [
+      {
+        "text": {
+          "diagnostics": [
+            {
+              "code": "sdl.model.invalid",
+              "path": "/behavior_specifications/analyst-triage/episode_policy/max_turns",
+              "range": {
+                "end": {
+                  "column": 20,
+                  "line": 150
+                },
+                "start": {
+                  "column": 18,
+                  "line": 150
+                }
+              },
+              "severity": "error",
+              "stage": "parse"
+            }
+          ],
+          "stage": "parse",
+          "status": "invalid"
+        },
+        "type": "text"
+      }
+    ],
+    "is_error": false,
+    "structured_content": {
+      "result": {
+        "diagnostics": [
+          {
+            "code": "sdl.model.invalid",
+            "path": "/behavior_specifications/analyst-triage/episode_policy/max_turns",
+            "range": {
+              "end": {
+                "column": 20,
+                "line": 150
+              },
+              "start": {
+                "column": 18,
+                "line": 150
+              }
+            },
+            "severity": "error",
+            "stage": "parse"
+          }
+        ],
+        "stage": "parse",
+        "status": "invalid"
+      }
+    }
+  },
+  "surface": "mcp"
+}

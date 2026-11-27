@@ -6,6 +6,23 @@ from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, NamedTuple
 
+from .contracts.realization_descriptions import TypedRealizationDescriptionModel
+from .description_coverage import DescriptionCoverageUnsatisfied
+from .description_reporting import (
+    DescriptionProfileAdmission,
+    admit_description_profiles,
+    project_description,
+    validate_description_evidence,
+)
+from .domain_profiles import DomainProfileAdmissionPolicyModel, DomainProfileResolutionContextModel
+from .observation_demand import (
+    ObservationBasis,
+    ObservationDemandMode,
+    ObservationLifecycleDecision,
+    ObservationPurpose,
+    observation_selector_has_more_specific_policy,
+)
+
 if TYPE_CHECKING:
     from .description_reporting import DescriptionProfileAdmission
     from .domain_profiles import DomainProfileAdmissionPolicyModel, DomainProfileResolutionContextModel
@@ -31,7 +48,6 @@ class AchievedObservationValue:
     integrity_ref: str | None = None
 
     def __post_init__(self) -> None:
-        from .observation_demand import ObservationBasis
 
         if not isinstance(self.basis, ObservationBasis):
             raise TypeError("achieved observation basis must be ObservationBasis")
@@ -62,9 +78,6 @@ def realization_description_report(
     profile_policy: DomainProfileAdmissionPolicyModel | None = None,
 ) -> tuple[RealizationDescriptionItem, ...]:
     """Project only requested backend-known selections at their truthful basis."""
-
-    from .description_reporting import DescriptionProfileAdmission
-    from .domain_profiles import DomainProfileAdmissionPolicyModel, DomainProfileResolutionContextModel
 
     profiles = DescriptionProfileAdmission(
         profile_context or DomainProfileResolutionContextModel(namespace_admissions=(), definitions=()),
@@ -123,9 +136,6 @@ def _project_achieved_description(
     demand: EffectiveObservationDemand,
     profiles: DescriptionProfileAdmission,
 ) -> AchievedObservationValue | None:
-    from .contracts.realization_descriptions import TypedRealizationDescriptionModel
-    from .description_coverage import DescriptionCoverageUnsatisfied
-    from .description_reporting import admit_description_profiles, project_description, validate_description_evidence
 
     if achieved is not None and isinstance(achieved.value, TypedRealizationDescriptionModel):
         try:
@@ -152,7 +162,6 @@ def _project_achieved_description(
 
 
 def _is_description_selection(demand: EffectiveObservationDemand) -> bool:
-    from .observation_demand import ObservationDemandMode, ObservationPurpose
 
     return bool(
         demand.purpose is ObservationPurpose.REALIZATION_DESCRIPTION
@@ -165,7 +174,6 @@ def _selector_is_partitioned(
     demand: EffectiveObservationDemand,
     selector: object,
 ) -> bool:
-    from .observation_demand import observation_selector_has_more_specific_policy
 
     return observation_selector_has_more_specific_policy(resolution.effective, demand, selector)
 
@@ -176,7 +184,6 @@ def _achieved_basis_satisfies(
     demand: EffectiveObservationDemand,
     evidence_validator: Callable[[str, AchievedObservationValue], bool] | None,
 ) -> bool:
-    from .observation_demand import ObservationBasis
 
     if achieved is None:
         return False
@@ -214,7 +221,6 @@ def _protected_description(
 def _validate_protected_carrier(achieved: AchievedObservationValue, protected: AchievedObservationValue) -> None:
     if not isinstance(protected, AchievedObservationValue):
         raise ValueError("invalid-observation-report-protection-result")
-    from .contracts.realization_descriptions import TypedRealizationDescriptionModel
 
     if isinstance(achieved.value, TypedRealizationDescriptionModel) and not isinstance(
         protected.value, TypedRealizationDescriptionModel
@@ -229,7 +235,6 @@ def _description_item(
     protected: AchievedObservationValue,
     demand: EffectiveObservationDemand,
 ) -> RealizationDescriptionItem:
-    from .observation_demand import ObservationLifecycleDecision
 
     return RealizationDescriptionItem(
         selector_key,

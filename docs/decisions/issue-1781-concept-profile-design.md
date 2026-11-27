@@ -4,7 +4,7 @@ Issue [#1781](https://github.com/OpenRAE/rae/issues/1781) ports the concept-auth
 It also ports the domain-profile resolution, admission and validation.
 The [consumer API reference](issue-1825-public-go-api.md) assigns two more admission operations to this issue: `AdmitFragment` and `ValidateExperimentBindingTargets`.
 The maintainer decided on 2026-11-06 that this issue delivers both operations.
-ADR-012, ADR-062, ADR-072, ADR-081, ADR-121 and ADR-122 govern the work.
+ADR-012, ADR-062, ADR-072, ADR-081, ADR-123 and ADR-124 govern the work.
 The published schemas, the catalogs, the profiles, the vocabulary snapshots and the Python code stay unchanged.
 
 ## Starting point
@@ -115,7 +115,7 @@ Its address is the binding position, and its message never repeats a subject, sc
 
 `profile.Load` reads all 28 packaged profiles, with the same ingress, schema check and damaged-build rule.
 No published schema covers the two semantic-comparison profiles.
-The owner checks them with the rules of the reference comparison-profile model: the closed literals, the complete dependency-rule set, every owner projection version and the comparison limits.
+The owner checks them with the rules of the reference comparison-profile model. These rules cover the closed literals, the complete dependency-rule set, every owner projection version and the comparison limits.
 The `Profiles` methods give these typed operations.
 
 | Operation | Reference behavior that it keeps |
@@ -159,7 +159,7 @@ A failed input check returns an `InvalidInput` fault and no report.
 Structural validation uses `validation.CheckInertSchema`, the pinned Draft 2020-12 engine of #1780.
 That function refuses retrieval, unsafe keywords, recursive references and work above the limits.
 It now returns one fault code for each reference outcome: `contract-profile-limit-exceeded`, `contract-profile-unsupported-keyword`, `contract-profile-schema-invalid` and `contract-profile-value-invalid`.
-Its checks run in the reference order: the schema budget, the schema walk, the supported keywords, the value budget, the combined work bound, the meta-schema and then the value.
+Its checks run in the reference order. The order is the schema budget, the schema walk, the supported keywords, the value budget, the combined work bound, the meta-schema and then the value.
 The admission resource-profile rule now calls the domain-profile operations, as the reference does.
 
 The model rules move from `admission` to `internal/contract/domainprofile` without a change in behavior.
@@ -222,6 +222,7 @@ A profile whose owner model is a published schema definition uses `validation.Ch
 That check applies the definition, the local invariants within it and the existing admission model rules at each instance.
 A profile whose owner model has no published definition uses a Go port of the reference model rules.
 A port checks a closed object: each required member is present, each member has its declared type and no other member occurs.
+
 A nested model with a published definition uses that definition.
 For example, the execution authority binds its cleanup template to the fixed compiler identities and checks the bound `trial-cleanup-plan-v1` document, as the reference model does.
 A union with a discriminator requires the tag, and the tag selects the definition.
@@ -318,13 +319,13 @@ Each line below commits this design to that interface.
 
 <!-- go-api implementations/go/contract/diagnostic b2c94c0e94d12f7029268c3edf96e7b88e6b97b192f658bc256dd30736c839b2 -->
 
-<!-- go-api implementations/go/contract/concept 5b24a390561afe25669d9a5b1c4bfba93e374fe1f5c005e8c22c5e32fa2882a0 -->
+<!-- go-api implementations/go/contract/concept 3624e30ef5d7e21f870c555a09d52f15c92f82454e16da6a84293e044deac4c5 -->
 
-<!-- go-api implementations/go/contract/profile d8e3563239001963042a1a71465b832b0171cc1c81573d0ecc5f45559e4a1461 -->
+<!-- go-api implementations/go/contract/profile a8154e3977f59c4ffbb30c1ba382d7ad679d11324cd432411e2c5fea49abe107 -->
 
 <!-- go-api implementations/go/internal/contract/domainprofile 1e611b77eb3507157548369c33197223032cef8639f34cc59147901f53624b9c -->
 
-<!-- go-api implementations/go/internal/contract/packaged 1e02037593ff0b098dbc63bbc77fe9aac3b14e58388406c8ec1a3c0900afdf61 -->
+<!-- go-api implementations/go/internal/contract/packaged 8f13d43219b0d1f587bf0bf86b86c1ab5c1367961c9f192106d8b3e2e83b2edf -->
 
 ## Findings from the review
 
@@ -407,6 +408,6 @@ Each input limit, security check, error case and defect case in the Python tests
 - [ADR-062](adrs/adr-062-concept-authority-catalog-governance-gate.md)
 - [ADR-072](adrs/adr-072-validation-and-admission-profiles.md)
 - [ADR-081](adrs/adr-081-behavioral-relation-taxonomy-and-claim-discipline.md)
-- [ADR-122](adrs/adr-122-go-architecture-model.md)
+- [ADR-124](adrs/adr-124-go-architecture-model.md)
 
 Issue #1787 adds `AdmitComparisonProfile` to re-admit a copied profile through the same closed decoder and normalized digest owner before analysis.

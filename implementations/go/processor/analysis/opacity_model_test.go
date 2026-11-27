@@ -13,16 +13,10 @@ import (
 
 func TestOpacityModelCheckReferenceAndReleaseIdentity(t *testing.T) {
 	root := "../../../../"
-	input, err := os.ReadFile(root + "contracts/fixtures/formal-analysis/participant-opacity-model-check-input-v1/valid/opaque-transition-model.json")
-	if err != nil {
-		t.Fatal(err)
-	}
-	expected, err := os.ReadFile(root + "contracts/fixtures/formal-analysis/participant-opacity-model-check-evidence-v1/valid/opaque-transition-model.json")
-	if err != nil {
-		t.Fatal(err)
-	}
+	input := readTestFile(t, root+"contracts/fixtures/formal-analysis/participant-opacity-model-check-input-v1/valid/opaque-transition-model.json")
+	expected := readTestFile(t, root+"contracts/fixtures/formal-analysis/participant-opacity-model-check-evidence-v1/valid/opaque-transition-model.json")
 	var want map[string]any
-	if err = json.Unmarshal(expected, &want); err != nil {
+	if err := json.Unmarshal(expected, &want); err != nil {
 		t.Fatal(err)
 	}
 	// This static published fixture predates the current product release. Rebind

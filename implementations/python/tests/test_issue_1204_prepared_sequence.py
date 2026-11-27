@@ -6,8 +6,8 @@ from dataclasses import replace
 import pytest
 import yaml
 from raes import instantiate_scenario, parse_sdl
+from raes_contracts.contracts.realization_preparation import RealizationPreparation
 from raes_contracts.realization_observation import RealizationObservationDisclosure
-from raes_contracts.realization_preparation import RealizationPreparation
 from raes_contracts.runtime_state import ApplyResult, RuntimeSnapshot
 from raes_contracts.vocabulary import ObservationStrength
 from raes_processor.compiler import compile_runtime_model
@@ -92,3 +92,72 @@ def test_prepared_delivery_preserves_sequence_order_with_overlapping_position_do
         assert result.details == {}
         assert result.diagnostics[0].code == "runtime.backend-contract-invalid"
         assert result.diagnostics[0].message == "Backend did not deliver its admitted realization completion."
+
+
+def test_prepared_delivery_matches_keyed_collection_members_by_identity():
+    from raes_processor.planner import prepared_delivery_violation
+
+    runtime = {
+        "packages": [
+            {"name": "zsh", "version": "5.9", "manager": "apt"},
+            {"name": "curl", "version": "8.5", "manager": "apt"},
+        ]
+    }
+    _, request, _ = _fixture(runtime, scope="/nodes/host/runtime/packages")
+    reordered = deepcopy(runtime)
+    reordered["packages"].reverse()
+    assert prepared_delivery_violation(request, _returned(request, reordered)) is None
+    reordered["packages"][0]["version"] = "8.6"
+    assert prepared_delivery_violation(request, _returned(request, reordered)) is not None
+
+
+def test_identity_order_follows_records_sequences_references_and_conjunctions():
+    from raes_contracts.realization_structure import (
+        RealizationAllOf,
+        RealizationCollectionMember,
+        RealizationConstraintDocument,
+        RealizationDefinitionReference,
+        RealizationKeyedCollectionConstraint,
+        RealizationLiteral,
+        RealizationRecordConstraint,
+        RealizationSequenceConstraint,
+    )
+    from raes_processor.planner.realization_preparation import _identity_order
+
+    literal = RealizationLiteral(kind="literal", value="x")
+    keyed = RealizationKeyedCollectionConstraint(
+        kind="keyed-collection",
+        collection_kind="test",
+        identity_fields=("id",),
+        members=(RealizationCollectionMember(identity=("a",), constraint=literal),),
+    )
+    document = RealizationConstraintDocument(
+        semantic_profile="test",
+        root=RealizationRecordConstraint(
+            kind="recursive-record",
+            fields={
+                "sets": RealizationSequenceConstraint(
+                    kind="sequence",
+                    items=(
+                        RealizationAllOf(
+                            kind="all-of",
+                            constraints=(
+                                RealizationDefinitionReference(kind="definition-reference", target="keyed"),
+                                literal,
+                            ),
+                        ),
+                    ),
+                ),
+            },
+        ),
+        definitions={"keyed": keyed},
+    )
+    value = {"sets": [[{"id": "b"}, {"id": "a"}], ["kept"]], "other": [{"id": "z"}, {"id": "y"}]}
+    ordered = _identity_order(value, document.root, document)
+    # The keyed members are ordered; an unconstrained field and a second position keep their order.
+    assert ordered == {"sets": [[{"id": "a"}, {"id": "b"}], ["kept"]], "other": [{"id": "z"}, {"id": "y"}]}
+    missing = RealizationConstraintDocument(
+        semantic_profile="test", root=RealizationDefinitionReference(kind="definition-reference", target="absent")
+    )
+    assert _identity_order([{"id": "b"}], missing.root, missing) == [{"id": "b"}]
+    assert _identity_order("text", document.root, document) == "text"

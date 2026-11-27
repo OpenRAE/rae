@@ -2,7 +2,6 @@ package trial
 
 import (
 	"encoding/json"
-	"os"
 	"testing"
 
 	"github.com/OpenRAE/rae/implementations/go/contract/admission"
@@ -85,7 +84,7 @@ func removeEntryCleanupCapability(t *testing.T, input *compilationInputs) {
 	}
 }
 func TestParallelScheduleAndAssignmentKeysRetainExactSealedAuthority(t *testing.T) {
-	raw, err := os.ReadFile("../../../../contracts/fixtures/plans/admitted-trial-plan-v1/valid/parallel-isolated.json")
+	raw, err := readSealedFixture("../../../../contracts/fixtures/plans/admitted-trial-plan-v1/valid/two-entry.json")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -94,8 +93,13 @@ func TestParallelScheduleAndAssignmentKeysRetainExactSealedAuthority(t *testing.
 		t.Fatal("parallel plan fixture")
 	}
 	schedule, err := PlanBatchSchedule(plan)
-	if err != nil || schedule.AdmittedParallelismCeiling != 2 || schedule.IsolationProofRef == nil || len(schedule.Entries) != 2 {
-		t.Fatal("sealed isolation ceiling lost", schedule, err)
+	if err != nil || schedule.AdmittedParallelismFloor != 1 || schedule.AdmittedParallelismCeiling != 1 || len(schedule.Entries) != 2 {
+		t.Fatal("a plan without trial parallelism lost its serial bounds", schedule, err)
+	}
+	plan = openParallelPlan(t, raw)
+	schedule, err = PlanBatchSchedule(plan)
+	if err != nil || schedule.AdmittedParallelismFloor != 1 || schedule.AdmittedParallelismCeiling != 2 || len(schedule.Entries) != 2 {
+		t.Fatal("sealed trial parallelism bounds lost", schedule, err)
 	}
 	owner, err := trialOwner()
 	if err != nil {
@@ -118,4 +122,32 @@ func TestParallelScheduleAndAssignmentKeysRetainExactSealedAuthority(t *testing.
 			t.Fatal("assignment key changed coordinate authority", key, keyErr)
 		}
 	}
+}
+
+// openParallelPlan reseals the fixture with open trial parallelism.
+func openParallelPlan(t *testing.T, raw []byte) binding.AdmittedTrialPlanV1 {
+	t.Helper()
+	var document map[string]any
+	if decode(raw, &document) != nil {
+		t.Fatal("parallel plan fixture")
+	}
+	document["trial_parallelism"] = map[string]any{"posture": "open"}
+	delete(document, "plan_digest")
+	data, err := json.Marshal(document)
+	if err != nil {
+		t.Fatal(err)
+	}
+	owner, err := sealedFixtureOwner()
+	if err != nil {
+		t.Fatal(err)
+	}
+	data, err = admission.SealFixture(owner, "admitted-trial-plan-v1", "valid", data, trialIngress())
+	if err != nil {
+		t.Fatal(err)
+	}
+	var plan binding.AdmittedTrialPlanV1
+	if json.Unmarshal(data, &plan) != nil {
+		t.Fatal("open parallel plan")
+	}
+	return plan
 }

@@ -4,13 +4,17 @@ The CodeQL workflow replaces CodeQL default setup.
 Main, dev and Go cutover contain the release helper's JavaScript source.
 Actions, Python and JavaScript scans run on all three branches.
 The rulesets of the three branches require each of these scan results.
+
+The workflow also runs on each `dev` merge group, because default setup does not (#2026).
 The current Go compiler, analyzer, Sonar and OSV checks stay required.
 Update this language matrix as part of the hard cutover.
 
 The workflow uses pinned GitHub actions and the default security query suite.
 Pull request source flows through CodeQL to the existing GitHub scan store.
 The token is read-only except for scan result publication in the analysis job.
-Checkout stores no credentials. The job needs no application secrets.
+Checkout stores no credentials.
+
+The job needs no application secrets.
 Use the pull request event, not the pull request target event.
 The workflow policy admits this token only in the CodeQL analysis job.
 That job may run only pinned checkout, CodeQL init and CodeQL analyze actions.

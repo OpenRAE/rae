@@ -16,7 +16,7 @@ from raes_contracts.canonical import canonical_json_digest, jsonable_fallback
 from raes_contracts.errors import RaesError
 from raes_runtime.control_plane import RuntimeControlPlane
 
-from raes_conformance.conformance.diagnostics import _diagnostic, sanitized_failure_message
+from raes_conformance.conformance.diagnostics import conformance_diagnostic, sanitized_failure_message
 from raes_conformance.conformance.mixed_backend_cases import MixedBackendCase
 from raes_conformance.conformance.mixed_backend_execution import close_plane
 from raes_conformance.conformance.mixed_backend_judging import Verdict, nonce, outcome_of, unsupported
@@ -217,7 +217,7 @@ def _control_verdict(
     return Verdict(
         outcome=outcome,
         failures=tuple(failures),
-        diagnostics=tuple(_diagnostic(_UNREALIZED, case.case_id, reason) for reason in unrealized),
+        diagnostics=tuple(conformance_diagnostic(_UNREALIZED, case.case_id, reason) for reason in unrealized),
         binding=binding,
         configuration_digest=control_configuration_digest(configuration),
         target_binding=f"backend-target:{target.name}",
@@ -299,7 +299,7 @@ def _attempt_combination(case: MixedBackendCase, target: object, options: dict[s
         return unsupported(_COMBINATION, case.case_id, message)
     failures: list[str] = []
     cleanup = close_plane(plane, failures)
-    accepted = _diagnostic(
+    accepted = conformance_diagnostic(
         _COMBINATION, case.case_id, "The runtime accepted the combination, but no joint probe exists."
     )
     return Verdict(

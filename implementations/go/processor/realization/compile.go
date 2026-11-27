@@ -139,11 +139,30 @@ func (s *realizationSource) compileConcernConstraint(requirement *Requirement, a
 		return err
 	}
 	if opened && (requirement.Structure != nil || requirement.Constraint != nil) {
-		cloned := termOpen
-		requirement.Posture = &cloned
-		authority.Posture = cloned
+		posture := openedPosture(*requirement)
+		requirement.Posture = &posture
+		authority.Posture = posture
 	}
 	return nil
+}
+
+// openedPosture returns the posture of authority whose root opened. A
+// constraint document without an open scope bounds only scalar choices, so
+// the authority stays constrained.
+func openedPosture(requirement Requirement) string {
+	if requirement.Constraint == nil {
+		return termOpen
+	}
+	document := ownedProjection[map[string]any](requirement.Constraint.Document())
+	scopes, _ := document["scopes"].([]any)
+	for _, raw := range scopes {
+		scope, _ := raw.(map[string]any)
+		closure, _ := scope["closure"].(map[string]any)
+		if closure["posture"] == termOpen {
+			return termOpen
+		}
+	}
+	return termConstrained
 }
 
 func containsNonStatefulMount(value any) bool {

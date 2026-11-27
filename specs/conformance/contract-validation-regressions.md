@@ -110,21 +110,25 @@ A positive structural result cannot prove a separately supplied parent or execut
 against concrete reference parents and payload bytes.
 The scenario passes; the snapshot with a placeholder parent digest fails.
 The five experiment attachments also fail against independently supplied parents with different identities.
+
 These full results do not replace or change the original structural golden results.
 The maintainer selected separate full results for issue #1780.
 `TestFullValidationGoldenCorpus` scans every packaged JSON fixture and the published registry.
 It identifies 701 contract fixtures by an enclosing contract ID or a unique schema version.
 It also classifies all 14 workflow fixtures and retains the original unknown-selector case.
+
 The smaller 363-case CLI list cannot hide an omitted fixture.
 Each of the 702 rows has a separately captured Python model or contextual result.
 The actual types used to construct the schema bundle supply model validation.
 The published-schema gate runs first to retain the approved type decision.
 There are 172 contextual comparisons across 22 families and 80 different full results.
+
 Every contextual row names its independent owner and Python check.
 Other contextual families retain separate trusted-owner success and refusal tests.
 Original CLI and schema results remain unchanged and are checked against their exact source records.
 Every row has a separate Python Draft 2020-12 schema result, including CLI-recorded fixtures.
 Go schema checks compare that result independently of full admission and the saved CLI result.
+
 Sixty-nine schema results differ from the saved surface result because the CLI also checked local rules.
 The original surface results remain unchanged.
 Owner input hashes prevent helpers from silently changing a result's authority.
@@ -180,6 +184,7 @@ Local runs select changed tests and fixture families.
 They do not replace complete hosted tests.
 Normal CI runs the complete fixture corpus, generator drift checks, coverage and fuzzing.
 Exhaustive mutation diagnostics require an explicit opt-in and do not block normal PRs.
+
 Issue #1898 delivers the separate scheduled sweep and automatic failure issues.
 Design, policy, architecture, review, hosted checks and readiness remain required gates.
 A passing local check is not a claim that CI or the review has passed.
@@ -214,7 +219,8 @@ race tests, a 90 percent coverage floor, regression checks and fuzz smoke tests.
 Normal Go jobs have a 25-minute limit.
 Product fuzz checks run with the Go architecture checks, in parallel with the
 race and coverage job. Both jobs must pass the canonical gate.
-ADR-121 records the separate mutation policy; mutation thresholds are unchanged.
+
+ADR-123 records the separate mutation policy; mutation thresholds are unchanged.
 The evidence note links the dated design checks that preceded implementation.
 Passing hosted results can only be recorded after publication.
 They are prerequisites for readiness and merge, not a claim made by this crosswalk.

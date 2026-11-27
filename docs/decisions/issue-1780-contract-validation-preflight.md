@@ -3,7 +3,7 @@
 Issue #1780 applies to checkout `ffb54d246`.
 This note gives design constraints.
 It is not an implementation plan.
-ADR-009, ADR-061, ADR-121 and ADR-122 govern the work.
+ADR-009, ADR-061, ADR-123 and ADR-124 govern the work.
 No new ADR is needed.
 Python code and published schemas must stay unchanged.
 
@@ -26,6 +26,7 @@ The Go prerequisites are present on `go-cutover`.
 The contract layer has no packages yet.
 Declare each package, import and external dependency in the architecture model.
 Name the public interfaces in the design.
+
 Pass `archcheck -design` before writing Go code.
 A parity runner also needs permission to import the contract layer.
 Product code must not import parity or tooling.
@@ -43,6 +44,7 @@ Generate Go types from published schema bytes.
 Do not generate the schemas from Go types.
 A successful decode does not prove schema validity.
 A transport value grants no domain authority.
+
 Types whose methods rely on invariants need checked constructors and private state.
 Their zero values must not bypass checks.
 Do not expose mutable maps or slices from admitted values.
@@ -52,6 +54,7 @@ Keep absent members, null and zero distinct.
 Keep exact numbers, array roots, field spelling and allowed open maps.
 Reject extra members where the schema closes an object.
 Do not choose the first decodable union branch.
+
 Do not insert defaults or rely on Go's case-insensitive field matching.
 Generated titles and factored definition names are not stable domain concepts.
 Do not merge unrelated definitions merely because their names match.
@@ -67,6 +70,7 @@ This issue owns dispatch, bindings and rule specifications.
 The maintainer expanded issue #1780 to include the domain rules.
 The admission owner implements them within the same contract boundary.
 Keep those rules with their owners.
+
 Pass trusted context explicitly.
 Do not import processor or runtime services into the contract layer.
 Do not add a service locator or trust a payload's claim of authority.
@@ -98,6 +102,7 @@ Use `base/ingress` for bytes, depth, duplicate members, encodings and finite num
 Keep its failure order and approved exceptions.
 Use the existing value, graph, domain, canonical JSON and digest helpers.
 Keep each owner's limits.
+
 Bound schema work, recursion, regex work and error collection too.
 Cache only immutable schemas, with safe concurrent access.
 Refuse external HTTP and file loads, including implicit schema and metaschema loads.
@@ -121,6 +126,7 @@ Use `base/fault` and its six error classes.
 Distinguish bad input, missing context and broken packaged resources.
 Never expose raw validator errors, values, keys, source paths or causes.
 Keep bounded errors in stable order.
+
 Domain diagnostic codes permit dots; fault codes do not.
 Diagnostic pointers omit `#`; invariant input paths include it.
 Use the existing diagnostic adapters for public surfaces.
@@ -131,6 +137,7 @@ Expose one read-only corpus seam through `io/fs`.
 Package every needed family and notice from the published source.
 `go:embed` cannot read outside its package tree.
 Check the complete packaged copy for missing, extra and changed bytes.
+
 Runtime must need no checkout, Python, shell, Git, network or writable extraction directory.
 Keep explicit development roots separate, with no traversal or symlink escape.
 Missing or corrupt resources must fail; an empty catalog is not a fallback.
@@ -145,6 +152,7 @@ Reuse the existing artifact router, schema coverage tools, parity recorder and r
 The `schema validate` surface records only the schema verdict.
 It does not prove Python type conversion or semantic checks.
 A `context-invalid` fixture can pass its schema.
+
 Directory names are not expected verdicts.
 Not every JSON fixture is an ordinary payload.
 Use the recorded reference results.
@@ -153,6 +161,7 @@ A missing required runner, fixture or rule must fail its check.
 Compile success, inventory rows and skipped tests are not execution evidence.
 Compare all generated output with a fresh temporary generation.
 A hash header alone does not prove faithful bindings.
+
 Keep Python's independent generation check.
 Test built packaging without the checkout in CI.
 Read the corpus, ingress, domain-profile and schema-parity tests, including their issue-specific defect cases.

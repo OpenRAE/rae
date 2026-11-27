@@ -8,6 +8,7 @@ import (
 	"sync"
 
 	"github.com/OpenRAE/rae/implementations/go/base/clock"
+	"github.com/OpenRAE/rae/implementations/go/base/fault"
 	"github.com/OpenRAE/rae/implementations/go/contract/binding"
 	runtimecontract "github.com/OpenRAE/rae/implementations/go/contract/runtime"
 	"github.com/OpenRAE/rae/implementations/go/internal/base/timestamp"
@@ -62,6 +63,12 @@ func (c *component) start(ctx context.Context, plan any, contract string, previo
 	request, err := checkedPlan(plan, contract)
 	if err != nil {
 		return runtimecontract.ApplyResult{}, err
+	}
+	if c.domain == "orchestration" && slices.ContainsFunc(array(request["operations"]), func(item any) bool {
+		operation, _ := item.(map[string]any)
+		return text(operation, "resource_type") == "workflow"
+	}) {
+		return runtimecontract.ApplyResult{}, fault.New(fault.InvalidInput, "workflow-steps-require-runtime-dispatch", nil)
 	}
 	snapshot, err := snapshotObject(previous)
 	if err != nil {
@@ -217,9 +224,6 @@ func (c *component) foldOperation(operation, entries, results, history map[strin
 		status = "queued"
 	}
 	entries[address] = operationEntry(operation, c.domain, status)
-	if c.domain == "orchestration" && kind == "workflow" {
-		results[address], history[address] = workflowState(operation, now)
-	}
 	if c.domain == "evaluation" && kind != "proposition" && kind != "assertion" {
 		results[address], history[address] = evaluationState(operation, now)
 	}

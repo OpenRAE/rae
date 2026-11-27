@@ -1,12 +1,12 @@
 // Package arch checks the repository's Go code against its architecture model
-// (ADR-122).
+// (ADR-124).
 //
 // The model declares the Go modules; the layers, each with the layers and the
 // external packages that its packages may import; and each package, with its
 // layer, its visibility to other layers, and its first-party imports. A design
 // declares new or changed packages in the model before their code exists, and
 // [Model.CheckDesign] validates it. [Model.CheckCode] validates the code against
-// the model, and [CheckRules] validates the rule table of ADR-122. Each finding
+// the model, and [CheckRules] validates the rule table of ADR-124. Each finding
 // names its rule and location and states the change that fixes it.
 package arch
 

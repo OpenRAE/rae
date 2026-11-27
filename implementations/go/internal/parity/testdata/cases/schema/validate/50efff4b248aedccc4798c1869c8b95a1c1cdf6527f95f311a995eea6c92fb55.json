@@ -4,11 +4,11 @@
   ],
   "command": "validate",
   "files": {
-    "payload.json": "sha256:4e42efe9aeb3d9ad2be8cf9fa79dc55b05453c22a8c3c07506f8984e4e1d8254"
+    "payload.json": "sha256:f2123af6f767881cd7b2585cbeb2e316c8ccb13903eda9b6ddfd12493202eae1"
   },
   "name": "semantic-comparison-request-v1/routed/contracts/fixtures/semantic-comparison/semantic-comparison-request-v1/valid/run.json",
   "result": {
-    "valid": true
+    "valid": false
   },
   "surface": "schema"
 }

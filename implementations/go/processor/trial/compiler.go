@@ -61,6 +61,8 @@ type compilationInputs struct {
 	family                                 struct {
 		Name   string                     `json:"name"`
 		Points map[string]json.RawMessage `json:"variation_points"`
+		// Parallelism is the family's authored trial_parallelism; the plan seals it unchanged.
+		Parallelism json.RawMessage `json:"trial_parallelism"`
 	}
 	envelope      binding.RealizationEnvelopeV1
 	backends      map[ApparatusManifestKey]binding.BackendManifestV2
@@ -85,7 +87,7 @@ func compilerProfiles(spec experimentSpec, mixed, replacement bool) (json.RawMes
 	if mixed {
 		entry, run = "trial-entry-identity-mixed-composition-v1", "archival-run-identity-mixed-composition-v1"
 	}
-	profiles := map[string]string{"coordinate_profile": "trial-coordinate-v1", "entry_identity_profile": entry, "run_identity_profile": run, "canonicalization_profile": "jcs-sha256-v1", "integrity_profile": "acyclic-digest-chain-v1", "compiler_profile": profile, "selection_policy_profile": "experiment-selection-v1", "random_stream_profile": "blake3-xof-v1", "execution_control_profile": "attempt-control-v1", "cleanup_profile": "trial-cleanup-v1", "isolation_profile": "scheduler-isolation-v1"}
+	profiles := map[string]string{"coordinate_profile": "trial-coordinate-v1", "entry_identity_profile": entry, "run_identity_profile": run, "canonicalization_profile": "jcs-sha256-v1", "integrity_profile": "acyclic-digest-chain-v1", "compiler_profile": profile, "selection_policy_profile": "experiment-selection-v1", "random_stream_profile": "blake3-xof-v1", "execution_control_profile": "attempt-control-v1", "cleanup_profile": "trial-cleanup-v1"}
 	if !isNull(spec.Factorial) {
 		var design struct {
 			Profile string `json:"profile"`

@@ -75,9 +75,10 @@ type ScheduledEntry struct {
 // BatchSchedule records dispatch order and the admitted parallelism ceiling.
 type BatchSchedule struct {
 	PlanID, PlanDigest, SchedulingPolicyID string
-	AdmittedParallelismCeiling             int
-	IsolationProofRef                      *string
-	Entries                                []ScheduledEntry
+	// AdmittedParallelismFloor and AdmittedParallelismCeiling come from the
+	// authored trial_parallelism; both are one when it is absent.
+	AdmittedParallelismFloor, AdmittedParallelismCeiling int
+	Entries                                              []ScheduledEntry
 }
 
 // ReplacementRequest supplies the original allocation, parent evidence and retained history.

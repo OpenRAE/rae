@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, cast
 
-from raes.explicitness import ExplicitnessClass
 from raes.runtime_resource_limits import (
     process_resource_limit_capability_admits,
     process_resource_limit_identity_digest,
@@ -16,6 +15,7 @@ from raes_contracts.apparatus import (
 )
 from raes_contracts.bounded_domains import scalar_in_domain
 from raes_contracts.diagnostics import Diagnostic, Severity
+from raes_contracts.explicitness import ExplicitnessClass
 from raes_contracts.planning import ChangeAction, ProvisioningPlan
 from raes_contracts.realization_structure import (
     RealizationRelationStatus,
@@ -27,6 +27,7 @@ from raes_contracts.runtime_state import (
     RealizationProvenanceEntry,
     RuntimeSnapshot,
 )
+from raes_contracts.runtime_value_limits import PLAN_AUTHORITY_LIMITS
 from raes_contracts.vocabulary import observation_requirement_satisfied
 
 from .realization_compute_substrate import evaluate_compute_substrate
@@ -115,12 +116,32 @@ def realized_concern_value(requirement: CompiledRealizationRequirement, returned
     return concern_value(snapshot_entry.payload, path)
 
 
+def _left_empty_without_readback(
+    requirement: CompiledRealizationRequirement,
+    realized_value: object,
+    returned_snapshot: RuntimeSnapshot,
+) -> bool:
+    """Accept an authored-empty concern left empty without a readback claim.
+
+    Omission or an empty report earns no provenance regardless of capability.
+    Reported members and matching observations still require corroboration.
+    """
+
+    return (
+        requirement.authored_empty
+        and (realized_value is MISSING_CONCERN_VALUE or realized_value == [])
+        and matching_observation(requirement, returned_snapshot) is None
+    )
+
+
 def _evaluate_open_realization(
     requirement: CompiledRealizationRequirement,
     realized_value: object,
     returned_snapshot: RuntimeSnapshot,
     manifest: BackendManifest | None,
 ) -> tuple[Diagnostic | None, RealizationProvenanceEntry | None]:
+    if _left_empty_without_readback(requirement, realized_value, returned_snapshot):
+        return None, None
     if realized_value is MISSING_CONCERN_VALUE and (
         requirement.verification_scope is not None or requirement.required_observation_strength is not None
     ):
@@ -214,7 +235,9 @@ def _projected_constraints_rejected(
 ) -> bool:
     if requirement.constraint_document is not None:
         return (
-            evaluate_realization_constraint(requirement.constraint_document, realized_projection).status
+            evaluate_realization_constraint(
+                requirement.constraint_document, realized_projection, limits=PLAN_AUTHORITY_LIMITS
+            ).status
             is not RealizationRelationStatus.CONFORMANT
         )
     if requirement.structure is not None and not structure_matches(

@@ -181,7 +181,7 @@ def _version_tuple(version: str) -> tuple[int, ...]:
 def test_declared_cycle_fails_the_compiler_gate(tmp_path: Path) -> None:
     """A cycle between packages fails the compiler command of every module gate.
 
-    ADR-122 version 2 rejects declared package cycles in archcheck. The compiler
+    ADR-124 version 2 rejects declared package cycles in archcheck. The compiler
     still rejects cycles in the code itself. The inventory check requires this
     exact command for each declared module, so a cycle fails that module's gate. The required
     go-architecture job sets RAES_GO_COMPILER_GATE=required, so a missing Go

@@ -1,4 +1,4 @@
-# SDL Semantic Validation
+# SDL semantic validation
 
 The semantic validator (`raes.validator.SemanticValidator`) runs the
 named semantic pass set after Pydantic structural validation. It collects all
@@ -11,14 +11,14 @@ reachability, and fail-closed graph constraints are enforced. Those invariants
 must stay aligned with the runtime compiler and planner contracts rather than
 becoming a validator-only interpretation of the SDL.
 
-## Validation Passes
+## Validation passes
 
-### OCR-Ancestry SDL Passes
+### OCR-ancestry SDL passes
 
 These checks have translated algorithmic ancestry in OCR v0.21.2
-`Scenario::formalize()` at revision
-`fe83e8281fc4b954967fbaa5a0d099007ddcb06c`; current behavior is governed by
-RAES validators and is not claimed compatible with the OCR implementation.
+`Scenario::formalize()` at revision `fe83e8281fc4b954967fbaa5a0d099007ddcb06c`.
+RAES validators govern current behavior, and that behavior is not claimed
+compatible with the OCR implementation.
 
 | Pass | What It Checks |
 |------|----------------|
@@ -53,34 +53,38 @@ validation passes. See the [migration guide](../../migration/external-classifica
 |------|----------------|
 | `verify_content` | Content targets reference existing compute nodes. |
 | `verify_accounts` | Account nodes reference existing compute nodes. |
-| `verify_relationships` | Source and target resolve to any named element in any section, including variables, relationships, content item names, named service bindings, runtime service listener refs, runtime identity-authority refs, runtime DNS refs, runtime network-sensor refs, runtime network detection-engine refs, runtime security-monitoring manager refs, and named ACL rules. Ambiguous bare refs are rejected with qualified alternatives. |
+| `verify_relationships` | Source and target resolve to any named element in any section. These elements include variables, relationships, content item names, named service bindings, runtime service listener refs, runtime identity-authority refs, and runtime DNS refs. They also include runtime network-sensor refs, runtime network detection-engine refs, runtime security-monitoring manager refs, and named ACL rules. Ambiguous bare refs are rejected with qualified alternatives. |
 | `verify_relationship_forwarding_edges` | A relationship `forwarding_edge` resolves `forwarder_ref` to a unique node-hosted or scenario-level runtime forwarding agent; the edge `target_listener_role`/`protocol` must agree with at least one of that agent's ship targets. |
 | `verify_relationship_service_integrations` | A relationship `service_integration` resolves `consumer_ref`/`engine_ref` to platform applications and `auth_principal_ref` to a principal in the engine application's referenced authorization store when `authorization_ref` is set. |
-| `verify_relationship_proxy_upstreams` | A relationship `proxy_upstream` resolves `route_ref` to an application route and the upstream node/service refs; route-level `upstream_target` refs resolve the same way, and when both scopes carry shared target node, target service, and TLS-termination facts they must agree. |
+| `verify_relationship_proxy_upstreams` | A relationship `proxy_upstream` resolves `route_ref` to an application route and the upstream node/service refs. Route-level `upstream_target` refs resolve the same way. When both scopes carry shared target node, target service, and TLS-termination facts, they must agree. |
 | `verify_runtime_service_listeners` | Runtime service listeners resolve optional same-node service refs, process refs, and host-published port correlations. Supplied concrete service/listener port or protocol values must match; missing and open values defer agreement. |
 | `verify_runtime_identity_authorities` | Runtime identity-authority services resolve to same-node service bindings. Local relationship and policy refs resolve within the owning authority across authority, service, subject, policy, and relationship stable ids. |
 | `verify_runtime_dns_services` | Runtime DNS services resolve to same-node service bindings. Configuration, log, and zone-file refs resolve to observed runtime filesystem entries when the node has file inventory. |
-| `verify_runtime_network_sensors` | Runtime network sensors name monitored networks that resolve to switch-backed infrastructure entries and, when runtime endpoint inventory exists on the node, to same-node network endpoint attachments. Configuration, log, and evidence refs resolve to observed runtime filesystem entries when the node has file inventory. |
+| `verify_runtime_network_sensors` | Runtime network sensors name monitored networks that resolve to switch-backed infrastructure entries. When runtime endpoint inventory exists on the node, these networks also resolve to same-node network endpoint attachments. Configuration, log, and evidence refs resolve to observed runtime filesystem entries when the node has file inventory. |
 | `verify_runtime_network_detection_engines` | Runtime network detection engines resolve optional same-node sensor refs, network-set refs, control-channel service refs, and filesystem-backed configuration/log/evidence/rule/output/control paths. |
 | `verify_runtime_security_monitoring_managers` | Runtime security-monitoring managers and listeners resolve to same-node service bindings. Manager/group/content/detection/setting file refs resolve to observed runtime filesystem entries when the node has file inventory. Agent group member refs, agent group refs, setting component refs, detection content-set refs, and detection correlation refs resolve inside the owning manager. Detection source artifact refs and target refs resolve through the generic named-ref index. |
 | `verify_runtime_app_authorizations` | Runtime application-internal RBAC stores resolve `permission_grants` and `role_mappings` `role_ref` values to roles declared within the same authorization (authorization-local role-permission and user-role assignment integrity). |
 | `verify_runtime_datastore_services` | Runtime datastore services resolve a supplied owning transport `service` to a same-node service binding, and a non-empty, non-variable `authorization_ref` to an `app_authorization` declared on the same node. Partial descriptions are valid; supplied partition contradictions, identities and manifest references remain checked. |
-| `verify_runtime_platform_applications` | Runtime platform applications resolve their owning transport `service` to a same-node service binding, a non-empty, non-variable `authorization_ref` to a same-node `app_authorization`, legacy content-object `references` to sibling `content_object_id` values, and `marking_refs` to sibling `marking_id` values. Provider-neutral capabilities are independently declared, carry stable application-local ids, and may be targeted by qualified refs; neither the deprecated `platform_kind` nor legacy content presence implies a capability or configuration completeness. |
+| `verify_runtime_platform_applications` | Runtime platform applications resolve their owning transport `service` to a same-node service binding, and a non-empty, non-variable `authorization_ref` to a same-node `app_authorization`. They resolve legacy content-object `references` to sibling `content_object_id` values, and `marking_refs` to sibling `marking_id` values. Provider-neutral capabilities are independently declared, carry stable application-local ids, and may be targeted by qualified refs. Neither the deprecated `platform_kind` nor legacy content presence implies a capability or configuration completeness. |
 | `verify_runtime_forwarding_agents` | Runtime forwarding agents resolve each `ship_target`'s `target_node_ref`, when concrete, to a defined node, and a concrete `target_service_ref` to a service on the referenced node (or, for node-hosted agents only, on the owning node). Scenario-level forwarding agents require `target_node_ref` when `target_service_ref` is concrete, and `forwarding_agent_id` values are unique across node-hosted and scenario-level registries. Kind does not require an IOC/reload or buffering recipe; partial and composed pipelines remain valid. |
 | `verify_runtime_orchestration_authorities` | Runtime orchestration authorities resolve a non-empty, non-variable `control_interface_ref` to a `RuntimeControlInterface` declared in the same node's `runtime.local_control_interfaces` (by `control_interface_id`). Omitted interface knowledge is valid. A privilege class or Docker-socket filename does not establish effective authority; selected operations require independent support, prerequisites and authorization. |
-| `verify_runtime_mail_services` | Runtime mail services and listeners resolve optional same-node `Node.services` refs. Listener component refs, mailbox domain/store refs, alias target refs, routing source/target refs, and setting component refs resolve inside the owning mail service. Mailbox account refs resolve to top-level accounts, local-user refs resolve to `runtime.local_identity` when present, and setting source paths resolve to observed runtime filesystem entries when the node has file inventory. |
+| `verify_runtime_mail_services` | Runtime mail services and listeners resolve optional same-node `Node.services` refs. Listener component refs, mailbox domain/store refs, alias target refs, routing source/target refs, and setting component refs resolve inside the owning mail service. Mailbox account refs resolve to top-level accounts, and local-user refs resolve to `runtime.local_identity` when present. Setting source paths resolve to observed runtime filesystem entries when the node has file inventory. |
 | `verify_relationship_mail_access` | A relationship with `mail_access` must target a runtime mail service. Concrete `listener_ref`, `mailbox_ref`, and `domain_ref` values resolve within that target service, while protocol, auth-mechanism, and TLS-mode fields are structurally normalized by the `RelationshipMailAccess` model. |
-| `verify_agents` | Entity references resolve. Starting accounts and initial-knowledge accounts exist in accounts section. Allowed subnets and initial-knowledge subnets must resolve to switch-backed infrastructure entries. Initial-knowledge hosts must resolve to compute nodes. Initial-knowledge services exist in `nodes.*.services[].name`. Interactive-access targets resolve to compute nodes; optional accounts resolve to the same compute node and participant starting accounts; concrete target/channel pairs are unique per participant. |
-| `verify_participant_behavior` | Agent action refs resolve to declared action contracts, observation-boundary refs resolve to declared boundaries, interaction targets resolve to eligible action targets and shared-state refs to resources or relationships, effect target refs that name a declaration name an eligible action target, and boundary view rules/transitions resolve to declared observable, hidden, or evidence refs. |
+| `verify_agents` | Entity references resolve. Starting accounts and initial-knowledge accounts exist in accounts section. Allowed subnets and initial-knowledge subnets must resolve to switch-backed infrastructure entries. Initial-knowledge hosts must resolve to compute nodes. Initial-knowledge services exist in `nodes.*.services[].name`. Interactive-access targets resolve to compute nodes. Optional accounts resolve to the same compute node and participant starting accounts. Concrete target/channel pairs are unique per participant. |
+| `verify_participant_behavior` | Agent action refs resolve to declared action contracts, and observation-boundary refs resolve to declared boundaries. Interaction targets resolve to eligible action targets, and shared-state refs resolve to resources or relationships. Effect target refs that name a declaration name an eligible action target. Boundary view rules/transitions resolve to declared observable, hidden, or evidence refs. |
 | `verify_objectives` | Independent `owner` (entity) and `assigned_participant` (agent) references resolve, with at least one required. Actions always resolve to global action contracts and, when assigned, must also be available to that participant. Targets resolve to eligible objective subjects (participants, organizations, resources, relationships, propositions, and assertions), including qualified service/ACL refs and section-qualified top-level refs. Ambiguous bare refs are rejected with qualified alternatives, and a ref that names only ineligible declarations is rejected with the refused purpose. Success criteria resolve to declared invariant/postcondition assertions. Optional windows share normalized analysis over stories/scripts/events/workflows/workflow-steps and fail closed on dangling or out-of-window refs. Objective dependencies must resolve and stay acyclic. |
-| `verify_workflows` | Workflow `start` and every referenced step must exist. `objective`/`retry` steps must reference declared objectives. Predicate refs must resolve to declared precondition `assertions`/`objectives` (the scoring surfaces were removed per [ADR-073](../../decisions/adrs/adr-073-scoring-reward-language-scope.md)), and step-state refs must resolve to prior executable steps whose state is guaranteed to be known before the predicate runs. Workflow graphs must be acyclic and fully reachable from `start`. Parallel joins must be explicit barriers, every explicit branch path must converge on the declared join, branch-local state remains scoped until the join, and post-join predicates may inspect only branch steps guaranteed on every path within their branch before the join. |
-| `verify_participant_outcomes` | Outcome interpretation source and target refs resolve for action contracts, objectives, and workflows. The SEM-215 `reward_signal` / `evaluation_result` interpretation layers remain a governed interpretation relation but no longer bind to any SDL `evaluations` section ([ADR-073](../../decisions/adrs/adr-073-scoring-reward-language-scope.md)); runtime conformance grounds emitted interpretation records in action results, event evidence, and participant episode history. |
+| `verify_workflows` | Workflow `start` and every referenced step must exist. `objective`/`retry` steps must reference declared objectives. Predicate refs must resolve to declared precondition `assertions`/`objectives` (the scoring surfaces were removed per [ADR-073](../../decisions/adrs/adr-073-scoring-reward-language-scope.md)). Step-state refs must resolve to prior executable steps whose state is guaranteed to be known before the predicate runs. Workflow graphs must be acyclic and fully reachable from `start`. Parallel joins must be explicit barriers, and every explicit branch path must converge on the declared join. Branch-local state remains scoped until the join. Post-join predicates may inspect only branch steps guaranteed on every path within their branch before the join. |
+| `verify_participant_outcomes` | Outcome interpretation source and target refs resolve for action contracts, objectives, and workflows. The SEM-215 `reward_signal` / `evaluation_result` interpretation layers remain a governed interpretation relation. But they no longer bind to any SDL `evaluations` section ([ADR-073](../../decisions/adrs/adr-073-scoring-reward-language-scope.md)). Runtime conformance grounds emitted interpretation records in action results, event evidence, and participant episode history. |
 | `verify_variables` | Checks that full-value `${var}` placeholders and embedded `${var}` tokens reference declared variables. Structural validation of variable declaration names, typed defaults, and `allowed_values` still happens in the model/schema layer. |
 
 Pydantic structural validation also enforces model-local node rules before
 these semantic passes run. Switch nodes reject compute-only fields, including
-`runtime`. Runtime mount, dependency-manifest, and software-component manifest
-paths must be absolute paths or variable references. Runtime software-component
+`runtime`. A switch can state a compute-only field only with its empty value
+(`null`, an empty string, or an empty collection). Realization authority treats
+that value as an omitted field. Runtime mount, dependency-manifest, and software-component manifest
+paths must be absolute paths or variable references.
+
+Runtime software-component
 `installed_paths`, filesystem inventory paths, container masked paths,
 container read-only paths, and device host/container paths must also be
 absolute runtime paths or variable references. Runtime local-control interface
@@ -88,24 +92,29 @@ paths and bind sources must be absolute paths, Windows named pipe endpoints, or
 variable references; Windows named pipe endpoints require `kind: named_pipe`.
 Runtime software components must have stable, concrete `component_id` values
 that are unique within the node runtime block.
-Runtime filesystem inventory UID/GID and size fields are non-negative, mode is
-stored as octal permission bits, and content digests must carry both the digest
-algorithm and value. Runtime mount sources/options and local-control bind sources
-classified as `redacted` or `operator_secret` must omit the corresponding raw
-value; the Python models and generated JSON Schemas both reject non-empty raw
-values for redacted/operator-secret labels accepted by the value-normalization
-rules, including case-insensitive hyphen/underscore enum spellings. Structural
+Runtime filesystem inventory UID/GID and size fields are non-negative, and mode
+is stored as octal permission bits. Content digests must carry both the digest
+algorithm and value.
+
+Runtime mount sources/options and local-control bind
+sources classified as `redacted` or `operator_secret` must omit the
+corresponding raw value. The Python models and generated JSON Schemas both
+reject non-empty raw values for these labels. This applies to every
+redacted/operator-secret label that the value-normalization rules accept,
+including case-insensitive hyphen/underscore enum spellings. Structural
 field keys themselves use exact `snake_case` under `sdl-yaml/v1`.
 Runtime observed-value surfaces share the ADR-056/ADR-057 raw-value helper:
-redacted and operator-secret classifications omit raw values. ADR-057 supersedes
+redacted and operator-secret classifications omit raw values.
+
+ADR-057 supersedes
 the earlier name-driven omission rule: credential-shaped names do not by
 themselves reject values or require redaction, because SDL runtime values are
 scenario-realization facts.
 [ADR-057](../../decisions/adrs/adr-057-runtime-secret-name-classifier-boundaries.md)
-records the realizability decision: generated credentials, hashes, key
-material, weak fixture values, public-key fingerprints, working-directory
-variables such as `PWD`, and scalar metadata such as `secret_key_length` may all
-be recorded when they are facts of the synthetic scenario. Authors still
+records the realizability decision. Generated credentials, hashes, key material,
+weak fixture values and public-key fingerprints may all be recorded when they
+are facts of the synthetic scenario. The same applies to working-directory
+variables such as `PWD`, and scalar metadata such as `secret_key_length`. Authors still
 classify any value as `redacted` or `operator_secret` when the value is
 intentionally withheld from the authoritative SDL.
 
@@ -121,10 +130,12 @@ command scope distinct from a genuinely empty one.
 The optional `runtime.identity_authorities` inventory also has model-local and
 semantic rules. Authorities, services, subjects, policies, relationships,
 attributes, and settings use stable non-empty ids or names. Stable ids must be
-unique across the authority-local reference namespace, not just within each
+unique across the authority-local reference namespace, not only within each
 child collection. The model also rejects duplicate attribute and setting names,
 normalizes bounded kind/protocol/provenance/value classifications, and enforces
-explicit redaction classifications on attributes and settings. Authority
+explicit redaction classifications on attributes and settings.
+
+Authority
 services may reference only services declared on the same node. Authority-local refs resolve
 against all stable ids in the authority:
 `identity_authority_id`, `service_id`, `subject_id`, `policy_id`, and
@@ -134,8 +145,10 @@ reference keys.
 The optional `runtime.dns_services` inventory has model-local and semantic
 rules. DNS services, zones, and RRsets use stable ids, while observed DNS names
 remain data and are not case-folded. DNS service ids are unique within a node
-runtime block; zone ids are unique within a DNS service; RRset ids and
-owner/class/type bindings are unique within a zone. RRsets must have at least
+runtime block, and zone ids are unique within a DNS service. RRset ids and
+owner/class/type bindings are unique within a zone.
+
+RRsets must have at least
 one record, TTL and type-code fields are bounded integer-or-variable values,
 `record_type: other` requires `type_code`, and typed RDATA must match the
 owning RRset type. A/AAAA typed address payloads are validated as IPv4/IPv6
@@ -150,10 +163,12 @@ rules. Network sensors use stable `network_sensor_id` values that are unique wit
 node runtime block. Implementations, sensor kinds, monitoring postures, and
 capture modes are normalized from bounded enums while allowing full-value
 variables where the model permits. `capture_interfaces` and
-`monitored_network_refs` reject duplicates. Each monitored network ref must
-resolve to a declared switch-backed infrastructure entry; when the same node
+`monitored_network_refs` reject duplicates.
+
+Each monitored network ref must
+resolve to a declared switch-backed infrastructure entry. When the same node
 records `runtime.network.endpoints`, the monitored network must also be one of
-that node's observed endpoint attachments. Configuration, log, and evidence
+the observed endpoint attachments of that node. Configuration, log, and evidence
 refs are absolute paths and are checked against `runtime.filesystem_inventory`
 when that inventory is non-empty.
 
@@ -162,25 +177,26 @@ semantic rules. Listener ids are stable concrete symbols and are unique within
 a node runtime block. A listener is a partial description: only
 `service_listener_id` is universally required, and omitted address, interface,
 port, protocol, or socket path remains omitted. The legacy authored-model
-protocol default is still `tcp`, but source rendering omits it when the author
-did not supply it and instantiation provenance does not promote that default to
-an exact claim. Known network transports must not set `socket_path`; a known
+protocol default is still `tcp`. But source rendering omits it when the author
+did not supply it, and instantiation provenance does not promote that default to
+an exact claim.
+
+Known network transports must not set `socket_path`; a known
 Unix transport must not set port, address, or bind interface. An undetermined
 transport may carry either kind of endpoint fact but not both. Concrete
-address-family and scope fields must not contradict supplied facts: wildcard
-addresses use `scope: wildcard`, loopback addresses cannot be
-`network_facing`, non-loopback IP addresses cannot be `loopback_only`, and
-Unix socket listeners use `local_socket` or `unknown`.
+address-family and scope fields must not contradict supplied facts. Wildcard
+addresses use `scope: wildcard`, and loopback addresses cannot be
+`network_facing`. Non-loopback IP addresses cannot be `loopback_only`, and Unix
+socket listeners use `local_socket` or `unknown`.
 
 Optional same-node `service` refs must resolve to `Node.services[].name`.
 Supplied concrete listener port and protocol values must independently match
 the service; missing, variable, `unknown`, and `other` values defer only their
 own comparison. Optional `process_ref` values resolve to `runtime.process` or
-`runtime.processes` by process name or PID. Every optional
-`published_port_refs` entry still resolves to
-`runtime.network.published_ports` by host IP, host port, container port, and
-protocol, and each supplied concrete listener field must agree with the
-reference.
+`runtime.processes` by process name or PID. Every optional `published_port_refs`
+entry still resolves to `runtime.network.published_ports` by host IP, host port,
+container port, and protocol. Each supplied concrete listener field must agree
+with the reference.
 
 Partial model admission is not endpoint admission. A backend operation or
 complete-report assessment that claims a usable listener must reject a
@@ -191,27 +207,32 @@ export permission.
 
 The optional `runtime.mail_services` inventory has model-local and semantic
 rules. Mail-service ids are stable concrete symbols and unique within a node
-runtime block; service-local component, listener, domain, mailbox-store,
+runtime block. Service-local component, listener, domain, mailbox-store,
 mailbox, alias, routing-rule, queue, and setting ids are unique within their
-collections and across the service-local reference namespace. Mail protocols,
-listener roles, AUTH mechanisms, TLS modes, domain/mailbox/store/queue kinds,
-mailbox status, setting provenance, and value classifications are normalized
-from bounded enums while allowing full-value variables. Secret-bearing settings
+collections. They are also unique across the service-local reference namespace.
+
+Mail protocols,
+listener roles, AUTH mechanisms, TLS modes and domain/mailbox/store/queue kinds
+are normalized from bounded enums. So are mailbox status, setting provenance,
+and value classifications. All of them allow full-value variables. Secret-bearing settings
 must omit raw values and use redacted/operator-secret classifications. Service
 and listener `service` refs resolve to same-node transport bindings; component,
 domain, mailbox-store, mailbox, alias, routing, and setting refs resolve inside
-the owning mail service. Mailbox `account_ref` values resolve to top-level
-accounts, mailbox `local_user_ref` values resolve to `runtime.local_identity`
-when local users are declared, and setting source paths are checked against
+the owning mail service.
+
+Mailbox `account_ref` values resolve to top-level
+accounts. Mailbox `local_user_ref` values resolve to `runtime.local_identity`
+when local users are declared. Setting source paths are checked against
 `runtime.filesystem_inventory` when that inventory is non-empty. A top-level
 relationship with `mail_access` targets a runtime mail service and resolves
 concrete listener, mailbox, and domain refs inside that target service.
 
 The optional `runtime.network_detection_engines` inventory has model-local and
-semantic rules. Engine ids are stable concrete symbols and are unique within
-one node runtime block; engine-local rule-source, network-set, output-stream,
-and control-channel ids are unique inside the owning engine. Optional
+semantic rules. Engine ids are stable concrete symbols and are unique within one
+node runtime block. Engine-local rule-source, network-set, output-stream, and
+control-channel ids are unique inside the owning engine. Optional
 `sensor_ref` values resolve to same-node `runtime.network_sensors` ids.
+
 Network-set refs resolve to switch-backed infrastructure entries.
 Configuration, log, evidence, rule-source, output-stream, and control-channel
 paths are absolute and are checked against `runtime.filesystem_inventory` when
@@ -223,39 +244,45 @@ and semantic rules. Managers, listeners, components, agents, agent groups,
 content sets, detection definitions, and settings use stable ids. Manager ids
 are unique within a node runtime block, and every manager-local stable id is
 unique across the manager itself plus its child collections. Implementations,
-manager kinds, listener roles, component kinds/statuses, agent statuses,
-content kinds/formats, detection engines/kinds, field-predicate operators,
-setting provenance, and value classifications are normalized from bounded
-enums while allowing full-value variables where the model permits.
+manager kinds, listener roles, component kinds/statuses, agent statuses and
+content kinds/formats are normalized from bounded enums. So are detection
+engines/kinds, field-predicate operators, setting provenance, and value
+classifications.
+
+They allow full-value variables where the model permits.
 Settings such as passwords, API tokens, credentials, shared keys, keytabs, or
 private keys may carry scenario values unless explicitly classified as
 redacted/operator-secret. Managers and listeners may reference only services
-declared on the same node. Manager configuration/log/evidence
-refs, agent-group configuration refs, content-set file refs,
-detection-definition source/evidence refs, and setting source paths are checked
-against `runtime.filesystem_inventory` when that inventory is non-empty. Group
-`member_refs` must resolve to manager-local agents, agent `group_refs` must
-resolve to manager-local groups, setting `component_ref` values must resolve to
-manager-local components, detection `content_set_ref` values must resolve to
-manager-local content sets, and detection `if_sid_refs`,
-`if_matched_sid_refs`, and `parent_definition_refs` must resolve to
-manager-local detection definitions. Detection `source_artifact_ref` and
+declared on the same node. Manager configuration/log/evidence refs, agent-group
+configuration refs and content-set file refs are checked against
+`runtime.filesystem_inventory` when that inventory is non-empty.
+Detection-definition source/evidence refs and setting source paths get the same
+check.
+
+Group `member_refs`
+must resolve to manager-local agents, and agent `group_refs` must resolve to
+manager-local groups. Setting `component_ref` values must resolve to
+manager-local components. Detection `content_set_ref` values must resolve to
+manager-local content sets. Detection `if_sid_refs`, `if_matched_sid_refs`, and
+`parent_definition_refs` must resolve to manager-local detection definitions. Detection `source_artifact_ref` and
 `target_refs` resolve through the generic named-ref index.
 
 The optional `runtime.app_authorizations` inventory has model-local and
 semantic rules. Application authorizations, principals, roles, permission
-grants, role mappings, and tenants use stable concrete ids; the
-`app_authorization_id` is unique within a node runtime block, and every
-authorization-local stable id is unique across the authorization itself plus
-its principal, role, permission-grant, role-mapping, and tenant collections.
+grants, role mappings, and tenants use stable concrete ids. The
+`app_authorization_id` is unique within a node runtime block. Every
+authorization-local stable id is unique across the authorization itself plus its
+principal, role, permission-grant, role-mapping, and tenant collections.
 Resource vocabularies, principal kinds, grant effects, and credential
 classifications are normalized from bounded enums while allowing full-value
-variables where the model permits. A principal never carries a raw credential
+variables where the model permits.
+
+A principal never carries a raw credential
 value: its posture is the `credential_classification`, and a principal name
-does not force a redaction classification. An authorization that
-declares a concrete (non-`unknown`) `resource_vocabulary` must carry at least
-one permission grant whose `resource_kind` matches that vocabulary; a declared
-but unused vocabulary is rejected, while a `${var}` placeholder or the open
+does not force a redaction classification. An authorization that declares a
+concrete (non-`unknown`) `resource_vocabulary` must carry at least one
+permission grant whose `resource_kind` matches that vocabulary. A declared but
+unused vocabulary is rejected, while a `${var}` placeholder or the open
 `unknown` sentinel is exempt. Permission-grant and role-mapping `role_ref`
 values resolve to roles declared within the same authorization. This is
 application-internal RBAC: it is distinct from `runtime.identity_authorities`
@@ -269,34 +296,40 @@ vocabulary (`interval`, `cron`, `calendar`) carrying no `unknown`/`other`
 sentinel, while `run_state.last_result` is an open outcome vocabulary. Boolean
 `enabled` flags accept booleans or full-value variables. This surface models
 recurrence cadence and observed run-state only; it does not carry job inputs,
-outputs, or trigger targets. The `scheduled_jobs` / `service_units` /
-`forwarding_agents` boundary is deliberate: `runtime.service_manager_units`
-carries systemd-scoped unit lifecycle (including the `timer` unit kind), a
+outputs, or trigger targets.
+
+The `scheduled_jobs` / `service_units` /
+`forwarding_agents` boundary is deliberate. `runtime.service_manager_units`
+carries systemd-scoped unit lifecycle (including the `timer` unit kind). A
 `scheduled_jobs` entry carries product-neutral cadence and run-state for a
-recurring job (such as a bare-container ENTRYPOINT loop a systemd unit cannot
-express), and what a recurring forwarder ships — its inputs, transforms, and
-ship targets — belongs to the referencing forwarding agent, never re-encoded on
-the job. An event-triggered task is a trigger relationship, not a recurrence,
+recurring job, such as a bare-container ENTRYPOINT loop that a systemd unit
+cannot express. What a recurring forwarder ships — its inputs, transforms, and
+ship targets — belongs to the referencing forwarding agent and is never
+re-encoded on the job. An event-triggered task is a trigger relationship, not a recurrence,
 and is therefore not a scheduled job.
 
 The optional `runtime.datastore_services` inventory has model-local and semantic
 rules. Datastore-service ids are stable concrete symbols and are unique within a
-node runtime block; the service-local cluster, persistence, transport-security,
+node runtime block. The service-local cluster, persistence, transport-security,
 node, partition, template, mapping, setting, node-plugin, and node-endpoint ids
 are unique across the service. Engines, data models, partition kinds, node
-roles, node-endpoint roles, persistence eviction policies, replication
-strategies, transport-security modes, and setting scope/provenance/classification
-are normalized from bounded enums while allowing full-value variables. Native
+roles, node-endpoint roles and persistence eviction policies are normalized from
+bounded enums. So are replication strategies, transport-security modes, and
+setting scope/provenance/classification. All of them allow full-value variables.
+
+Native
 cluster/index UUIDs are observed datastore facts, not SDL reference identities;
 references continue to target the stable RAES ids. Count and byte fields on
 clusters and partitions accept only non-negative integers or full-value
 variables, keeping document cardinality and byte-normalized store size distinct
-from `datatype_census`. Node engine provenance is observed inventory: heap byte
-bounds normalize human sizes to bytes and a concrete `heap_init_bytes` must not
-exceed a concrete `heap_max_bytes`; node-endpoint ports are validated to the
+from `datatype_census`. Node engine provenance is observed inventory. Heap byte
+bounds normalize human sizes to bytes, and a concrete `heap_init_bytes` must not
+exceed a concrete `heap_max_bytes`. Node-endpoint ports are validated to the
 1-65535 range with address and port kept split.
 Explicit redacted/operator-secret setting classifications omit raw values; names
-alone do not force omission. A `search_index`, `wide_column` or `key_value`
+alone do not force omission.
+
+A `search_index`, `wide_column` or `key_value`
 description may omit geometry, mappings, replication or persistence. These are
 optional known facts, not a family-level completeness threshold. A supplied
 `key_value` declaration still rejects incompatible keyspace/column-family
@@ -310,10 +343,12 @@ delegated internal RBAC store).
 
 The optional `runtime.platform_applications` inventory has model-local and
 semantic rules. Platform-application ids are stable concrete symbols and unique
-within a node runtime block; capability, organization, tenant, content-object,
-marking, upstream-binding, connector, and setting ids share the application's
-local stable-id namespace. Capability kinds are an open provider-neutral
-vocabulary and one application may declare several. A capability asserts a
+within a node runtime block. Capability, organization, tenant, content-object,
+marking, upstream-binding, connector, and setting ids share the local stable-id
+namespace of the application. Capability kinds are an open provider-neutral
+vocabulary and one application may declare several.
+
+A capability asserts a
 functional role only; it does not imply configured content, policy, successful
 execution, or completeness. The legacy `platform_kind` and `content_objects`
 fields remain accepted but are deprecated and do not drive validation.
@@ -328,12 +363,14 @@ legacy content-object `references` resolve to sibling content objects and
 The optional `runtime.forwarding_agents` inventory and top-level
 `forwarding_agents` registry have model-local and semantic rules.
 Forwarding-agent ids are stable concrete symbols and unique across node-hosted
-and scenario-level registries; the agent-local source, transform, ship-target,
+and scenario-level registries. The agent-local source, transform, ship-target,
 buffer-policy, reload-channel, and setting ids are unique across the agent. Agent
-implementations, kinds, source kinds, parse formats, transform kinds, protocols,
-buffer crypto, reload-channel kinds, enrollment classifications, and setting
-provenance/classification are normalized from bounded enums while allowing
-full-value variables. A ship-target enrollment identity is never recorded — only
+implementations, kinds, source kinds, parse formats, transform kinds and
+protocols are normalized from bounded enums. So are buffer crypto,
+reload-channel kinds, enrollment classifications, and setting
+provenance/classification.
+
+All of them allow full-value variables. A ship-target enrollment identity is never recorded — only
 the closed `none`/`redacted`/`operator_secret` lattice — and explicit
 redacted/operator-secret setting classifications omit raw values. A concrete
 `log_forwarder` or `content_sync` kind does not require a particular set of
@@ -342,24 +379,28 @@ descriptions and composed pipelines remain valid; selected operations enforce
 their actual prerequisites at admission. At scenario scope, a ship-target
 `target_node_ref` resolves to a defined node and a `target_service_ref` resolves
 to a service on the referenced node (or, for node-hosted agents only, on the
-owning node). Scenario-level agents have no owning node, so a concrete service
+owning node).
+
+Scenario-level agents have no owning node, so a concrete service
 ref must be paired with a concrete target node.
-The `scheduled_jobs` / `service_units` / `forwarding_agents` boundary is the same
-one described above: a recurring forwarder's cadence belongs to a
-`runtime.scheduled_jobs` entry and its systemd lifecycle to
-`runtime.service_manager_units`, while what it ships — sources, transforms, and
-ship targets — belongs only to the forwarding agent; the inter-node trust edge is
-a relationship forwarding edge, not a re-typed ship target.
+The `scheduled_jobs` / `service_units` / `forwarding_agents` boundary is the
+same one described above. The cadence of a recurring forwarder belongs to a
+`runtime.scheduled_jobs` entry, and its systemd lifecycle to
+`runtime.service_manager_units`. What it ships — sources, transforms, and ship
+targets — belongs only to the forwarding agent. The inter-node trust edge is a
+relationship forwarding edge, not a re-typed ship target.
 
 The optional `runtime.orchestration_authorities` inventory has model-local and
 semantic rules. Orchestration-authority ids are stable concrete symbols and unique
 within a node runtime block; spawn-template and realized-child ids are unique
-across the authority. Engine identities use the governed extension vocabulary;
-privilege classes retain their defined finite meanings and knowledge sentinels,
-while both allow full-value variables,
-and realized-child `count` accepts a non-negative integer, a `${var}`, or none.
+across the authority. Engine identities use the governed extension vocabulary.
+Privilege classes retain their defined finite meanings and knowledge sentinels,
+while both allow full-value variables. Realized-child `count` accepts a
+non-negative integer, a `${var}`, or none.
 An authority may describe `host_root_equivalent` posture while its concrete
-interface remains unknown. That description grants no privilege. At scenario scope a
+interface remains unknown.
+
+That description grants no privilege. At scenario scope a
 non-empty, non-variable `control_interface_ref` resolves to a
 `RuntimeControlInterface` declared in the same node's
 `runtime.local_control_interfaces` (by `control_interface_id`). Neither a
@@ -390,11 +431,12 @@ runtime compilation.
 The SDL validator is intentionally structural/semantic. The SDL-native runtime
 compiler and runtime conformance helpers perform additional fail-closed binding
 checks, including node-local feature dependency enforcement, bound-resource
-reference resolution, and SEM-215 outcome-record grounding. A participant outcome
-interpretation emitted at runtime must preserve declared source/target bindings
-and must ground participant-action outcome sources in the event action result,
-evidence refs in event evidence, and participant-episode status sources in
-terminal participant-episode history for the same participant and episode.
+reference resolution, and SEM-215 outcome-record grounding. A participant
+outcome interpretation emitted at runtime must preserve declared source/target
+bindings. It must ground participant-action outcome sources in the event action
+result, and evidence refs in event evidence. It must ground participant-episode
+status sources in terminal participant-episode history for the same participant
+and episode.
 
 This also means the validator only enforces what the current SDL syntax can
 actually express. Node `runtime` is declarative contract state. The closed
@@ -404,10 +446,11 @@ scanner-derived package findings. Those facts use experiment evidence records,
 inventory ledgers, and derived measures instead. Packages, software components,
 dependency manifests, addresses, aliases, MACs, and backend details remain SDL
 only when an author deliberately requires them.
-The `source.build` block covers observed container image build provenance:
-base image and digest, layer chain, structured build-recipe instructions, build
-arguments, copied sources, image-default configuration, source-input mapping,
-and attestation status.
+
+The `source.build` block covers observed container image build provenance. This
+is base image and digest, layer chain, structured build-recipe instructions and
+build arguments. It also includes copied sources, image-default configuration,
+source-input mapping, and attestation status.
 Broader ecosystem concerns such as participant-implementation manifests,
 decision-surface exposure policy contracts, augmentation disclosure, and full
 evidence-capture contract surfaces are separate validation domains.
@@ -473,10 +516,10 @@ For a new or changed vocabulary, discriminator, profile or validation guard:
    Explain why an existing owner cannot carry the fact before adding one.
 2. State why a finite set is closed. A defined grammar operation, grant effect,
    protection decision or exact schema version differs from a product catalog.
-   Use the owning native grammar for wire tokens and identifiers; do not force
+   Use the owning native grammar for wire tokens and identifiers. Do not force
    every external name into the governed-vocabulary token syntax.
 3. Show a distinct implementation or private case and a partial description.
-   Check the whole record, including defaults and validators, not just whether
+   Check the whole record, including defaults and validators, not only whether
    its identity field accepts an extension token.
 4. Check an inherited open parent with binding exact children. Optional detail
    stays optional until its selected contract needs it. Preserve omitted,
@@ -503,7 +546,7 @@ not decide whether the contract is portable. The audit field-coverage test
 likewise detects missing review coverage, not semantic correctness. #1211 owns
 the integrated positive/negative lifecycle acceptance of this prevention rule.
 
-## Static Semantic Invariants
+## Static semantic invariants
 
 The validator is the main enforcement point for static SDL semantics, but not
 the only source of truth. The same rules must remain consistent with compiled
@@ -526,31 +569,29 @@ In coding-standards terms:
   consistency across validator and compiled/runtime forms
 
 Workflows are the clearest current example. Their syntax is described in YAML,
-but the important semantics live here and in the runtime architecture: which
-steps are reachable, which joins are legal, and which prior step states are
-knowable before a predicate executes.
+but the important semantics live here and in the runtime architecture. These
+semantics are which steps are reachable, which joins are legal, and which prior
+step states are knowable before a predicate executes.
 
 Objective windows are the clearest current `FM2` example. Their authoring
 surface is still simple YAML, but the semantic meaning comes from one shared
-analysis pass that resolves normalized references, checks story/script/event and
-workflow/step consistency, derives refresh semantics, and feeds both validator
-errors and compiled runtime forms.
+analysis pass. This pass resolves normalized references, checks
+story/script/event and workflow/step consistency, and derives refresh semantics.
+It feeds both validator errors and compiled runtime forms.
 
-The same pattern applies conceptually to participant and observability
-concerns: author-facing syntax, shared semantics, runtime
-contracts, and provenance must stay aligned, but they do not all collapse into
-the current validator surface.
+The same pattern applies conceptually to participant and observability concerns.
+Author-facing syntax, shared semantics, runtime contracts, and provenance must
+stay aligned. But they do not all collapse into the current validator surface.
 
 ## Advisories
 
-The normative boundary between a fatal **error** and a non-fatal **advisory** —
-including the classification criterion that decides which channel a condition
-belongs to — is stated in
-{download}`specs/sdl/diagnostics.md <../../../specs/sdl/diagnostics.md>` §5. This page is
-non-normative explanation and cites that criterion rather than restating it: an
-**error** affects SDL meaning (structural/semantic invariants), while an
-**advisory** is a deployability or quality heuristic that leaves SDL meaning
-intact.
+{download}`specs/sdl/diagnostics.md <../../../specs/sdl/diagnostics.md>` §5
+states the normative boundary between a fatal **error** and a non-fatal
+**advisory**. It includes the classification criterion that decides which
+channel a condition belongs to. This page is
+non-normative explanation and cites that criterion without restating it. An
+**error** affects SDL meaning (structural/semantic invariants). An **advisory**
+is a deployability or quality heuristic that leaves SDL meaning intact.
 
 Successful parses may still carry non-fatal advisories on `Scenario.advisories`. These are not validation errors and do not block parsing.
 
@@ -558,7 +599,7 @@ Current advisory coverage:
 
 - compute nodes without `resources` are allowed, but emit an advisory because some deployment backends may not be able to instantiate them without explicit sizing defaults.
 
-## Error Reporting
+## Error reporting
 
 The fatal, fail-closed error semantics and the collect-all behaviour described
 here are the explanatory companion to the normative diagnostic boundary in
@@ -575,7 +616,7 @@ except SDLValidationError as e:
         print(f"  - {error}")
 ```
 
-## Cross-Reference Resolution
+## Cross-reference resolution
 
 Generic refs are indexed in two forms:
 
@@ -618,9 +659,9 @@ from the SDL runtime-family registry. Registered runtime refs include:
   upstream-binding, connector, and setting refs
 
 This means a relationship can reference any node, feature, condition,
-vulnerability, infrastructure entry, entity
-(including nested), inject, event, script, story, content entry, content item,
-account, agent, objective, workflow, relationship, variable, named service
-binding, registered runtime-family object, registered runtime-family child
-object, or named ACL rule. When a bare ref maps to multiple elements,
+vulnerability, infrastructure entry, entity (including nested), inject, event,
+script, story, content entry or content item. It can also reference any account,
+agent, objective, workflow, relationship, variable, named service binding,
+registered runtime-family object, registered runtime-family child object, or
+named ACL rule. When a bare ref maps to multiple elements,
 validation fails and asks the author to use one of the qualified alternatives.

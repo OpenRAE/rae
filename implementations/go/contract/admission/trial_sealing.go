@@ -6,6 +6,7 @@ import (
 	"maps"
 	"strings"
 
+	"github.com/OpenRAE/rae/implementations/go/base/canonjson"
 	"github.com/OpenRAE/rae/implementations/go/base/ingress"
 	"github.com/OpenRAE/rae/implementations/go/contract/validation"
 )
@@ -218,4 +219,44 @@ func trialOrderedJSON(root map[string]any, order []string) ([]byte, error) {
 	}
 	fields["entries"] = ordered.Bytes()
 	return json.Marshal(fields)
+}
+
+// TrialEntryRetainedBytes returns the canonical byte size of one sealed trial
+// entry and its cleanup plan, as the admitted plan retains them. The compiler
+// charges each retained entry before it seals the complete plan.
+func TrialEntryRetainedBytes(v *Validator, entry, cleanup []byte) (int, error) {
+	if v == nil || len(entry) > int(^uint(0)>>2) || len(cleanup) > int(^uint(0)>>2) {
+		return 0, invalid()
+	}
+	limits := ingress.Limits{MaxBytes: max(32<<20, 2*(len(entry)+len(cleanup))), MaxDepth: 64}
+	parsed, err := ingress.Parse(entry, limits, ingress.Object)
+	if err != nil {
+		return 0, err
+	}
+	// A sealed entry carries its digest; the placeholder has the same canonical size.
+	object(parsed)["entry_digest"] = "sha256:" + strings.Repeat("0", 64)
+	raw, err := json.Marshal(parsed)
+	if err != nil {
+		return 0, invalid()
+	}
+	projected, err := v.trialEntryProjection(trialPlanContract, raw, limits)
+	if err != nil {
+		return 0, err
+	}
+	if raw, err = json.Marshal(projected); err != nil {
+		return 0, invalid()
+	}
+	entryBytes, err := canonjson.JCS(raw)
+	if err != nil {
+		return 0, invalid()
+	}
+	cleanupProjection, err := v.experimentProjection("trial-cleanup-plan-v1", cleanup)
+	if err != nil {
+		return 0, err
+	}
+	cleanupBytes, err := canonjson.JCS(cleanupProjection)
+	if err != nil {
+		return 0, invalid()
+	}
+	return len(entryBytes) + len(cleanupBytes), nil
 }

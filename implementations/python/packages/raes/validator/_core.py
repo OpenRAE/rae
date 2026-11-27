@@ -7,7 +7,8 @@ from collections.abc import Iterable, Iterator
 from contextlib import contextmanager
 from typing import cast
 
-from .._base import is_variable_ref
+from raes_contracts.variable_references import is_variable_ref
+
 from .._declarations import DeclarationIndex, Purposes, build_declaration_index
 from .._errors import SDLValidationError, SDLValidationFinding
 from .._incremental_reuse import (
@@ -81,6 +82,7 @@ VALIDATION_PASSES = (
     "_verify_evidence_requirements",
     "_verify_augmentation_scope",
     "_verify_execution_policy",
+    "_verify_safe_state",
     "_verify_time_model",
     "_verify_variables",
     "_verify_variation_points",

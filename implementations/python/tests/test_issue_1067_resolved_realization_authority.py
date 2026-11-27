@@ -20,8 +20,8 @@ from raes_backend_protocols.capabilities import (
 from raes_backend_stubs.stubs import create_stub_target
 from raes_contracts.apparatus import ConceptBinding, RealizationObservationCapability
 from raes_contracts.bounded_domains import EnumDomain
-from raes_contracts.contracts import ProvisioningPlanModel, ResolvedRealizationAuthorityModel, schema_bundle
-from raes_contracts.plan_projection import provisioning_plan_model
+from raes_contracts.contracts import ProvisioningPlanModel, ResolvedRealizationAuthorityModel
+from raes_contracts.contracts.plan_projection import provisioning_plan_model
 from raes_contracts.planning import (
     ChangeAction,
     ProvisioningPlan,
@@ -50,6 +50,7 @@ from raes_processor.planner import (
 from raes_processor.planner.realization_authority_materialization import materialize_realization_authority
 from raes_runtime.backend_calls import _call_backend_apply, _RealizationApplyContext
 from raes_runtime.control_plane import RuntimeControlPlane
+from raes_schemas import schema_bundle
 
 
 def _scenario(realization: str = "", *, web_os: str = ""):

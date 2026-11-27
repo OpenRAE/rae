@@ -147,4 +147,5 @@ Do not extract Python or repeat the Go port.
 
 | Date | Commit/PR | Summary |
 | --- | --- | --- |
+| 2026-10-31 | #1711 | ADR-121 makes `raes_contracts` the lowest package: it imports no first-party package and owns the shared authored types. `raes_processor` owns its analysis evidence, and `raes_schemas` composes the published schemas. |
 | 2026-11-04 | #1891 | Recorded the planned runtime repository owner and one-way public dependencies at the common Go cutover; preserved behavioral decisions. |

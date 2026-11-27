@@ -100,7 +100,6 @@
         "condition_id": "baseline",
         "replicate_id": null
       },
-      "entry_digest": "sha256:122082c2cdee2231943d11a4bea9df513655f2734423558c89da82c6bfc2160f",
       "execution_controls": {
         "attempt_timeout_seconds": 600,
         "cleanup_plan_ref": "cleanup-a",
@@ -135,7 +134,6 @@
               "validator_version": "1"
             },
             "scenario_family_digest": "sha256:cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd",
-            "selection_id": "selection-b6a094589a5ffb485936877eb9a51922a53f078b40909eb51deb01f61cbb0739",
             "source_condition_id": "baseline",
             "source_factor_id": "weather",
             "source_factor_level_id": "clear",
@@ -208,8 +206,6 @@
       "ref_version": "1"
     }
   },
-  "isolation_proof": null,
-  "plan_digest": "sha256:490f4c8cd6f033245406013b216a405eebda5a60f796fc3c5418c840b0e7963a",
   "plan_id": "plan-a",
   "profiles": {
     "canonicalization_profile": "jcs-sha256-v1",
@@ -219,7 +215,6 @@
     "entry_identity_profile": "trial-entry-identity-v1",
     "execution_control_profile": "attempt-control-v1",
     "integrity_profile": "acyclic-digest-chain-v1",
-    "isolation_profile": "scheduler-isolation-v1",
     "random_stream_profile": "blake3-xof-v1",
     "run_identity_profile": "archival-run-identity-v1",
     "selection_policy_profile": "experiment-selection-v1",

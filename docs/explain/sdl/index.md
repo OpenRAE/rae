@@ -1,4 +1,4 @@
-# Scenario Description Language (SDL) Reference
+# Scenario description language (SDL) reference
 
 RAES SDL is the YAML-based authored scenario language within Reproducible
 Agentic Environments System. It describes declared intent for agentic
@@ -6,11 +6,11 @@ environments: settings in which participants can receive observations, take
 actions, interact, and be evaluated under stated controls. The SDL is
 domain-neutral, while its strongest current examples and lineage are in cyber.
 
-The language starts from the
-[Open Cyber Range SDL](https://github.com/Open-Cyber-Range/SDL-parser) surface,
-preserves coverage across the OCR-derived sections, and extends that base with
-content, accounts, relationships, agents, objectives, workflows, variables,
-and other scenario concepts. It is intentionally its own SDL rather than a
+The language starts from the [Open Cyber Range
+SDL](https://github.com/Open-Cyber-Range/SDL-parser) surface and preserves
+coverage across the OCR-derived sections. It extends that base with content,
+accounts, relationships, agents, objectives, workflows, variables, and other
+scenario concepts. It is intentionally its own SDL rather than a
 clone-level derivative.
 
 The SDL describes *what the scenario and experiment mean*; it is not a direct
@@ -44,26 +44,26 @@ and the runtime/compiler/planner contracts. The repository-wide policy for when
 to formalize those semantic layers lives in the
 [coding standards](../reference/coding-standards.md).
 
-Different SDL concerns also draw from different precedent families. OCR is the
-main source for the section surface, CACAO contributes objectives/workflows and
-variables, and the workflow/runtime semantics are further disciplined by mature
-control-flow systems such as Step Functions, Argo, and SCXML plus portable
-runtime-boundary patterns from systems such as Kubernetes and Temporal. The
+Different SDL concerns also draw from different precedent families. OCR is the main
+source for the section surface, and CACAO contributes objectives/workflows and
+variables. Mature control-flow systems such as Step Functions, Argo, and SCXML
+further discipline the workflow/runtime semantics. Portable runtime-boundary
+patterns from systems such as Kubernetes and Temporal also apply. The
 crosswalk lives in [Design Precedents](precedents.md).
 
-The imported research also informs ecosystem concerns that are only partly
-surfaced in the current SDL syntax, including participant decision surfaces,
-hidden benchmark assets, trajectory corpora, experiment evidence capture, and
+The imported research also informs ecosystem concerns that the current SDL
+syntax only partly surfaces. These include participant decision surfaces, hidden
+benchmark assets, trajectory corpora, experiment evidence capture, and
 participant-implementation apparatus. Cross-domain simulation and
 co-simulation research shows that the time model cannot be treated as an
 incidental runtime detail. Clock authority, time domains, pacing,
 synchronization, and realized ordering guarantees are part of the broader
-apparatus story, even when the current SDL syntax only exposes a subset of that
-surface through timelines, timeouts, and budget-like controls. The primary
-references collected in `research/primary/literature/time-and-simulation/`
-are the current foundation for that time/clock work.
+apparatus story. The current SDL syntax exposes only a subset of that surface,
+through timelines, timeouts, and budget-like controls. The primary
+references for that time/clock work are reviewed in the
+[time-model research note](../../research/time-model/prior-art-and-design-criteria.md).
 
-## Current Use Boundary
+## Current use boundary
 
 The current Python package supports parsing SDL, semantic validation,
 variable instantiation, runtime-model compilation, planning against backend
@@ -73,9 +73,9 @@ implementation manifests, evidence-capture contracts, provenance contracts,
 and the full time/clock authoring model remain partially materialized or
 architecture-level surfaces.
 
-## Stable IDs, Variable Values
+## Stable ids, variable values
 
-The SDL keeps its **symbol table** concrete at parse time. User-defined identifiers such as node keys, feature keys, account keys, relationship keys, entity keys, and other named mapping keys are part of the language structure and must be literal.
+The SDL keeps its **symbol table** concrete at parse time. User-defined identifiers are part of the language structure and must be literal. Examples are node keys, feature keys, account keys, relationship keys, entity keys, and other named mapping keys.
 
 Variables are for **attribute values** on already-declared things. That includes fields such as counts, ports, CIDRs, paths, timings, descriptions, and similar runtime-substituted values.
 
@@ -93,7 +93,7 @@ Generic cross-section refs such as relationship endpoints and objective targets 
 
 Named service bindings, named ACL rules, and workflow steps keep their existing qualified forms.
 
-## Quick Example
+## Quick example
 
 ```yaml
 name: simple-pentest-lab
@@ -108,7 +108,6 @@ nodes:
     resources: {ram: 2 gib, cpu: 1}
     features: [flask-app]
     services: [{port: 8080, name: http}]
-    vulnerabilities: [sqli]
   database:
     type: compute
     os: linux
@@ -126,13 +125,6 @@ features:
   flask-app: {type: Service, source: vulnerable-flask-app}
   postgres: {type: Service, source: postgresql-16}
 
-vulnerabilities:
-  sqli:
-    name: SQL Injection
-    description: SQLi in login form
-    technical: true
-    class: CWE-89
-
 relationships:
   app-to-db:
     type: connects_to
@@ -145,6 +137,13 @@ accounts:
     node: database
     password_strength: weak
 ```
+
+The example records no weakness classification. The SDL reader rejects the
+former `vulnerabilities` fields with `sdl.classification-migration-required`;
+classifications now live in standalone `external-concept-bindings/v1`
+documents, as the
+[external classification migration guide](../../migration/external-classifications.md)
+describes.
 
 ## Documentation
 
@@ -185,7 +184,7 @@ for advisory in scenario.advisories:
     print(advisory)
 ```
 
-## Format Boundary
+## Format boundary
 
 This repository accepts SDL documents only. Older metadata/mode-based scenario
 formats are out of scope and must be migrated before parsing.

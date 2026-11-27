@@ -56,6 +56,7 @@ type Options struct {
 	RefreshEvaluation     bool
 	ProcessorManifest     *binding.ProcessorManifestV2
 	RealizationEnvelope   *binding.RealizationEnvelopeV1
+	MaterializationReporting string
 }
 type RequirementKey struct{ Address, FieldPath, RequirementKind string }
 type PlanningContext struct {
@@ -69,6 +70,7 @@ type PlanningContext struct {
 	RefreshEvaluation     bool
 	ProcessorManifest     *binding.ProcessorManifestV2
 	RealizationEnvelope   *binding.RealizationEnvelopeV1
+	MaterializationReporting string
 }
 
 type Actions struct{ Create, Update, Delete, Unchanged int }

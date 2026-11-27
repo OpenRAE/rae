@@ -1,0 +1,14 @@
+{
+  "args": [
+    "participant-crossing-evidence-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:c276d56381c87639583ea62b618e9e096722d203d42a54d40627fb3793f7446d"
+  },
+  "name": "regression/b0fb3b921c983d0fefe4c3bafd204b33f05dc46701fdb5fcaa9c2e0005f72640",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

@@ -8,13 +8,14 @@ from pydantic import Field, GetJsonSchemaHandler, model_validator
 from pydantic.json_schema import JsonSchemaValue
 from pydantic_core import CoreSchema
 
+from ..backend_profiles import BackendProfileModel
 from ..versions import REUSABLE_ASSET_TRUST_POLICY_SCHEMA_VERSION
 from .base import ContractModel, NonEmptyString, PositiveInteger
 from .schema_constraints import _JSON_SCHEMA_DRAFT_2020_12, _JSON_SCHEMA_KEY
 from .schema_invariants import _DEFS_KEY
 
 
-def _backend_profile_schema_for_bundle() -> dict[str, Any]:
+def backend_profile_schema() -> dict[str, Any]:
     """Lazily import :class:`BackendProfileModel` to avoid an import cycle.
 
     ``backend_profiles`` imports :class:`ContractModel` and ``NonEmptyString``
@@ -24,12 +25,10 @@ def _backend_profile_schema_for_bundle() -> dict[str, Any]:
     of the contracts surface uses.
     """
 
-    from ..backend_profiles import BackendProfileModel
-
     return BackendProfileModel.model_json_schema()
 
 
-def _event_stream_schema(title: str, item_schema: dict[str, Any]) -> dict[str, Any]:
+def event_stream_schema(title: str, item_schema: dict[str, Any]) -> dict[str, Any]:
     item_schema = dict(item_schema)
     defs = item_schema.pop(_DEFS_KEY, None)
     schema = {

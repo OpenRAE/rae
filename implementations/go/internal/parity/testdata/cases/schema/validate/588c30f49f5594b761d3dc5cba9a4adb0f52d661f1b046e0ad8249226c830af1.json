@@ -1,0 +1,14 @@
+{
+  "args": [
+    "trial-cleanup-plan-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:c6dfc4864b049d6f18ef83df6412f325f267ec71e2eb46110593331ff3c3cecf"
+  },
+  "name": "regression/995af31e4081f5cfe58bd37bf3a2da6f4630a56a334b349dbf8dba6034c30384",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

@@ -1,0 +1,14 @@
+{
+  "args": [
+    "trial-outcome-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:efc36746f0933850a2d15a39712f15599deddc6410ab41a804f621e658c762c0"
+  },
+  "name": "contracts/fixtures/control-plane/trial-outcome-v1/invalid/invented-completion",
+  "result": {
+    "valid": false
+  },
+  "surface": "schema"
+}

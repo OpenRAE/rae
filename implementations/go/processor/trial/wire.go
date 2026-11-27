@@ -141,6 +141,7 @@ type executionControls struct {
 }
 type trialEntry struct {
 	signature      string
+	SafeStates     []json.RawMessage `json:"safe_states,omitempty"`
 	ID             string            `json:"plan_entry_id"`
 	Coordinate     coordinate        `json:"coordinate"`
 	RunID          string            `json:"run_id"`
@@ -168,7 +169,7 @@ type trialPlan struct {
 		Stage string `json:"admitted_at_stage"`
 		Count int    `json:"entry_count"`
 	} `json:"admission"`
-	Isolation json.RawMessage `json:"isolation_proof,omitempty"`
+	Parallelism json.RawMessage `json:"trial_parallelism,omitempty"`
 }
 
 func trialInvalid() error { return fault.New(fault.InvalidInput, "trial-input-invalid", nil) }

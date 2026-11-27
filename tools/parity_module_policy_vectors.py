@@ -101,7 +101,7 @@ def policy_inputs() -> list[str]:
 def verify_reference_sources() -> None:
     reference_sources = {
         "_digests.py": "9ceeddbda9f288695a588a0c86b9061bd4578a45e097d5c454af85a926bdedb2",
-        "models.py": "6afcd65ef2ea5be50017f0412aa6a83d6b48726d02d2553d0b00ac74df451218",
+        "models.py": "7d43491d9b25f725c6a6c3f516e9180327d965269246ad0ff07e92f7b44a9092",
     }
     reference_dir = ROOT / "implementations/python/packages/raes/module_registry"
     for source, expected in reference_sources.items():

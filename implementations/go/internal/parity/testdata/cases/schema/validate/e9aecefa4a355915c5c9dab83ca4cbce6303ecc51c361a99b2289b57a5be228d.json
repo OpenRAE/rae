@@ -4,11 +4,11 @@
   ],
   "command": "validate",
   "files": {
-    "payload.json": "sha256:074a5a57b445426a37209bcc928a0dd1ba72a6b6709f3524aaef0e7b1bb692f7"
+    "payload.json": "sha256:71cb38dd280cc9c07b2d8645a6699b4b004f739659577aea198ab507c90b4494"
   },
   "name": "participant-opacity-model-check-evidence-v1/routed/contracts/fixtures/formal-analysis/participant-opacity-model-check-evidence-v1/valid/opaque-transition-model.json",
   "result": {
-    "valid": true
+    "valid": false
   },
   "surface": "schema"
 }

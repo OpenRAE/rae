@@ -1,0 +1,14 @@
+{
+  "args": [],
+  "command": "encode",
+  "files": {
+    "value.json": "sha256:9fd13461b114cff5b22d1d2cd4d8d09a597760bcc09cd98a2d9aeebcb22d1c12"
+  },
+  "name": "contracts/fixtures/sdl/sdl-authoring-input-v1/invalid/safe-state-continuing-mode-missing",
+  "result": {
+    "jcs": "sha256:7bd03c0f47c7914f0b4dcd9362bf21ea40db09a99dcac4e98921dc52908738a9",
+    "sorted_ascii": "sha256:7bd03c0f47c7914f0b4dcd9362bf21ea40db09a99dcac4e98921dc52908738a9",
+    "sorted_unicode": "sha256:7bd03c0f47c7914f0b4dcd9362bf21ea40db09a99dcac4e98921dc52908738a9"
+  },
+  "surface": "canonical"
+}

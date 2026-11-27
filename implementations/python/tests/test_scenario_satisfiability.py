@@ -13,16 +13,6 @@ import z3
 from hypothesis import given, settings
 from hypothesis import strategies as st
 from pydantic import ValidationError
-from raes_contracts.satisfiability import (
-    ConstraintClauseKind,
-    ConstraintClauseModel,
-    ConstraintSort,
-    ConstraintSymbolModel,
-    NormalizedConstraintModel,
-    SatisfiabilityOutcome,
-    ScenarioSatisfiabilityEvidenceModel,
-    ScenarioSatisfiabilityEvidenceV2Model,
-)
 from raes_processor.satisfiability import (
     SatisfiabilityEvidenceError,
     SatisfiabilityOperationalError,
@@ -37,6 +27,16 @@ from raes_processor.satisfiability._solver import (
     _select_witness,
     _solver_check_budget,
     solve_model,
+)
+from raes_processor.satisfiability.evidence import (
+    ConstraintClauseKind,
+    ConstraintClauseModel,
+    ConstraintSort,
+    ConstraintSymbolModel,
+    NormalizedConstraintModel,
+    SatisfiabilityOutcome,
+    ScenarioSatisfiabilityEvidenceModel,
+    ScenarioSatisfiabilityEvidenceV2Model,
 )
 
 _SATISFIABLE = """\

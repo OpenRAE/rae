@@ -63,7 +63,7 @@ func (w *normalizer) operation(schema map[string]any, value any, operation strin
 	case []any:
 		return w.sequenceOperation(schema, v, operation, policy)
 	case map[string]any:
-		if operation != "duration" {
+		if operation != durationOperation {
 			return value, nil
 		}
 		return durationMap(v)

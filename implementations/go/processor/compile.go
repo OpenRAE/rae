@@ -151,12 +151,14 @@ func compileAdmitted(scenario sdl.Scenario, options CompileOptions, descriptive 
 	state.compileToolAffordances()
 	state.joinParticipantTools()
 	state.compileParticipantDeliveries()
+	state.compileEpisodePolicies()
 	state.compileEvents()
 	state.compileScripts()
 	state.compileStories()
 	state.compileObjectives()
 	state.compileWorkflows()
 	state.compileExecutionPolicies()
+	state.compileSafeStates()
 	state.compileSelectedProfiles()
 	if state.err != nil {
 		return nil, state.err

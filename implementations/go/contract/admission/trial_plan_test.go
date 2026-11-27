@@ -9,7 +9,7 @@ import (
 
 func TestAdmittedPlanIntegrityAndAuthorityJoins(t *testing.T) {
 	e := boundTestOwner(t)
-	for _, name := range []string{"minimal", "factorial-randomized", "typed-treatment", "parallel-isolated"} {
+	for _, name := range []string{"minimal", "factorial-randomized", "typed-treatment", "two-entry"} {
 		t.Run(name, func(t *testing.T) {
 			v := fixtureObject(t, "fixtures/plans/admitted-trial-plan-v1/valid/"+name+".json")
 			if err := validateTestDocument(t, e, "admitted-trial-plan-v1", v, nil); err != nil {

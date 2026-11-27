@@ -50,10 +50,10 @@ The existing declarations are necessary, but do not cover the complete issue con
 - Distinguish supplied `validation.Value` contract IDs and `admission.Fragment` profiles at each entry. Check native handle origin and reject zero or substituted handles. Go interfaces and field types alone do not prove the expected phase or profile.
 
 Before coding, declare actual packages, imports, exported names and exact typed APIs in the existing model.
-Bind their owning designs and API digests; pass `archcheck -design` under ADR-122.
+Bind their owning designs and API digests; pass `archcheck -design` under ADR-124.
 Keep downstream signatures importable through public `rae` packages, including runtime tests.
 This preflight changes no API/model commitments and does not approve an undeclared design.
-ADR-121 and the existing ADRs suffice; no new architecture decision is needed for these boundaries.
+ADR-123 and the existing ADRs suffice; no new architecture decision is needed for these boundaries.
 
 ## Gates through the complete data path
 
@@ -101,6 +101,7 @@ Exclude only each digest's own field from its defined projection.
 Children do not embed the enclosing plan digest before sealing.
 Reuse `canonjson.JCS` and `digest`, with the reference's domain separation and exact profile/version pins.
 Preserve schema defaults and model serializer omissions before hashing.
+
 These rules cover absent coordinates and empty participant settings.
 They also cover optional treatment/allocation/replacement fields and control-context selections.
 `admission/trial_plan.go` already encodes many of them.
@@ -111,13 +112,16 @@ Do not apply a generic snapshot budget blindly to a trial plan.
 For example, `value.Plan()` permits 8 MiB of aggregate scalar bytes, while admitted-plan ingress permits 32 MiB of document bytes.
 These are different measures and limits.
 Choose scope-appropriate settings through the existing bounded-value helper.
+
 Keep reference acceptance and refusal cases. Do not weaken global defaults.
 Changing a non-binding limit must not change plan bytes or IDs.
 
 Rebuild and check the whole plan before entry lookup, scheduling or realization.
 Recheck caller-mutable DTOs at trust transitions; keep copies behind admitted handles afterward.
 A resealed candidate can be internally consistent without proving original intent.
-Readmission compiles trusted original inputs again. It compares the complete canonical plan.
+Readmission compiles trusted original inputs again.
+
+It compares the complete canonical plan.
 Bind exact family, authoring input, task, capture specs, selected manifests, full envelopes and profile contexts.
 The published backend manifest's envelope identity alone is insufficient.
 
@@ -127,6 +131,7 @@ Draw addresses use logical coordinates, policy/point IDs, purpose and local draw
 They exclude aggregate experiment digests, workers, traversal order, wall time, retries and backend availability.
 Existing addresses remain stable when unrelated trials or draws are added.
 Keep absent dimensions omitted as the profile requires.
+
 Preserve allocation's Fisher-Yates direction and bounded draws; no modulo reduction or process-global RNG.
 No rejection, failure or realization step resamples or selects a fallback.
 Finite-domain order is also part of the draw result.
@@ -138,6 +143,7 @@ Preserve the reference's deterministic failure choice and capture-diagnostic agg
 Do not globally sort or deduplicate diagnostic surfaces with different reference rules.
 Enforce the compiler's result invariant at its boundary.
 Use a checked constructor/private state or an equivalent check.
+
 An exported Go struct alone permits invalid combinations.
 Keep factorial effect distinctness after owner normalization, including defaults and structural selections.
 Selection intent and SDL family membership remain separate claims.
@@ -148,6 +154,7 @@ Coordinate order belongs to the contract owner and serves both scheduling and re
 Reuse the semantics in `trial_coordinate_order.py` and Go `trial_allocation.go`/`trial_source_order.go`.
 The current canonical sort uses condition and numeric replicate ordinal, not block ID.
 Existing admission keeps source-member order for ties.
+
 A Go map cannot recover that order.
 Do not silently add a tie-breaker, block dimension or new ordering policy.
 Recorded allocation order, when present, is authoritative.
@@ -161,10 +168,12 @@ Check all entries before any settings take effect.
 These checks have no effects, even if a later entry fails.
 Preserve operation guarantees, the installed 1,000-attempt capacity bound and authored attempt allowance.
 Restore deadlines from retained UTC bounds and monotonic remaining time.
+
 Restart or clock adjustment cannot renew an allowance.
 Stop acknowledgement is not observed cessation, capture completion or cleanup success.
 Unknown effects remain pending reconciliation, without blind redispatch.
 Capture precedes cleanup; detach the execution snapshot before teardown.
+
 Check observation kind, run/entry/attempt joins, exact applied settings and content/probes through installed owners.
 A settings digest alone cannot prove that settings were applied.
 An evidence reference alone cannot prove cessation.
@@ -190,6 +199,7 @@ The runtime-owned output includes record assembly, version ownership and archive
 It also includes stored decision formats and evidence-reader lifecycle.
 It extends beyond `runtime_experiment.py`.
 Keep that code with runtime for #1894.
+
 Keep portable contracts and pure validators in `rae`.
 Runtime imports released public `rae` APIs. Neither those APIs nor their tests reach runtime internals.
 
@@ -199,6 +209,7 @@ Use explicit finite limits and versioned profile IDs.
 Do not use ambient mutable registries.
 A new manifest target or validator version extends its owner registry and typed hooks.
 A new authority plane needs contract governance; it is not another string prefix.
+
 Keep injected clock, atomic-store factory, installed trial services, immutable archive and evidence-reader seams.
 These permit another backend/store/archive owner without changing canonical plan IDs.
 They avoid a second lifecycle workflow.
@@ -214,13 +225,14 @@ Include all three `examples/experiments/*.exp.yaml` files through their applicab
 Map each scoped limit, check, error, recovery path and defect case to a Go test.
 Extend existing conformance evidence. Do not duplicate it.
 Relevant reference groups include `test_experiment_*`, `test_sce_002_*`, `test_exp_731_trial_realization.py`, `test_random_stream_study_integration.py` and `test_runtime_contracts.py`.
+
 Also cover issue cases #1015, #1396, #1519, #1549, #1563, #1626, #1627, #1628, #1629, #1630 and `test_dsl_118_trial_control_context.py`.
 This is a starting inventory, not an exhaustive acceptance crosswalk.
 Include tampering, forged handles, owner mutation, allocation ordering, concurrent duplicate decisions, crash cuts, reader closure and no-secret error cases.
 Preserve serial/partition/reversed/map-order plan and draw equivalence.
 Shared mechanics tests alone cannot replace trial-specific provenance and recovery tests.
 
-Use `.ground-control.yaml`, `.gc/plan-rules.md`, `tools/policy/adr_policy.yaml`, the existing architecture model and ADR-121/122 checks.
+Use `.ground-control.yaml`, `.gc/plan-rules.md`, `tools/policy/adr_policy.yaml`, the existing architecture model and ADR-123/122 checks.
 Keep `implementations/.golangci.yml`, `implementations/.gremlins.yaml`, module/tool locks, `.pre-commit-config.yaml` and canonical verification workflows.
 Local checks select explicit tests or changed-path policy/prose checks.
 CI owns full suites, race/coverage, mutation, fuzz, regression and corpus verification through the configured lanes.
@@ -232,6 +244,7 @@ This preflight ports no issue behavior and changes no architecture/API commitmen
 The port changes no Python implementation, published schema, SDL meaning, profile meaning or golden expectation.
 It adds no second trial/provenance schema or study service.
 It adds no statistics engine, replay guarantee, secret resolver or generic settings patch language.
+
 It adds no HTTP/auth surface, backend chooser, scheduler randomizer, experiment-specific execution engine or independent persistence stack.
 The split permits necessary ownership/import/build changes, not a redesign or source transfer.
 The common #1804 cutover and external service deployment remain outside this work.

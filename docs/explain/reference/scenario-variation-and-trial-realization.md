@@ -34,6 +34,7 @@ The reference itself adds no generator, sampler, or trial compiler.
 It adds no scheduler, persistence service, API, environment pack, or adaptive policy.
 Follow-on work has delivered the typed run-local fact contract and in-process binding plane.
 It has also delivered deterministic trial compilation and sealed-entry realization.
+
 The remaining conceptual sketches retain their stated implementation boundaries.
 The reference does not guarantee the same backend behavior or artifact availability.
 It does not guarantee reconstruction of hidden state or exact replay from a seed alone.
@@ -148,7 +149,7 @@ Runtime observations, scheduler state, and backend refusal have no path back int
 | 5. SDL instantiation | Public `raes` selection/instantiation/admission APIs, orchestrated by `raes_processor` | One plan entry and the exact expanded family it pins | Admitted `InstantiatedScenario` and canonical snapshot | Apply only recorded selections and bindings. Make no new draw, import, query, or fallback. Use no private binder. Rerun semantic validation of the whole scenario. | Carry existing expansion and instantiation evidence. Add point selections and trial-plan/run linkage. |
 | 6. Runtime fact binding | `raes_runtime` over compiled slots and neutral fact DTOs | Admitted compiled plans, authorized observations and secret references | Run-local bound operation/action input and binding event evidence | Fill only a declared sink. Match its type, source, scope, freshness, and sensitivity. Never mutate the plan, snapshot, factors, topology, choices, run ID, or streams. | Carry the slot ID and safe fact/source ref. Include scope, freshness, and sensitivity. Retain authorization/evidence refs and the binding outcome. Include no raw secret. |
 | 7. Backend realization | Existing planner, manifest, realization-envelope, and backend protocols | Admitted plans plus selected apparatus/envelope/manifests | Existing backend plans, operation receipts/status, runtime snapshots, and realized-form disclosures | Realize only within the selected envelope and capabilities. Backend refusal is a failure or deviation. It never permits resampling. | Carry manifest, envelope, and configuration refs and digests. Include realized forms, transformations, and omissions. Retain operation IDs and receipts. |
-| 8. Trial orchestration, execution, and scheduling | `raes_processor` and `raes_runtime` own orchestration and execution. External schedulers, including APTL for SCE-006, own placement, isolation, timeouts, and cleanup only. | Admitted plan entries and execution/isolation policy | Existing execution receipts/state; external queue/placement state and dispatch decisions, outside scenario identity | RAE uses the existing single-scenario lifecycle. External scheduling may order, delay, pause, and retry transport. It may use bounded parallelism after isolation proof. It cannot select, instantiate, randomize, compare, or score. | Carry dispatch order. Include instance, lock, and storage allocation. Retain timeouts, clean-state/cleanup evidence, and the retry reason. |
+| 8. Trial orchestration, execution, and scheduling | `raes_processor` and `raes_runtime` own orchestration and execution. External schedulers own placement, isolation, timeouts, and cleanup only. | Admitted plan entries and execution/isolation policy | Existing execution receipts/state; external queue/placement state and dispatch decisions, outside scenario identity | RAE uses the existing single-scenario lifecycle. External scheduling may order, delay, pause, and retry transport. It may use bounded parallelism up to the authored `trial_parallelism` limit. It cannot select, instantiate, randomize, compare, or score. | Carry dispatch order. Include instance, lock, and storage allocation. Retain timeouts, clean-state/cleanup evidence, and the retry reason. |
 | 9. Archival provenance | `ExperimentRunModel`, `ExperimentStudyModel`, evidence and cross-artifact validators | Sealed execution/evidence plus plan/snapshot refs | One run per started trial and study/allocation records | The preallocated plan-entry `run_id` becomes the archival `run_id`. A genuine re-execution receives a new admitted ID. Live state is not the run record. | Carry actual parameters and stochastic and apparatus facts. Include the scenario snapshot and realized forms. Retain evidence and deviations. Include lineage to the plan, spec, task, and source run where applicable. |
 
 ### Why the admitted plan is a separate artifact
@@ -157,6 +158,7 @@ The experiment spec states the intended design.
 The admitted plan describes a concrete finite set of trial entries.
 Each entry has been selected and validated.
 Each has been shown realizable against pinned apparatus claims.
+
 A scheduler queue states where and when work may run.
 A run states what happened.
 Combining any two would give mutable operational state authority over scientific intent or archival truth.
@@ -245,6 +247,7 @@ The reusable domain algebra belongs in a dependency-neutral `raes_contracts` lea
 That leaf imports neither SDL models nor schema-bundle machinery.
 Realization envelopes and scenario family declarations consume the same closed domain types and membership helpers.
 They may also re-export them.
+
 They must not copy the discriminated union or fork its validation.
 An SDL variation model must not depend on `RealizationEnvelopeModel`.
 Those choices would create competing schemas and an SDL/contracts import cycle.
@@ -312,6 +315,7 @@ The current authoring contract admits fixed selection and exhaustive enumeration
 It admits Cartesian product and equal stratification.
 It also admits bounded uniform sampling with replacement.
 Deterministic policies need no stochastic control.
+
 Uniform sampling resolves exactly one executable sampling/randomization control.
 It uses the accepted profile's bounded-integer transform.
 Weighted choice, sampling without replacement, permutation, and t-way coverage fail closed until exact versioned transforms are accepted.
@@ -365,6 +369,7 @@ The experiment's stochastic control combines the profile with a canonical root s
 It also includes an explicit, stable randomness namespace.
 The namespace does not derive from the experiment-spec ID, revision, or content digest.
 Keeping the namespace and seed across a controlled revision requests common random numbers at unchanged semantic addresses.
+
 An independent randomization mints a new namespace or changes the seed.
 Copying an experiment mints a new namespace by default.
 Deliberate reuse is recorded as provenance.
@@ -687,17 +692,57 @@ A scheduler consumes sealed entries and may:
 - apply a transport retry with the same idempotency key before execution;
 - allocate an isolated range instance, ports, storage, and control-plane locks;
 - enforce bounded timeouts and cleanup; and
-- select bounded parallelism only when SCE-006 isolation proof permits it.
+- select bounded parallelism within the authored `trial_parallelism` limit.
 
 A scheduler may not compose SDL or resolve imports.
 It may not select variation points or call the randomizer.
 It may not instantiate a different scenario, create run IDs, or decide factors.
 It may not evaluate scientific results or implement a private comparison/scoring engine.
-APTL and any other scheduler use this same handoff.
+All schedulers use this same handoff.
+
+### Declare trial capacity in SDL
+
+Set `trial_parallelism` at the SDL root. These declarations require exactly two
+slots, at most two slots, or at least two slots:
+
+```yaml
+trial_parallelism: {posture: exact, count: 2}
+```
+
+```yaml
+trial_parallelism: {posture: constrained, maximum: 2}
+```
+
+```yaml
+trial_parallelism: {posture: constrained, minimum: 2}
+```
+
+A constrained declaration can include both bounds. Counts must be integers
+from 1 to 4096. Use `{posture: open}` to let the allocator choose up to the number of
+trials. Omit the field to run trials one at a time. The default allocator grant
+remains one.
+
+The value is an author-set cap on concurrent trials. It needs no isolation
+proof: isolation of concurrent trials is the backend's responsibility. The
+compiler carries the declaration into `admitted-trial-plan-v1`. The batch
+schedule reports its inclusive `admitted_parallelism_floor` and
+`admitted_parallelism_ceiling`.
+
+The ceiling is the exact count, the maximum, or
+the number of trials (at most 4096) when the value is open or has no maximum. A coordinator
+selects an effective capacity inside this interval. A minimum above the number
+of trials fails before dispatch. A serial executor
+refuses a minimum above one; use the assigned-trial API with an allocator grant.
+The capacity describes available slots; fewer trials can be active during
+startup, cleanup, or the final part of a batch.
+
+The shared contract owner is `raes_contracts.trial_parallelism`. Its `Posture`
+enum lives in `raes_contracts.realization_posture` and remains available through
+the existing `realization_envelope` import path. This follows ADR-084's existing
+authority boundaries; that ADR remains an unchanged historical record.
 
 The portable handoff for clean-state requirements, cleanup obligations,
-execution-attempt receipts, backend capability, and serial-by-default isolation
-proof is specified in
+execution-attempt receipts, and backend capability is specified in
 {download}`cleanup-contracts.md <../../../specs/formal/scenario-variation-trial-realization/cleanup-contracts.md>`.
 Those contracts describe admitted intent and evidence.
 They introduce no scheduler queue or second scenario lifecycle.
@@ -812,6 +857,15 @@ It then calls the ordinary SDL selector and runtime compiler/planner.
 Its public processor-plan projections are provisioning, orchestration, and evaluation references bound by digest.
 The internal execution plan is not a portable authority.
 
+Optional node `os_distribution` and `architecture` retain JSON `null` when their typed source values are absent.
+Compilation, desired resources, operation payloads, and recursive commitments preserve the same values.
+Explicit supported values keep their canonical form.
+An empty string cannot replace an absent identity in an admitted plan.
+
+Runtime admission rejects such a substitution before backend effects.
+Previously refused plans must be compiled again with the corrected processor.
+The `os_version` field retains its separate empty string default.
+
 That bridge rejects composition-bound entries before backend selection.
 Mixed runtime coordination and phase transition commits belong to the separately versioned runtime coordination boundary.
 So do provider handoff and live dispatch.
@@ -837,6 +891,7 @@ Declare adaptive difficulty in the experiment run plan.
 Do not declare it in mutable SDL or backend configuration.
 A difficulty registry names complete variants by reference.
 It supplies policy-local ordering and defines fixed, adaptive, and scaffolded policies.
+
 Its default policy must be fixed.
 Each study allocation condition explicitly records the condition.
 For a non-fixed condition, it also records the policy ID.
@@ -845,6 +900,7 @@ An adaptive policy names a digest-bound evaluator profile.
 It declares admitted observation roles with versioned, digest-bound source definitions.
 It also declares ordered threshold rules and a closed action allowlist.
 It states cadence, cooldown, and intervention limits.
+
 The policy states its guardrails and validity effect.
 The reference resolver supports `adaptive-threshold-v1@1.0.0`.
 It consumes one exact state cut and the exact source definition admitted by the policy.
@@ -884,6 +940,7 @@ The analysis plan should name the estimand and measurement or calibration basis.
 It should record the assigned policy and realized path.
 It should explain stopping, cooldown, and missing-intervention handling.
 It should state whether follow-up runs use independent or intentionally common random streams.
+
 These records make the analysis auditable.
 They do not prove a universal difficulty scale or competence.
 They do not prove causal identification, policy optimality, or training benefit.
@@ -952,7 +1009,7 @@ Backend posture is never scenario or experiment selection.
 | SCE-003 adaptive difficulty | Policy, observations, trigger, intervention, and validity disclosure | Run event/intervention provenance; a new admitted coordinate for a derived follow-up trial | Retroactive factor/topology/identity/stream mutation |
 | SCE-004 goal/tool flexibility | Goal, success criteria, tool/affordance set, decision-surface policy, typed fact sinks | Ordinary SDL/participant semantics and runtime fact bindings | Hidden scenario selection through tool choice or observations |
 | SCE-005 ATT&CK/CTI generation | Revision-pinned inputs, mappings, candidate rationale, confidence and gaps | Candidate SDL that passes ordinary trust, validation, and admission | Direct execution of CTI, bypass of semantic validation, or backend-directed repair |
-| SCE-006/APTL scheduling | Isolation/capacity policy, placement, bounded parallelism, timeouts, cleanup | Sealed admitted entries over the existing single scenario execution path | A second lifecycle, randomizer, run-id allocator, comparison, or scoring engine |
+| SCE-006 scheduling | Placement, bounded parallelism within the authored limit, timeouts, cleanup | Sealed admitted entries over the existing single scenario execution path | A second lifecycle, randomizer, run-id allocator, comparison, or scoring engine |
 
 ## Requirement and follow-on trace map
 
@@ -965,7 +1022,7 @@ Backend posture is never scenario or experiment selection.
 | SCE-003 | Consumes baseline plan/run identity and records adaptation as intervention or a newly admitted follow-up | #784 after #790 |
 | SCE-004 | Uses goal/decision semantics and typed late-bound facts without becoming a selector | #657, #791, #653 |
 | SCE-005 | Produces candidate SDL from ATT&CK/CTI, then uses normal validation/admission | #660, #786, #654 |
-| SCE-006 | Consumes admitted plans and proves clean-state isolation; owns no SDL/randomization semantics | #658, #788, #789, #790, #785 |
+| SCE-006 | Consumes admitted plans and schedules them within the authored limit; owns no SDL/randomization semantics | #658, #788, #789, #790, #785 |
 
 ### Existing requirements
 
@@ -1063,6 +1120,7 @@ The compiler must not materialize an unbounded or accidental Cartesian product.
 It may evaluate independent logical coordinates in parallel.
 It may cache pure subresults by input/profile digest.
 Internal partitioning is invisible in the canonical output.
+
 Large plans may use bounded staging or content-addressed chunks.
 The portable admitted plan remains one sealed logical artifact.
 Its entry order is deterministic and its admission is all-or-nothing.

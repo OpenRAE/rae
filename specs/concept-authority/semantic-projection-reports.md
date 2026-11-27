@@ -1,4 +1,4 @@
-# Semantic Projection Reports
+# Semantic projection reports
 
 ## Scope
 
@@ -17,7 +17,7 @@ The normative JSON Schema is:
 
 `contracts/schemas/concept-authority/semantic-projection-report-v1.json`
 
-## Complete Projection Frame
+## Complete projection frame
 
 Every report embeds the complete projection frame and its canonical digest.
 The digest uses the shared RFC 8785/JCS SHA-256 helper and binds all semantic
@@ -39,24 +39,28 @@ axes:
   and
 - every transformation id, version, and digest used to derive the view.
 
-The closed predicate profile also fixes which of the configuration, state, and
-transformation axes apply. Every inapplicable configuration or state axis uses
-the predicate-specific `not-applicable` basis, and forbidden transformation
-axes are empty. The declared configuration coordinate is the canonical digest
-of the complete sorted native-subject scope. The observed state coordinate is
-the canonical digest of the complete sorted proposition-truth-result set at
-the named evaluation cut. Verified transformation coordinates reproduce the
-owner report's status, artifact kind, source and target profiles and digests,
-canonicalization profile, policy and derivation digests, preservation profile
-and outcome, and canonical whole-report digest. The contextual projector
-derives those coordinates again from the supplied authoritative artifacts and
-requires exact equality before classification; an empty verified result set is
-therefore also explicit and cannot carry a fictitious transformation.
+The closed predicate profile fixes which configuration, state, and transformation axes apply.
+Each inapplicable configuration or state axis uses the predicate-specific `not-applicable` basis.
+Forbidden transformation axes are empty.
+The declared configuration coordinate is the canonical digest of the complete sorted native-subject scope.
+The observed state coordinate is the canonical digest of the complete sorted proposition-truth-result set at the named evaluation cut.
+
+Verified transformation coordinates reproduce these fields from the owner report:
+
+- Status and artifact kind.
+- Source and target profiles and digests.
+- Canonicalization profile, policy digest, and derivation digest.
+- Preservation profile and outcome.
+- Canonical whole-report digest.
+
+The contextual projector derives those coordinates again from the supplied authoritative artifacts.
+It requires exact equality before classification.
+An empty verified result set is therefore explicit and cannot carry a fictitious transformation.
 
 Changing any frame axis creates a different view. It does not mutate a native
 artifact or native transition semantics.
 
-## Exact Denominator And Partition
+## Exact denominator and partition
 
 The inclusion set is the only denominator. It must be explicit, sorted,
 unique, non-empty, and resolvable in the exact pinned scheme snapshot. Every
@@ -77,7 +81,7 @@ Absence is not a gap. Stale or unavailable binding context, missing evidence,
 an incomplete subject scope, or an unsupported native producer remains
 unknown. Duplicate candidates remain ambiguous and are never first-matched.
 
-## Native Predicates Remain Independent
+## Native predicates remain independent
 
 The reference projector has fixed owner adapters for four independent views:
 
@@ -98,23 +102,22 @@ Profiles resolve from a closed repository-governed registry. Callers cannot
 replace the adapter digest or create a new approximation posture by resealing
 a payload. Each fact retains its authoritative owner artifact, and the public
 projector reruns the fixed adapter before classification. The admitted,
-observed, and verified adapters require the subject to identify the exact
-disclosure, truth result, or transformation report; a valid result for another
+observed, and verified adapters require the subject to identify the exact disclosure, truth result, or transformation report.
+A valid result for another
 subject cannot be substituted.
 
 Observed decided facts resolve every and only the evidence references declared
 by their truth result through a trusted evidence resolver. Each result must
 resolve typed `experiment-evidence-record/v1` artifacts whose canonical
 digests, capture window, redaction posture, and probe provenance satisfy the
-exact evidence boundary. Verified facts use the same resolver and require the
-fixed `verify-semantic-predicate/v1` operation, the
-`semantic-predicate-witness/v1` preservation profile, the exact predicate
+exact evidence boundary. Verified facts use the same resolver and require the fixed `verify-semantic-predicate/v1` operation.
+They also require the `semantic-predicate-witness/v1` preservation profile, the exact predicate
 profile digest as policy, and an exact native-subject join. A generic successful
 transformation is not semantic verification. Every positive row carries the
 exact native subject, native result id and digest, producer contract,
 predicate-profile digest, and sorted evidence-artifact digests.
 
-## Binding Fidelity
+## Binding fidelity
 
 Projection reuses `admit_external_concept_bindings()` with the exact supplied
 binding document, subject scope, and one pinned local scheme snapshot. The
@@ -127,7 +130,7 @@ predicate profile explicitly admits that posture. Their loss remains visible.
 Stale, unavailable, superseded, unknown, rejected, or ambiguous bindings never
 silently become positive evidence.
 
-## Counts And Qualified Fractions
+## Counts and qualified fractions
 
 The summary contains integer counts for witnesses, gaps, unknowns, ambiguous
 concepts, excluded concepts, and the included denominator. Counts must exactly
@@ -142,21 +145,21 @@ The contract has no `coverage`, `coverage_percent`, `score`, `quality`, or
 `maturity` field. A report is not an environment capability or universal
 completeness claim.
 
-## Participant Information Flow
+## Participant information flow
 
 Internal projection is pure and introduces no authentication surface.
 Participant-relative frames retain exact participant, episode, audience,
 policy revision/digest, and applicable-cut coordinates, but the pure contract
 projector refuses to emit them. Participant-visible reporting must invoke the
-incumbent deny-first participant exposure-policy service, which resolves its
-authorization from trusted apparatus, policy, and authorization-record
+incumbent deny-first participant exposure-policy service.
+That service resolves its authorization from trusted apparatus, policy, and authorization-record
 resolvers rather than accepting caller-constructible permit data. Actual
 authorization, disclosure, transformation, delivery, observation, and audit
 remain owned by those exposure and API-423 participant-crossing contracts.
 Aggregation, counting, hashing, and identifier omission do not declassify
 hidden source information.
 
-## Determinism And Runtime Boundary
+## Determinism and runtime boundary
 
 Projection is deterministic, bounded, in-process, and offline. It performs no
 network request, URL dereference, filesystem search, environment lookup,

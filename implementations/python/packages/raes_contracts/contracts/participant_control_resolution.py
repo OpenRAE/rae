@@ -9,8 +9,9 @@ from __future__ import annotations
 from collections.abc import Callable, Iterator, Mapping
 from dataclasses import dataclass, field
 
-from raes.participant_inject_delivery import ParticipantInjectDelivery
+from raes_contracts.participant_inject_delivery import ParticipantInjectDelivery
 
+from .._canonical import canonical_json_digest
 from .._host_isolation import isolated_host_call
 from .base import ContractModel
 from .participant_control import (
@@ -58,6 +59,7 @@ from .participant_crossing_validation import validate_participant_crossing_occur
 from .participant_flow_control import ParticipantFlowControlRelationModel
 from .participant_flow_control_context import ParticipantFlowControlValidationContext
 from .participant_inject_application import ParticipantInjectContentModel
+from .participant_owner_flow_admission import validate_owner_flow_result_coverage
 
 _COMMITTED_EFFECT_MISMATCH = "realized effect differs from its committed full intent, cut, or prerequisites"
 _TRUSTED_CONTEXT_REFUSAL = "participant control trusted-context validation failed"
@@ -124,7 +126,6 @@ def _validate_crossing(cut: ParticipantControlContextModel, context: Participant
     owner = crossing.occurrence
     # Occurrence digest uses the original wire payload projection (unset
     # incumbent optional fields are not materialized into that artifact).
-    from .._canonical import canonical_json_digest
 
     if canonical_json_digest(crossing.model_dump(mode="json", exclude_unset=True)) != cut.crossing.digest:
         raise ValueError("participant control crossing artifact digest differs")
@@ -307,8 +308,6 @@ def _validate_admitted_v2_identity(
 def _validate_v2_results_and_support(
     record: ParticipantControlEvaluationV2Model, context: ParticipantControlValidationContextV2
 ) -> None:
-    from .participant_owner_flow_admission import validate_owner_flow_result_coverage
-
     validate_owner_flow_result_coverage(record.request, record.results)
     if {item.slot_id: item for item in record.results} != context.resolved_results:
         raise ValueError("provider results differ")

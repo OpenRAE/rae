@@ -164,6 +164,7 @@ func (w *semanticWorkflowCheck) check() {
 	w.checkJoins()
 	if graph.HasCycle(w.edges) {
 		w.report(fmt.Sprintf("Workflow '%s' graph contains a cycle", w.workflow.name))
+		return
 	}
 	if _, present := w.workflow.steps[w.workflow.start]; !present || variable(w.workflow.start) {
 		return

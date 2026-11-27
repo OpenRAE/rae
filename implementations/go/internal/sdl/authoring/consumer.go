@@ -247,12 +247,11 @@ func (d *Document) ObservationScopes(pointers, references []string, profiles []a
 		output[pointer] = scope
 	}
 	for _, reference := range references {
-		tokens, err := d.observationReferenceTokens(reference)
+		entry, err := d.observationReference(reference)
 		if err != nil {
 			return nil, err
 		}
-		tokens = query.observationCollectionTokens(tokens)
-		scope, err := query.resolve(jsonpointer.FromTokens(tokens))
+		scope, err := query.declarationScope(entry, d.semantic.root)
 		if err != nil {
 			return nil, err
 		}
@@ -262,19 +261,46 @@ func (d *Document) ObservationScopes(pointers, references []string, profiles []a
 	return output, nil
 }
 
-func (d *Document) observationReferenceTokens(reference string) ([]string, error) {
+func (d *Document) observationReference(reference string) (declaration, error) {
 	if len(reference) > 4096 {
-		return nil, semanticInvalid()
+		return declaration{}, semanticInvalid()
 	}
-	resolved := d.semantic.referenceResult(reference, []semanticPurpose{referenceObservation})
+	address, unique := d.semantic.observationSubject(reference)
+	if !unique {
+		return declaration{}, semanticInvalid()
+	}
+	return d.semantic.index.declarations[address], nil
+}
+
+// observationSubject resolves one observation-subject spelling to exactly one canonical declaration address.
+func (m *semanticModel) observationSubject(reference string) (string, bool) {
+	resolved := m.referenceResult(reference, []semanticPurpose{referenceObservation})
 	if len(resolved.domain) != 1 || len(resolved.eligible) != 1 {
-		return nil, semanticInvalid()
+		return "", false
 	}
-	tokens := d.semantic.index.declarations[resolved.domain[0]].tokens
-	if len(tokens) == 0 {
-		return nil, semanticInvalid()
+	return resolved.domain[0], true
+}
+
+// declarationScope projects one canonical declaration through the shared semantic-address owner.
+func (q *scopeQueries) declarationScope(entry declaration, root map[string]any) (string, error) {
+	if len(entry.tokens) == 0 {
+		return "", semanticInvalid()
 	}
-	return tokens, nil
+	tokens := q.observationCollectionTokens(entry.tokens)
+	if entry.kind != servicesField || len(tokens) == len(entry.tokens) {
+		return q.resolve(jsonpointer.FromTokens(tokens))
+	}
+	// Only named ports are declarations. Adjacent unnamed ports must not
+	// collide as duplicate empty names in the declaration collection.
+	index, err := strconv.Atoi(tokens[len(tokens)-1])
+	services := array(object(object(root[nodesSection])[tokens[1]])[servicesField])
+	if err != nil || index < 0 || index >= len(services) {
+		return "", semanticInvalid()
+	}
+	isolated := map[string]any{nodesSection: map[string]any{tokens[1]: map[string]any{servicesField: []any{services[index]}}}}
+	pointer := jsonpointer.FromTokens(append(slices.Clone(tokens[:len(tokens)-1]), "0"))
+	_, canonical, err := admission.ResolveSDLObservationScopeWithProfiles(isolated, pointer, q.profiles)
+	return canonical, err
 }
 func (q *scopeQueries) observationCollectionTokens(tokens []string) []string {
 	if len(tokens) <= 2 {

@@ -51,7 +51,7 @@ from raes.validator._variation_satisfiability import (
     _SelectionSatisfiability,
 )
 from raes_contracts.realization_structure import validate_realization_value
-from raes_contracts.runtime_value_limits import RUNTIME_SNAPSHOT_VALUE_LIMITS
+from raes_contracts.runtime_value_limits import MATERIALIZATION_VALUE_LIMITS
 
 from tools.parity_storage import read_blob, read_document
 
@@ -280,9 +280,7 @@ def semantic_record(row: dict[str, Any]) -> dict[str, Any]:
 def portable_semantic_input(document: SemanticDocument) -> bool:
     if isinstance(document, MaterializedScenario):
         content = {name: getattr(document, name) for name in ScenarioContent.model_fields}
-        return validate_realization_value(
-            content, limits=RUNTIME_SNAPSHOT_VALUE_LIMITS, python_carriers=True
-        ).conformant
+        return validate_realization_value(content, limits=MATERIALIZATION_VALUE_LIMITS, python_carriers=True).conformant
     return True
 
 

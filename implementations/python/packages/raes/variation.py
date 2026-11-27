@@ -13,9 +13,9 @@ from raes_contracts.bounded_domains import (
     GovernedReferenceDomain,
     NumericIntervalDomain,
 )
+from raes_contracts.identifiers import PortableIdentifier
+from raes_contracts.sdl_model import SDLModel
 
-from ._base import SDLModel
-from ._identifiers import PortableIdentifier
 from ._reference_targetability import ReferencePurpose, reference_domain
 from .variation_structure import (
     STRUCTURAL_MEMBER_KINDS,

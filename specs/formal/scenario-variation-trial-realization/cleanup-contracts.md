@@ -14,7 +14,6 @@ Published contracts:
 
 - `trial-cleanup-plan-v1`
 - `trial-cleanup-receipt-v1`
-- `scheduler-isolation-proof-v1`
 
 ## Scope
 
@@ -23,8 +22,8 @@ trial entry to one execution attempt, then record the attempt's cleanup result.
 They do not define scheduler queues, workers, placement algorithms, backend
 drivers, workflow compensation, archival run identity, comparison, or scoring.
 
-Let `P` be a `TrialCleanupPlanModel`, `A` an execution attempt, `R` a
-`TrialCleanupReceiptModel`, and `I` a `SchedulerIsolationProofModel`.
+Let `P` be a `TrialCleanupPlanModel`, `A` an execution attempt, and `R` a
+`TrialCleanupReceiptModel`.
 
 ## Identity and authority
 
@@ -150,10 +149,10 @@ that cannot disclose residual state cannot claim reusable-state support.
 Backend-private cleanup mechanics remain implementation details and cannot
 satisfy admission without the portable declaration and receipt.
 
-`require_cleanup_plan_capability()` is the fail-closed admission helper. It
-rejects a plan when the backend omits cleanup capability, lacks a required
-action or verification method, cannot support declared reusable state, or
-cannot disclose residual state for required cleanup.
+`require_cleanup_plan_capability()` is the fail-closed admission helper. It rejects a plan
+when the backend omits cleanup capability, or lacks a required action or
+verification method. It also rejects a plan when the backend cannot support
+declared reusable state, or cannot disclose residual state for required cleanup.
 
 ## Trial control admission
 
@@ -161,6 +160,7 @@ Trial compilation shall check every entry before it returns any executable plan.
 The check shall use each entry's selected, digest-bound backend manifests.
 Mixed compositions shall include every selected backend in reachable stages.
 Replacement compilation shall apply the same checks to the replacement entry.
+
 An empty backend selection shall fail admission.
 Unused manifests shall supply no support.
 Each selected backend shall satisfy the requirements on its own.
@@ -181,6 +181,7 @@ All other cases add no operation guarantee.
 `abort` and `cleanup-and-fail` shall not imply rollback or cessation.
 The authored cancellation response shall remain unchanged.
 Cleanup admission shall still check required actions, required probes, and initial-state probes.
+
 It shall check reusable-state support and residual-state disclosure for required cleanup.
 Best-effort cleanup shall keep its weaker support rules.
 Reset and compensation joins shall retain the retry-safety rules above.
@@ -190,6 +191,7 @@ The block shall contain a non-empty `name` of at most 256 characters.
 Its optional `guarantees` array shall default to empty.
 The array shall contain at most five unique `OperationGuarantee` terms:
 `cancellation`, `effect-observation`, `cessation-evidence`, `partial-effects`, and `external-fencing`.
+
 A non-null block shall require all four backend operation contracts:
 `backend-operation-request-v1`, `backend-operation-capabilities-v1`,
 `backend-operation-control-v1`, and `backend-operation-response-v1`.
@@ -205,31 +207,16 @@ Native operation requests shall not be assumed to carry trial-derived demands.
 Trial deadlines, cleanup budgets, operation budgets, and scenario time shall remain distinct.
 This rule shall not execute cleanup, retries, or timers.
 
-## Scheduler isolation
+## Trial parallelism
 
-`SchedulerIsolationProofModel.requested_parallelism` defaults to one. Serial
-execution needs no parallel-isolation evidence. A value greater than one
-requires independent evidence for all of:
-
-- range instances;
-- host capacity;
-- ports;
-- storage;
-- control-plane locks;
-- secret-resolution scope; and
-- cleanup ownership and probe independence.
-
-Secret-resolution scope is a governed isolation dimension for SCE-006.
-Bounded parallelism must prove that concurrent trials resolve governed secret references through independent per-attempt scopes.
-A shared broad worker credential or resolver cache cannot supply this isolation.
-
-The requested bound cannot exceed the number of admitted entries named in the
-proof. Missing or non-independent evidence rejects bounded parallelism; it does
-not change trial identity or scenario meaning.
+These contracts carry no isolation proof. The SDL `trial_parallelism` value is
+the only parallelism control; see
+[SVR-031](README.md#svr-031--scheduler-opacity). Isolation of concurrent trials
+is the backend's responsibility.
 
 ## Security and disclosure
 
-All three roots are closed `ContractModel` shapes. They carry ids, safe
+Both roots are closed `ContractModel` shapes. They carry ids, safe
 resource references, bounded profile terms, and evidence references only. Raw
 credentials, secret values, environment dumps, process arguments, backend
 handles, daemon output, and tracebacks are not contract fields and are rejected
@@ -241,5 +228,5 @@ Executable coverage is in
 `implementations/python/tests/test_sce_006_cleanup_contracts.py` and the fixture
 corpora under `contracts/fixtures/plans/` and `contracts/fixtures/control-plane/`.
 Published schemas carry
-`x-raes-invariants` for cross-reference, retry, required-obligation, receipt,
-and isolation rules that JSON Schema alone cannot fully join.
+`x-raes-invariants` for cross-reference, retry, required-obligation, and receipt
+rules that JSON Schema alone cannot fully join.

@@ -1,0 +1,14 @@
+{
+  "args": [],
+  "command": "encode",
+  "files": {
+    "value.json": "sha256:476f1e72a98b1a3fdb204793d88e60132d3eea1ca2ea39e698e535575cae6f56"
+  },
+  "name": "contracts/fixtures/plans/provisioning-plan-v1/invalid/safe-state-proof-key",
+  "result": {
+    "jcs": "sha256:99491d7227c587eda3c5fa51e5515607d3551f0e3e8bee5e65521df1d92bb94b",
+    "sorted_ascii": "sha256:99491d7227c587eda3c5fa51e5515607d3551f0e3e8bee5e65521df1d92bb94b",
+    "sorted_unicode": "sha256:99491d7227c587eda3c5fa51e5515607d3551f0e3e8bee5e65521df1d92bb94b"
+  },
+  "surface": "canonical"
+}

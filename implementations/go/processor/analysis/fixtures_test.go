@@ -6,19 +6,39 @@ import (
 	"encoding/json"
 	"io"
 	"os"
+	"path/filepath"
+	"strings"
+	"sync"
 	"testing"
 
 	"github.com/OpenRAE/rae/implementations/go/base/ingress"
+	"github.com/OpenRAE/rae/implementations/go/contract/admission"
 	"github.com/OpenRAE/rae/implementations/go/contract/validation"
 )
 
+var sealedFixtureOwner = sync.OnceValues(admission.New) //nolint:gochecknoglobals // Read-only compiled registry shared by fixture readers.
+
+// readTestFile reads a test file. A contract fixture gains its absent derived
+// fields, as every fixture reader does for valid and context-invalid kinds.
 func readTestFile(t *testing.T, path string) []byte {
 	t.Helper()
 	raw, err := os.ReadFile(path) //nolint:gosec // Paths come from repository-owned test tables and fixture identities.
 	if err != nil {
 		t.Fatal(err)
 	}
-	return raw
+	parts := strings.Split(filepath.ToSlash(path), "/")
+	if !strings.Contains(filepath.ToSlash(path), "/contracts/fixtures/") || len(parts) < 3 {
+		return raw
+	}
+	owner, err := sealedFixtureOwner()
+	if err != nil {
+		t.Fatal(err)
+	}
+	sealed, err := admission.SealFixture(owner, parts[len(parts)-3], parts[len(parts)-2], raw, ingress.Limits{MaxBytes: 8 << 20, MaxDepth: 64})
+	if err != nil {
+		t.Fatal(err)
+	}
+	return sealed
 }
 func testJSON(t *testing.T, value any) []byte {
 	t.Helper()

@@ -129,6 +129,10 @@ func augmentationBinding(v *Validator, report, plan any, contract string, manife
 // operation's arbitrary payload and explicit profile values remain untouched.
 func augmentationPlanProjection(plan any, contract string) any {
 	projected := object(materializationPlanProjection(plan))
+	// Plans serialize resolved safe states only when they carry at least one.
+	if len(array(projected["safe_states"])) == 0 {
+		delete(projected, "safe_states")
+	}
 	factoryFields(projected, []string{"operations", "diagnostics", "observation_demands"}, nil)
 	if contract == termProvisioningPlanV1 {
 		factoryFields(projected, []string{"realization_authority", "realization_constraints"}, nil)

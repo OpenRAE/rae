@@ -1,0 +1,14 @@
+{
+  "args": [
+    "workflow-step-response-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:7904d594dbe5cf472b1c70a8276b970daa80cafe94aba46b6d749c1a6b693835"
+  },
+  "name": "contracts/fixtures/control-plane/workflow-step-response-v1/invalid/backend-successor",
+  "result": {
+    "valid": false
+  },
+  "surface": "schema"
+}

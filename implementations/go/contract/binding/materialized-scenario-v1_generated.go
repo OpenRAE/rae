@@ -18,7 +18,7 @@ type MaterializedScenarioV1 struct {
 	ControlContextAssets       Field[map[string]json.RawMessage]         "json:\"control_context_assets,omitzero\""
 	DeploymentCells            Field[map[string]d68d31732e2f53404433db1] "json:\"deployment_cells,omitzero\""
 	DeploymentTenants          Field[map[string]d68d31732e2594318fac279] "json:\"deployment_tenants,omitzero\""
-	Description                Field[d68d31732e2b7adb1daa22b]            "json:\"description,omitzero\""
+	Description                Field[d68d31732e2810811354b90]            "json:\"description,omitzero\""
 	Entities                   Field[map[string]d68d31732e27c58ce3f172e] "json:\"entities,omitzero\""
 	Events                     Field[map[string]d68d31732e265250ec304db] "json:\"events,omitzero\""
 	EvidenceRequirements       Field[map[string]d68d31732e2c7e0fae4e8e0] "json:\"evidence_requirements,omitzero\""
@@ -40,6 +40,7 @@ type MaterializedScenarioV1 struct {
 	PersistentVolumes          Field[map[string]d68d31732e2751811fd3799] "json:\"persistent_volumes,omitzero\""
 	Propositions               Field[map[string]d68d31732e205a5738435b8] "json:\"propositions,omitzero\""
 	Relationships              Field[map[string]d68d31732e2f6cd76472e38] "json:\"relationships,omitzero\""
+	SafeState                  Field[json.RawMessage]                    "json:\"safe_state,omitzero\""
 	Scripts                    Field[map[string]d68d31732e24584e85e24d2] "json:\"scripts,omitzero\""
 	SemanticRevision           Field[json.RawMessage]                    "json:\"semantic_revision,omitzero\""
 	Stories                    Field[map[string]d68d31732e272646f29b366] "json:\"stories,omitzero\""
@@ -47,141 +48,130 @@ type MaterializedScenarioV1 struct {
 	TimeDomainMappings         Field[map[string]d68d31732e2ac5fc1c20c61] "json:\"time_domain_mappings,omitzero\""
 	TimeDomains                Field[map[string]d68d31732e2aaa1a2f3ccc4] "json:\"time_domains,omitzero\""
 	TimeProgressionPolicies    Field[map[string]d68d31732e261ecb73c1fd2] "json:\"time_progression_policies,omitzero\""
-	Version                    Field[d68d31732e2d254e69d9823]            "json:\"version,omitzero\""
+	TrialParallelism           Field[json.RawMessage]                    "json:\"trial_parallelism,omitzero\""
+	Version                    Field[d68d31732e2fbcee7a05a8d]            "json:\"version,omitzero\""
 	Workflows                  Field[map[string]d68d31732e23fb72dcec5be] "json:\"workflows,omitzero\""
 }
 
-type d68d31732e200d6faaa36f0 struct {
-	Description Field[d68d31732e2b7adb1daa22b] "json:\"description,omitzero\""
-	Name        Field[json.RawMessage]         "json:\"name,omitzero\""
-	Port        Field[json.RawMessage]         "json:\"port,omitzero\""
-	Protocol    Field[d68d31732e255167f28a86d] "json:\"protocol,omitzero\""
+type d68d31732e2005332118bdb struct {
+	Acls         Field[[]d68d31732e27ed618067685] "json:\"acls,omitzero\""
+	Count        Field[json.RawMessage]           "json:\"count,omitzero\""
+	Dependencies Field[d68d31732e27c904a4f3d7f]   "json:\"dependencies,omitzero\""
+	Description  Field[d68d31732e2810811354b90]   "json:\"description,omitzero\""
+	Links        Field[[]d68d31732e2722a28a6d4d6] "json:\"links,omitzero\""
+	Properties   Field[json.RawMessage]           "json:\"properties,omitzero\""
 }
 
-type d68d31732e2022f5bbc273e d68d31732e2c48b58d9b73c
+type d68d31732e200c8035f4c05 []d68d31732e2722a28a6d4d6
+
+type d68d31732e2017268685eb1 string
+
+type d68d31732e2022f5bbc273e d68d31732e27f400a4e5934
 
 type d68d31732e2025d3c7216bc string
 
 type d68d31732e20427301e3aac string
 
-type d68d31732e205a5738435b8 d68d31732e2dd68c9ad8983
+type d68d31732e205a5738435b8 d68d31732e2398786d3241d
 
-type d68d31732e20677eff7470a struct {
-	ActionContractRefs            Field[[]d68d31732e24a2b29093523]  "json:\"action_contract_refs,omitzero\""
-	AuthorityScopeRefs            Field[[]d68d31732e24a2b29093523]  "json:\"authority_scope_refs,omitzero\""
-	AutonomousExecution           Field[json.RawMessage]            "json:\"autonomous_execution,omitzero\""
-	BackendFeatureSupportRefs     Field[[]d68d31732e24a2b29093523]  "json:\"backend_feature_support_refs,omitzero\""
-	BehaviorMode                  Field[json.RawMessage]            "json:\"behavior_mode,omitzero\""
-	ControlContext                Field[d68d31732e29aea6a3c38dc]    "json:\"control_context,omitzero\""
-	EvidenceContractRefs          Field[[]d68d31732e24a2b29093523]  "json:\"evidence_contract_refs,omitzero\""
-	ExtensionPolicy               Field[string]                     "json:\"extension_policy,omitzero\""
-	Extensions                    Field[map[string]json.RawMessage] "json:\"extensions,omitzero\""
-	LifecycleState                Field[d68d31732e20dddc7463d37]    "json:\"lifecycle_state,omitzero\""
-	MixedControl                  Field[json.RawMessage]            "json:\"mixed_control,omitzero\""
-	ObservationBoundaryRefs       Field[[]d68d31732e24a2b29093523]  "json:\"observation_boundary_refs,omitzero\""
-	OutcomeInterpretationRuleRefs Field[[]d68d31732e24a2b29093523]  "json:\"outcome_interpretation_rule_refs,omitzero\""
-	ParticipantInjectDeliveries   Field[map[string]json.RawMessage] "json:\"participant_inject_deliveries,omitzero\""
-	ParticipantRefs               Field[[]d68d31732e24a2b29093523]  "json:\"participant_refs,omitzero\""
-	ParticipantRoleRefs           Field[[]d68d31732e24a2b29093523]  "json:\"participant_role_refs,omitzero\""
-	RealizationProfileRef         Field[json.RawMessage]            "json:\"realization_profile_ref,omitzero\""
-	SemanticVersion               Field[string]                     "json:\"semantic_version,omitzero\""
-	ToolAffordances               Field[map[string]json.RawMessage] "json:\"tool_affordances,omitzero\""
+type d68d31732e20602eeb27b4d struct {
+	AuthorityKind Field[d68d31732e2bc7b6b2d5154] "json:\"authority_kind,omitzero\""
+	AuthorityRef  Field[string]                  "json:\"authority_ref,omitzero\""
+	Description   Field[d68d31732e25fe5e52e7ff3] "json:\"description,omitzero\""
+	Monotonicity  Field[d68d31732e23bbeda2040db] "json:\"monotonicity,omitzero\""
+	SupportsJump  Field[bool]                    "json:\"supports_jump,omitzero\""
+	SupportsPause Field[bool]                    "json:\"supports_pause,omitzero\""
+	SupportsReset Field[bool]                    "json:\"supports_reset,omitzero\""
+	TimeDomainRef Field[string]                  "json:\"time_domain_ref,omitzero\""
+}
+
+type d68d31732e20733f83fef2e struct {
+	CrossTenantIsolation Field[d68d31732e2a7cec53d702f]   "json:\"cross_tenant_isolation,omitzero\""
+	NodeRefs             Field[[]d68d31732e2722a28a6d4d6] "json:\"node_refs,omitzero\""
+	TenantRef            Field[string]                    "json:\"tenant_ref,omitzero\""
 }
 
 type d68d31732e2084c3c07d80b string
 
-type d68d31732e20b8f1f319538 struct {
-	Consumers            Field[[]d68d31732e269dafb367d3f] "json:\"consumers,omitzero\""
-	Generator            Field[json.RawMessage]           "json:\"generator,omitzero\""
-	Lifecycle            Field[d68d31732e2861ec82f63bb]   "json:\"lifecycle,omitzero\""
-	OrderingDependencies Field[d68d31732e27704b2a7c2e3]   "json:\"ordering_dependencies,omitzero\""
-	Outputs              Field[[]d68d31732e291445d2f882b] "json:\"outputs,omitzero\""
-	Provenance           Field[string]                    "json:\"provenance,omitzero\""
-	RandomValue          Field[json.RawMessage]           "json:\"random_value,omitzero\""
-	RefreshDependencies  Field[d68d31732e25960d16bf518]   "json:\"refresh_dependencies,omitzero\""
-	RegenerationScope    Field[json.RawMessage]           "json:\"regeneration_scope,omitzero\""
-}
-
 type d68d31732e20b9f993fc130 string
 
-type d68d31732e20c88f3150c24 []d68d31732e24a2b29093523
-
-type d68d31732e20d81032dc756 []d68d31732e24a2b29093523
+type d68d31732e20c88f3150c24 []d68d31732e2722a28a6d4d6
 
 type d68d31732e20dddc7463d37 string
 
+type d68d31732e20e78b37717de struct {
+	CadenceTicks   Field[json.RawMessage]           "json:\"cadence_ticks,omitzero\""
+	ClockRef       Field[d68d31732e24b7703ee50d8]   "json:\"clock_ref,omitzero\""
+	ConstraintKind Field[d68d31732e2b2e51d1e69da]   "json:\"constraint_kind,omitzero\""
+	Description    Field[d68d31732e25fe5e52e7ff3]   "json:\"description,omitzero\""
+	DurationTicks  Field[json.RawMessage]           "json:\"duration_ticks,omitzero\""
+	End            Field[json.RawMessage]           "json:\"end,omitzero\""
+	Start          Field[json.RawMessage]           "json:\"start,omitzero\""
+	SubjectRefs    Field[[]d68d31732e2722a28a6d4d6] "json:\"subject_refs,omitzero\""
+}
+
 type d68d31732e2111143ffe0c7 string
+
+type d68d31732e211e6eaeb5ee0 string
+
+type d68d31732e214072011e1fb struct {
+	AccessMode       Field[d68d31732e2a9ff352e261d] "json:\"access_mode,omitzero\""
+	MountDestination Field[d68d31732e2da3ab692e384] "json:\"mount_destination,omitzero\""
+	Node             Field[d68d31732e2d3fd2dd7eaa2] "json:\"node,omitzero\""
+}
+
+type d68d31732e2140e37e90ad0 struct {
+	BackendErrorCode Field[string]                  "json:\"backend_error_code,omitzero\""
+	Diagnostic       Field[string]                  "json:\"diagnostic,omitzero\""
+	FailureClass     Field[d68d31732e27c3226757c0c] "json:\"failure_class,omitzero\""
+}
 
 type d68d31732e215bc6df3e8a0 string
 
-type d68d31732e217d879115d23 struct {
-	Description Field[d68d31732e2b7adb1daa22b]   "json:\"description,omitzero\""
-	Environment Field[d68d31732e27c904a4f3d7f]   "json:\"environment,omitzero\""
+type d68d31732e216239963ce06 struct {
+	Description Field[d68d31732e2810811354b90]   "json:\"description,omitzero\""
+	Environment Field[d68d31732e2b0d9c912b13b]   "json:\"environment,omitzero\""
 	FromEntity  Field[string]                    "json:\"from_entity,omitzero\""
-	Name        Field[d68d31732e2a9e2a4415a4b]   "json:\"name,omitzero\""
+	Name        Field[d68d31732e2f914241733c6]   "json:\"name,omitzero\""
 	Source      Field[json.RawMessage]           "json:\"source,omitzero\""
-	ToEntities  Field[[]d68d31732e24a2b29093523] "json:\"to_entities,omitzero\""
+	ToEntities  Field[[]d68d31732e2722a28a6d4d6] "json:\"to_entities,omitzero\""
 }
+
+type d68d31732e21818fcc08604 string
 
 type d68d31732e21934bac67f6a d68d31732e2645ab3a9670a
 
-type d68d31732e219ab88133f39 struct {
-	Architecture    Field[json.RawMessage]                    "json:\"architecture,omitzero\""
-	AssetValue      Field[json.RawMessage]                    "json:\"asset_value,omitzero\""
-	Conditions      Field[map[string]d68d31732e24a2b29093523] "json:\"conditions,omitzero\""
-	Description     Field[d68d31732e2b7adb1daa22b]            "json:\"description,omitzero\""
-	EndpointPersona Field[json.RawMessage]                    "json:\"endpoint_persona,omitzero\""
-	Features        Field[map[string]d68d31732e24a2b29093523] "json:\"features,omitzero\""
-	Injects         Field[map[string]d68d31732e24a2b29093523] "json:\"injects,omitzero\""
-	Os              Field[json.RawMessage]                    "json:\"os,omitzero\""
-	OsDistribution  Field[json.RawMessage]                    "json:\"os_distribution,omitzero\""
-	OsVersion       Field[string]                             "json:\"os_version,omitzero\""
-	Resources       Field[json.RawMessage]                    "json:\"resources,omitzero\""
-	Roles           Field[map[string]json.RawMessage]         "json:\"roles,omitzero\""
-	Runtime         Field[json.RawMessage]                    "json:\"runtime,omitzero\""
-	Services        Field[[]d68d31732e220184bd4f1b0]          "json:\"services,omitzero\""
-	Source          Field[json.RawMessage]                    "json:\"source,omitzero\""
-	Type            Field[d68d31732e277f995d5c509]            "json:\"type,omitzero\""
-}
+type d68d31732e21b1d34db4533 string
 
-type d68d31732e21a23af2db249 struct {
-	Protocol   Field[json.RawMessage] "json:\"protocol,omitzero\""
-	ServiceRef Field[string]          "json:\"service_ref,omitzero\""
-}
-
-type d68d31732e21a6e6476526a struct {
-	Description Field[d68d31732e2b7adb1daa22b]            "json:\"description,omitzero\""
-	Entities    Field[map[string]json.RawMessage]         "json:\"entities,omitzero\""
-	Events      Field[d68d31732e27ccc5be38c13]            "json:\"events,omitzero\""
-	Facts       Field[map[string]d68d31732e24a2b29093523] "json:\"facts,omitzero\""
-	Mission     Field[string]                             "json:\"mission,omitzero\""
-	Name        Field[d68d31732e2a9e2a4415a4b]            "json:\"name,omitzero\""
-	Role        Field[json.RawMessage]                    "json:\"role,omitzero\""
+type d68d31732e21c7d0125a562 struct {
+	Consumers            Field[[]d68d31732e269dafb367d3f] "json:\"consumers,omitzero\""
+	Generator            Field[json.RawMessage]           "json:\"generator,omitzero\""
+	Lifecycle            Field[d68d31732e2861ec82f63bb]   "json:\"lifecycle,omitzero\""
+	OrderingDependencies Field[d68d31732e2df5ecb263e6e]   "json:\"ordering_dependencies,omitzero\""
+	Outputs              Field[[]d68d31732e291445d2f882b] "json:\"outputs,omitzero\""
+	Provenance           Field[string]                    "json:\"provenance,omitzero\""
+	RandomValue          Field[json.RawMessage]           "json:\"random_value,omitzero\""
+	RefreshDependencies  Field[d68d31732e2c09861ea93e0]   "json:\"refresh_dependencies,omitzero\""
+	RegenerationScope    Field[json.RawMessage]           "json:\"regeneration_scope,omitzero\""
 }
 
 type d68d31732e21ca04ab1fe1a string
 
-type d68d31732e21cf9fa37843d struct {
-	Change        Field[string]                  "json:\"change,omitzero\""
-	FieldPointer  Field[string]                  "json:\"field_pointer,omitzero\""
-	Origin        Field[d68d31732e20427301e3aac] "json:\"origin,omitzero\""
-	SourcePointer Field[json.RawMessage]         "json:\"source_pointer,omitzero\""
+type d68d31732e21f70781fd5aa struct {
+	Algorithm Field[string]                  "json:\"algorithm,omitzero\""
+	Profile   Field[string]                  "json:\"profile,omitzero\""
+	Value     Field[d68d31732e2b4fb8ae73128] "json:\"value,omitzero\""
 }
 
-type d68d31732e220184bd4f1b0 d68d31732e200d6faaa36f0
+type d68d31732e220184bd4f1b0 d68d31732e2b77c29491130
 
-type d68d31732e227a99448a614 d68d31732e2b847fbdc9944
-
-type d68d31732e2293a78ad2f64 struct {
-	Action      Field[json.RawMessage]         "json:\"action,omitzero\""
-	Description Field[d68d31732e2b7adb1daa22b] "json:\"description,omitzero\""
-	Direction   Field[string]                  "json:\"direction,omitzero\""
-	FromNet     Field[string]                  "json:\"from_net,omitzero\""
-	Name        Field[json.RawMessage]         "json:\"name,omitzero\""
-	Ports       Field[[]json.RawMessage]       "json:\"ports,omitzero\""
-	Protocol    Field[string]                  "json:\"protocol,omitzero\""
-	ToNet       Field[string]                  "json:\"to_net,omitzero\""
+type d68d31732e225f85e976159 struct {
+	Algorithm Field[string]                  "json:\"algorithm,omitzero\""
+	Profile   Field[string]                  "json:\"profile,omitzero\""
+	Value     Field[d68d31732e2b4fb8ae73128] "json:\"value,omitzero\""
 }
+
+type d68d31732e227a99448a614 d68d31732e2d53fede71e3b
 
 type d68d31732e2295b87eb4da9 string
 
@@ -192,424 +182,118 @@ type d68d31732e22a9dbb3339ee struct {
 	SourceNode    Field[json.RawMessage]         "json:\"source_node,omitzero\""
 }
 
-type d68d31732e22bd8b02e99e9 d68d31732e2de9215d0da1a
+type d68d31732e22bd8b02e99e9 d68d31732e2627ea48aac71
 
 type d68d31732e22c29a312ff67 string
 
-type d68d31732e22da451a51d5d d68d31732e2e9f472de3973
+type d68d31732e22da451a51d5d d68d31732e214072011e1fb
 
-type d68d31732e22ef182111bfd struct {
-	Description Field[d68d31732e2b7adb1daa22b] "json:\"description,omitzero\""
-	DisplayName Field[d68d31732e27fb4dedbe9c5] "json:\"display_name,omitzero\""
-	Name        Field[d68d31732e2295b87eb4da9] "json:\"name,omitzero\""
-	Tags        Field[d68d31732e20d81032dc756] "json:\"tags,omitzero\""
+type d68d31732e22dbcda09d4b8 struct {
+	Assertions  Field[d68d31732e200c8035f4c05]   "json:\"assertions,omitzero\""
+	Description Field[d68d31732e2810811354b90]   "json:\"description,omitzero\""
+	Injects     Field[[]d68d31732e2722a28a6d4d6] "json:\"injects,omitzero\""
+	Name        Field[d68d31732e2f914241733c6]   "json:\"name,omitzero\""
+	Source      Field[json.RawMessage]           "json:\"source,omitzero\""
 }
 
-type d68d31732e22f6d58729672 struct {
+type d68d31732e22f4d69dacf00 struct {
+	Action      Field[json.RawMessage]         "json:\"action,omitzero\""
+	Description Field[d68d31732e2810811354b90] "json:\"description,omitzero\""
+	Direction   Field[string]                  "json:\"direction,omitzero\""
+	FromNet     Field[string]                  "json:\"from_net,omitzero\""
+	Name        Field[json.RawMessage]         "json:\"name,omitzero\""
+	Ports       Field[[]json.RawMessage]       "json:\"ports,omitzero\""
+	Protocol    Field[string]                  "json:\"protocol,omitzero\""
+	ToNet       Field[string]                  "json:\"to_net,omitzero\""
+}
+
+type d68d31732e22f798cf7ab3a d68d31732e232de8e97b466
+
+type d68d31732e2312287ec9e04 string
+
+type d68d31732e232de8e97b466 struct {
+	Diagnostics           Field[d68d31732e27ccc5be38c13]   "json:\"diagnostics,omitzero\""
+	EvidenceRefs          Field[[]d68d31732e2722a28a6d4d6] "json:\"evidence_refs,omitzero\""
+	InterpretationBasis   Field[string]                    "json:\"interpretation_basis,omitzero\""
+	Limitations           Field[[]d68d31732e2722a28a6d4d6] "json:\"limitations,omitzero\""
+	LocalOutcome          Field[json.RawMessage]           "json:\"local_outcome,omitzero\""
+	ObservationPointBasis Field[string]                    "json:\"observation_point_basis,omitzero\""
+	ParticipantScope      Field[d68d31732e2084c3c07d80b]   "json:\"participant_scope,omitzero\""
+	SemanticVersion       Field[d68d31732e2017268685eb1]   "json:\"semantic_version,omitzero\""
+	SourceBindings        Field[[]d68d31732e249f5a619ad3c] "json:\"source_bindings,omitzero\""
+	TargetBindings        Field[[]d68d31732e29b3e5e20b008] "json:\"target_bindings,omitzero\""
+}
+
+type d68d31732e238fe661927e4 struct {
+	Description       Field[d68d31732e25fe5e52e7ff3]   "json:\"description,omitzero\""
+	EvidenceRefs      Field[d68d31732e2980879c75bcc]   "json:\"evidence_refs,omitzero\""
+	PreconditionClass Field[d68d31732e2d3ea273bbacb]   "json:\"precondition_class,omitzero\""
+	PreconditionId    Field[string]                    "json:\"precondition_id,omitzero\""
+	SupportRefs       Field[[]d68d31732e2722a28a6d4d6] "json:\"support_refs,omitzero\""
+}
+
+type d68d31732e2398786d3241d struct {
+	Basis                Field[d68d31732e2fd1f56ecb7c2]   "json:\"basis,omitzero\""
+	Description          Field[string]                    "json:\"description,omitzero\""
+	EvidenceRequirements Field[[]d68d31732e2722a28a6d4d6] "json:\"evidence_requirements,omitzero\""
+	Predicate            Field[json.RawMessage]           "json:\"predicate,omitzero\""
+	Quantifier           Field[d68d31732e268860ace705e]   "json:\"quantifier,omitzero\""
+	Subjects             Field[[]d68d31732e2722a28a6d4d6] "json:\"subjects,omitzero\""
+	Threshold            Field[json.RawMessage]           "json:\"threshold,omitzero\""
+}
+
+type d68d31732e23bae1938ad65 d68d31732e2005332118bdb
+
+type d68d31732e23bbeda2040db string
+
+type d68d31732e23f59002ee214 d68d31732e2969927150447
+
+type d68d31732e23fb72dcec5be d68d31732e247eb8b3f60dd
+
+type d68d31732e240ac8b2c7798 struct {
 	ArtifactRole          Field[string]                    "json:\"artifact_role,omitzero\""
 	BoundaryKind          Field[string]                    "json:\"boundary_kind,omitzero\""
 	BoundaryRef           Field[string]                    "json:\"boundary_ref,omitzero\""
 	CaptureRequirementRef Field[string]                    "json:\"capture_requirement_ref,omitzero\""
 	CaptureSpecRef        Field[string]                    "json:\"capture_spec_ref,omitzero\""
 	Channel               Field[json.RawMessage]           "json:\"channel,omitzero\""
-	ChannelRefs           Field[[]d68d31732e24a2b29093523] "json:\"channel_refs,omitzero\""
-	Description           Field[d68d31732e2b7adb1daa22b]   "json:\"description,omitzero\""
-	FieldSelectors        Field[[]d68d31732e24a2b29093523] "json:\"field_selectors,omitzero\""
+	ChannelRefs           Field[[]d68d31732e2722a28a6d4d6] "json:\"channel_refs,omitzero\""
+	Description           Field[d68d31732e2810811354b90]   "json:\"description,omitzero\""
+	FieldSelectors        Field[[]d68d31732e2722a28a6d4d6] "json:\"field_selectors,omitzero\""
 	Integrity             Field[json.RawMessage]           "json:\"integrity,omitzero\""
 	LossDisclosure        Field[json.RawMessage]           "json:\"loss_disclosure,omitzero\""
-	MediaTypes            Field[[]d68d31732e24a2b29093523] "json:\"media_types,omitzero\""
-	Notes                 Field[[]d68d31732e24a2b29093523] "json:\"notes,omitzero\""
+	MediaTypes            Field[[]d68d31732e2722a28a6d4d6] "json:\"media_types,omitzero\""
+	Notes                 Field[[]d68d31732e2722a28a6d4d6] "json:\"notes,omitzero\""
 	ObservationDemand     Field[json.RawMessage]           "json:\"observation_demand,omitzero\""
 	OutputContract        Field[string]                    "json:\"output_contract,omitzero\""
 	Redaction             Field[json.RawMessage]           "json:\"redaction,omitzero\""
 	Retention             Field[json.RawMessage]           "json:\"retention,omitzero\""
 	Scope                 Field[string]                    "json:\"scope,omitzero\""
-	ScopeRefs             Field[d68d31732e20c88f3150c24]   "json:\"scope_refs,omitzero\""
+	ScopeRefs             Field[d68d31732e241d459e54f07]   "json:\"scope_refs,omitzero\""
 	Sensitivity           Field[json.RawMessage]           "json:\"sensitivity,omitzero\""
 	SourceClass           Field[json.RawMessage]           "json:\"source_class,omitzero\""
-	SourceRefs            Field[[]d68d31732e24a2b29093523] "json:\"source_refs,omitzero\""
+	SourceRefs            Field[[]d68d31732e2722a28a6d4d6] "json:\"source_refs,omitzero\""
 	TriggerRef            Field[string]                    "json:\"trigger_ref,omitzero\""
 	Window                Field[string]                    "json:\"window,omitzero\""
 }
 
-type d68d31732e22f798cf7ab3a d68d31732e2607fc877a736
-
-type d68d31732e22f9c7c90f20b struct {
-	Assertions  Field[d68d31732e2bb8a336974ac]   "json:\"assertions,omitzero\""
-	Description Field[d68d31732e2b7adb1daa22b]   "json:\"description,omitzero\""
-	Injects     Field[[]d68d31732e24a2b29093523] "json:\"injects,omitzero\""
-	Name        Field[d68d31732e2a9e2a4415a4b]   "json:\"name,omitzero\""
-	Source      Field[json.RawMessage]           "json:\"source,omitzero\""
-}
-
-type d68d31732e22fb8b0b90c68 struct {
-	Diagnostics        Field[d68d31732e29af769322776]   "json:\"diagnostics,omitzero\""
-	EvidenceRefs       Field[d68d31732e23b8dbcfd4b6e]   "json:\"evidence_refs,omitzero\""
-	InterpretationRole Field[string]                    "json:\"interpretation_role,omitzero\""
-	ProvenanceRefs     Field[[]d68d31732e24a2b29093523] "json:\"provenance_refs,omitzero\""
-	Ref                Field[d68d31732e26f0bb94ee42b]   "json:\"ref,omitzero\""
-	SourceId           Field[string]                    "json:\"source_id,omitzero\""
-	SourceLayer        Field[d68d31732e2cbfe42db551c]   "json:\"source_layer,omitzero\""
-}
-
-type d68d31732e22fd8ec4fea53 struct {
-	Disposition Field[d68d31732e2111143ffe0c7] "json:\"disposition,omitzero\""
-	Name        Field[d68d31732e2295b87eb4da9] "json:\"name,omitzero\""
-	Path        Field[d68d31732e24b7703ee50d8] "json:\"path,omitzero\""
-	Sensitivity Field[d68d31732e2798a1dfe33c0] "json:\"sensitivity,omitzero\""
-}
-
-type d68d31732e2313f72e2ad48 struct {
-	Description Field[d68d31732e2b7adb1daa22b] "json:\"description,omitzero\""
-	Polarity    Field[d68d31732e2f3e33541859b] "json:\"polarity,omitzero\""
-	Proposition Field[string]                  "json:\"proposition,omitzero\""
-	Role        Field[d68d31732e2476cd81762ad] "json:\"role,omitzero\""
-}
-
-type d68d31732e23a0edddeacdf string
-
-type d68d31732e23b8dbcfd4b6e []d68d31732e24a2b29093523
-
-type d68d31732e23bae1938ad65 d68d31732e27a9d3df25983
-
-type d68d31732e23bbeda2040db string
-
-type d68d31732e23da17f868d4c string
-
-type d68d31732e23f59002ee214 d68d31732e24d18c4464635
-
-type d68d31732e23fb72dcec5be d68d31732e272c6e9626a34
+type d68d31732e241d459e54f07 []d68d31732e2722a28a6d4d6
 
 type d68d31732e24416f3caedec string
 
-type d68d31732e24584e85e24d2 d68d31732e2a9734fd1529e
+type d68d31732e24584e85e24d2 d68d31732e2bf483c6d485c
 
 type d68d31732e2476cd81762ad string
 
-type d68d31732e249f5a619ad3c d68d31732e22fb8b0b90c68
-
-type d68d31732e24a2b29093523 string
-
-type d68d31732e24b7703ee50d8 string
-
-type d68d31732e24c4b8b26b3c4 d68d31732e20677eff7470a
-
-type d68d31732e24c96dfaf243f struct {
-	Description Field[d68d31732e2b7adb1daa22b] "json:\"description,omitzero\""
-}
-
-type d68d31732e24d18c4464635 struct {
-	Description            Field[d68d31732e2b7adb1daa22b]   "json:\"description,omitzero\""
-	Destination            Field[d68d31732e2bb00fa8d313e]   "json:\"destination,omitzero\""
-	Format                 Field[d68d31732e2afecc6c94044]   "json:\"format,omitzero\""
-	Items                  Field[[]d68d31732e270423a8060aa] "json:\"items,omitzero\""
-	Path                   Field[d68d31732e2f914241733c6]   "json:\"path,omitzero\""
-	Sensitive              Field[json.RawMessage]           "json:\"sensitive,omitzero\""
-	ServiceMaterialization Field[json.RawMessage]           "json:\"service_materialization,omitzero\""
-	Source                 Field[json.RawMessage]           "json:\"source,omitzero\""
-	Tags                   Field[d68d31732e20d81032dc756]   "json:\"tags,omitzero\""
-	Target                 Field[d68d31732e23a0edddeacdf]   "json:\"target,omitzero\""
-	Text                   Field[json.RawMessage]           "json:\"text,omitzero\""
-	TextFrom               Field[json.RawMessage]           "json:\"text_from,omitzero\""
-	Type                   Field[d68d31732e27d43b94137aa]   "json:\"type,omitzero\""
-}
-
-type d68d31732e24f53d2fd75fe struct {
-	Dependencies Field[d68d31732e2a0bbe45c456f] "json:\"dependencies,omitzero\""
-	Description  Field[d68d31732e2b7adb1daa22b] "json:\"description,omitzero\""
-	Destination  Field[d68d31732e2bb00fa8d313e] "json:\"destination,omitzero\""
-	Environment  Field[d68d31732e27c904a4f3d7f] "json:\"environment,omitzero\""
-	Name         Field[d68d31732e2a9e2a4415a4b] "json:\"name,omitzero\""
-	Source       Field[json.RawMessage]         "json:\"source,omitzero\""
-	Type         Field[d68d31732e2aaa795d5a8d9] "json:\"type,omitzero\""
-}
-
-type d68d31732e24fd65e19ce6f string
-
-type d68d31732e252ef2d445dfb d68d31732e296da1c5d2a43
-
-type d68d31732e253f4d6e7afac d68d31732e2d5c21cdb0546
-
-type d68d31732e2541e8ce1b82b []d68d31732e24a2b29093523
-
-type d68d31732e255167f28a86d string
-
-type d68d31732e255b74baec8e6 string
-
-type d68d31732e256426b8e2d7f string
-
-type d68d31732e256848dacebe6 d68d31732e269235d8717de
-
-type d68d31732e2577402bb3191 struct {
-	Commutative      Field[bool]                      "json:\"commutative,omitzero\""
-	InteractionClass Field[d68d31732e29a0a31562ade]   "json:\"interaction_class,omitzero\""
-	MergeRuleRef     Field[json.RawMessage]           "json:\"merge_rule_ref,omitzero\""
-	Rationale        Field[string]                    "json:\"rationale,omitzero\""
-	RelatedActions   Field[[]d68d31732e24a2b29093523] "json:\"related_actions,omitzero\""
-	SharedStateRefs  Field[[]d68d31732e24a2b29093523] "json:\"shared_state_refs,omitzero\""
-	Target           Field[d68d31732e2d3fd2dd7eaa2]   "json:\"target,omitzero\""
-}
-
-type d68d31732e2577aacad9b00 string
-
-type d68d31732e25885db53c377 d68d31732e20b8f1f319538
-
-type d68d31732e2594318fac279 d68d31732e24c96dfaf243f
-
-type d68d31732e25960d16bf518 []d68d31732e24a2b29093523
-
-type d68d31732e259bfb3d28c0c string
-
-type d68d31732e25b3398c7404b struct {
-	Diagnostics   Field[d68d31732e29af769322776] "json:\"diagnostics,omitzero\""
-	EvidenceRefs  Field[d68d31732e23b8dbcfd4b6e] "json:\"evidence_refs,omitzero\""
-	GovernanceRef Field[json.RawMessage]         "json:\"governance_ref,omitzero\""
-	Limitations   Field[d68d31732e2d22b717d8799] "json:\"limitations,omitzero\""
-	Ref           Field[d68d31732e26f0bb94ee42b] "json:\"ref,omitzero\""
-	Relation      Field[string]                  "json:\"relation,omitzero\""
-	TargetId      Field[string]                  "json:\"target_id,omitzero\""
-	TargetLayer   Field[d68d31732e259bfb3d28c0c] "json:\"target_layer,omitzero\""
-}
-
-type d68d31732e25c10faea6952 d68d31732e2edce02974c9a
-
-type d68d31732e25cc2a9426c41 string
-
-type d68d31732e25d6a5578ef98 string
-
-type d68d31732e25dc41cef515d d68d31732e22a9dbb3339ee
-
-type d68d31732e25e160370a094 struct {
-	AccessMode           Field[d68d31732e2f81f7c416197]   "json:\"access_mode,omitzero\""
-	Consumers            Field[[]d68d31732e22da451a51d5d] "json:\"consumers,omitzero\""
-	Lifecycle            Field[d68d31732e293a2fc2095ed]   "json:\"lifecycle,omitzero\""
-	OrderingDependencies Field[d68d31732e27704b2a7c2e3]   "json:\"ordering_dependencies,omitzero\""
-	RefreshDependencies  Field[d68d31732e25960d16bf518]   "json:\"refresh_dependencies,omitzero\""
-}
-
-type d68d31732e25e3df17d1a98 struct {
-	Description       Field[d68d31732e2985516775398]   "json:\"description,omitzero\""
-	EvidenceRefs      Field[d68d31732e23b8dbcfd4b6e]   "json:\"evidence_refs,omitzero\""
-	PreconditionClass Field[d68d31732e2d3ea273bbacb]   "json:\"precondition_class,omitzero\""
-	PreconditionId    Field[string]                    "json:\"precondition_id,omitzero\""
-	SupportRefs       Field[[]d68d31732e24a2b29093523] "json:\"support_refs,omitzero\""
-}
-
-type d68d31732e2607fc877a736 struct {
-	Diagnostics           Field[d68d31732e29af769322776]   "json:\"diagnostics,omitzero\""
-	EvidenceRefs          Field[[]d68d31732e24a2b29093523] "json:\"evidence_refs,omitzero\""
-	InterpretationBasis   Field[string]                    "json:\"interpretation_basis,omitzero\""
-	Limitations           Field[[]d68d31732e24a2b29093523] "json:\"limitations,omitzero\""
-	LocalOutcome          Field[json.RawMessage]           "json:\"local_outcome,omitzero\""
-	ObservationPointBasis Field[string]                    "json:\"observation_point_basis,omitzero\""
-	ParticipantScope      Field[d68d31732e2084c3c07d80b]   "json:\"participant_scope,omitzero\""
-	SemanticVersion       Field[d68d31732e2da3ab692e384]   "json:\"semantic_version,omitzero\""
-	SourceBindings        Field[[]d68d31732e249f5a619ad3c] "json:\"source_bindings,omitzero\""
-	TargetBindings        Field[[]d68d31732e29b3e5e20b008] "json:\"target_bindings,omitzero\""
-}
-
-type d68d31732e261ecb73c1fd2 d68d31732e2f22c0f5b935e
-
-type d68d31732e2645ab3a9670a struct {
-	Denominator Field[json.Number] "json:\"denominator,omitzero\""
-	Numerator   Field[json.Number] "json:\"numerator,omitzero\""
-}
-
-type d68d31732e265250ec304db d68d31732e22f9c7c90f20b
-
-type d68d31732e268860ace705e string
-
-type d68d31732e268e79d4f1ec3 struct {
-	BoundaryClass             Field[d68d31732e2888f7b418a65] "json:\"boundary_class,omitzero\""
-	Certainty                 Field[json.RawMessage]         "json:\"certainty,omitzero\""
-	DisclosureRule            Field[json.RawMessage]         "json:\"disclosure_rule,omitzero\""
-	Disposition               Field[d68d31732e26dfe2c7d2b42] "json:\"disposition,omitzero\""
-	EffectiveFrom             Field[json.RawMessage]         "json:\"effective_from,omitzero\""
-	EvidenceRefs              Field[d68d31732e23b8dbcfd4b6e] "json:\"evidence_refs,omitzero\""
-	InformationRef            Field[d68d31732e24fd65e19ce6f] "json:\"information_ref,omitzero\""
-	LatencyProfile            Field[json.RawMessage]         "json:\"latency_profile,omitzero\""
-	RealizedBackendDisclosure Field[json.RawMessage]         "json:\"realized_backend_disclosure,omitzero\""
-	VisibilityBasis           Field[string]                  "json:\"visibility_basis,omitzero\""
-}
-
-type d68d31732e269235d8717de struct {
-	CadenceTicks   Field[json.RawMessage]           "json:\"cadence_ticks,omitzero\""
-	ClockRef       Field[d68d31732e23da17f868d4c]   "json:\"clock_ref,omitzero\""
-	ConstraintKind Field[d68d31732e2b2e51d1e69da]   "json:\"constraint_kind,omitzero\""
-	Description    Field[d68d31732e2985516775398]   "json:\"description,omitzero\""
-	DurationTicks  Field[json.RawMessage]           "json:\"duration_ticks,omitzero\""
-	End            Field[json.RawMessage]           "json:\"end,omitzero\""
-	Start          Field[json.RawMessage]           "json:\"start,omitzero\""
-	SubjectRefs    Field[[]d68d31732e24a2b29093523] "json:\"subject_refs,omitzero\""
-}
-
-type d68d31732e269dafb367d3f d68d31732e2a6b860d925b7
-
-type d68d31732e26b02cd2c9cd6 struct {
-	Arguments                Field[map[string]json.RawMessage] "json:\"arguments,omitzero\""
-	BackendFailureMappings   Field[[]d68d31732e2e75455512926]  "json:\"backend_failure_mappings,omitzero\""
-	BackendTimingDisclosures Field[[]d68d31732e27da356f9b263]  "json:\"backend_timing_disclosures,omitzero\""
-	BehavioralGranularity    Field[d68d31732e2e3469203fccd]    "json:\"behavioral_granularity,omitzero\""
-	Effects                  Field[[]d68d31732e2d57053ce1e83]  "json:\"effects,omitzero\""
-	EvidenceExpectations     Field[[]d68d31732e24a2b29093523]  "json:\"evidence_expectations,omitzero\""
-	FailureClasses           Field[[]d68d31732e27c3226757c0c]  "json:\"failure_classes,omitzero\""
-	FidelityClaim            Field[string]                     "json:\"fidelity_claim,omitzero\""
-	Interactions             Field[[]d68d31732e2d64eaa897041]  "json:\"interactions,omitzero\""
-	LifecycleState           Field[d68d31732e2025d3c7216bc]    "json:\"lifecycle_state,omitzero\""
-	ObservationExpectations  Field[[]d68d31732e24a2b29093523]  "json:\"observation_expectations,omitzero\""
-	Preconditions            Field[[]d68d31732e2c8a23712e820]  "json:\"preconditions,omitzero\""
-	ProcedureBasis           Field[string]                     "json:\"procedure_basis,omitzero\""
-	RealizationProfile       Field[string]                     "json:\"realization_profile,omitzero\""
-	SemanticVersion          Field[d68d31732e2da3ab692e384]    "json:\"semantic_version,omitzero\""
-	StateTransitionEffects   Field[[]d68d31732e24a2b29093523]  "json:\"state_transition_effects,omitzero\""
-	TemporalContracts        Field[[]d68d31732e2c5e52c940fef]  "json:\"temporal_contracts,omitzero\""
-}
-
-type d68d31732e26dfe2c7d2b42 string
-
-type d68d31732e26ef991efb797 string
-
-type d68d31732e26f0bb94ee42b string
-
-type d68d31732e270423a8060aa d68d31732e22ef182111bfd
-
-type d68d31732e272646f29b366 d68d31732e29ba1a6f4d328
-
-type d68d31732e272c6e9626a34 struct {
+type d68d31732e247eb8b3f60dd struct {
 	Compensation Field[json.RawMessage]            "json:\"compensation,omitzero\""
-	Description  Field[d68d31732e2b7adb1daa22b]    "json:\"description,omitzero\""
+	Description  Field[d68d31732e2810811354b90]    "json:\"description,omitzero\""
 	Start        Field[string]                     "json:\"start,omitzero\""
 	Steps        Field[map[string]json.RawMessage] "json:\"steps,omitzero\""
 	Timeout      Field[json.RawMessage]            "json:\"timeout,omitzero\""
 }
 
-type d68d31732e273fc2166a561 string
-
-type d68d31732e2751811fd3799 d68d31732e25e160370a094
-
-type d68d31732e27704b2a7c2e3 []d68d31732e24a2b29093523
-
-type d68d31732e277f995d5c509 string
-
-type d68d31732e2798a1dfe33c0 string
-
-type d68d31732e279f3bcc7a3d7 string
-
-type d68d31732e27a9d3df25983 struct {
-	Acls         Field[[]d68d31732e27ed618067685] "json:\"acls,omitzero\""
-	Count        Field[json.RawMessage]           "json:\"count,omitzero\""
-	Dependencies Field[d68d31732e2a0bbe45c456f]   "json:\"dependencies,omitzero\""
-	Description  Field[d68d31732e2b7adb1daa22b]   "json:\"description,omitzero\""
-	Links        Field[[]d68d31732e24a2b29093523] "json:\"links,omitzero\""
-	Properties   Field[json.RawMessage]           "json:\"properties,omitzero\""
-}
-
-type d68d31732e27c3226757c0c string
-
-type d68d31732e27c58ce3f172e d68d31732e21a6e6476526a
-
-type d68d31732e27c904a4f3d7f []d68d31732e24a2b29093523
-
-type d68d31732e27ccc5be38c13 []d68d31732e24a2b29093523
-
-type d68d31732e27d43b94137aa string
-
-type d68d31732e27da356f9b263 d68d31732e2aae2d4802e29
-
-type d68d31732e27dbb060100e3 struct {
-	AuthMethod   Field[json.RawMessage] "json:\"auth_method,omitzero\""
-	CredentialId Field[string]          "json:\"credential_id,omitzero\""
-	Material     Field[json.RawMessage] "json:\"material,omitzero\""
-	Purpose      Field[json.RawMessage] "json:\"purpose,omitzero\""
-}
-
-type d68d31732e27e1faa29b26b d68d31732e27dbb060100e3
-
-type d68d31732e27ed618067685 d68d31732e2293a78ad2f64
-
-type d68d31732e27fb4dedbe9c5 string
-
-type d68d31732e281740d43bde0 string
-
-type d68d31732e281c81ca43474 []d68d31732e24a2b29093523
-
-type d68d31732e2854a6802abc1 d68d31732e28e87587fd024
-
-type d68d31732e2861ec82f63bb string
-
-type d68d31732e2881eee7ade2d string
-
-type d68d31732e2888f7b418a65 string
-
-type d68d31732e28e7c50e0bebe d68d31732e217d879115d23
-
-type d68d31732e28e87587fd024 struct {
-	Algorithm Field[string]                  "json:\"algorithm,omitzero\""
-	Profile   Field[string]                  "json:\"profile,omitzero\""
-	Value     Field[d68d31732e256426b8e2d7f] "json:\"value,omitzero\""
-}
-
-type d68d31732e28efc254e3826 string
-
-type d68d31732e2906ce03e1806 struct {
-	DomainRefs    Field[[]d68d31732e24a2b29093523] "json:\"domain_refs,omitzero\""
-	RootDomainRef Field[string]                    "json:\"root_domain_ref,omitzero\""
-}
-
-type d68d31732e29135409c1fe9 d68d31732e2906ce03e1806
-
-type d68d31732e291445d2f882b d68d31732e22fd8ec4fea53
-
-type d68d31732e293a2fc2095ed string
-
-type d68d31732e29571f5167bdf d68d31732e26b02cd2c9cd6
-
-type d68d31732e296da1c5d2a43 struct {
-	ConfigurationDigest Field[string] "json:\"configuration_digest,omitzero\""
-	ManifestDigest      Field[string] "json:\"manifest_digest,omitzero\""
-	Name                Field[string] "json:\"name,omitzero\""
-	Version             Field[string] "json:\"version,omitzero\""
-}
-
-type d68d31732e2985516775398 string
-
-type d68d31732e29a0a31562ade string
-
-type d68d31732e29aea6a3c38dc map[string]json.RawMessage
-
-type d68d31732e29af769322776 []d68d31732e24a2b29093523
-
-type d68d31732e29b3e5e20b008 d68d31732e25b3398c7404b
-
-type d68d31732e29b57a48c675e string
-
-type d68d31732e29ba1a6f4d328 struct {
-	Description Field[d68d31732e2b7adb1daa22b]   "json:\"description,omitzero\""
-	Name        Field[d68d31732e2a9e2a4415a4b]   "json:\"name,omitzero\""
-	Scripts     Field[[]d68d31732e24a2b29093523] "json:\"scripts,omitzero\""
-	Speed       Field[json.RawMessage]           "json:\"speed,omitzero\""
-}
-
-type d68d31732e29e76458c9c86 string
-
-type d68d31732e29f83b9643ce9 string
-
-type d68d31732e2a0bbe45c456f []d68d31732e24a2b29093523
-
-type d68d31732e2a5c3b5271565 d68d31732e2afe9c9543af0
-
-type d68d31732e2a6b860d925b7 struct {
-	AccessMode       Field[d68d31732e2a9ff352e261d]   "json:\"access_mode,omitzero\""
-	MountDestination Field[d68d31732e281740d43bde0]   "json:\"mount_destination,omitzero\""
-	Node             Field[d68d31732e255b74baec8e6]   "json:\"node,omitzero\""
-	SelectedOutputs  Field[[]d68d31732e2df1a70dec87b] "json:\"selected_outputs,omitzero\""
-}
-
-type d68d31732e2a7cec53d702f string
-
-type d68d31732e2a88c7988733d d68d31732e24f53d2fd75fe
-
-type d68d31732e2a8c02dea6517 struct {
+type d68d31732e24968f13509f9 struct {
 	AttestationId      Field[string]                    "json:\"attestation_id,omitzero\""
 	AuthoredDigest     Field[d68d31732e2854a6802abc1]   "json:\"authored_digest,omitzero\""
 	Boundary           Field[string]                    "json:\"boundary,omitzero\""
@@ -627,120 +311,173 @@ type d68d31732e2a8c02dea6517 struct {
 	RunId              Field[string]                    "json:\"run_id,omitzero\""
 }
 
-type d68d31732e2a96cec1e8d79 struct {
-	CrossTenantIsolation Field[d68d31732e2a7cec53d702f]   "json:\"cross_tenant_isolation,omitzero\""
-	NodeRefs             Field[[]d68d31732e24a2b29093523] "json:\"node_refs,omitzero\""
-	TenantRef            Field[string]                    "json:\"tenant_ref,omitzero\""
+type d68d31732e249f5a619ad3c d68d31732e25ff871a0a81f
+
+type d68d31732e24a2b29093523 string
+
+type d68d31732e24b7703ee50d8 string
+
+type d68d31732e24c4b8b26b3c4 d68d31732e2b83f6916c195
+
+type d68d31732e24fe9cdc80f15 struct {
+	Description Field[d68d31732e2810811354b90] "json:\"description,omitzero\""
+	DisplayName Field[d68d31732e2afecc6c94044] "json:\"display_name,omitzero\""
+	Name        Field[d68d31732e2295b87eb4da9] "json:\"name,omitzero\""
+	Tags        Field[d68d31732e281d6963f7d1c] "json:\"tags,omitzero\""
 }
 
-type d68d31732e2a9734fd1529e struct {
-	Description Field[d68d31732e2b7adb1daa22b]    "json:\"description,omitzero\""
-	EndTime     Field[json.RawMessage]            "json:\"end_time,omitzero\""
-	Events      Field[map[string]json.RawMessage] "json:\"events,omitzero\""
-	Name        Field[d68d31732e2a9e2a4415a4b]    "json:\"name,omitzero\""
-	Speed       Field[json.RawMessage]            "json:\"speed,omitzero\""
-	StartTime   Field[json.RawMessage]            "json:\"start_time,omitzero\""
+type d68d31732e252ef2d445dfb d68d31732e2e1f17fea031e
+
+type d68d31732e253f4d6e7afac d68d31732e2d6d8d7cd3eaf
+
+type d68d31732e255cd70dfcb04 string
+
+type d68d31732e256848dacebe6 d68d31732e20e78b37717de
+
+type d68d31732e2577aacad9b00 string
+
+type d68d31732e25885db53c377 d68d31732e21c7d0125a562
+
+type d68d31732e258d073d86344 struct {
+	Description Field[d68d31732e2810811354b90] "json:\"description,omitzero\""
+	Polarity    Field[d68d31732e2f3e33541859b] "json:\"polarity,omitzero\""
+	Proposition Field[string]                  "json:\"proposition,omitzero\""
+	Role        Field[d68d31732e2476cd81762ad] "json:\"role,omitzero\""
 }
 
-type d68d31732e2a9e2a4415a4b string
+type d68d31732e2594318fac279 d68d31732e298130beba15d
 
-type d68d31732e2a9ff352e261d string
+type d68d31732e259bfb3d28c0c string
 
-type d68d31732e2aaa1a2f3ccc4 d68d31732e2ff078ae97e74
+type d68d31732e25c10faea6952 d68d31732e20602eeb27b4d
 
-type d68d31732e2aaa795d5a8d9 string
+type d68d31732e25cc2a9426c41 string
 
-type d68d31732e2aae2d4802e29 struct {
-	AffectedTemporalIds Field[[]d68d31732e24a2b29093523] "json:\"affected_temporal_ids,omitzero\""
-	Description         Field[d68d31732e2985516775398]   "json:\"description,omitzero\""
-	DisclosureId        Field[string]                    "json:\"disclosure_id,omitzero\""
-	DisclosureKind      Field[d68d31732e2b39436d14cc0]   "json:\"disclosure_kind,omitzero\""
-	Limitations         Field[d68d31732e2d22b717d8799]   "json:\"limitations,omitzero\""
-	SupportMode         Field[d68d31732e21ca04ab1fe1a]   "json:\"support_mode,omitzero\""
+type d68d31732e25dc41cef515d d68d31732e22a9dbb3339ee
+
+type d68d31732e25fe5e52e7ff3 string
+
+type d68d31732e25ff871a0a81f struct {
+	Diagnostics        Field[d68d31732e27ccc5be38c13]   "json:\"diagnostics,omitzero\""
+	EvidenceRefs       Field[d68d31732e2980879c75bcc]   "json:\"evidence_refs,omitzero\""
+	InterpretationRole Field[string]                    "json:\"interpretation_role,omitzero\""
+	ProvenanceRefs     Field[[]d68d31732e2722a28a6d4d6] "json:\"provenance_refs,omitzero\""
+	Ref                Field[d68d31732e24a2b29093523]   "json:\"ref,omitzero\""
+	SourceId           Field[string]                    "json:\"source_id,omitzero\""
+	SourceLayer        Field[d68d31732e2cbfe42db551c]   "json:\"source_layer,omitzero\""
 }
 
-type d68d31732e2ac5fc1c20c61 d68d31732e2ff957b643d20
-
-type d68d31732e2acaa6d17dddd string
-
-type d68d31732e2afe9c9543af0 struct {
-	AuthMethod             Field[json.RawMessage]           "json:\"auth_method,omitzero\""
-	CredentialBindings     Field[[]d68d31732e27e1faa29b26b] "json:\"credential_bindings,omitzero\""
-	Description            Field[d68d31732e2b7adb1daa22b]   "json:\"description,omitzero\""
-	Disabled               Field[json.RawMessage]           "json:\"disabled,omitzero\""
-	DomainRef              Field[d68d31732e2881eee7ade2d]   "json:\"domain_ref,omitzero\""
-	Groups                 Field[d68d31732e2b987d07849d2]   "json:\"groups,omitzero\""
-	Home                   Field[d68d31732e2c44562d1f034]   "json:\"home,omitzero\""
-	Mail                   Field[string]                    "json:\"mail,omitzero\""
-	MaterializationProfile Field[json.RawMessage]           "json:\"materialization_profile,omitzero\""
-	Node                   Field[string]                    "json:\"node,omitzero\""
-	PasswordStrength       Field[json.RawMessage]           "json:\"password_strength,omitzero\""
-	Shell                  Field[d68d31732e29b57a48c675e]   "json:\"shell,omitzero\""
-	Spn                    Field[string]                    "json:\"spn,omitzero\""
-	Username               Field[d68d31732e2dc25f0e8c0f4]   "json:\"username,omitzero\""
+type d68d31732e26096134339ce struct {
+	Dependencies Field[d68d31732e27c904a4f3d7f] "json:\"dependencies,omitzero\""
+	Description  Field[d68d31732e2810811354b90] "json:\"description,omitzero\""
+	Destination  Field[d68d31732e27fb4dedbe9c5] "json:\"destination,omitzero\""
+	Environment  Field[d68d31732e2b0d9c912b13b] "json:\"environment,omitzero\""
+	Name         Field[d68d31732e2f914241733c6] "json:\"name,omitzero\""
+	Source       Field[json.RawMessage]         "json:\"source,omitzero\""
+	Type         Field[d68d31732e2aaa795d5a8d9] "json:\"type,omitzero\""
 }
 
-type d68d31732e2afeb89e7b9af string
+type d68d31732e261ecb73c1fd2 d68d31732e296ca7c2c4126
 
-type d68d31732e2afecc6c94044 string
+type d68d31732e2627ea48aac71 struct {
+	ActionInstanceId          Field[json.RawMessage]         "json:\"action_instance_id,omitzero\""
+	Certainty                 Field[string]                  "json:\"certainty,omitzero\""
+	DisclosureRule            Field[json.RawMessage]         "json:\"disclosure_rule,omitzero\""
+	EffectiveFrom             Field[string]                  "json:\"effective_from,omitzero\""
+	EffectiveOrder            Field[json.Number]             "json:\"effective_order,omitzero\""
+	EvidenceRefs              Field[d68d31732e2980879c75bcc] "json:\"evidence_refs,omitzero\""
+	FromDisposition           Field[d68d31732e26dfe2c7d2b42] "json:\"from_disposition,omitzero\""
+	HistoryEventType          Field[d68d31732e29e76458c9c86] "json:\"history_event_type,omitzero\""
+	InformationRef            Field[d68d31732e26f0bb94ee42b] "json:\"information_ref,omitzero\""
+	LatencyProfile            Field[d68d31732e2312287ec9e04] "json:\"latency_profile,omitzero\""
+	RealizedBackendDisclosure Field[json.RawMessage]         "json:\"realized_backend_disclosure,omitzero\""
+	ToDisposition             Field[d68d31732e26dfe2c7d2b42] "json:\"to_disposition,omitzero\""
+	TransitionId              Field[string]                  "json:\"transition_id,omitzero\""
+	TransitionKind            Field[d68d31732e2acaa6d17dddd] "json:\"transition_kind,omitzero\""
+	Trigger                   Field[string]                  "json:\"trigger,omitzero\""
+}
 
-type d68d31732e2b2e51d1e69da string
+type d68d31732e2645ab3a9670a struct {
+	Denominator Field[json.Number] "json:\"denominator,omitzero\""
+	Numerator   Field[json.Number] "json:\"numerator,omitzero\""
+}
 
-type d68d31732e2b39436d14cc0 string
+type d68d31732e265250ec304db d68d31732e22dbcda09d4b8
 
-type d68d31732e2b4ee3b6dd724 d68d31732e2b6423c878f21
+type d68d31732e2661f3b75897d struct {
+	AuthMethod   Field[json.RawMessage] "json:\"auth_method,omitzero\""
+	CredentialId Field[string]          "json:\"credential_id,omitzero\""
+	Material     Field[json.RawMessage] "json:\"material,omitzero\""
+	Purpose      Field[json.RawMessage] "json:\"purpose,omitzero\""
+}
 
-type d68d31732e2b54230da114f struct {
+type d68d31732e268860ace705e string
+
+type d68d31732e269dafb367d3f d68d31732e29d8da303bd30
+
+type d68d31732e26b99cff24c2d struct {
 	AuthorityAccountRef Field[string]          "json:\"authority_account_ref,omitzero\""
 	DnsName             Field[string]          "json:\"dns_name,omitzero\""
 	NetbiosName         Field[string]          "json:\"netbios_name,omitzero\""
 	Profile             Field[json.RawMessage] "json:\"profile,omitzero\""
 }
 
-type d68d31732e2b6423c878f21 struct {
-	Algorithm Field[string]                  "json:\"algorithm,omitzero\""
-	Profile   Field[string]                  "json:\"profile,omitzero\""
-	Value     Field[d68d31732e256426b8e2d7f] "json:\"value,omitzero\""
+type d68d31732e26dfe2c7d2b42 string
+
+type d68d31732e26ef991efb797 string
+
+type d68d31732e26f0bb94ee42b string
+
+type d68d31732e270423a8060aa d68d31732e24fe9cdc80f15
+
+type d68d31732e270ba66c72012 struct {
+	Description  Field[d68d31732e25fe5e52e7ff3] "json:\"description,omitzero\""
+	EffectClass  Field[d68d31732e215bc6df3e8a0] "json:\"effect_class,omitzero\""
+	EffectId     Field[string]                  "json:\"effect_id,omitzero\""
+	EvidenceRefs Field[d68d31732e2980879c75bcc] "json:\"evidence_refs,omitzero\""
+	TargetRefs   Field[d68d31732e2ce07ead65049] "json:\"target_refs,omitzero\""
 }
 
-type d68d31732e2b7adb1daa22b string
+type d68d31732e270ccd48a3d77 string
 
-type d68d31732e2b847fbdc9944 struct {
-	Actions               Field[d68d31732e281c81ca43474]    "json:\"actions,omitzero\""
-	Affiliations          Field[[]d68d31732e24a2b29093523]  "json:\"affiliations,omitzero\""
-	AllowedSubnets        Field[[]d68d31732e24a2b29093523]  "json:\"allowed_subnets,omitzero\""
-	AuthorityAnchors      Field[[]d68d31732e24a2b29093523]  "json:\"authority_anchors,omitzero\""
-	ControlContext        Field[d68d31732e29aea6a3c38dc]    "json:\"control_context,omitzero\""
-	Description           Field[d68d31732e2b7adb1daa22b]    "json:\"description,omitzero\""
-	InitialKnowledge      Field[json.RawMessage]            "json:\"initial_knowledge,omitzero\""
-	InteractiveAccess     Field[map[string]json.RawMessage] "json:\"interactive_access,omitzero\""
-	ObservationBoundaries Field[[]d68d31732e24a2b29093523]  "json:\"observation_boundaries,omitzero\""
-	OperatingScope        Field[[]d68d31732e24a2b29093523]  "json:\"operating_scope,omitzero\""
-	Role                  Field[json.RawMessage]            "json:\"role,omitzero\""
-	StartingAccounts      Field[[]d68d31732e24a2b29093523]  "json:\"starting_accounts,omitzero\""
-	StartingAssertions    Field[[]d68d31732e24a2b29093523]  "json:\"starting_assertions,omitzero\""
-}
+type d68d31732e2722a28a6d4d6 string
 
-type d68d31732e2b987d07849d2 []d68d31732e24a2b29093523
+type d68d31732e272646f29b366 d68d31732e290665fe5668b
 
-type d68d31732e2bb00fa8d313e string
+type d68d31732e273fc2166a561 string
 
-type d68d31732e2bb8a336974ac []d68d31732e24a2b29093523
+type d68d31732e2751811fd3799 d68d31732e2d2edad73724d
 
-type d68d31732e2bc7b6b2d5154 string
+type d68d31732e27704b2a7c2e3 []d68d31732e2722a28a6d4d6
 
-type d68d31732e2bf6ab81d56df d68d31732e268e79d4f1ec3
+type d68d31732e277f995d5c509 string
 
-type d68d31732e2c0d581d33701 d68d31732e2b54230da114f
+type d68d31732e2798a1dfe33c0 string
 
-type d68d31732e2c44562d1f034 string
+type d68d31732e279f3bcc7a3d7 string
 
-type d68d31732e2c48b58d9b73c struct {
-	EvidenceRefs           Field[d68d31732e23b8dbcfd4b6e]   "json:\"evidence_refs,omitzero\""
-	HiddenRefs             Field[[]d68d31732e24a2b29093523] "json:\"hidden_refs,omitzero\""
-	LatencyProfile         Field[d68d31732e25d6a5578ef98]   "json:\"latency_profile,omitzero\""
-	ObservableRefs         Field[[]d68d31732e24a2b29093523] "json:\"observable_refs,omitzero\""
-	ObserverEffects        Field[[]d68d31732e24a2b29093523] "json:\"observer_effects,omitzero\""
+type d68d31732e27c3226757c0c string
+
+type d68d31732e27c58ce3f172e d68d31732e2f142c621028e
+
+type d68d31732e27c904a4f3d7f []d68d31732e2722a28a6d4d6
+
+type d68d31732e27ccc5be38c13 []d68d31732e2722a28a6d4d6
+
+type d68d31732e27d43b94137aa string
+
+type d68d31732e27da356f9b263 d68d31732e2a0dbaac27b6d
+
+type d68d31732e27e1faa29b26b d68d31732e2661f3b75897d
+
+type d68d31732e27ed618067685 d68d31732e22f4d69dacf00
+
+type d68d31732e27f400a4e5934 struct {
+	EvidenceRefs           Field[d68d31732e2980879c75bcc]   "json:\"evidence_refs,omitzero\""
+	HiddenRefs             Field[[]d68d31732e2722a28a6d4d6] "json:\"hidden_refs,omitzero\""
+	LatencyProfile         Field[d68d31732e2312287ec9e04]   "json:\"latency_profile,omitzero\""
+	ObservableRefs         Field[[]d68d31732e2722a28a6d4d6] "json:\"observable_refs,omitzero\""
+	ObserverEffects        Field[[]d68d31732e2722a28a6d4d6] "json:\"observer_effects,omitzero\""
 	ProjectionBasis        Field[string]                    "json:\"projection_basis,omitzero\""
 	RealizedViewDisclosure Field[json.RawMessage]           "json:\"realized_view_disclosure,omitzero\""
 	RedactionPolicy        Field[string]                    "json:\"redaction_policy,omitzero\""
@@ -748,32 +485,313 @@ type d68d31732e2c48b58d9b73c struct {
 	ViewTransitions        Field[[]d68d31732e22bd8b02e99e9] "json:\"view_transitions,omitzero\""
 }
 
-type d68d31732e2c5e52c940fef d68d31732e2d6f2d27e44a4
+type d68d31732e27fb4dedbe9c5 string
 
-type d68d31732e2c7e0fae4e8e0 d68d31732e22f6d58729672
+type d68d31732e2810811354b90 string
 
-type d68d31732e2c8a23712e820 d68d31732e25e3df17d1a98
+type d68d31732e281d6963f7d1c []d68d31732e2722a28a6d4d6
+
+type d68d31732e283b040e8d330 struct {
+	Architecture    Field[json.RawMessage]                    "json:\"architecture,omitzero\""
+	AssetValue      Field[json.RawMessage]                    "json:\"asset_value,omitzero\""
+	Conditions      Field[map[string]d68d31732e2722a28a6d4d6] "json:\"conditions,omitzero\""
+	Description     Field[d68d31732e2810811354b90]            "json:\"description,omitzero\""
+	EndpointPersona Field[json.RawMessage]                    "json:\"endpoint_persona,omitzero\""
+	Features        Field[map[string]d68d31732e2722a28a6d4d6] "json:\"features,omitzero\""
+	Injects         Field[map[string]d68d31732e2722a28a6d4d6] "json:\"injects,omitzero\""
+	Os              Field[json.RawMessage]                    "json:\"os,omitzero\""
+	OsDistribution  Field[json.RawMessage]                    "json:\"os_distribution,omitzero\""
+	OsVersion       Field[string]                             "json:\"os_version,omitzero\""
+	Resources       Field[json.RawMessage]                    "json:\"resources,omitzero\""
+	Roles           Field[map[string]json.RawMessage]         "json:\"roles,omitzero\""
+	Runtime         Field[json.RawMessage]                    "json:\"runtime,omitzero\""
+	Services        Field[[]d68d31732e220184bd4f1b0]          "json:\"services,omitzero\""
+	Source          Field[json.RawMessage]                    "json:\"source,omitzero\""
+	Type            Field[d68d31732e277f995d5c509]            "json:\"type,omitzero\""
+}
+
+type d68d31732e2854a6802abc1 d68d31732e21f70781fd5aa
+
+type d68d31732e2861ec82f63bb string
+
+type d68d31732e2888f7b418a65 string
+
+type d68d31732e28bba960404bb struct {
+	Description       Field[d68d31732e25fe5e52e7ff3] "json:\"description,omitzero\""
+	Epoch             Field[d68d31732e2afeb89e7b9af] "json:\"epoch,omitzero\""
+	Kind              Field[d68d31732e2d6c736ec8923] "json:\"kind,omitzero\""
+	TickPeriodSeconds Field[d68d31732e21934bac67f6a] "json:\"tick_period_seconds,omitzero\""
+	Visibility        Field[d68d31732e29f83b9643ce9] "json:\"visibility,omitzero\""
+}
+
+type d68d31732e28e7c50e0bebe d68d31732e216239963ce06
+
+type d68d31732e28efc254e3826 string
+
+type d68d31732e290665fe5668b struct {
+	Description Field[d68d31732e2810811354b90]   "json:\"description,omitzero\""
+	Name        Field[d68d31732e2f914241733c6]   "json:\"name,omitzero\""
+	Scripts     Field[[]d68d31732e2722a28a6d4d6] "json:\"scripts,omitzero\""
+	Speed       Field[json.RawMessage]           "json:\"speed,omitzero\""
+}
+
+type d68d31732e29135409c1fe9 d68d31732e2ff4dd1c40c2a
+
+type d68d31732e291445d2f882b d68d31732e2abbf033d3c9b
+
+type d68d31732e293a2fc2095ed string
+
+type d68d31732e29571f5167bdf d68d31732e2c142a64cfbc0
+
+type d68d31732e2969927150447 struct {
+	Description            Field[d68d31732e2810811354b90]   "json:\"description,omitzero\""
+	Destination            Field[d68d31732e27fb4dedbe9c5]   "json:\"destination,omitzero\""
+	Format                 Field[d68d31732e2c44562d1f034]   "json:\"format,omitzero\""
+	Items                  Field[[]d68d31732e270423a8060aa] "json:\"items,omitzero\""
+	Path                   Field[d68d31732e21818fcc08604]   "json:\"path,omitzero\""
+	Sensitive              Field[json.RawMessage]           "json:\"sensitive,omitzero\""
+	ServiceMaterialization Field[json.RawMessage]           "json:\"service_materialization,omitzero\""
+	Source                 Field[json.RawMessage]           "json:\"source,omitzero\""
+	Tags                   Field[d68d31732e281d6963f7d1c]   "json:\"tags,omitzero\""
+	Target                 Field[d68d31732e211e6eaeb5ee0]   "json:\"target,omitzero\""
+	Text                   Field[json.RawMessage]           "json:\"text,omitzero\""
+	TextFrom               Field[json.RawMessage]           "json:\"text_from,omitzero\""
+	Type                   Field[d68d31732e27d43b94137aa]   "json:\"type,omitzero\""
+}
+
+type d68d31732e296ca7c2c4126 struct {
+	AdvancementMode     Field[d68d31732e25cc2a9426c41] "json:\"advancement_mode,omitzero\""
+	ClockRef            Field[d68d31732e24b7703ee50d8] "json:\"clock_ref,omitzero\""
+	Description         Field[d68d31732e25fe5e52e7ff3] "json:\"description,omitzero\""
+	DriftBoundTicks     Field[json.RawMessage]         "json:\"drift_bound_ticks,omitzero\""
+	PacingRatio         Field[d68d31732e21934bac67f6a] "json:\"pacing_ratio,omitzero\""
+	ReplayBehavior      Field[d68d31732e22c29a312ff67] "json:\"replay_behavior,omitzero\""
+	ResetBehavior       Field[d68d31732e24416f3caedec] "json:\"reset_behavior,omitzero\""
+	StepTicks           Field[json.RawMessage]         "json:\"step_ticks,omitzero\""
+	SynchronizationMode Field[d68d31732e2ee3f9e370ec4] "json:\"synchronization_mode,omitzero\""
+}
+
+type d68d31732e2980879c75bcc []d68d31732e2722a28a6d4d6
+
+type d68d31732e298130beba15d struct {
+	Description Field[d68d31732e2810811354b90] "json:\"description,omitzero\""
+}
+
+type d68d31732e29a0a31562ade string
+
+type d68d31732e29aea6a3c38dc map[string]json.RawMessage
+
+type d68d31732e29b3e5e20b008 d68d31732e2da7ba610df20
+
+type d68d31732e29d8da303bd30 struct {
+	AccessMode       Field[d68d31732e2a9ff352e261d]   "json:\"access_mode,omitzero\""
+	MountDestination Field[d68d31732e2da3ab692e384]   "json:\"mount_destination,omitzero\""
+	Node             Field[d68d31732e2d3fd2dd7eaa2]   "json:\"node,omitzero\""
+	SelectedOutputs  Field[[]d68d31732e2df1a70dec87b] "json:\"selected_outputs,omitzero\""
+}
+
+type d68d31732e29e76458c9c86 string
+
+type d68d31732e29f83b9643ce9 string
+
+type d68d31732e2a0dbaac27b6d struct {
+	AffectedTemporalIds Field[[]d68d31732e2722a28a6d4d6] "json:\"affected_temporal_ids,omitzero\""
+	Description         Field[d68d31732e25fe5e52e7ff3]   "json:\"description,omitzero\""
+	DisclosureId        Field[string]                    "json:\"disclosure_id,omitzero\""
+	DisclosureKind      Field[d68d31732e2b39436d14cc0]   "json:\"disclosure_kind,omitzero\""
+	Limitations         Field[d68d31732e20c88f3150c24]   "json:\"limitations,omitzero\""
+	SupportMode         Field[d68d31732e21ca04ab1fe1a]   "json:\"support_mode,omitzero\""
+}
+
+type d68d31732e2a5c3b5271565 d68d31732e2e36288635929
+
+type d68d31732e2a6c09e4aa5d4 string
+
+type d68d31732e2a6e159a64eee []d68d31732e2722a28a6d4d6
+
+type d68d31732e2a7cec53d702f string
+
+type d68d31732e2a88c7988733d d68d31732e26096134339ce
+
+type d68d31732e2a9ff352e261d string
+
+type d68d31732e2aaa1a2f3ccc4 d68d31732e28bba960404bb
+
+type d68d31732e2aaa795d5a8d9 string
+
+type d68d31732e2abbf033d3c9b struct {
+	Disposition Field[d68d31732e2111143ffe0c7] "json:\"disposition,omitzero\""
+	Name        Field[d68d31732e2295b87eb4da9] "json:\"name,omitzero\""
+	Path        Field[d68d31732e2dc25f0e8c0f4] "json:\"path,omitzero\""
+	Sensitivity Field[d68d31732e2798a1dfe33c0] "json:\"sensitivity,omitzero\""
+}
+
+type d68d31732e2ac5fc1c20c61 d68d31732e2d59346f35956
+
+type d68d31732e2acaa6d17dddd string
+
+type d68d31732e2acafa161eb2a string
+
+type d68d31732e2afeb89e7b9af string
+
+type d68d31732e2afecc6c94044 string
+
+type d68d31732e2b0d9c912b13b []d68d31732e2722a28a6d4d6
+
+type d68d31732e2b2e51d1e69da string
+
+type d68d31732e2b39436d14cc0 string
+
+type d68d31732e2b4ee3b6dd724 d68d31732e225f85e976159
+
+type d68d31732e2b4fb8ae73128 string
+
+type d68d31732e2b748f706ff55 struct {
+	Commutative      Field[bool]                      "json:\"commutative,omitzero\""
+	InteractionClass Field[d68d31732e29a0a31562ade]   "json:\"interaction_class,omitzero\""
+	MergeRuleRef     Field[json.RawMessage]           "json:\"merge_rule_ref,omitzero\""
+	Rationale        Field[string]                    "json:\"rationale,omitzero\""
+	RelatedActions   Field[[]d68d31732e2722a28a6d4d6] "json:\"related_actions,omitzero\""
+	SharedStateRefs  Field[[]d68d31732e2722a28a6d4d6] "json:\"shared_state_refs,omitzero\""
+	Target           Field[d68d31732e2a6c09e4aa5d4]   "json:\"target,omitzero\""
+}
+
+type d68d31732e2b77c29491130 struct {
+	Description Field[d68d31732e2810811354b90] "json:\"description,omitzero\""
+	Name        Field[json.RawMessage]         "json:\"name,omitzero\""
+	Port        Field[json.RawMessage]         "json:\"port,omitzero\""
+	Protocol    Field[d68d31732e255cd70dfcb04] "json:\"protocol,omitzero\""
+}
+
+type d68d31732e2b83f6916c195 struct {
+	ActionContractRefs            Field[[]d68d31732e2722a28a6d4d6]  "json:\"action_contract_refs,omitzero\""
+	AuthorityScopeRefs            Field[[]d68d31732e2722a28a6d4d6]  "json:\"authority_scope_refs,omitzero\""
+	AutonomousExecution           Field[json.RawMessage]            "json:\"autonomous_execution,omitzero\""
+	BackendFeatureSupportRefs     Field[[]d68d31732e2722a28a6d4d6]  "json:\"backend_feature_support_refs,omitzero\""
+	BehaviorMode                  Field[json.RawMessage]            "json:\"behavior_mode,omitzero\""
+	ControlContext                Field[d68d31732e29aea6a3c38dc]    "json:\"control_context,omitzero\""
+	EpisodePolicy                 Field[json.RawMessage]            "json:\"episode_policy,omitzero\""
+	EvidenceContractRefs          Field[[]d68d31732e2722a28a6d4d6]  "json:\"evidence_contract_refs,omitzero\""
+	ExtensionPolicy               Field[string]                     "json:\"extension_policy,omitzero\""
+	Extensions                    Field[map[string]json.RawMessage] "json:\"extensions,omitzero\""
+	LifecycleState                Field[d68d31732e20dddc7463d37]    "json:\"lifecycle_state,omitzero\""
+	MixedControl                  Field[json.RawMessage]            "json:\"mixed_control,omitzero\""
+	ObservationBoundaryRefs       Field[[]d68d31732e2722a28a6d4d6]  "json:\"observation_boundary_refs,omitzero\""
+	OutcomeInterpretationRuleRefs Field[[]d68d31732e2722a28a6d4d6]  "json:\"outcome_interpretation_rule_refs,omitzero\""
+	ParticipantInjectDeliveries   Field[map[string]json.RawMessage] "json:\"participant_inject_deliveries,omitzero\""
+	ParticipantRefs               Field[[]d68d31732e2722a28a6d4d6]  "json:\"participant_refs,omitzero\""
+	ParticipantRoleRefs           Field[[]d68d31732e2722a28a6d4d6]  "json:\"participant_role_refs,omitzero\""
+	RealizationProfileRef         Field[json.RawMessage]            "json:\"realization_profile_ref,omitzero\""
+	SemanticVersion               Field[string]                     "json:\"semantic_version,omitzero\""
+	ToolAffordances               Field[map[string]json.RawMessage] "json:\"tool_affordances,omitzero\""
+}
+
+type d68d31732e2bc7b6b2d5154 string
+
+type d68d31732e2bf483c6d485c struct {
+	Description Field[d68d31732e2810811354b90]    "json:\"description,omitzero\""
+	EndTime     Field[json.RawMessage]            "json:\"end_time,omitzero\""
+	Events      Field[map[string]json.RawMessage] "json:\"events,omitzero\""
+	Name        Field[d68d31732e2f914241733c6]    "json:\"name,omitzero\""
+	Speed       Field[json.RawMessage]            "json:\"speed,omitzero\""
+	StartTime   Field[json.RawMessage]            "json:\"start_time,omitzero\""
+}
+
+type d68d31732e2bf6ab81d56df d68d31732e2d961a177683c
+
+type d68d31732e2c09861ea93e0 []d68d31732e2722a28a6d4d6
+
+type d68d31732e2c0d581d33701 d68d31732e26b99cff24c2d
+
+type d68d31732e2c142a64cfbc0 struct {
+	Arguments                Field[map[string]json.RawMessage] "json:\"arguments,omitzero\""
+	BackendFailureMappings   Field[[]d68d31732e2e75455512926]  "json:\"backend_failure_mappings,omitzero\""
+	BackendTimingDisclosures Field[[]d68d31732e27da356f9b263]  "json:\"backend_timing_disclosures,omitzero\""
+	BehavioralGranularity    Field[d68d31732e2e3469203fccd]    "json:\"behavioral_granularity,omitzero\""
+	Effects                  Field[[]d68d31732e2d57053ce1e83]  "json:\"effects,omitzero\""
+	EvidenceExpectations     Field[[]d68d31732e2722a28a6d4d6]  "json:\"evidence_expectations,omitzero\""
+	FailureClasses           Field[[]d68d31732e27c3226757c0c]  "json:\"failure_classes,omitzero\""
+	FidelityClaim            Field[string]                     "json:\"fidelity_claim,omitzero\""
+	Interactions             Field[[]d68d31732e2d64eaa897041]  "json:\"interactions,omitzero\""
+	LifecycleState           Field[d68d31732e2025d3c7216bc]    "json:\"lifecycle_state,omitzero\""
+	ObservationExpectations  Field[[]d68d31732e2722a28a6d4d6]  "json:\"observation_expectations,omitzero\""
+	Preconditions            Field[[]d68d31732e2c8a23712e820]  "json:\"preconditions,omitzero\""
+	ProcedureBasis           Field[string]                     "json:\"procedure_basis,omitzero\""
+	RealizationProfile       Field[string]                     "json:\"realization_profile,omitzero\""
+	SemanticVersion          Field[d68d31732e2017268685eb1]    "json:\"semantic_version,omitzero\""
+	StateTransitionEffects   Field[[]d68d31732e2722a28a6d4d6]  "json:\"state_transition_effects,omitzero\""
+	TemporalContracts        Field[[]d68d31732e2c5e52c940fef]  "json:\"temporal_contracts,omitzero\""
+}
+
+type d68d31732e2c44562d1f034 string
+
+type d68d31732e2c5e52c940fef d68d31732e2eee0b8279984
+
+type d68d31732e2c6dab0f09ff8 string
+
+type d68d31732e2c7e0fae4e8e0 d68d31732e240ac8b2c7798
+
+type d68d31732e2c8a23712e820 d68d31732e238fe661927e4
 
 type d68d31732e2cbfe42db551c string
 
-type d68d31732e2d22b717d8799 []d68d31732e24a2b29093523
+type d68d31732e2ce07ead65049 []d68d31732e2722a28a6d4d6
 
-type d68d31732e2d254e69d9823 string
+type d68d31732e2d22b717d8799 []d68d31732e2722a28a6d4d6
+
+type d68d31732e2d2edad73724d struct {
+	AccessMode           Field[d68d31732e2f81f7c416197]   "json:\"access_mode,omitzero\""
+	Consumers            Field[[]d68d31732e22da451a51d5d] "json:\"consumers,omitzero\""
+	Lifecycle            Field[d68d31732e293a2fc2095ed]   "json:\"lifecycle,omitzero\""
+	OrderingDependencies Field[d68d31732e2df5ecb263e6e]   "json:\"ordering_dependencies,omitzero\""
+	RefreshDependencies  Field[d68d31732e2c09861ea93e0]   "json:\"refresh_dependencies,omitzero\""
+}
 
 type d68d31732e2d3ea273bbacb string
 
 type d68d31732e2d3fd2dd7eaa2 string
 
-type d68d31732e2d48f07368499 d68d31732e219ab88133f39
+type d68d31732e2d48f07368499 d68d31732e283b040e8d330
 
-type d68d31732e2d57053ce1e83 d68d31732e2f1234b81bf0f
+type d68d31732e2d53fede71e3b struct {
+	Actions               Field[d68d31732e2a6e159a64eee]    "json:\"actions,omitzero\""
+	Affiliations          Field[[]d68d31732e2722a28a6d4d6]  "json:\"affiliations,omitzero\""
+	AllowedSubnets        Field[[]d68d31732e2722a28a6d4d6]  "json:\"allowed_subnets,omitzero\""
+	AuthorityAnchors      Field[[]d68d31732e2722a28a6d4d6]  "json:\"authority_anchors,omitzero\""
+	ControlContext        Field[d68d31732e29aea6a3c38dc]    "json:\"control_context,omitzero\""
+	Description           Field[d68d31732e2810811354b90]    "json:\"description,omitzero\""
+	InitialKnowledge      Field[json.RawMessage]            "json:\"initial_knowledge,omitzero\""
+	InteractiveAccess     Field[map[string]json.RawMessage] "json:\"interactive_access,omitzero\""
+	ObservationBoundaries Field[[]d68d31732e2722a28a6d4d6]  "json:\"observation_boundaries,omitzero\""
+	OperatingScope        Field[[]d68d31732e2722a28a6d4d6]  "json:\"operating_scope,omitzero\""
+	Role                  Field[json.RawMessage]            "json:\"role,omitzero\""
+	StartingAccounts      Field[[]d68d31732e2722a28a6d4d6]  "json:\"starting_accounts,omitzero\""
+	StartingAssertions    Field[[]d68d31732e2722a28a6d4d6]  "json:\"starting_assertions,omitzero\""
+}
 
-type d68d31732e2d5c21cdb0546 struct {
+type d68d31732e2d57053ce1e83 d68d31732e270ba66c72012
+
+type d68d31732e2d59346f35956 struct {
+	Description     Field[d68d31732e25fe5e52e7ff3] "json:\"description,omitzero\""
+	MappingKind     Field[d68d31732e2577aacad9b00] "json:\"mapping_kind,omitzero\""
+	OffsetTicks     Field[json.Number]             "json:\"offset_ticks,omitzero\""
+	Scale           Field[d68d31732e21934bac67f6a] "json:\"scale,omitzero\""
+	SourceDomainRef Field[string]                  "json:\"source_domain_ref,omitzero\""
+	TargetDomainRef Field[string]                  "json:\"target_domain_ref,omitzero\""
+}
+
+type d68d31732e2d64eaa897041 d68d31732e2b748f706ff55
+
+type d68d31732e2d68cd9631574 d68d31732e24968f13509f9
+
+type d68d31732e2d6c736ec8923 string
+
+type d68d31732e2d6d8d7cd3eaf struct {
 	Command     Field[json.RawMessage]         "json:\"command,omitzero\""
-	Description Field[d68d31732e2b7adb1daa22b] "json:\"description,omitzero\""
-	Environment Field[d68d31732e27c904a4f3d7f] "json:\"environment,omitzero\""
+	Description Field[d68d31732e2810811354b90] "json:\"description,omitzero\""
+	Environment Field[d68d31732e2b0d9c912b13b] "json:\"environment,omitzero\""
 	Interval    Field[json.RawMessage]         "json:\"interval,omitzero\""
-	Name        Field[d68d31732e2a9e2a4415a4b] "json:\"name,omitzero\""
+	Name        Field[d68d31732e2f914241733c6] "json:\"name,omitzero\""
 	Proposition Field[string]                  "json:\"proposition,omitzero\""
 	Retries     Field[json.RawMessage]         "json:\"retries,omitzero\""
 	Source      Field[json.RawMessage]         "json:\"source,omitzero\""
@@ -781,16 +799,90 @@ type d68d31732e2d5c21cdb0546 struct {
 	Timeout     Field[json.RawMessage]         "json:\"timeout,omitzero\""
 }
 
-type d68d31732e2d64eaa897041 d68d31732e2577402bb3191
+type d68d31732e2d7d338c33991 d68d31732e2ed03f1c2892d
 
-type d68d31732e2d68cd9631574 d68d31732e2a8c02dea6517
+type d68d31732e2d88b4512e563 struct {
+	Change        Field[string]                  "json:\"change,omitzero\""
+	FieldPointer  Field[string]                  "json:\"field_pointer,omitzero\""
+	Origin        Field[d68d31732e20427301e3aac] "json:\"origin,omitzero\""
+	SourcePointer Field[json.RawMessage]         "json:\"source_pointer,omitzero\""
+}
 
-type d68d31732e2d6c736ec8923 string
+type d68d31732e2d961a177683c struct {
+	BoundaryClass             Field[d68d31732e2888f7b418a65] "json:\"boundary_class,omitzero\""
+	Certainty                 Field[json.RawMessage]         "json:\"certainty,omitzero\""
+	DisclosureRule            Field[json.RawMessage]         "json:\"disclosure_rule,omitzero\""
+	Disposition               Field[d68d31732e26dfe2c7d2b42] "json:\"disposition,omitzero\""
+	EffectiveFrom             Field[json.RawMessage]         "json:\"effective_from,omitzero\""
+	EvidenceRefs              Field[d68d31732e2980879c75bcc] "json:\"evidence_refs,omitzero\""
+	InformationRef            Field[d68d31732e26f0bb94ee42b] "json:\"information_ref,omitzero\""
+	LatencyProfile            Field[json.RawMessage]         "json:\"latency_profile,omitzero\""
+	RealizedBackendDisclosure Field[json.RawMessage]         "json:\"realized_backend_disclosure,omitzero\""
+	VisibilityBasis           Field[string]                  "json:\"visibility_basis,omitzero\""
+}
 
-type d68d31732e2d6f2d27e44a4 struct {
-	BackendDisclosureRefs Field[[]d68d31732e24a2b29093523] "json:\"backend_disclosure_refs,omitzero\""
+type d68d31732e2da3ab692e384 string
+
+type d68d31732e2da7ba610df20 struct {
+	Diagnostics   Field[d68d31732e27ccc5be38c13] "json:\"diagnostics,omitzero\""
+	EvidenceRefs  Field[d68d31732e2980879c75bcc] "json:\"evidence_refs,omitzero\""
+	GovernanceRef Field[json.RawMessage]         "json:\"governance_ref,omitzero\""
+	Limitations   Field[d68d31732e20c88f3150c24] "json:\"limitations,omitzero\""
+	Ref           Field[d68d31732e24a2b29093523] "json:\"ref,omitzero\""
+	Relation      Field[string]                  "json:\"relation,omitzero\""
+	TargetId      Field[string]                  "json:\"target_id,omitzero\""
+	TargetLayer   Field[d68d31732e259bfb3d28c0c] "json:\"target_layer,omitzero\""
+}
+
+type d68d31732e2db566ce6bdef d68d31732e258d073d86344
+
+type d68d31732e2dc25f0e8c0f4 string
+
+type d68d31732e2df1a70dec87b string
+
+type d68d31732e2df5ecb263e6e []d68d31732e2722a28a6d4d6
+
+type d68d31732e2e1f17fea031e struct {
+	ConfigurationDigest Field[string] "json:\"configuration_digest,omitzero\""
+	ManifestDigest      Field[string] "json:\"manifest_digest,omitzero\""
+	Name                Field[string] "json:\"name,omitzero\""
+	Version             Field[string] "json:\"version,omitzero\""
+}
+
+type d68d31732e2e3469203fccd string
+
+type d68d31732e2e36288635929 struct {
+	AuthMethod             Field[json.RawMessage]           "json:\"auth_method,omitzero\""
+	CredentialBindings     Field[[]d68d31732e27e1faa29b26b] "json:\"credential_bindings,omitzero\""
+	Description            Field[d68d31732e2810811354b90]   "json:\"description,omitzero\""
+	Disabled               Field[json.RawMessage]           "json:\"disabled,omitzero\""
+	DomainRef              Field[d68d31732e2c6dab0f09ff8]   "json:\"domain_ref,omitzero\""
+	Groups                 Field[d68d31732e27704b2a7c2e3]   "json:\"groups,omitzero\""
+	Home                   Field[d68d31732e21b1d34db4533]   "json:\"home,omitzero\""
+	Mail                   Field[string]                    "json:\"mail,omitzero\""
+	MaterializationProfile Field[json.RawMessage]           "json:\"materialization_profile,omitzero\""
+	Node                   Field[string]                    "json:\"node,omitzero\""
+	PasswordStrength       Field[json.RawMessage]           "json:\"password_strength,omitzero\""
+	Shell                  Field[d68d31732e2acafa161eb2a]   "json:\"shell,omitzero\""
+	Spn                    Field[string]                    "json:\"spn,omitzero\""
+	Username               Field[d68d31732e270ccd48a3d77]   "json:\"username,omitzero\""
+}
+
+type d68d31732e2e75455512926 d68d31732e2140e37e90ad0
+
+type d68d31732e2ebafdbbcba8a string
+
+type d68d31732e2ed03f1c2892d struct {
+	Protocol   Field[json.RawMessage] "json:\"protocol,omitzero\""
+	ServiceRef Field[string]          "json:\"service_ref,omitzero\""
+}
+
+type d68d31732e2ee3f9e370ec4 string
+
+type d68d31732e2eee0b8279984 struct {
+	BackendDisclosureRefs Field[[]d68d31732e2722a28a6d4d6] "json:\"backend_disclosure_refs,omitzero\""
 	ClockAuthority        Field[string]                    "json:\"clock_authority,omitzero\""
-	Description           Field[d68d31732e2985516775398]   "json:\"description,omitzero\""
+	Description           Field[d68d31732e25fe5e52e7ff3]   "json:\"description,omitzero\""
 	DurationRef           Field[json.RawMessage]           "json:\"duration_ref,omitzero\""
 	EventPoints           Field[[]d68d31732e2ebafdbbcba8a] "json:\"event_points,omitzero\""
 	OrderingBasis         Field[string]                    "json:\"ordering_basis,omitzero\""
@@ -804,101 +896,32 @@ type d68d31732e2d6f2d27e44a4 struct {
 	WindowRef             Field[json.RawMessage]           "json:\"window_ref,omitzero\""
 }
 
-type d68d31732e2d7d338c33991 d68d31732e21a23af2db249
-
-type d68d31732e2da3ab692e384 string
-
-type d68d31732e2db566ce6bdef d68d31732e2313f72e2ad48
-
-type d68d31732e2dc25f0e8c0f4 string
-
-type d68d31732e2dd68c9ad8983 struct {
-	Basis                Field[d68d31732e2fd1f56ecb7c2]   "json:\"basis,omitzero\""
-	Description          Field[string]                    "json:\"description,omitzero\""
-	EvidenceRequirements Field[[]d68d31732e24a2b29093523] "json:\"evidence_requirements,omitzero\""
-	Predicate            Field[json.RawMessage]           "json:\"predicate,omitzero\""
-	Quantifier           Field[d68d31732e268860ace705e]   "json:\"quantifier,omitzero\""
-	Subjects             Field[[]d68d31732e24a2b29093523] "json:\"subjects,omitzero\""
-	Threshold            Field[json.RawMessage]           "json:\"threshold,omitzero\""
-}
-
-type d68d31732e2de9215d0da1a struct {
-	ActionInstanceId          Field[json.RawMessage]         "json:\"action_instance_id,omitzero\""
-	Certainty                 Field[string]                  "json:\"certainty,omitzero\""
-	DisclosureRule            Field[json.RawMessage]         "json:\"disclosure_rule,omitzero\""
-	EffectiveFrom             Field[string]                  "json:\"effective_from,omitzero\""
-	EffectiveOrder            Field[json.Number]             "json:\"effective_order,omitzero\""
-	EvidenceRefs              Field[d68d31732e23b8dbcfd4b6e] "json:\"evidence_refs,omitzero\""
-	FromDisposition           Field[d68d31732e26dfe2c7d2b42] "json:\"from_disposition,omitzero\""
-	HistoryEventType          Field[d68d31732e29e76458c9c86] "json:\"history_event_type,omitzero\""
-	InformationRef            Field[d68d31732e24fd65e19ce6f] "json:\"information_ref,omitzero\""
-	LatencyProfile            Field[d68d31732e25d6a5578ef98] "json:\"latency_profile,omitzero\""
-	RealizedBackendDisclosure Field[json.RawMessage]         "json:\"realized_backend_disclosure,omitzero\""
-	ToDisposition             Field[d68d31732e26dfe2c7d2b42] "json:\"to_disposition,omitzero\""
-	TransitionId              Field[string]                  "json:\"transition_id,omitzero\""
-	TransitionKind            Field[d68d31732e2acaa6d17dddd] "json:\"transition_kind,omitzero\""
-	Trigger                   Field[string]                  "json:\"trigger,omitzero\""
-}
-
-type d68d31732e2df1a70dec87b string
-
-type d68d31732e2e3469203fccd string
-
-type d68d31732e2e75455512926 d68d31732e2f7bb7228aead
-
-type d68d31732e2e9f472de3973 struct {
-	AccessMode       Field[d68d31732e2a9ff352e261d] "json:\"access_mode,omitzero\""
-	MountDestination Field[d68d31732e281740d43bde0] "json:\"mount_destination,omitzero\""
-	Node             Field[d68d31732e255b74baec8e6] "json:\"node,omitzero\""
-}
-
-type d68d31732e2ebafdbbcba8a string
-
-type d68d31732e2edce02974c9a struct {
-	AuthorityKind Field[d68d31732e2bc7b6b2d5154] "json:\"authority_kind,omitzero\""
-	AuthorityRef  Field[string]                  "json:\"authority_ref,omitzero\""
-	Description   Field[d68d31732e2985516775398] "json:\"description,omitzero\""
-	Monotonicity  Field[d68d31732e23bbeda2040db] "json:\"monotonicity,omitzero\""
-	SupportsJump  Field[bool]                    "json:\"supports_jump,omitzero\""
-	SupportsPause Field[bool]                    "json:\"supports_pause,omitzero\""
-	SupportsReset Field[bool]                    "json:\"supports_reset,omitzero\""
-	TimeDomainRef Field[string]                  "json:\"time_domain_ref,omitzero\""
-}
-
-type d68d31732e2ee3f9e370ec4 string
-
-type d68d31732e2f1234b81bf0f struct {
-	Description  Field[d68d31732e2985516775398] "json:\"description,omitzero\""
-	EffectClass  Field[d68d31732e215bc6df3e8a0] "json:\"effect_class,omitzero\""
-	EffectId     Field[string]                  "json:\"effect_id,omitzero\""
-	EvidenceRefs Field[d68d31732e23b8dbcfd4b6e] "json:\"evidence_refs,omitzero\""
-	TargetRefs   Field[d68d31732e2541e8ce1b82b] "json:\"target_refs,omitzero\""
-}
-
-type d68d31732e2f22c0f5b935e struct {
-	AdvancementMode     Field[d68d31732e25cc2a9426c41] "json:\"advancement_mode,omitzero\""
-	ClockRef            Field[d68d31732e23da17f868d4c] "json:\"clock_ref,omitzero\""
-	Description         Field[d68d31732e2985516775398] "json:\"description,omitzero\""
-	DriftBoundTicks     Field[json.RawMessage]         "json:\"drift_bound_ticks,omitzero\""
-	PacingRatio         Field[d68d31732e21934bac67f6a] "json:\"pacing_ratio,omitzero\""
-	ReplayBehavior      Field[d68d31732e22c29a312ff67] "json:\"replay_behavior,omitzero\""
-	ResetBehavior       Field[d68d31732e24416f3caedec] "json:\"reset_behavior,omitzero\""
-	StepTicks           Field[json.RawMessage]         "json:\"step_ticks,omitzero\""
-	SynchronizationMode Field[d68d31732e2ee3f9e370ec4] "json:\"synchronization_mode,omitzero\""
+type d68d31732e2f142c621028e struct {
+	Description Field[d68d31732e2810811354b90]            "json:\"description,omitzero\""
+	Entities    Field[map[string]json.RawMessage]         "json:\"entities,omitzero\""
+	Events      Field[d68d31732e2d22b717d8799]            "json:\"events,omitzero\""
+	Facts       Field[map[string]d68d31732e2722a28a6d4d6] "json:\"facts,omitzero\""
+	Mission     Field[string]                             "json:\"mission,omitzero\""
+	Name        Field[d68d31732e2f914241733c6]            "json:\"name,omitzero\""
+	Role        Field[json.RawMessage]                    "json:\"role,omitzero\""
 }
 
 type d68d31732e2f3e33541859b string
 
-type d68d31732e2f53404433db1 d68d31732e2a96cec1e8d79
+type d68d31732e2f53404433db1 d68d31732e20733f83fef2e
 
-type d68d31732e2f5ac7e4a9f96 d68d31732e21cf9fa37843d
+type d68d31732e2f5ac7e4a9f96 d68d31732e2d88b4512e563
 
-type d68d31732e2f6cd76472e38 d68d31732e2f70423e36650
+type d68d31732e2f6cd76472e38 d68d31732e2fad4ba42828b
 
-type d68d31732e2f70423e36650 struct {
+type d68d31732e2f81f7c416197 string
+
+type d68d31732e2f914241733c6 string
+
+type d68d31732e2fad4ba42828b struct {
 	CarrierPlacement   Field[json.RawMessage]                    "json:\"carrier_placement,omitzero\""
 	DatabaseAccess     Field[json.RawMessage]                    "json:\"database_access,omitzero\""
-	Description        Field[d68d31732e2b7adb1daa22b]            "json:\"description,omitzero\""
+	Description        Field[d68d31732e2810811354b90]            "json:\"description,omitzero\""
 	DomainController   Field[json.RawMessage]                    "json:\"domain_controller,omitzero\""
 	DomainJoin         Field[json.RawMessage]                    "json:\"domain_join,omitzero\""
 	ForestTrust        Field[json.RawMessage]                    "json:\"forest_trust,omitzero\""
@@ -906,42 +929,22 @@ type d68d31732e2f70423e36650 struct {
 	IdentityFederation Field[json.RawMessage]                    "json:\"identity_federation,omitzero\""
 	MailAccess         Field[json.RawMessage]                    "json:\"mail_access,omitzero\""
 	Participant        Field[json.RawMessage]                    "json:\"participant,omitzero\""
-	Properties         Field[map[string]d68d31732e24a2b29093523] "json:\"properties,omitzero\""
+	Properties         Field[map[string]d68d31732e2722a28a6d4d6] "json:\"properties,omitzero\""
 	ProxyUpstream      Field[json.RawMessage]                    "json:\"proxy_upstream,omitzero\""
 	ServiceIntegration Field[json.RawMessage]                    "json:\"service_integration,omitzero\""
 	SharedService      Field[json.RawMessage]                    "json:\"shared_service,omitzero\""
 	Source             Field[string]                             "json:\"source,omitzero\""
-	Target             Field[d68d31732e2d3fd2dd7eaa2]            "json:\"target,omitzero\""
+	Target             Field[d68d31732e2a6c09e4aa5d4]            "json:\"target,omitzero\""
 	Type               Field[d68d31732e273fc2166a561]            "json:\"type,omitzero\""
 }
 
-type d68d31732e2f7bb7228aead struct {
-	BackendErrorCode Field[string]                  "json:\"backend_error_code,omitzero\""
-	Diagnostic       Field[string]                  "json:\"diagnostic,omitzero\""
-	FailureClass     Field[d68d31732e27c3226757c0c] "json:\"failure_class,omitzero\""
-}
-
-type d68d31732e2f81f7c416197 string
-
-type d68d31732e2f914241733c6 string
+type d68d31732e2fbcee7a05a8d string
 
 type d68d31732e2fd1f56ecb7c2 string
 
-type d68d31732e2ff078ae97e74 struct {
-	Description       Field[d68d31732e2985516775398] "json:\"description,omitzero\""
-	Epoch             Field[d68d31732e2afeb89e7b9af] "json:\"epoch,omitzero\""
-	Kind              Field[d68d31732e2d6c736ec8923] "json:\"kind,omitzero\""
-	TickPeriodSeconds Field[d68d31732e21934bac67f6a] "json:\"tick_period_seconds,omitzero\""
-	Visibility        Field[d68d31732e29f83b9643ce9] "json:\"visibility,omitzero\""
-}
-
-type d68d31732e2ff957b643d20 struct {
-	Description     Field[d68d31732e2985516775398] "json:\"description,omitzero\""
-	MappingKind     Field[d68d31732e2577aacad9b00] "json:\"mapping_kind,omitzero\""
-	OffsetTicks     Field[json.Number]             "json:\"offset_ticks,omitzero\""
-	Scale           Field[d68d31732e21934bac67f6a] "json:\"scale,omitzero\""
-	SourceDomainRef Field[string]                  "json:\"source_domain_ref,omitzero\""
-	TargetDomainRef Field[string]                  "json:\"target_domain_ref,omitzero\""
+type d68d31732e2ff4dd1c40c2a struct {
+	DomainRefs    Field[[]d68d31732e2722a28a6d4d6] "json:\"domain_refs,omitzero\""
+	RootDomainRef Field[string]                    "json:\"root_domain_ref,omitzero\""
 }
 
 var _ json.RawMessage

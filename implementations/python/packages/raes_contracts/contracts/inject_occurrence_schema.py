@@ -11,7 +11,7 @@ from .participant_inject_application import (
     ParticipantInjectContentModel,
     ParticipantInjectDeliveryReceiptModel,
 )
-from .schema_invariants import _add_raes_invariant
+from .schema_invariants import add_raes_invariant
 
 _REQUEST = {"contract_id": "inject-trigger-request-v1", "instance_path": "#"}
 _OCCURRENCE = {"contract_id": "inject-occurrence-v1", "instance_path": "#"}
@@ -77,21 +77,21 @@ def inject_occurrence_schema_bundle() -> dict[str, dict[str, Any]]:
     schemas = {}
     for inputs, model, invariant_id, description in _LOCAL:
         schema = model.model_json_schema()
-        _add_raes_invariant(
+        add_raes_invariant(
             schema,
             invariant_id,
             description,
             inputs=[inputs],
         )
         schemas[inputs["contract_id"]] = schema
-    _add_raes_invariant(
+    add_raes_invariant(
         schemas["inject-trigger-request-v1"],
         "inject-trigger-exact-retry",
         "Only the original actor, key and request commitment retrieve the original claim; changed content conflicts "
         "and no retry admits, rebases or dispatches again.",
         inputs=[_OCCURRENCE, _REQUEST],
     )
-    _add_raes_invariant(
+    add_raes_invariant(
         schemas["inject-occurrence-v1"],
         "inject-occurrence-unique-claims",
         "Retry keys, occurrences, operations, schedule slots, order positions and order predecessors are each claimed "
@@ -99,7 +99,7 @@ def inject_occurrence_schema_bundle() -> dict[str, dict[str, Any]]:
         "head chain itself is not checked.",
         inputs=[_OCCURRENCE],
     )
-    _add_raes_invariant(
+    add_raes_invariant(
         schemas["inject-occurrence-outcome-v1"],
         "inject-occurrence-outcome-binding",
         "Readback answers one backend invocation that commands the exact claimed occurrence under its operation and "
@@ -108,7 +108,7 @@ def inject_occurrence_schema_bundle() -> dict[str, dict[str, Any]]:
         "resource scope. This grants no dispatch; an adopting runtime still validates and commits the terminal state.",
         inputs=[_OCCURRENCE, _INVOCATION, _OUTCOME],
     )
-    _add_raes_invariant(
+    add_raes_invariant(
         schemas["inject-occurrence-correlation-v1"],
         "inject-occurrence-correlation-source",
         "A received correlation equals the join recomputed from its occurrence, invocation and validated outcome; "

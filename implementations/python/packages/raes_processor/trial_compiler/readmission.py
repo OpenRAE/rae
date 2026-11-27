@@ -1,8 +1,8 @@
 """Readmit a candidate against separately trusted original compilation inputs."""
 
-from raes_contracts.admitted_trial_plan_ingress import revalidate_admitted_trial_plan
 from raes_contracts.canonical import canonical_json_bytes
 from raes_contracts.contracts import AdmittedTrialPlanModel
+from raes_contracts.contracts.admitted_trial_plan_ingress import revalidate_admitted_trial_plan
 from raes_contracts.errors import EvidenceIntegrityError
 
 from .compiler import compile_admitted_trial_plan

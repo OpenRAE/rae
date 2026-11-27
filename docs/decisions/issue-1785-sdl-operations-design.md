@@ -18,28 +18,33 @@ The module owner decodes sources and checks contracts.
 It does not import the authoring package.
 The existing public module declarations remain the consumer contract.
 Callers grant registry access.
+
 That grant includes policy, transport, and cache access.
 The `Admitter` callback runs after the native checks.
 The `TrustPolicy` alias preserves the planned API name.
 It can only narrow policy.
 `NewRegistry` receives the cache directory and both policies.
+
 The second policy is optional.
 `Registry.Verify` checks supplied OCI bytes; `Registry.Resolve` acquires only allowlisted modules.
 `Registry.Publish` receives its source filesystem, output directory, and signing bytes explicitly.
 It requires the existing authoring owner through `PublicationAdmitter`.
 `Parser.AdmitModuleSources` checks source construction and composition without semantic execution.
 It returns the canonical entrypoint and a copied local source snapshot.
+
 The publisher packages those exact checked bytes.
 It does not reopen source paths.
 The module publisher does not implement another composition validator.
 `DecodeLockfile` is the shared strict lock decoder.
 Lock resolution validates only the root import declarations.
 An optional `SourceAdmitter` checks each complete imported source.
+
 It uses the native constructor.
 `Parser.AdmitModuleSource` supplies this port.
 It keeps the hashed bytes and does not expand imports.
 Without this port, direct module callers supply normalized source values.
 The contract owner checks them.
+
 The module and semantic command adapters always supply the native source owner.
 `Registry.ResolveLocked` verifies the exact locked manifest and retains all other integrity checks.
 The bundle returns copied sources, the root identity, and checked lock facts.
@@ -51,11 +56,13 @@ The parity package adapts existing command cases to these operations.
 It does not implement their semantics or launch Python.
 `Document.ReferenceBindings` reads the admitted declaration index.
 It returns a sorted copy of the alias sets.
+
 The read-only semantic command uses these sets.
 It does not build another index.
 `DecodeContext` and `FormatContext` pass the caller context through each call.
 This reaches registry requests and locks.
 The existing `Decode` and `Format` methods use a background context.
+
 Methods receive the context as a parameter.
 Requests and documents do not store it.
 The Python implementation and published schemas remain unchanged.
@@ -67,6 +74,7 @@ The runtime repository split changes no processing behavior.
 It runs semantic admission before binding.
 Binding collects required, type, allowed-value, and undeclared-parameter errors in reference order.
 A whole-field binding keeps its type.
+
 Text bindings use Python's scalar form.
 It leaves mapping keys and pinned control-context assets unchanged.
 It makes one substitution pass.
@@ -76,6 +84,7 @@ The operation fills constructor defaults through the existing schema-guided visi
 It preserves omitted listener protocols.
 It records binding origins before it removes variables.
 It also records constraints, derivations, explicitness, and realization intent.
+
 Imported records retain their namespaces and original locations.
 The concrete payload has no authoring-only declarations or unresolved tokens.
 The owner constructs and checks the whole concrete payload again.
@@ -85,6 +94,7 @@ Success returns a fresh sealed handle.
 It does not trust claims from their producer.
 It checks the published phase shape and concrete-token exclusion.
 It checks binding identities and semantic rules.
+
 It checks that constraints and derivations match the output.
 A caller field cannot set private admission state.
 Snapshot admission retains its own envelope and digest projection.
@@ -100,6 +110,7 @@ It uses closed outcome variants and the existing domain and reference owners.
 It checks sizes, order, precedence, fixed positions, and cross-point relations.
 These checks run before any writes.
 All writes resolve against the unchanged family.
+
 Equal writes may coincide; conflicting, ancestor, or absent-owner writes fail.
 Structural selection keeps row content and source order.
 It moves or removes provenance with the selected rows.
@@ -127,15 +138,18 @@ This supplies Ed25519, SHA-256, gzip decoding, tar, HTTP, and rooted file access
 The publisher keeps Python tar headers.
 A bounded adapter wraps the standard tar writer.
 The standard Go compressor failed the exact compressed-byte vector.
+
 For this byte profile, use `github.com/autonubil/go-wazuh/pkg/zlib` v1.4.0.
 Its raw deflate encoder matched the Python fixture in a separate probe.
 The package has no runtime imports beyond the standard library.
 Only the encoder receives the bounded local input for publication.
 The received-archive path retains standard-library decoding.
+
 The module pin is commit `52a4472cf366abd2408ca6f146e8578d54780a05`.
 Its module checksum is `h1:YgVmxlAAvzjbEsShinkyq9R71aV0aQhC8Wn2NVDFekk=`.
 The upstream license is Apache-2.0; normal dependency provenance and distribution checks apply.
 One payload builder serves signing and verification.
+
 It uses `base/canonjson.Sorted` with ASCII escaping and no newline.
 The signed fields are `module_id`, `module_version`, `exports`, `content_digest`, and `root_file`.
 Export hashes use the same sorted profile.
@@ -146,6 +160,7 @@ An explicit registry allowlist precedes requests.
 The client bounds reads and request time.
 Redirects must stay within the approved authority.
 Config bytes must match the manifest before decoding.
+
 Bundle bytes must match the layer digest before archive inspection.
 Verification binds the exact root entrypoint and trusted signer.
 Locks cannot supply missing trust or bypass version, export, module, or digest checks.
@@ -158,6 +173,7 @@ It bounds compressed bytes and expanded stream bytes.
 Separate limits cover member count, member size, total size, ratio, and path depth.
 It rejects links, devices, traversal, duplicate paths, path conflicts, and reserved metadata.
 It checks actual member sizes against their headers.
+
 Verified source capture copies the reachable SDL graph.
 The existing composition limits apply.
 Publication admits only explicit local imports.
@@ -170,6 +186,7 @@ They retain no-follow checks, bounded locks, staging, immutable versions, and at
 Recovery validates orphaned versions before publication.
 Cache checks compare the whole tree with the verified archive inventory.
 It never trusts a local manifest as independent evidence.
+
 Composition uses the captured bytes after it releases the lock.
 It does not reopen cache paths.
 Publication writes the established local OCI layout.
@@ -185,12 +202,14 @@ Rename uses the existing reference ownership tables and namespace rewrite operat
 It preserves explicit field presence and verifies the reverse canonical identity.
 Removal requires the exact authorized loss kind and refuses dangling references.
 Both operations reconcile current provenance model paths and field pointers.
+
 They share path reconciliation with selection.
 Removal drops records for the removed declaration.
 Historical import identities remain unchanged.
 The owner retargets linked concept documents.
 It checks them against exact subjects and pinned scheme snapshots.
 Each operation returns an admitted document and a separate JSON result envelope.
+
 The envelope contains the published report and any transformed binding documents.
 A refusal returns the report without a document or partial linked output.
 Reports retain the published operation, policy, derivation, preservation, and digest profiles.
@@ -203,10 +222,12 @@ Semantic migration requires source-bound author decisions and the published migr
 Typed sentinel fields remain distinct from arbitrary strings.
 Decisions apply to original positions before list removals.
 Imports require independent migration.
+
 Classification, participant, and mixed-control migration use separate profiles.
 Each keeps its own required decisions.
 `Migrate` accepts a closed operation envelope with `operation_profile` and `context`.
 Progressive migration also accepts its published author context directly.
+
 Its extended context contains `author`, linked `bindings`, and local `snapshots`.
 Classification context contains `bindings`, `existing`, `snapshots`, and the loss `policy`.
 Participant context retains the source digest and exact objective decisions.
@@ -250,6 +271,7 @@ Declare each changed interface and dependency in `implementations/architecture.j
 Bind exact API commitments to this design and review the generated architecture view.
 Keep SDL dependencies within the SDL, contract, and base layers.
 Reuse the existing policy, standards, corpus, regression, coverage, and scheduled mutation gates.
+
 No new policy gate, schema, requirement UID, or service is required.
 Publication uses the pinned pure Go zlib encoder described above.
 The [verification index](issue-1785-sdl-operations-verification.md) maps issue criteria to code and tests.
@@ -262,7 +284,7 @@ Repository baseline: `17bf4515bf12747af69c8598a2fc82d73e9651b9`.
 The behavioral sources are the issue's Python operation owners and their CLI adapters.
 The published SDL schemas and specifications supply the normative rules.
 ADR-053, ADR-084, ADR-105, and ADR-119 also apply.
-ADR-121 and ADR-122 own Go standards and architecture checks.
+ADR-123 and ADR-124 own Go standards and architecture checks.
 The operation-specific [preflight](issue-1785-sdl-operations-preflight.md) supplies the binding guardrails.
 
 - [Effective Go](https://go.dev/doc/effective_go), Go 1.27.3: private state, errors, and interfaces.

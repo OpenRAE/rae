@@ -118,7 +118,7 @@ func (m *semanticModel) checkObjectiveAssertionRoles(c *semanticCollector) {
 			switch {
 			case !present:
 				c.report(owner, fmt.Sprintf("Objective '%s' success assertion '%s' not in assertions section", row.name, ref))
-			case string(fieldValue(value.Role)) != "invariant" && string(fieldValue(value.Role)) != "postcondition":
+			case string(fieldValue(value.Role)) != "invariant" && string(fieldValue(value.Role)) != rolePostcondition:
 				c.report(owner, fmt.Sprintf("Objective '%s' success assertion '%s' must be an invariant or postcondition", row.name, ref))
 			}
 		}
@@ -142,7 +142,7 @@ func (m *semanticModel) checkPreconditionUses(c *semanticCollector, owner semant
 		switch {
 		case !present:
 			c.report(owner, fmt.Sprintf("%s assertion '%s' not in assertions section", label, ref))
-		case string(fieldValue(value.Role)) != "precondition":
+		case string(fieldValue(value.Role)) != rolePrecondition:
 			c.report(owner, fmt.Sprintf("%s assertion '%s' %s must be a precondition", label, ref, use))
 		}
 	}
