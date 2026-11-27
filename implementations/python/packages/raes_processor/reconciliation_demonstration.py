@@ -26,6 +26,7 @@ from enum import Enum
 from raes import SDLError
 from raes_backend_protocols.capabilities import BackendManifest
 from raes_contracts.diagnostics import Diagnostic
+from raes_contracts.errors import InvalidInputError
 from raes_contracts.planning import ChangeAction, PlannedResource, PlanOperation, PlanScope, RuntimeDomain
 from raes_contracts.runtime_state import RuntimeSnapshot, SnapshotEntry
 
@@ -49,7 +50,7 @@ __all__ = [
 PLANNED_STATE_PROJECTION = "planned-state-projection"
 
 
-class ReconciliationInputError(ValueError):
+class ReconciliationInputError(InvalidInputError):
     """The demonstration was handed input outside its narrow contract."""
 
 

@@ -16,8 +16,8 @@ from raes import (
     parse_sdl_file,
 )
 from raes.language_service import language_completions, language_references
-from raes_contracts.contracts import schema_bundle
 from raes_processor.compiler import compile_runtime_model
+from raes_schemas import schema_bundle
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 

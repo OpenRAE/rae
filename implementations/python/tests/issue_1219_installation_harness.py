@@ -94,7 +94,9 @@ def _worker(
 
         result = _ensure(Path(root_text), acquire)
         result_queue.put({"path": str(result), "payload": result.read_bytes().hex()})
-    except BaseException as exc:  # noqa: BLE001 - the parent must observe exact worker failure.
+    # BLE001 is a false positive here: nothing is swallowed. The worker process
+    # sends the exact failure to the parent, which asserts on it.
+    except BaseException as exc:  # noqa: BLE001
         result_queue.put({"error": f"{type(exc).__name__}:{exc}"})
 
 
@@ -244,7 +246,7 @@ def _bounded_lock_timeout(root: Path) -> float:
     contender.start()
     result = result_queue.get(timeout=5)
     contender.join(5)
-    if result.get("error") != "RuntimeError:tool-installation: lock-timeout":
+    if result.get("error") != "ToolInstallationError:tool-installation: lock-timeout":
         raise AssertionError(f"contender did not time out safely: {result}")
     publisher.kill()
     publisher.join(5)
@@ -275,7 +277,7 @@ def _unsafe_lock_rejection(root: Path) -> float:
     lock.symlink_to(outside)
     try:
         _ensure(root, unavailable)
-    except RuntimeError as exc:
+    except installation.ToolInstallationError as exc:
         if str(exc) != "tool-installation: unsafe-lock-file":
             raise
     else:
@@ -297,7 +299,7 @@ def _quota_failure_recovery(root: Path) -> float:
     try:
         try:
             _ensure(root)
-        except RuntimeError as exc:
+        except installation.ToolInstallationError as exc:
             if str(exc) != "tool-installation: storage-exhausted":
                 raise
         else:

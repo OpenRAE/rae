@@ -1,9 +1,13 @@
-# Formal Specifications
+# Formal specifications
 
-Optional formal artifacts for RAES SDL semantic and stateful subsystems.
+Use this reference to find formal domains and their assurance requirements.
 
-These specifications live under `specs/formal/<domain>/` in the repository and
-cover the formally-verified properties of key subsystems. See
+The specifications live under `specs/formal/<domain>/`.
+A specification alone does not prove that its properties hold in a running system.
+Each domain records its own evidence and limits.
+Use the [formal domain index](../../specs/formal/README.md) for current domain introductions.
+Use the [research entry](../research/index.md) for recorded results and source revisions.
+See
 [ADR-007](../decisions/adrs/adr-007-lightweight-formal-methods-policy.md) and the
 [coding standards](../explain/reference/coding-standards.md) for the policy on when
 formal artifacts are warranted.
@@ -43,19 +47,21 @@ formal artifacts are warranted.
   participant-projection, strategic, probabilistic, statistical, and empirical
   claim semantics with explicit evidence and assurance boundaries
 
-## FM Classification
+<a id="fm-classification"></a>
+
+## Assurance classification
 
 The canonical mapping is
 [`specs/formal/assurance-policy.yaml`](../../specs/formal/assurance-policy.yaml)
 (see [ADR-018](../decisions/adrs/adr-018-classification-based-assurance-policy.md)),
-which is the structural source of truth and gates CI via
+which gives the structural classification and is checked in CI by
 `tools/check_assurance_policy.py`.
 
-Whether each classified domain above actually fulfills the artifact kinds its FM
-level requires — delivered, or explicitly waived with an ISO date and tracking
-reference — is recorded per subsystem in
+Artifact fulfillment is recorded per subsystem in
 [`specs/formal/assurance-fulfillment.yaml`](../../specs/formal/assurance-fulfillment.yaml)
-and gated by the same checker.
+and checked by the same tool.
+A waiver needs an ISO date and tracking reference.
+Use these two files for exact classification and fulfillment facts.
 
 | Level | Scope | Required artifacts |
 |-------|-------|--------------------|

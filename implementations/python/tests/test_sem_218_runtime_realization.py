@@ -22,11 +22,11 @@ import textwrap
 from dataclasses import replace
 
 from raes import parse_sdl
-from raes.explicitness import ExplicitnessClass, ExplicitnessProvenance
 from raes_backend_protocols.capabilities import OperatingSystemCompatibility
 from raes_backend_stubs.manifest import load_stub_realization_envelope
 from raes_backend_stubs.stubs import StubProvisioner, create_stub_target
 from raes_contracts.apparatus import RealizationObservationCapability
+from raes_contracts.explicitness import ExplicitnessClass, ExplicitnessProvenance
 from raes_contracts.realization_observation import (
     ObservedOperatingSystemIdentity,
     RealizationObservationDisclosure,

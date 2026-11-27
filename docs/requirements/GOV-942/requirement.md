@@ -23,6 +23,7 @@ Academic review and range integration require a reproducible, machine-checkable 
 
 - IMPLEMENTS → SPEC `contracts/profiles/scientific-completeness/scientific-scenario-completeness-rev1.json` (REV1 scientific scenario completeness taxonomy)
 - IMPLEMENTS → SPEC `contracts/profiles/scientific-completeness/delivery-assessment-2026-07-12.json` (Scientific completeness delivery assessment)
+- IMPLEMENTS → SPEC `contracts/profiles/scientific-completeness/delivery-assessment-2026-10-31.json` (Current scientific completeness delivery assessment selected by the package loader)
 - IMPLEMENTS → SPEC `specs/sdl/scientific-scenario-completeness.md` (Scientific scenario completeness specification)
 - IMPLEMENTS → CODE_FILE `tools/check_scientific_scenario_completeness.py` (Scientific completeness policy checker)
 - TESTS → TEST `implementations/python/tests/test_scientific_scenario_completeness.py` (Scientific completeness contract and policy tests)
@@ -35,3 +36,6 @@ Academic review and range integration require a reproducible, machine-checkable 
 - TESTS → TEST `implementations/python/tests/test_behavioral_relations.py` (Behavioral-relation catalog, binding, and counterexample tests)
 - TESTS → TEST `implementations/python/tests/test_behavioral_relation_claims.py` (Behavioral-relation claim policy tests)
 - IMPLEMENTS → GITHUB_ISSUE `747` (Define behavioral-relation taxonomy and prevent conformance/equivalence conflation)
+- IMPLEMENTS → SPEC `contracts/schemas/concept-authority/behavioral-relations-v1.json` (behavioral-relations-v1 published schema)
+- IMPLEMENTS → SPEC `contracts/schemas/profiles/scientific-completeness-assessment-v1.json` (scientific-completeness-assessment-v1 published schema)
+- IMPLEMENTS → SPEC `contracts/schemas/profiles/scientific-completeness-taxonomy-v1.json` (scientific-completeness-taxonomy-v1 published schema)

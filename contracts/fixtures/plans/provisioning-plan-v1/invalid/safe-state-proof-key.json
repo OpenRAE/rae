@@ -1,0 +1,89 @@
+{
+  "operations": [],
+  "diagnostics": [],
+  "realization_authority": [],
+  "safe_states": [
+    {
+      "governing_scope": "#/",
+      "namespace": [],
+      "proofs": {
+        "safe": {
+          "assertion": {
+            "description": "",
+            "polarity": "positive",
+            "proposition": "safe",
+            "role": "postcondition"
+          },
+          "evidence_requirements": {
+            "readback": {
+              "artifact_role": "",
+              "boundary_kind": "",
+              "boundary_ref": "",
+              "capture_requirement_ref": "",
+              "capture_spec_ref": "",
+              "channel": "api_response",
+              "channel_refs": [],
+              "description": "",
+              "field_selectors": [],
+              "integrity": "checksum",
+              "loss_disclosure": "required",
+              "media_types": [],
+              "notes": [],
+              "observation_demand": null,
+              "output_contract": "",
+              "redaction": "none",
+              "retention": "run_lifetime",
+              "scope": "",
+              "scope_refs": [
+                "nodes.first",
+                "nodes.second",
+                "nodes.first.services.api"
+              ],
+              "sensitivity": "plain",
+              "source_class": null,
+              "source_refs": [
+                "nodes.first",
+                "nodes.second",
+                "nodes.first.services.api"
+              ],
+              "trigger_ref": "",
+              "window": "safe-state-verification"
+            }
+          },
+          "proposition": {
+            "basis": "observed_state",
+            "description": "The admitted safe-state condition holds.",
+            "evidence_requirements": [
+              "readback"
+            ],
+            "predicate": {
+              "expected": true,
+              "kind": "boolean",
+              "operator": "equals",
+              "property": "safe",
+              "semantic_ref": "urn:example:safe"
+            },
+            "quantifier": "all",
+            "subjects": [
+              "nodes.first",
+              "nodes.second",
+              "nodes.first.services.api"
+            ],
+            "threshold": null
+          }
+        },
+        " ": null
+      },
+      "scope": "/nodes/first",
+      "state": {
+        "assertion_refs": [
+          "safe"
+        ],
+        "continuing_mode": null,
+        "kind": "safe-hold",
+        "schema_version": "safe-state/v1"
+      },
+      "target_ref": "nodes.first"
+    }
+  ]
+}

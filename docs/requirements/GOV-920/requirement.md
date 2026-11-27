@@ -27,3 +27,8 @@ Interoperability requires more than nominal support for a schema. Shared semanti
 - TESTS → TEST `implementations/python/tests/test_runtime_contracts.py` (Semantic profile schema publication tests)
 - DOCUMENTS → SPEC `specs/concept-authority/semantic-profiles.md` (Shared semantic profiles specification)
 - DOCUMENTS → DOCUMENTATION `docs/explain/reference/shared-concept-model.md` (Shared semantic profile design guidance)
+- IMPLEMENTS → SPEC `contracts/schemas/profiles/domain-profile-admission-policy-v1.json` (domain-profile-admission-policy-v1 published schema)
+- IMPLEMENTS → SPEC `contracts/schemas/profiles/domain-profile-binding-v1.json` (domain-profile-binding-v1 published schema)
+- IMPLEMENTS → SPEC `contracts/schemas/profiles/domain-profile-definition-v1.json` (domain-profile-definition-v1 published schema)
+- IMPLEMENTS → SPEC `contracts/schemas/profiles/domain-profile-resolution-context-v1.json` (domain-profile-resolution-context-v1 published schema)
+- IMPLEMENTS → SPEC `contracts/schemas/profiles/domain-profile-support-declaration-v1.json` (domain-profile-support-declaration-v1 published schema)

@@ -2,20 +2,18 @@
 
 from __future__ import annotations
 
-from collections.abc import Mapping, Sequence
+from collections.abc import Callable, Mapping, Sequence
 
 from pydantic import BaseModel
+from raes_contracts.json_pointer import escape_token
+from raes_contracts.variable_references import extract_variable_name
 
-from ._base import extract_variable_name
 from .nodes import Node
-from .phase_contracts import CapabilityConstraint
+from .parameter_derivations import capture_parameter_derivation
+from .phase_contracts import CapabilityConstraint, ParameterDerivation
 from .runtime_resource_limits import RuntimeProcessResourceLimit
 from .scenario import ExpandedScenario, Scenario
 from .variables import Variable
-
-
-def _json_pointer_segment(value: str) -> str:
-    return value.replace("~", "~0").replace("/", "~1")
 
 
 def _finite_domain_constraint(
@@ -55,7 +53,7 @@ def _process_limit_capability_constraints(
     variables: Mapping[str, Variable],
 ) -> list[CapabilityConstraint]:
     constraints: list[CapabilityConstraint] = []
-    node_pointer = f"/nodes/{_json_pointer_segment(node_name)}"
+    node_pointer = f"/nodes/{escape_token(node_name)}"
     for index, process_limit in enumerate(process_limits):
         pointer = f"{node_pointer}/runtime/operational_policy/resource_limits/process_limits/{index}"
         constraints.extend(
@@ -79,7 +77,7 @@ def _node_capability_constraints(
     node: Node,
     variables: Mapping[str, Variable],
 ) -> list[CapabilityConstraint]:
-    node_pointer = f"/nodes/{_json_pointer_segment(node_name)}"
+    node_pointer = f"/nodes/{escape_token(node_name)}"
     constraints = _present_constraints(
         _finite_domain_constraint(
             field_pointer=f"{node_pointer}/os",
@@ -123,8 +121,12 @@ def _node_capability_constraints(
 
 
 def _runtime_scalar_constraints(
-    value: object, *, pointer: str, variables: Mapping[str, Variable]
-) -> list[CapabilityConstraint]:
+    value: object,
+    *,
+    pointer: str,
+    variables: Mapping[str, Variable],
+    capture: Callable[..., CapabilityConstraint | ParameterDerivation | None] = _finite_domain_constraint,
+) -> list[CapabilityConstraint | ParameterDerivation]:
     """Retain public typed scalar domains, never classification-governed raw alternatives.
 
     Classified records require their owning safe projection before a domain can
@@ -137,26 +139,28 @@ def _runtime_scalar_constraints(
         classified = any(name.endswith(("classification", "sensitivity")) for name in fields) or getattr(
             value, "command_redacted", False
         )
-        if classified:
-            return []
+        public_fields = getattr(value, "realization_public_parameter_fields", frozenset())
         children = (
             (name, getattr(value, name))
             for name, info in fields.items()
-            if not isinstance(info.json_schema_extra, dict)
-            or info.json_schema_extra.get("x-raes-realization-dimension") is not False
+            if (not classified or name in public_fields)
+            and (
+                not isinstance(info.json_schema_extra, dict)
+                or info.json_schema_extra.get("x-raes-realization-dimension") is not False
+            )
         )
     elif isinstance(value, Mapping):
         children = value.items()
     elif isinstance(value, (list, tuple)):
         children = enumerate(value)
     else:
-        constraint = _finite_domain_constraint(field_pointer=pointer, value=value, variables=variables)
+        constraint = capture(field_pointer=pointer, value=value, variables=variables)
         return [constraint] if constraint is not None else []
     return [
         constraint
         for name, child in children
         for constraint in _runtime_scalar_constraints(
-            child, pointer=f"{pointer}/{_json_pointer_segment(str(name))}", variables=variables
+            child, pointer=f"{pointer}/{escape_token(str(name))}", variables=variables, capture=capture
         )
     ]
 
@@ -179,10 +183,45 @@ def capture_capability_constraints(
         constraints.extend(
             _present_constraints(
                 _finite_domain_constraint(
-                    field_pointer=f"/infrastructure/{_json_pointer_segment(node_name)}/count",
+                    field_pointer=f"/infrastructure/{escape_token(node_name)}/count",
                     value=infrastructure.count,
                     variables=scenario.variables,
                 )
             )
         )
     return tuple(constraints)
+
+
+def capture_parameter_derivations(scenario: Scenario | ExpandedScenario) -> tuple[ParameterDerivation, ...]:
+    """Retain substitution evidence only on owner-approved public runtime leaves."""
+
+    return tuple(
+        derivation
+        for name, node in scenario.nodes.items()
+        for derivation in _runtime_scalar_constraints(
+            node.runtime,
+            pointer=f"/nodes/{escape_token(name)}/runtime",
+            variables=scenario.variables,
+            capture=capture_parameter_derivation,
+        )
+        if isinstance(derivation, ParameterDerivation)
+    )
+
+
+def capture_bound_parameter_provenance(
+    scenario: Scenario | ExpandedScenario, preserved: set[str]
+) -> tuple[tuple[CapabilityConstraint, ...], tuple[ParameterDerivation, ...]]:
+    """Retain constraints and derivations for parameters bound in this phase."""
+    constraints = tuple(
+        constraint
+        for constraint in capture_capability_constraints(scenario)
+        if not constraint.parameter or constraint.parameter[0] not in preserved
+    )
+    derivations = tuple(
+        derivation
+        for derivation in capture_parameter_derivations(scenario)
+        if not any(
+            segment.parameter[0] in preserved for segment in derivation.segments if hasattr(segment, "parameter")
+        )
+    )
+    return constraints, derivations

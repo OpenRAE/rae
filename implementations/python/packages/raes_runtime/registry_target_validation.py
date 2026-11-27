@@ -2,12 +2,35 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable
+from collections.abc import Callable, Iterable
 
 from raes_backend_protocols.capabilities import BackendManifest
-from raes_backend_protocols.protocols import Evaluator, Orchestrator, ParticipantRuntime, TimeRuntime
+from raes_backend_protocols.operation_supervision import BackendOperationProvider, require_operation_provider
+from raes_backend_protocols.protocols import Evaluator, Orchestrator, ParticipantRuntime, Provisioner, TimeRuntime
 from raes_backend_protocols.recovery_observation import RecoveryObservationRequest, RecoveryObserver
+from raes_contracts.materialization_inventory import RUNTIME_DESCENDANTS_CONTRACT
 from raes_contracts.runtime_state import RuntimeSnapshot
+from raes_contracts.versions import BACKEND_OPERATION_CONTRACT_IDS
+
+
+def validate_inventory_contract(
+    manifest: BackendManifest, provisioner: Provisioner, require_invokable_method: Callable[..., None]
+) -> None:
+    if RUNTIME_DESCENDANTS_CONTRACT not in manifest.supported_contract_versions:
+        return
+    if "backend-materialization-attestation-v1" not in manifest.supported_contract_versions:
+        raise ValueError("runtime descendants require materialization attestation support")
+    require_invokable_method(
+        provisioner, label="provisioner", method_name="refresh_inventory", invocation_args=(object(), object())
+    )
+
+
+def validate_operation_provider(provider: BackendOperationProvider | None, declared_contracts: Iterable[str]) -> None:
+    declared = tuple(declared_contracts)
+    if provider is not None:
+        require_operation_provider(provider, declared)
+    elif set(BACKEND_OPERATION_CONTRACT_IDS) & set(declared):
+        raise ValueError("declared backend operation protocol requires an installed provider")
 
 
 def validate_optional_component_presence(

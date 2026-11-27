@@ -13,6 +13,7 @@ import pytest
 from raes_conformance.conformance import _semantic_diagnostics
 from raes_conformance.conformance.snapshot_semantics import _snapshot_from_envelope
 from raes_contracts.contracts.time_model import TimeRuntimeStateModel
+from raes_contracts.errors import EvidenceIntegrityError
 from raes_contracts.runtime_state import RuntimeSnapshot
 from raes_runtime.control_plane_store import InMemoryControlPlaneStore, LocalControlPlaneStore
 
@@ -217,8 +218,9 @@ def test_local_control_plane_store_rejects_invalid_durable_state(tmp_path: Path)
 
     _rewrite_durable_snapshot(store_path, mutate)
 
-    with pytest.raises(ValueError, match="attempted_actions must equal"):
+    with pytest.raises(EvidenceIntegrityError, match="runtime snapshot failed its durable contract check") as caught:
         store.load_snapshot()
+    assert "attempted_actions must equal" in str(caught.value.__cause__)
 
 
 def test_local_control_plane_store_rejects_durable_clock_segment_mismatch(tmp_path: Path) -> None:
@@ -245,8 +247,9 @@ def test_local_control_plane_store_rejects_durable_clock_segment_mismatch(tmp_pa
 
     _rewrite_durable_snapshot(store_path, mutate)
 
-    with pytest.raises(ValueError, match="must match the bound shared clock segment"):
+    with pytest.raises(EvidenceIntegrityError, match="runtime snapshot failed its durable contract check") as caught:
         store.load_snapshot()
+    assert "must match the bound shared clock segment" in str(caught.value.__cause__)
 
 
 def test_local_control_plane_store_rejects_corrupted_payload(tmp_path: Path) -> None:
@@ -257,7 +260,7 @@ def test_local_control_plane_store_rejects_corrupted_payload(tmp_path: Path) -> 
 
     _rewrite_durable_snapshot(store_path, lambda payload: payload.clear(), update_digest=False)
 
-    with pytest.raises(ValueError, match="failed its durable integrity check"):
+    with pytest.raises(EvidenceIntegrityError, match="failed its durable integrity check"):
         store.load_snapshot()
 
 

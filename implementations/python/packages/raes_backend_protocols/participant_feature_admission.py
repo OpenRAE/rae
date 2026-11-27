@@ -5,6 +5,7 @@ from __future__ import annotations
 from collections.abc import Iterable
 from typing import TYPE_CHECKING
 
+from raes_contracts.errors import ConflictError
 from raes_contracts.vocabulary import ParticipantFeatureSupportLevel
 
 from .capabilities import (
@@ -45,7 +46,7 @@ def _validate_downgrade_authorization(
     downgrade_provenance_ref: str | None,
 ) -> None:
     if allowed_downgrade_level is not None and (not downgrade_policy_ref or not downgrade_provenance_ref):
-        raise ValueError(
+        raise ConflictError(
             f"participant feature '{feature}' requires explicit downgrade authorization "
             "with policy and provenance references"
         )
@@ -57,16 +58,16 @@ def _participant_feature_declaration(
 ) -> ParticipantFeatureSupport | None:
     capability = manifest.participant_runtime
     if capability is None:
-        raise ValueError(f"participant feature '{feature}' requires participant runtime capabilities")
+        raise ConflictError(f"participant feature '{feature}' requires participant runtime capabilities")
 
     supported_features = capability.supported_behavior_features | capability.supported_interaction_features
     declaration = next((entry for entry in capability.feature_support if entry.feature == feature), None)
     if declaration is None:
         if feature in supported_features and feature not in PARTICIPANT_RUNTIME_EVIDENCE_REQUIRED_FEATURES:
             return None
-        raise ValueError(f"participant feature '{feature}' has no explicit support declaration")
+        raise ConflictError(f"participant feature '{feature}' has no explicit support declaration")
     if declaration.support_level == ParticipantFeatureSupportLevel.UNSUPPORTED:
-        raise ValueError(f"participant feature '{feature}' is explicitly unsupported")
+        raise ConflictError(f"participant feature '{feature}' is explicitly unsupported")
     return declaration
 
 
@@ -77,11 +78,11 @@ def _validate_participant_feature_evidence(
 ) -> None:
     missing_contracts = sorted(_participant_feature_required_contracts(feature) - manifest.supported_contract_versions)
     if missing_contracts:
-        raise ValueError(
+        raise ConflictError(
             f"participant feature '{feature}' is missing required contracts: {', '.join(missing_contracts)}"
         )
     if not declaration.evidence_refs and feature in PARTICIPANT_RUNTIME_EVIDENCE_REQUIRED_FEATURES:
-        raise ValueError(f"participant feature '{feature}' has no conformance evidence")
+        raise ConflictError(f"participant feature '{feature}' has no conformance evidence")
 
 
 def _validate_participant_feature_strength(
@@ -95,12 +96,12 @@ def _validate_participant_feature_strength(
     if declared_rank >= required_rank:
         return
     if allowed_downgrade_level is None:
-        raise ValueError(
+        raise ConflictError(
             f"participant feature '{feature}' requires {required_level.value} support; "
             f"backend declares {declaration.support_level.value}"
         )
     if declaration.support_level != allowed_downgrade_level:
-        raise ValueError(
+        raise ConflictError(
             f"participant feature '{feature}' authorized downgrade is "
             f"{allowed_downgrade_level.value}; backend declares {declaration.support_level.value}"
         )
@@ -115,7 +116,10 @@ def resolve_participant_feature_support(
     downgrade_policy_ref: str | None = None,
     downgrade_provenance_ref: str | None = None,
 ) -> ParticipantFeatureSupport | None:
-    """Resolve one required participant feature without inventing support."""
+    """Resolve one required participant feature without inventing support.
+
+    Raise ``ConflictError`` when the backend declaration cannot satisfy the requirement.
+    """
 
     _validate_downgrade_authorization(
         feature,
@@ -152,7 +156,7 @@ def participant_feature_support_gaps(
                 feature,
                 required_level=required_level,
             )
-        except ValueError as exc:
+        except ConflictError as exc:
             gaps.append(str(exc))
     return tuple(gaps)
 

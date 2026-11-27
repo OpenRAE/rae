@@ -3,7 +3,7 @@
 from dataclasses import replace
 
 import pytest
-from raes_contracts.plan_projection import (
+from raes_contracts.contracts.plan_projection import (
     evaluation_plan_model,
     orchestration_plan_model,
     provisioning_plan_model,

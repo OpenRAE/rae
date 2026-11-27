@@ -117,7 +117,7 @@
           ],
           "properties": {
             "format": {
-              "const": "tar.gz"
+              "enum": ["tar.gz", "deb"]
             },
             "manifest_sha256": {
               "type": "string",

@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import hashlib
 from dataclasses import dataclass
 
 import yaml
@@ -21,6 +20,7 @@ from raes_contracts.contracts import (
     TransformationCheckOutcome,
 )
 from raes_contracts.diagnostics import Severity
+from raes_contracts.errors import InvalidInputError
 from raes_contracts.external_concept_bindings import ExternalConceptSchemeSnapshotModel, admit_external_concept_bindings
 
 from ._errors import SDLError
@@ -33,10 +33,16 @@ from ._legacy_classification_source import (
 from ._source_profile import DEFAULT_PARSER_LIMITS, SDLParserLimits
 from ._transformation_bindings import _retarget_binding_document
 from ._transformation_support import check, diagnostic, transformation_policy_digest
-from ._transformation_types import ArtifactTransformationPolicy, SDLAuthoringArtifact, SDLTransformationResult
+from ._transformation_types import (
+    ArtifactTransformationPolicy,
+    SDLAuthoringArtifact,
+    SDLTransformationResult,
+    _TransformationRefusal,
+)
 from .canonical import canonical_sdl_digest
 from .external_concept_subjects import external_concept_subjects
 from .parser import parse_sdl
+from .semantic_revisions import source_byte_digest
 
 CLASSIFICATION_MIGRATION_PROFILE = "externalize-sdl-classifications/v1"
 _CONTEXT_INVALID = "classification-migration.context-invalid"
@@ -51,7 +57,7 @@ class _ReportContext:
     canonicalization_profile: str = "raes-sdl-semantic/v2"
 
 
-class _MigrationRefusal(Exception):
+class _MigrationRefusal(InvalidInputError):
     def __init__(self, code: str) -> None:
         super().__init__(code)
         self.code = code
@@ -239,7 +245,7 @@ def migrate_sdl_classifications(
         }
     )
     context = _ReportContext(
-        "sha256:" + hashlib.sha256(content.encode("utf-8")).hexdigest(),
+        source_byte_digest(content),
         resolved_policy,
         context_digest,
         "raw-utf8/v1",
@@ -268,7 +274,7 @@ def migrate_sdl_classifications(
 def _migration_source(content: str, limits: SDLParserLimits) -> LegacyClassificationSource:
     try:
         return read_legacy_classification_source(content, limits=limits)
-    except (SDLError, ValueError, TypeError) as exc:
+    except (SDLError, ValidationError) as exc:
         raise _MigrationRefusal("classification-migration.source-invalid") from exc
 
 
@@ -290,7 +296,7 @@ def _migration_losses(
 def _migration_target(source: LegacyClassificationSource, limits: SDLParserLimits) -> SDLAuthoringArtifact:
     try:
         target = parse_sdl(yaml.safe_dump(source.native, sort_keys=False), limits=limits)
-    except (SDLError, ValueError, TypeError) as exc:
+    except SDLError as exc:
         raise _MigrationRefusal("classification-migration.target-invalid") from exc
     if target.model_dump(mode="json", by_alias=True, exclude_unset=True) != source.native:
         raise _MigrationRefusal("classification-migration.native-projection-changed")
@@ -327,15 +333,15 @@ def _migration_bindings(
             )
             for document in documents
         )
-        if any(
-            not admit_external_concept_bindings(
-                document, subjects=tuple(target_subjects.values()), scheme_snapshots=scheme_snapshots
-            ).admitted
-            for document in output_documents
-        ):
-            raise _MigrationRefusal(_BINDING_ADMISSION_FAILED)
-    except (ValidationError, ValueError, TypeError) as exc:
+    except (ValidationError, _TransformationRefusal) as exc:
         raise _MigrationRefusal(_BINDING_ADMISSION_FAILED) from exc
+    if any(
+        not admit_external_concept_bindings(
+            document, subjects=tuple(target_subjects.values()), scheme_snapshots=scheme_snapshots
+        ).admitted
+        for document in output_documents
+    ):
+        raise _MigrationRefusal(_BINDING_ADMISSION_FAILED)
     return output_documents
 
 

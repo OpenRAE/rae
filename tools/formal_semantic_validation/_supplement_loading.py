@@ -5,9 +5,11 @@ from __future__ import annotations
 from collections.abc import Mapping
 from pathlib import Path
 
+from raes_contracts.errors import InvalidInputError
+
 from tools.evidence_bundle_index import revision_key
 from tools.formal_semantic_validation._loading import load_release_bundles
-from tools.formal_semantic_validation._shape import _nonempty_string
+from tools.formal_semantic_validation._shape import _hashable, _members, _nonempty_string
 from tools.formal_semantic_validation._types import (
     _HISTORICAL_BUNDLE_ID,
     _MAX_FILE_BYTES,
@@ -24,7 +26,7 @@ def load_bundle(repo_root: Path = REPO_ROOT) -> tuple[_JsonObject, _JsonObject, 
     for key in ("protocol_path", "corpus_path", "snapshot_path", "analysis_path"):
         value = manifest.get(key)
         if not _nonempty_string(value) or safe_repo_path(repo_root, str(value)) is None:
-            raise ValueError(f"manifest {key} must be a safe repository path")
+            raise InvalidInputError(f"manifest {key} must be a safe repository path")
         paths.append(str(value))
     protocol, corpus, snapshot, analysis = (
         load_bounded_json_object(repo_root, path, max_bytes=_MAX_FILE_BYTES) for path in paths
@@ -49,7 +51,7 @@ def load_satisfiability_analysis(
     ):
         path = safe_repo_path(repo_root, str(value)) if _nonempty_string(value) else None
         if path is None:
-            raise ValueError(f"manifest {key} must be a safe repository path")
+            raise InvalidInputError(f"manifest {key} must be a safe repository path")
     snapshot, analysis = (
         load_bounded_json_object(repo_root, str(value), max_bytes=_MAX_FILE_BYTES) for value in values
     )
@@ -64,19 +66,25 @@ def _assembled_manifest(repo_root: Path) -> dict[str, object]:
         if item.protocol.get("revision") == "1.0.0"
         and any(
             isinstance(artifact, Mapping) and artifact.get("kind") == "satisfiability-analysis"
-            for artifact in item.manifest.get("artifacts", [])
+            for artifact in _members(item.manifest.get("artifacts", []))
         )
     ]
     if not historical:
-        raise ValueError(f"{MANIFEST_PATH!r} must select an atomic historical satisfiability release")
+        raise InvalidInputError(f"{MANIFEST_PATH!r} must select an atomic historical satisfiability release")
     release = max(historical, key=lambda item: revision_key(item.manifest.get("revision")))
     artifact_by_kind = {
         artifact.get("kind"): artifact
-        for artifact in release.manifest.get("artifacts", [])
-        if isinstance(artifact, Mapping)
+        for artifact in _members(release.manifest.get("artifacts", []))
+        if isinstance(artifact, Mapping) and _hashable(artifact.get("kind"))
     }
-    supplement_snapshot = artifact_by_kind["satisfiability-snapshot"]
+    supplement_snapshot = artifact_by_kind.get("satisfiability-snapshot")
     supplement_analysis = artifact_by_kind["satisfiability-analysis"]
+    if (
+        not isinstance(supplement_snapshot, Mapping)
+        or "path" not in supplement_snapshot
+        or "path" not in supplement_analysis
+    ):
+        raise InvalidInputError(f"{MANIFEST_PATH!r} must select an atomic historical satisfiability release")
     return {
         "bundle_id": _HISTORICAL_BUNDLE_ID,
         "revision": release.manifest["revision"],

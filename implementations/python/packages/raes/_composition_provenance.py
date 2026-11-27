@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 
+from raes_contracts.json_pointer import escape_token, unescape_token
+
 from ._errors import SDLParseError
 from ._module_symbols import HASHMAP_SECTIONS
 from .instantiate import _BoundScenarioResult
@@ -11,6 +13,7 @@ from .module_registry import ResolvedModule
 from .phase_contracts import (
     CapabilityConstraint,
     ExplicitnessProvenanceRecord,
+    ParameterDerivation,
     ResolvedImportProvenance,
 )
 from .realization_designation import RealizationConstraintRecord, RealizationDesignationRecord
@@ -58,23 +61,34 @@ def prefixed_constraint(
     namespace: str,
     symbols: dict[str, dict[str, str] | set[str]],
 ) -> CapabilityConstraint:
-    parts = constraint.field_pointer.split("/")
+    pointer = _prefixed_constraint_pointer(constraint.field_pointer, symbols)
+    payload = constraint.model_dump(mode="python")
+    payload.update({"field_pointer": pointer, "parameter": (namespace, *constraint.parameter)})
+    return CapabilityConstraint.model_validate(payload)
+
+
+def _prefixed_constraint_pointer(pointer: str, symbols: dict[str, dict[str, str] | set[str]]) -> str:
+    parts = pointer.split("/")
     if len(parts) < 3:
         raise SDLParseError("Capability constraint does not address a namespaced declaration")
     section_name = parts[1]
-    declaration_name = _decode_pointer_segment(parts[2])
+    declaration_name = unescape_token(parts[2])
     section_symbols = symbols.get(section_name)
     if not isinstance(section_symbols, Mapping) or declaration_name not in section_symbols:
         raise SDLParseError("Capability constraint does not resolve to an imported declaration")
-    parts[2] = _encode_pointer_segment(section_symbols[declaration_name])
-    payload = constraint.model_dump(mode="python")
-    payload.update(
-        {
-            "field_pointer": "/".join(parts),
-            "parameter": (namespace, *constraint.parameter),
-        }
-    )
-    return CapabilityConstraint.model_validate(payload)
+    parts[2] = escape_token(section_symbols[declaration_name])
+    return "/".join(parts)
+
+
+def prefixed_parameter_derivation(
+    derivation: ParameterDerivation, *, namespace: str, symbols: dict[str, dict[str, str] | set[str]]
+) -> ParameterDerivation:
+    payload = derivation.model_dump(mode="python")
+    payload["field_pointer"] = _prefixed_constraint_pointer(derivation.field_pointer, symbols)
+    for segment in payload["segments"]:
+        if segment["kind"] == "parameter":
+            segment["parameter"] = (namespace, *segment["parameter"])
+    return ParameterDerivation.model_validate(payload)
 
 
 def prefixed_explicitness(
@@ -113,10 +127,10 @@ def prefixed_scope_pointer(field_pointer: str, *, symbols: dict[str, dict[str, s
     """Qualify a semantic location through the existing composition symbol map."""
     parts = field_pointer.split("/")
     if len(parts) >= 3:
-        section_symbols = symbols.get(_decode_pointer_segment(parts[1]))
-        declaration_name = _decode_pointer_segment(parts[2])
+        section_symbols = symbols.get(unescape_token(parts[1]))
+        declaration_name = unescape_token(parts[2])
         if isinstance(section_symbols, Mapping) and declaration_name in section_symbols:
-            parts[2] = _encode_pointer_segment(section_symbols[declaration_name])
+            parts[2] = escape_token(section_symbols[declaration_name])
     return "/".join(parts)
 
 
@@ -130,10 +144,10 @@ def prefixed_realization_constraint(
 
     parts = record.field_pointer.split("/")
     if len(parts) >= 3:
-        section_symbols = symbols.get(_decode_pointer_segment(parts[1]))
-        declaration_name = _decode_pointer_segment(parts[2])
+        section_symbols = symbols.get(unescape_token(parts[1]))
+        declaration_name = unescape_token(parts[2])
         if isinstance(section_symbols, Mapping) and declaration_name in section_symbols:
-            parts[2] = _encode_pointer_segment(section_symbols[declaration_name])
+            parts[2] = escape_token(section_symbols[declaration_name])
     return RealizationConstraintRecord(
         namespace=(namespace, *record.namespace),
         field_pointer="/".join(parts),
@@ -142,14 +156,6 @@ def prefixed_realization_constraint(
         domain=record.domain,
         provenance=record.provenance,
     )
-
-
-def _decode_pointer_segment(segment: str) -> str:
-    return segment.replace("~1", "/").replace("~0", "~")
-
-
-def _encode_pointer_segment(segment: str) -> str:
-    return segment.replace("~", "~0").replace("/", "~1")
 
 
 def _prefixed_model_path(

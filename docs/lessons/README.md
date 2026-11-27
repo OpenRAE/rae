@@ -1,45 +1,39 @@
-# Integration Lessons
+# Integration lessons
 
-This directory records integration findings from co-evolving RAES with
-sibling research projects that consume the RAES contract surface as
-backends. The first consumer is APTL (`Brad-Edwards/aptl`, sibling repo at
-`../aptl`).
+Use this how-to guide to record a dated integration finding.
+A finding describes what happened when a backend used RAES contracts.
+It is reference evidence, not a new architecture decision.
+Use the [ADR index](../decisions/adrs/README.md) for decisions and their status.
+This directory currently contains this guide; it has no dated finding entries.
 
-It is not a decision log. ADRs continue to record decisions; this directory
-records the **post-decision evidence** that emerges when RAES's published
-contracts, profiles, fixtures, and runtime model meet a real-world backend.
-Findings here can produce follow-up issues, amendments to existing ADRs, or
-new ADRs. The finding entry stays as the historical record.
+RAES owns its portable contracts and reference implementation.
+The integrating backend owns its native effects and backend-specific evidence.
+APTL was the first consumer considered by this convention.
+Use an explicit repository link for any corresponding backend record.
 
-## When To Write An Entry
+## When to write an entry
 
-Write a new entry when:
+Write an entry when integration reveals a contract, profile, fixture, runtime, or coordination problem.
+This includes these cases:
 
-- A published contract surface (`backend-manifest-v2`, runtime envelopes,
-  plan contracts, snapshot models) is ambiguous, incomplete, or implies
-  something the conformance suite does not enforce.
-- The published profile (`provisioning-only`,
-  `orchestration-capable`, `orchestration-evaluation`,
-  `full-remote-control-plane`) under-specifies or over-specifies what a
-  real backend has to provide.
-- The fixture corpus passes for a backend that's not actually production-
-  conformant, or fails for a backend that is.
-- The reference Python implementation (`raes_processor`,
-  `raes_backend_stubs`, `raes_conformance`) makes an assumption the real
-  backend can't honor.
-- The `RuntimeTarget` / `RuntimeManager` API needs a shape change to
-  accommodate a backend's actual lifecycle, capabilities, or failure
-  modes.
-- A piece of cross-repo coordination cost surprised you — naming, schema
-  version handling, dependency pinning, release cadence.
+- A contract is ambiguous, incomplete, or promises a check that conformance does not enforce.
+  Examples include `backend-manifest-v2`, runtime envelopes, plan contracts, and snapshot models.
+- A profile requires too much or too little from a backend.
+  Profiles include `provisioning-only`, `orchestration-capable`, `orchestration-evaluation`, and `full-remote-control-plane`.
+- A fixture accepts a nonconformant backend or rejects a conformant backend.
+- A reference implementation assumption does not hold for the integrating backend.
+  Relevant packages include `raes_processor`, `raes_backend_stubs`, and `raes_conformance`.
+- `RuntimeTarget` or `RuntimeManager` needs an API change for the backend's lifecycle, capabilities, or failure modes.
+- Coordination exposes a problem with names, schema versions, dependency pins, or release cadence.
 
-Routine implementation work does not need an entry. Do not dilute the
-signal.
+Record the expected result, observed result, source revision, and evidence limits.
+Keep routine implementation details in their delivery issue.
+A later correction does not replace the original observation.
 
 ## Convention
 
-One Markdown file per finding, named `YYYY-MM-DD-<short-slug>.md`. Slug is
-kebab-case; pick the noun the finding is about, not a verb.
+Create one Markdown file per finding, named `YYYY-MM-DD-<short-slug>.md`.
+Use a lowercase noun phrase with hyphens for the slug.
 
 Each entry's frontmatter:
 
@@ -71,38 +65,41 @@ Body sections (use the ones that apply, omit the rest):
 - **Decision** — what landed in the current PR. Use one of: `fix-in-raes`,
   `fix-in-backend`, `cross-repo-coordination`, `accept`, `escalate`. Do
   not use `defer` — record a `follow_ups` issue instead.
-- **Why this side** — when fix could have landed on either repo, why we
-  chose the one we did. RAES's bias should be toward fixing the contract
-  surface (not papering over it in the backend), but evidence from the
-  first backend integration is exactly the moment to question that bias.
+- **Why this side** — explain why the selected repository owns the correction.
+  Prefer a correction to the portable contract when the evidence shows a contract defect.
+  Explain any evidence that changes this choice.
 - **Follow-ups** — issues opened on each side, with cross-references.
 
-## Cross-Repo Symmetry
+## Cross-repo symmetry
 
-The sibling repository maintains the same convention at the same path
-(`docs/lessons/`). Entries that describe the same finding from each side's
-viewpoint should link to each other via the `sibling_entry` frontmatter
-field. Do not assume a 1:1 mapping — many findings only need an entry on
-one side.
+Use `sibling_entry` to link corresponding findings when the other repository has one.
+A finding can apply to only one repository.
+Do not invent a matching record.
+Keep each repository's observation and corrective action distinct.
 
-## Why Not An ADR
+<a id="why-not-an-adr"></a>
 
-ADRs answer "what did we decide and why." Lessons answer "what did we
-discover when the decision met reality." Mixing the two pollutes the
-decision record's signal: later readers cannot tell where the
-authoritative position ends and the war stories begin.
+## Decision records
 
-## Why Not Issue Threads
+ADRs explain decisions and their consequences.
+Lessons preserve observations from integration.
+A finding can lead to an amendment or a new ADR.
+Keep the observation as a dated reference after that decision changes.
 
-Issue threads scroll, close, and rot. They live on a single repo with
-unstable URLs, are gated by GitHub auth for some readers, and are not part
-of the source-tree narrative. Lessons are durable next to the code that
-embodies them.
+<a id="why-not-issue-threads"></a>
 
-## Relationship To The Reference Backend
+## Issue threads
 
-`raes_backend_stubs` is the reference Python backend. When the same finding
-applies to both the reference stub and a real backend, prefer recording it
-on the RAES side with `contract_impact` / `profile_impact` populated, and
-cross-link the backend repo's entry only when the backend-specific
-adaptation cost is itself the lesson.
+An issue tracks corrective work and discussion.
+A lesson keeps the finding beside the code at its source revision.
+Link the delivery issues and their results from the finding.
+
+<a id="relationship-to-the-reference-backend"></a>
+
+## Backend ownership
+
+The historical convention names `raes_backend_stubs` as the reference Python backend.
+Use [ADR-115](../decisions/adrs/adr-115-concrete-backends-owned-outside-raes.md) for the current concrete-backend ownership decision.
+Record portable contract findings on the RAES side.
+Record backend-specific adaptation and native-effect findings in the backend repository.
+Cross-link the records when both apply.

@@ -1,0 +1,77 @@
+{
+  "schema_version": "inject-occurrence/v1",
+  "operation_id": "operation-release-1",
+  "request": {
+    "schema_version": "inject-trigger-request/v1",
+    "request_key": "researcher-release-key-1",
+    "occurrence_id": "release-occurrence-1",
+    "target_scope": "target:reference",
+    "run_scope": "run:environment-1",
+    "plan": {
+      "contract_id": "orchestration-plan-v1",
+      "artifact_id": "orchestration-plan-1",
+      "digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+    },
+    "inject": "orchestration.inject.release",
+    "bindings": [
+      {
+        "binding": "orchestration.inject-binding.host.release",
+        "node": "provision.node.host",
+        "instance": "host-1",
+        "revision": "realization-r1"
+      }
+    ],
+    "placement": {
+      "kind": "event",
+      "event": "orchestration.event.gate"
+    },
+    "input_ref": null,
+    "expected_head": "order-head-9"
+  },
+  "admission": {
+    "actor_id": "researcher-1",
+    "authorization_scope": [
+      "role:operator"
+    ],
+    "target_scope": "target:reference",
+    "run_scope": "run:environment-1",
+    "operation_kind": "orchestration",
+    "request_commitment": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+    "parent_operation_id": null
+  },
+  "admission_evidence": [
+    {
+      "contract_id": "proposition-truth-result-v1",
+      "artifact_id": "precondition-results-1",
+      "digest": "sha256:3333333333333333333333333333333333333333333333333333333333333333"
+    }
+  ],
+  "store_revision": "store-revision-41",
+  "order": {
+    "scope": "run:environment-1",
+    "predecessor": "order-head-10",
+    "position": 10
+  },
+  "scenario": {
+    "contract_id": "instantiated-scenario-v1",
+    "artifact_id": "external-trigger-environment",
+    "digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444"
+  },
+  "source": {
+    "contract_id": "associated-artifact-manifest-v1",
+    "artifact_id": "release-notice-source",
+    "digest": "sha256:5555555555555555555555555555555555555555555555555555555555555555"
+  },
+  "realization": {
+    "contract_id": "backend-manifest-v2",
+    "artifact_id": "reference-realization",
+    "digest": "sha256:6666666666666666666666666666666666666666666666666666666666666666"
+  },
+  "evidence_requirements": [
+    {
+      "contract_id": "runtime-snapshot-v1",
+      "artifact_id": "readback-requirement-1",
+      "digest": "sha256:7777777777777777777777777777777777777777777777777777777777777777"
+    }
+  ]
+}

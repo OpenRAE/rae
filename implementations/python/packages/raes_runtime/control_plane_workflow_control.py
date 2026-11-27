@@ -19,6 +19,7 @@ from raes_contracts.runtime_state import (
     OperationState,
     OperationStatus,
 )
+from raes_contracts.timestamps import isoformat_z
 from raes_contracts.workflow import (
     WorkflowCompensationStatus,
     WorkflowExecutionState,
@@ -27,11 +28,7 @@ from raes_contracts.workflow import (
     WorkflowStatus,
 )
 
-from .control_plane_execution import (
-    SucceededOperationRequest,
-    _utc_now,
-    persist_succeeded_operation,
-)
+from .control_plane_execution import SucceededOperationRequest, persist_succeeded_operation
 from .control_plane_lifecycle import runtime_owned
 from .control_plane_mutation import control_plane_mutation, mutation_entry
 from .control_plane_operation_context import (
@@ -45,6 +42,7 @@ from .control_plane_store import (
 )
 from .control_plane_timeouts import _reconciliation_clock, workflow_timeout_update
 from .control_plane_workflows import maybe_apply_compensation
+from .workflow_checkpoints import retained_invocation_result
 
 _TERMINAL_WORKFLOW_STATUSES = {
     WorkflowStatus.SUCCEEDED,
@@ -118,7 +116,7 @@ class WorkflowControlMixin:
         idempotency_key: str,
     ) -> OperationReceipt | None:
         operation_id = str(uuid4())
-        submitted_at = _utc_now()
+        submitted_at = isoformat_z(self.wall_clock())
         receipt = OperationReceipt(
             operation_id=operation_id,
             domain=RuntimeDomain.ORCHESTRATION,
@@ -177,7 +175,7 @@ class WorkflowControlMixin:
             identity=identity,
             run_scope=f"run:{run_id}" if run_id else None,
         )
-        submitted_at = _utc_now()
+        submitted_at = isoformat_z(self.wall_clock())
         operation_id = str(uuid4())
         context = self._cancellable_workflow_state(
             workflow_address,
@@ -249,6 +247,8 @@ class WorkflowControlMixin:
         run_id: str | None,
     ) -> WorkflowExecutionState | str:
         result = dict(self._snapshot.orchestration_results.get(workflow_address, {}))
+        if run_id and result.get("run_id") != run_id:
+            result = retained_invocation_result(self._operations, workflow_address, run_id) or result
         rejection = None
         normalized: WorkflowExecutionState | None = None
         if not result:
@@ -293,6 +293,9 @@ class WorkflowControlMixin:
                 event_type=WorkflowHistoryEventType.WORKFLOW_CANCELLED,
                 timestamp=submitted_at,
                 details={"reason": reason},
+                invocation_id=normalized.run_id
+                if any(event.get("invocation_id") == normalized.run_id for event in history)
+                else None,
             ).to_payload()
         )
         cancelled, history = maybe_apply_compensation(
@@ -392,7 +395,7 @@ class WorkflowControlMixin:
             request={"now": now or "runtime-clock"},
             identity=identity,
         )
-        submitted_at = now or _utc_now()
+        submitted_at = now or isoformat_z(self.wall_clock())
         reconciliation_clock = _reconciliation_clock(submitted_at)
         changed: list[str] = []
         orchestration_results = dict(self._snapshot.orchestration_results)

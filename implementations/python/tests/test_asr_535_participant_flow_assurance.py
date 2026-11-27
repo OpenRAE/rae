@@ -11,6 +11,7 @@ and every case below is finite falsification evidence only.
 from __future__ import annotations
 
 import json
+import logging
 from dataclasses import replace
 from itertools import product
 
@@ -508,3 +509,79 @@ def test_the_probe_ledger_is_derived_by_the_runner_not_self_reported() -> None:
     assert denial.evidence_refs
     assert denial.effective_support_level == "exact"
     assert denial.policy_binding.counterexample_ref == "crossing-disposition:deny"
+
+
+def test_a_case_for_an_undeclared_feature_is_a_refused_probe_without_a_record(caplog) -> None:
+    class UndeclaredFeatureHarness(ParticipantPolicyConformanceHarness):
+        def cases(self, target):
+            return (replace(super().cases(target)[0], feature="participant_undeclared_feature"),)
+
+    with caplog.at_level(logging.ERROR, logger="raes_conformance"):
+        report = run_target_conformance(
+            policy_capable_target(*PROBED_POLICY_FEATURES),
+            participant_policy_harness=UndeclaredFeatureHarness(),
+        )
+
+    case = next(case for case in report.cases if case.capability_feature == "participant_undeclared_feature")
+    assert case.outcome == "failed"
+    assert [diag.code for diag in case.diagnostics] == ["conformance.participant-policy-probe-failed"]
+    assert "InvalidInputError" in case.diagnostics[0].message
+    assert not [record for record in caplog.records if record.name.endswith("participant_policy_probes")]
+
+
+def test_a_failing_probe_is_reported_and_logged_without_its_values(monkeypatch, caplog) -> None:
+    from raes_conformance.conformance import participant_policy_probes
+
+    def _fail(case, target):
+        raise RuntimeError(f"backend detail {_SECRET_MARKER}")
+
+    monkeypatch.setattr(participant_policy_probes, "_run_case", _fail)
+    with caplog.at_level(logging.ERROR, logger="raes_conformance"):
+        report = run_target_conformance(
+            policy_capable_target(*PROBED_POLICY_FEATURES),
+            participant_policy_harness=ParticipantPolicyConformanceHarness(),
+        )
+
+    failed = [case for case in report.cases if case.policy_binding is not None and case.outcome == "failed"]
+    assert failed
+    assert {diag.code for case in failed for diag in case.diagnostics} == {
+        "conformance.participant-policy-probe-failed"
+    }
+    assert _SECRET_MARKER not in repr(report)
+    records = [record for record in caplog.records if record.name.endswith("participant_policy_probes")]
+    assert len(records) == len(failed)
+    for record in records:
+        assert _SECRET_MARKER not in record.getMessage()
+        assert _SECRET_MARKER not in (record.exc_text or "")
+        assert "ForeignCodeFailure" in (record.exc_text or "")
+
+
+def test_a_record_validation_defect_is_not_reported_as_an_invalid_record(monkeypatch, caplog) -> None:
+    from raes_conformance.conformance import participant_policy_execution
+
+    class _DefectiveRecordModel:
+        @staticmethod
+        def model_validate(_entry):
+            raise TypeError("record validation defect")
+
+    monkeypatch.setattr(participant_policy_execution, "ParticipantCrossingOccurrenceModel", _DefectiveRecordModel)
+    with caplog.at_level(logging.ERROR, logger="raes_conformance"):
+        report = run_target_conformance(
+            policy_capable_target(*PROBED_POLICY_FEATURES),
+            participant_policy_harness=ParticipantPolicyConformanceHarness(),
+        )
+
+    denial = next(case for case in report.cases if case.policy_binding and case.policy_binding.obligation == "denial")
+    assert [diag.code for diag in denial.diagnostics] == ["conformance.participant-policy-probe-failed"]
+    assert any(record.name.endswith("participant_policy_probes") for record in caplog.records)
+
+
+def test_a_validator_defect_is_not_reported_as_an_invalid_payload(monkeypatch) -> None:
+    from raes_conformance.conformance import validators
+
+    def _defect(_payload):
+        raise TypeError("validator defect")
+
+    monkeypatch.setitem(validators._MODEL_VALIDATORS, "operation-status-v1", _defect)
+    with pytest.raises(TypeError, match="validator defect"):
+        validate_contract_payload("operation-status-v1", {})

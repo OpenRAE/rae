@@ -10,17 +10,19 @@ from enum import Enum
 from math import isfinite
 
 from pydantic import Field, field_validator, model_validator
-from typing_extensions import TypeAliasType
-
-from .._base import SDLModel
-from .._classification_guard import LegacyClassificationGuard
-from .._identifiers import PortableIdentifier
-from ..participant_action_semantics import (
+from raes_contracts.identifiers import PortableIdentifier
+from raes_contracts.participant_action_semantics import (
     ParticipantActionEffect,
     ParticipantActionPrecondition,
     ParticipantBackendFailureMapping,
     ParticipantFailureClass,
 )
+from raes_contracts.participant_action_semantics import (
+    ParticipantInteractionClass as _ParticipantInteractionClass,
+)
+from raes_contracts.sdl_model import SDLModel
+
+from .._classification_guard import LegacyClassificationGuard
 from ..participant_temporal_semantics import (
     ParticipantBackendTimingDisclosure,
     ParticipantTemporalContract,
@@ -76,14 +78,8 @@ class ParticipantActionArgumentOmission(str, Enum):
     OMIT = "omit"
 
 
-ParticipantActionArgumentScalar = TypeAliasType(
-    "ParticipantActionArgumentScalar",
-    str | int | float | bool,
-)
-ParticipantActionArgumentAuthoredValue = TypeAliasType(
-    "ParticipantActionArgumentAuthoredValue",
-    ParticipantActionArgumentScalar | list[ParticipantActionArgumentScalar],
-)
+type ParticipantActionArgumentScalar = str | int | float | bool
+type ParticipantActionArgumentAuthoredValue = ParticipantActionArgumentScalar | list[ParticipantActionArgumentScalar]
 
 
 def _participant_argument_scalar_matches(
@@ -145,7 +141,7 @@ class ParticipantActionArgumentDefinition(SDLModel):
         return value
 
     @model_validator(mode="after")
-    def _validate_argument_domain(self) -> "ParticipantActionArgumentDefinition":
+    def _validate_argument_domain(self) -> ParticipantActionArgumentDefinition:
         self._normalize_domain_literals()
         self._validate_cardinality()
         self._validate_type_specific_constraints()
@@ -288,15 +284,6 @@ class ParticipantActionArgumentDefinition(SDLModel):
             raise ValueError(f"{field_name} must satisfy maximum")
 
 
-class ParticipantInteractionClass(str, Enum):
-    """SEM-209 interaction classes for multi-participant behavior."""
-
-    COORDINATION = "coordination"
-    CONTENTION = "contention"
-    INTERFERENCE = "interference"
-    SHARED_STATE_CHANGE = "shared_state_change"
-
-
 class ExternalMappingLoss(SDLModel):
     """Historical mapping syntax, retained solely for explicit migration."""
 
@@ -316,7 +303,7 @@ class ExternalMappingLoss(SDLModel):
 class ParticipantInteractionDeclaration(SDLModel):
     """Declared interaction semantics for a participant action contract."""
 
-    interaction_class: ParticipantInteractionClass
+    interaction_class: _ParticipantInteractionClass
     target: str
     rationale: str
     related_actions: list[str] = Field(default_factory=list)
@@ -347,14 +334,14 @@ class ParticipantInteractionDeclaration(SDLModel):
         return values
 
     @model_validator(mode="after")
-    def _validate_sem209_class_payload(self) -> "ParticipantInteractionDeclaration":
+    def _validate_sem209_class_payload(self) -> ParticipantInteractionDeclaration:
         if self.commutative and self.merge_rule_ref is not None:
             raise ValueError("participant interaction must declare commutativity or a merge rule, not both")
         if (
             self.interaction_class
             in {
-                ParticipantInteractionClass.COORDINATION,
-                ParticipantInteractionClass.INTERFERENCE,
+                _ParticipantInteractionClass.COORDINATION,
+                _ParticipantInteractionClass.INTERFERENCE,
             }
             and not self.related_actions
         ):
@@ -362,8 +349,8 @@ class ParticipantInteractionDeclaration(SDLModel):
         if (
             self.interaction_class
             in {
-                ParticipantInteractionClass.CONTENTION,
-                ParticipantInteractionClass.SHARED_STATE_CHANGE,
+                _ParticipantInteractionClass.CONTENTION,
+                _ParticipantInteractionClass.SHARED_STATE_CHANGE,
             }
             and not self.shared_state_refs
         ):
@@ -421,7 +408,7 @@ class ParticipantActionContract(LegacyClassificationGuard):
         return values
 
     @model_validator(mode="after")
-    def _validate_sem211_payload(self) -> "ParticipantActionContract":
+    def _validate_sem211_payload(self) -> ParticipantActionContract:
         if not self.preconditions:
             raise ValueError("participant action contracts require typed preconditions")
         if not self.effects:

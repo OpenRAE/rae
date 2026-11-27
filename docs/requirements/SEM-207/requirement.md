@@ -34,3 +34,4 @@ Requirement inventory phase. Status audit deferred until the full canonical grap
 - TESTS → TEST `implementations/python/tests/test_semantics_objectives.py` (Objective semantics analyzer + dependency-partition unit tests (TestObjectiveSemantics, TestObjectiveDependencyPartition))
 - TESTS → TEST `implementations/python/tests/test_fm2_semantics.py` (Cross-stage objective-semantics agreement (TestObjectiveSemanticAgreement))
 - TESTS → TEST `implementations/python/tests/test_sdl_validator.py` (SDL validator objective-binding tests (TestVerifyObjectives))
+- IMPLEMENTS → SPEC `contracts/schemas/control-plane/proposition-truth-result-v1.json` (proposition-truth-result-v1 published schema)

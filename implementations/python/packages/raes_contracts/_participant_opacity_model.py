@@ -6,6 +6,10 @@ from typing import Literal
 
 from pydantic import Field, model_validator
 
+from raes_contracts._base import ContractModel, PrefixedDigestString
+from raes_contracts.behavioral_claims import BehavioralClaimBindingModel
+from raes_contracts.source_identity import SourceArtifactIdentityModel
+
 from ._participant_opacity_common import (
     MAX_OPACITY_MODEL_STATES,
     MAX_OPACITY_MODEL_TRANSITIONS,
@@ -15,12 +19,6 @@ from ._participant_opacity_common import (
     SafeRef,
 )
 from .canonical import canonical_json_digest
-from .contracts.base import (
-    BehavioralClaimBindingModel,
-    ContractModel,
-    PrefixedDigestString,
-)
-from .satisfiability import SourceArtifactIdentityModel
 from .versions import PARTICIPANT_OPACITY_MODEL_CHECK_INPUT_SCHEMA_VERSION
 
 
@@ -178,7 +176,8 @@ def _validate_model_identities(request: ParticipantOpacityModelCheckInputModel) 
         raise ValueError("model transition refs must be unique")
     if request.initial_state_ordinals != tuple(sorted(set(request.initial_state_ordinals))):
         raise ValueError("initial state ordinals must be unique and sorted")
-    if any(ordinal >= len(request.states) for ordinal in request.initial_state_ordinals):
+    # A negative ordinal would index from the end of the states, so require the declared range.
+    if any(not 0 <= ordinal < len(request.states) for ordinal in request.initial_state_ordinals):
         raise ValueError("initial state ordinals must reference declared states")
 
 

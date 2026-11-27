@@ -5,21 +5,21 @@ Split out of ``runtime_datastore_partitions.py`` (ADR-015 file-size governance).
 """
 
 from pydantic import Field, field_validator, model_validator
-
-from raes.runtime_vocabulary import GovernedVocabulary
-
-from ._base import SDLModel, parse_int_or_var
-from ._runtime_datastore_support import _reject_duplicate_values, _require_object_name
-from .runtime_datastore_vocab import (
-    RuntimeDatastoreNodeEndpointRole,
-    RuntimeDatastoreNodeRole,
-)
-from .runtime_values import (
+from raes_contracts.governed_vocabulary import GovernedVocabulary
+from raes_contracts.runtime_values import (
     coerce_string_list,
     parse_optional_bool_or_var,
     parse_ram,
     parse_runtime_enum_or_var,
     require_symbol,
+)
+from raes_contracts.sdl_model import SDLModel
+from raes_contracts.variable_references import parse_int_or_var
+
+from ._runtime_datastore_support import _reject_duplicate_values, _require_object_name
+from .runtime_datastore_vocab import (
+    RuntimeDatastoreNodeEndpointRole,
+    RuntimeDatastoreNodeRole,
 )
 
 
@@ -134,7 +134,7 @@ class RuntimeDatastoreNode(SDLModel):
         return parse_optional_bool_or_var(v, field_name="memory_locked")
 
     @model_validator(mode="after")
-    def validate_node(self) -> "RuntimeDatastoreNode":
+    def validate_node(self) -> RuntimeDatastoreNode:
         _reject_duplicate_values(self.roles, field_name="roles", owner=self.node_id)
         _reject_duplicate_values(
             [plugin.plugin_id for plugin in self.plugins], field_name="plugin_id", owner=self.node_id

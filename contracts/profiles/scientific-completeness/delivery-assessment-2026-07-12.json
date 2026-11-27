@@ -103,8 +103,8 @@
       ]
     },
     {
-      "concern_id": "backend-teardown-reconciliation", "status": "partial", "limitation": "Reference backends have teardown paths, but portable authored cleanup and cross-backend reconciliation guarantees are incomplete.", "issue_refs": ["#658"],
-      "evidence": [{"kind": "implementation", "path": "implementations/python/packages/raes_backend_libvirt/provisioner.py", "claim": "Libvirt teardown and reconciliation implementation."}]
+      "concern_id": "backend-teardown-reconciliation", "status": "partial", "limitation": "RAES reconciles operations whose effects are unknown, but native teardown belongs to backend distributions (ADR-115). Portable authored cleanup and cross-backend reconciliation guarantees are incomplete.", "issue_refs": ["#658", "#967"],
+      "evidence": [{"kind": "implementation", "path": "implementations/python/packages/raes_runtime/control_plane_recovery.py", "claim": "Runtime-owned startup reconciliation and linked administrative resolution of indeterminate operations."}, {"kind": "test", "path": "implementations/python/tests/test_issue_1179_startup_reconciliation.py", "claim": "Startup reconciliation and indeterminate-resolution regressions."}]
     },
     {
       "concern_id": "manual-rollback", "status": "missing", "limitation": "No general authored manual or advanced rollback contract exists.", "issue_refs": ["#658"], "evidence": []

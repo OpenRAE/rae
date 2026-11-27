@@ -8,7 +8,7 @@ import json
 import pytest
 from pydantic import ValidationError
 from raes_contracts.contracts import ExperimentCaptureSpecModel
-from raes_contracts.evidence_satisfaction import validate_experiment_run_evidence
+from raes_contracts.contracts.evidence_satisfaction import validate_experiment_run_evidence
 from test_issue_1112_capture_admission import (
     EVENT_STREAM_FIXTURE,
     _capture_scenario,

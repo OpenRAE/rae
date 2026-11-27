@@ -5,6 +5,7 @@ from __future__ import annotations
 from collections.abc import Iterator, Mapping
 from dataclasses import dataclass
 
+from .immutable_history import EventHistory
 from .participant_concurrency_time import TIME_CONTEXTS_KEY as _TIME_CONTEXTS_KEY
 from .participant_concurrency_time import time_contexts_violations as _time_contexts_violations
 
@@ -70,7 +71,7 @@ def _known_behavior_event_refs(participant_behavior_history: object) -> set[str]
 
 
 def _behavior_history_refs(history: object) -> Iterator[str]:
-    if not isinstance(history, list):
+    if not isinstance(history, (list, EventHistory)):
         return
     for event in history:
         if isinstance(event, Mapping):

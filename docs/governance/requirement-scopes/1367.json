@@ -1,0 +1,231 @@
+{
+  "schema_version": "requirement-scope/v1",
+  "issue_number": 1367,
+  "primary_requirement_uid": "API-404",
+  "requirement_uids": [
+    "API-404",
+    "DSL-111",
+    "RUN-314"
+  ],
+  "bindings": {
+    ".github/workflows/ci.yml": [
+      "API-404"
+    ],
+    "docs/decisions/issue-1367-external-inject-execution-preflight.md": [
+      "API-404"
+    ],
+    "docs/explain/reference/inject-occurrence-contracts.md": [
+      "API-404"
+    ],
+    "docs/explain/sdl/external-inject-compatibility.md": [
+      "API-404"
+    ],
+    "docs/governance/requirement-scopes/1367.json": [
+      "API-404"
+    ],
+    "docs/public/guides/control-plane.md": [
+      "API-404"
+    ],
+    "docs/public/guides/external-injects.md": [
+      "API-404"
+    ],
+    "docs/public/index.md": [
+      "API-404"
+    ],
+    "docs/requirements/API-404/requirement.md": [
+      "API-404"
+    ],
+    "docs/requirements/DSL-111/requirement.md": [
+      "DSL-111"
+    ],
+    "docs/requirements/RUN-314/requirement.md": [
+      "API-404"
+    ],
+    "docs/research/formal-semantic-validation/capture-records/capture-7f7166d1912b9a05d105277585776c5e773b17446e0cd8b582a33c079d016eb7.json": [
+      "API-404"
+    ],
+    "docs/research/formal-semantic-validation/capture-records/capture-a566be978d1c4991f1cba201477c741e49ef98cca9bb6298de1509873538c337.json": [
+      "API-404"
+    ],
+    "docs/research/formal-semantic-validation/captures/capture-7f7166d1912b9a05d105277585776c5e773b17446e0cd8b582a33c079d016eb7/analysis.json": [
+      "API-404"
+    ],
+    "docs/research/formal-semantic-validation/captures/capture-7f7166d1912b9a05d105277585776c5e773b17446e0cd8b582a33c079d016eb7/manifest.json": [
+      "API-404"
+    ],
+    "docs/research/formal-semantic-validation/captures/capture-7f7166d1912b9a05d105277585776c5e773b17446e0cd8b582a33c079d016eb7/snapshot.json": [
+      "API-404"
+    ],
+    "docs/research/formal-semantic-validation/captures/capture-a566be978d1c4991f1cba201477c741e49ef98cca9bb6298de1509873538c337/analysis.json": [
+      "API-404"
+    ],
+    "docs/research/formal-semantic-validation/captures/capture-a566be978d1c4991f1cba201477c741e49ef98cca9bb6298de1509873538c337/manifest.json": [
+      "API-404"
+    ],
+    "docs/research/formal-semantic-validation/captures/capture-a566be978d1c4991f1cba201477c741e49ef98cca9bb6298de1509873538c337/snapshot.json": [
+      "API-404"
+    ],
+    "docs/research/specification-coverage/capture-records/capture-5d274941b97b738f9f2b70d0efd0269f131e26694e1712bf4c807b96d5101b71.json": [
+      "API-404"
+    ],
+    "docs/research/specification-coverage/capture-records/capture-89feff1317c49aebbc096e7f8cb0a4e2235ea10ae386d15f47e33851b28a742e.json": [
+      "API-404"
+    ],
+    "docs/research/specification-coverage/captures/capture-5d274941b97b738f9f2b70d0efd0269f131e26694e1712bf4c807b96d5101b71/analysis.json": [
+      "API-404"
+    ],
+    "docs/research/specification-coverage/captures/capture-5d274941b97b738f9f2b70d0efd0269f131e26694e1712bf4c807b96d5101b71/manifest.json": [
+      "API-404"
+    ],
+    "docs/research/specification-coverage/captures/capture-5d274941b97b738f9f2b70d0efd0269f131e26694e1712bf4c807b96d5101b71/snapshot.json": [
+      "API-404"
+    ],
+    "docs/research/specification-coverage/captures/capture-89feff1317c49aebbc096e7f8cb0a4e2235ea10ae386d15f47e33851b28a742e/analysis.json": [
+      "API-404"
+    ],
+    "docs/research/specification-coverage/captures/capture-89feff1317c49aebbc096e7f8cb0a4e2235ea10ae386d15f47e33851b28a742e/manifest.json": [
+      "API-404"
+    ],
+    "docs/research/specification-coverage/captures/capture-89feff1317c49aebbc096e7f8cb0a4e2235ea10ae386d15f47e33851b28a742e/snapshot.json": [
+      "API-404"
+    ],
+    "implementations/python/packages/raes_backend_protocols/inject_execution.py": [
+      "DSL-111"
+    ],
+    "implementations/python/packages/raes_contracts/associated_artifacts.py": [
+      "API-404"
+    ],
+    "implementations/python/packages/raes_contracts/contracts/backend_operation_validation.py": [
+      "API-404"
+    ],
+    "implementations/python/packages/raes_reference_backend/drivers/oci_image_trust.py": [
+      "RUN-314"
+    ],
+    "implementations/python/packages/raes_reference_backend/drivers/oci_inject.py": [
+      "RUN-314"
+    ],
+    "implementations/python/packages/raes_reference_backend/drivers/oci_process.py": [
+      "RUN-314"
+    ],
+    "implementations/python/packages/raes_reference_backend/inject_bindings.py": [
+      "RUN-314"
+    ],
+    "implementations/python/packages/raes_reference_backend/inject_evidence.py": [
+      "RUN-314"
+    ],
+    "implementations/python/packages/raes_reference_backend/inject_execution.py": [
+      "RUN-314"
+    ],
+    "implementations/python/packages/raes_reference_backend/manifest.py": [
+      "RUN-314"
+    ],
+    "implementations/python/packages/raes_reference_backend/target.py": [
+      "RUN-314"
+    ],
+    "implementations/python/packages/raes_runtime/control_plane.py": [
+      "API-404"
+    ],
+    "implementations/python/packages/raes_runtime/control_plane_api/__init__.py": [
+      "API-404"
+    ],
+    "implementations/python/packages/raes_runtime/control_plane_api/_inject_routes.py": [
+      "API-404"
+    ],
+    "implementations/python/packages/raes_runtime/control_plane_composition.py": [
+      "API-404"
+    ],
+    "implementations/python/packages/raes_runtime/control_plane_configuration.py": [
+      "API-404"
+    ],
+    "implementations/python/packages/raes_runtime/control_plane_execution.py": [
+      "API-404"
+    ],
+    "implementations/python/packages/raes_runtime/control_plane_injects.py": [
+      "API-404"
+    ],
+    "implementations/python/packages/raes_runtime/control_plane_store.py": [
+      "API-404"
+    ],
+    "implementations/python/packages/raes_runtime/control_plane_store_local_records.py": [
+      "API-404"
+    ],
+    "implementations/python/packages/raes_runtime/control_plane_store_memory.py": [
+      "API-404"
+    ],
+    "implementations/python/packages/raes_runtime/control_plane_store_postgresql.py": [
+      "API-404"
+    ],
+    "implementations/python/packages/raes_runtime/control_plane_store_postgresql_mutations.py": [
+      "API-404"
+    ],
+    "implementations/python/packages/raes_runtime/control_plane_store_postgresql_schema.py": [
+      "API-404"
+    ],
+    "implementations/python/packages/raes_runtime/control_plane_store_record_migration.py": [
+      "API-404"
+    ],
+    "implementations/python/packages/raes_runtime/control_plane_store_records.py": [
+      "API-404"
+    ],
+    "implementations/python/packages/raes_runtime/control_plane_supervised_execution.py": [
+      "API-404"
+    ],
+    "implementations/python/packages/raes_runtime/inject_claims.py": [
+      "API-404"
+    ],
+    "implementations/python/packages/raes_runtime/inject_execution.py": [
+      "API-404"
+    ],
+    "implementations/python/packages/raes_runtime/inject_outcomes.py": [
+      "API-404"
+    ],
+    "implementations/python/packages/raes_runtime/operation_provider_execution.py": [
+      "API-404"
+    ],
+    "implementations/python/tests/inject_execution_fixtures.py": [
+      "API-404"
+    ],
+    "implementations/python/tests/reference_inject_integration_support.py": [
+      "RUN-314"
+    ],
+    "implementations/python/tests/test_issue_1069_participant_control_durability.py": [
+      "API-404"
+    ],
+    "implementations/python/tests/test_issue_1185_api_404_profile_alignment.py": [
+      "API-404"
+    ],
+    "implementations/python/tests/test_issue_1359_runtime_api_trust_boundary.py": [
+      "API-404"
+    ],
+    "implementations/python/tests/test_issue_1362_command_privacy.py": [
+      "API-404"
+    ],
+    "implementations/python/tests/test_issue_1367_inject_claims.py": [
+      "API-404"
+    ],
+    "implementations/python/tests/test_issue_1367_inject_execution.py": [
+      "API-404"
+    ],
+    "implementations/python/tests/test_issue_1367_inject_http.py": [
+      "API-404"
+    ],
+    "implementations/python/tests/test_issue_1367_oci_inject_driver.py": [
+      "RUN-314"
+    ],
+    "implementations/python/tests/test_issue_1367_oci_process.py": [
+      "RUN-314"
+    ],
+    "implementations/python/tests/test_issue_1367_reference_injects.py": [
+      "RUN-314"
+    ],
+    "implementations/python/tests/test_reference_backend_docker_gate.py": [
+      "RUN-314"
+    ],
+    "implementations/python/tests/test_reference_backend_docker_integration.py": [
+      "RUN-314"
+    ],
+    "implementations/python/tests/test_release_workflows.py": [
+      "API-404"
+    ]
+  }
+}

@@ -1,0 +1,7 @@
+name: demo-pack
+imports:
+- source: local:kits/forge/infrastructure.git-forge/1.2.0/module.sdl.yaml
+  namespace: forge
+  version: 1.2.0
+  parameters: {}
+  digest: sha256:8f8572db42a28822fbd5b48ad203161dd02fa59a753c4215af958b13ee65cbe2

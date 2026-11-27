@@ -117,6 +117,17 @@ Adversarial changes, unobserved runtime mediation, stale digests, weakening,
 and secret-bearing exceptions all fail closed. This remains finite reference-
 backend evidence, not proof, universal opacity, or cross-backend equivalence.
 
+## Correction through issue 1374
+
+The #965 transcript was a fixed harness value. It did not observe crossing,
+retry, delivery, or scheduling. The generic runner now derives each transcript
+from runtime execution and backend readback. It compares the measured
+transcript across points, with the profile normal form, and with the reported
+transcript. RUN-319 produces the normal form before any protected backend
+effect, so a passing case is runtime-mediated and carries only the declaration
+claim. The reference backend is no longer part of RAES. Catalog `rev13`
+withdraws the backend declaration, realization, and conformance statuses.
+
 ## Recommendation
 
 Adopt the one-sided possibilistic kernel in ADR-099 and the focused formal

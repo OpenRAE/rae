@@ -4,17 +4,17 @@ import re
 from typing import Any
 
 from pydantic import ConfigDict, Field, ValidationInfo, field_validator, model_validator
-
-from raes.runtime_filesystem import flagged_raw_value_schema
-
-from ._base import SDLModel, is_variable_ref, parse_bool_or_var
-from .runtime_values import (
+from raes_contracts.runtime_values import (
     absolute_path_or_var,
     coerce_string_list,
     parse_optional_bool_or_var,
     parse_ram,
     validate_absolute_paths,
 )
+from raes_contracts.sdl_model import SDLModel
+from raes_contracts.variable_references import is_variable_ref, parse_bool_or_var
+
+from raes.runtime_filesystem import flagged_raw_value_schema
 
 
 class RuntimeNetworkNamespace(SDLModel):
@@ -114,7 +114,7 @@ class RuntimeInitProcess(SDLModel):
         return absolute_path_or_var(v, field_name=info.field_name)
 
     @model_validator(mode="after")
-    def validate_redacted_argv(self) -> "RuntimeInitProcess":
+    def validate_redacted_argv(self) -> RuntimeInitProcess:
         if self.argv_redacted is True and self.argv:
             raise ValueError("redacted init process argv must omit argv")
         return self
@@ -213,7 +213,7 @@ class RuntimeContainerConfiguration(SDLModel):
         return v
 
     @model_validator(mode="after")
-    def validate_seccomp_consistency(self) -> "RuntimeContainerConfiguration":
+    def validate_seccomp_consistency(self) -> RuntimeContainerConfiguration:
         observed: set[str] = set()
         if self.seccomp_profile and not is_variable_ref(self.seccomp_profile):
             observed.add(self.seccomp_profile)
@@ -227,7 +227,7 @@ class RuntimeContainerConfiguration(SDLModel):
         return self
 
     @model_validator(mode="after")
-    def validate_unique_container_entries(self) -> "RuntimeContainerConfiguration":
+    def validate_unique_container_entries(self) -> RuntimeContainerConfiguration:
         seen_devices: set[tuple[str, str]] = set()
         for device in self.devices:
             key = (device.host_path, device.container_path)

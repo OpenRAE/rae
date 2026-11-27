@@ -27,6 +27,7 @@ from participant_crossing_fixtures import (
 )
 from raes_contracts.contracts import ParticipantFlowFinalDisposition as Disposition
 from raes_contracts.contracts import ParticipantFlowSinkKind
+from raes_contracts.errors import AuthorizationError, ConflictError
 from raes_contracts.runtime_state import OperationState, OperationStatus
 from raes_runtime import participant_crossing_egress
 from raes_runtime.control_plane import RuntimeControlPlane
@@ -182,7 +183,7 @@ def test_non_permit_ingress_never_dispatches_backend(toggles: FlowSinkToggles) -
 def test_non_permit_egress_raises_and_serializes_nothing(toggles: FlowSinkToggles) -> None:
     plane = sem233_plane(deny_resolver(toggles), target=_egress_target())
 
-    with pytest.raises(PermissionError, match="not permitted"):
+    with pytest.raises(AuthorizationError, match="not permitted"):
         _status_view(plane, idempotency_key="deny-egress")
 
     history = plane.snapshot.participant_crossing_history[PARTICIPANT]
@@ -209,13 +210,13 @@ def test_denied_egress_replay_keeps_the_same_failed_operation() -> None:
         target=_egress_target(),
     )
 
-    with pytest.raises(PermissionError, match="not permitted"):
+    with pytest.raises(AuthorizationError, match="not permitted"):
         _status_view(plane, idempotency_key="deny-egress-replay")
     audit = plane.audit_log()[-1]
     audits = plane.audit_log()
     history = plane.snapshot.participant_crossing_history[PARTICIPANT]
 
-    with pytest.raises(PermissionError, match="not permitted"):
+    with pytest.raises(AuthorizationError, match="not permitted"):
         _status_view(plane, idempotency_key="deny-egress-replay")
 
     assert plane.audit_log() == audits
@@ -228,7 +229,7 @@ def test_claim_race_cannot_release_payload_from_denied_incumbent(monkeypatch: py
     payload = _status_view(permitted, idempotency_key="permitted-source").model_dump(mode="json")
     resolver = deny_resolver(FlowSinkToggles(capability_disposition=Disposition.DENY))
     plane = sem233_plane(resolver, target=_egress_target())
-    with pytest.raises(PermissionError, match="not permitted"):
+    with pytest.raises(AuthorizationError, match="not permitted"):
         _status_view(plane, idempotency_key="racing-egress")
     operation_id = plane.audit_log()[-1].operation_id
     incumbent = plane._store.load_records()[operation_id]
@@ -244,7 +245,7 @@ def test_claim_race_cannot_release_payload_from_denied_incumbent(monkeypatch: py
         lambda: {**original_load(), operation_id: replace(incumbent, result_payload=payload)},
     )
 
-    with pytest.raises(PermissionError, match="not permitted"):
+    with pytest.raises(AuthorizationError, match="not permitted"):
         _status_view(plane, idempotency_key="racing-egress")
 
 
@@ -256,7 +257,7 @@ def test_denied_egress_remains_failed_after_local_store_reopen(tmp_path: Path) -
         target=_egress_target(),
         store=LocalControlPlaneStore(store_path),
     )
-    with pytest.raises(PermissionError, match="not permitted"):
+    with pytest.raises(AuthorizationError, match="not permitted"):
         _status_view(first, idempotency_key="denied-egress-reopen")
     audit = first.audit_log()[-1]
     audits = first.audit_log()
@@ -272,7 +273,7 @@ def test_denied_egress_remains_failed_after_local_store_reopen(tmp_path: Path) -
         crossing_policy_resolver=reopened_resolver,
     )
     try:
-        with pytest.raises(PermissionError, match="not permitted"):
+        with pytest.raises(AuthorizationError, match="not permitted"):
             _status_view(reopened, idempotency_key="denied-egress-reopen")
         assert _operation_status(reopened, audit.operation_id).state is OperationState.FAILED
         assert reopened.audit_log() == audits
@@ -365,7 +366,7 @@ def test_replay_after_state_cut_advance_is_rejected() -> None:
         idempotency_key="later",
     )
 
-    with pytest.raises(ValueError, match="idempotency claim conflicts with the original request"):
+    with pytest.raises(ConflictError, match="idempotency claim conflicts with the original request"):
         admit(plane, idempotency_key="cut-bound")
 
 

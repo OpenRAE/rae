@@ -57,13 +57,16 @@ class PythonScan:
 
 
 def ast_name(node: ast.AST) -> str | None:
-    name = None
+    # Walk the attribute chain in a loop, so a long chain in a scanned source cannot exhaust the stack.
+    parts: list[str] = []
+    while isinstance(node, ast.Attribute):
+        parts.append(node.attr)
+        node = node.value
     if isinstance(node, ast.Name):
-        name = node.id
-    elif isinstance(node, ast.Attribute):
-        parent = ast_name(node.value)
-        name = f"{parent}.{node.attr}" if parent else node.attr
-    return name
+        parts.append(node.id)
+    elif not parts:
+        return None
+    return ".".join(reversed(parts))
 
 
 def _node_aliases(node: ast.AST) -> dict[str, str]:
@@ -319,7 +322,11 @@ def python_scan(text: str) -> PythonScan:
 
     try:
         nodes = tuple(ast.walk(ast.parse(text)))
-    except (SyntaxError, ValueError):
+    except SyntaxError, ValueError:
+        return PythonScan(frozenset(), False, 0, False, 0)
+    except RecursionError, MemoryError:
+        # The compiler stops with RecursionError, and the parser with MemoryError, for a
+        # source that is chained or nested beyond their stack limits.
         return PythonScan(frozenset(), False, 0, False, 0)
     aliases = _aliases(nodes)
     artifact_ids, selection_valid = _selection_observation(nodes, aliases)
@@ -334,19 +341,39 @@ def python_scan(text: str) -> PythonScan:
     )
 
 
+def _yaml_parses(text: str) -> bool:
+    try:
+        yaml.safe_load(text)
+    except yaml.YAMLError, RecursionError:
+        # Without a depth limit, the recursive composer stops at the interpreter recursion limit.
+        return False
+    except ValueError, IndexError, KeyError, AttributeError:
+        # The safe scalar constructors raise these, not a YAMLError, for a value that they cannot
+        # build, such as an integer beyond the interpreter digit limit or an impossible date.
+        return False
+    return True
+
+
+def _toml_parses(text: str) -> bool:
+    try:
+        tomllib.loads(text)
+    except ValueError, RecursionError:
+        # TOMLDecodeError is a ValueError. tomllib also raises a plain ValueError for an integer
+        # beyond the interpreter digit limit, and RecursionError for nesting beyond its depth.
+        return False
+    return True
+
+
 def structured_acquisition(text: str, path: str) -> tuple[int, bool, int]:
     suffix = Path(path).suffix
-    parsed = True
     if suffix == ".py":
         scan = python_scan(text)
         return scan.acquisition_count, scan.parsed, scan.unknown_executable_count
-    try:
-        if suffix in YAML_SUFFIXES:
-            yaml.safe_load(text)
-        elif suffix == TOML_SUFFIX:
-            tomllib.loads(text)
-    except (yaml.YAMLError, tomllib.TOMLDecodeError):
-        parsed = False
+    parsed = True
+    if suffix in YAML_SUFFIXES:
+        parsed = _yaml_parses(text)
+    elif suffix == TOML_SUFFIX:
+        parsed = _toml_parses(text)
     return len(ACQUISITION_COMMAND_RE.findall(text)) if parsed else 0, parsed, 0
 
 

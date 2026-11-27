@@ -7,7 +7,6 @@ import grp
 import hashlib
 import io
 import json
-import logging
 import os
 import platform
 import pwd
@@ -15,6 +14,7 @@ import re
 import shutil
 import stat
 import subprocess
+import sys
 import tarfile
 import tempfile
 import uuid
@@ -23,6 +23,14 @@ from contextlib import contextmanager, suppress
 from pathlib import Path, PurePosixPath
 from typing import Protocol
 
+REPO_ROOT = Path(__file__).resolve().parents[1]
+RAES_PACKAGES_ROOT = REPO_ROOT / "implementations" / "python" / "packages"
+for _source_root in (REPO_ROOT, RAES_PACKAGES_ROOT):
+    if str(_source_root) not in sys.path:
+        sys.path.insert(0, str(_source_root))
+
+from raes_contracts.errors import OperationalError  # noqa: E402
+
 INSTALLATION_POLICY_ID = "install-v1"
 MAX_ARCHIVE_MEMBERS = 1024
 MAX_ARCHIVE_PATH_BYTES = 1024
@@ -30,6 +38,14 @@ MAX_ARCHIVE_PATH_DEPTH = 16
 MAX_ARCHIVE_MEMBER_BYTES = 256 * 1024 * 1024
 MAX_ARCHIVE_EXPANDED_BYTES = 512 * 1024 * 1024
 LOCK_TIMEOUT_SECONDS = 120
+
+
+class ToolInstallationError(OperationalError):
+    """A reviewed tool could not be admitted, installed or reverified in its private tree.
+
+    The message is one stable ``tool-installation: <reason>`` code without
+    filesystem details.
+    """
 
 
 class ManifestEntry(Protocol):
@@ -47,6 +63,18 @@ class ArtifactSelection(Protocol):
     installed_manifest: tuple[ManifestEntry, ...]
 
 
+def has_bounded_utf8_form(value: str, limit: int) -> bool:
+    """Return whether a name has a UTF-8 form of at most ``limit`` bytes.
+
+    A string with an unpaired surrogate has no UTF-8 form, so it is never a portable name.
+    """
+
+    try:
+        return len(value.encode("utf-8")) <= limit
+    except UnicodeEncodeError:
+        return False
+
+
 def _portable_path(value: str) -> PurePosixPath:
     path = PurePosixPath(value)
     if (
@@ -55,11 +83,11 @@ def _portable_path(value: str) -> PurePosixPath:
         or path.is_absolute()
         or "\\" in value
         or re.match(r"^[A-Za-z]:", value)
-        or len(value.encode("utf-8")) > MAX_ARCHIVE_PATH_BYTES
+        or not has_bounded_utf8_form(value, MAX_ARCHIVE_PATH_BYTES)
         or len(path.parts) > MAX_ARCHIVE_PATH_DEPTH
         or any(part in {"", ".", ".."} for part in path.parts)
     ):
-        raise RuntimeError("tool-installation: unsafe-archive-member")
+        raise ToolInstallationError("tool-installation: unsafe-archive-member")
     return path
 
 
@@ -90,7 +118,7 @@ def default_installation_root(repo_root: Path) -> Path:
 
 def _safe_component(value: str) -> str:
     if re.fullmatch(r"[a-z0-9][a-z0-9._-]*", value) is None:
-        raise RuntimeError("tool-installation: invalid-selection")
+        raise ToolInstallationError("tool-installation: invalid-selection")
     return value
 
 
@@ -130,7 +158,7 @@ def installation_tree_path(installation_root: Path, selection: ArtifactSelection
             for entry in manifests
         )
     ):
-        raise RuntimeError("tool-installation: invalid-selection")
+        raise ToolInstallationError("tool-installation: invalid-selection")
     for entry in manifests:
         _portable_path(entry.path)
     return (
@@ -151,9 +179,9 @@ def _executable_entry(selection: ArtifactSelection) -> ManifestEntry:
 def _archive_member_path(member: tarfile.TarInfo, seen: set[PurePosixPath], files: set[PurePosixPath]) -> PurePosixPath:
     path = _portable_path(member.name)
     if path in seen:
-        raise RuntimeError("tool-installation: duplicate-archive-member")
+        raise ToolInstallationError("tool-installation: duplicate-archive-member")
     if any(parent in files for parent in path.parents) or any(path in existing.parents for existing in seen):
-        raise RuntimeError("tool-installation: conflicting-archive-member")
+        raise ToolInstallationError("tool-installation: conflicting-archive-member")
     return path
 
 
@@ -161,19 +189,19 @@ def _validate_archive_shape(
     members: list[tarfile.TarInfo],
 ) -> None:  # NOSONAR -- explicit archive limits fail closed.
     if len(members) > MAX_ARCHIVE_MEMBERS:
-        raise RuntimeError("tool-installation: archive-member-limit")
+        raise ToolInstallationError("tool-installation: archive-member-limit")
     seen: set[PurePosixPath] = set()
     files: set[PurePosixPath] = set()
     total = 0
     for member in members:
         path = _archive_member_path(member, seen, files)
         if not (member.isfile() or member.isdir()) or getattr(member, "sparse", None):
-            raise RuntimeError("tool-installation: unsafe-archive-member")
+            raise ToolInstallationError("tool-installation: unsafe-archive-member")
         if member.size < 0 or member.size > MAX_ARCHIVE_MEMBER_BYTES:
-            raise RuntimeError("tool-installation: archive-size-limit")
+            raise ToolInstallationError("tool-installation: archive-size-limit")
         total += member.size
         if total > MAX_ARCHIVE_EXPANDED_BYTES:
-            raise RuntimeError("tool-installation: archive-size-limit")
+            raise ToolInstallationError("tool-installation: archive-size-limit")
         if member.isfile():
             files.add(path)
         seen.add(path)
@@ -185,12 +213,12 @@ def _validate_materialized(
 ) -> dict[str, bytes]:
     expected_paths = {entry.path for entry in installed_manifest}
     if set(materialized) != expected_paths or len(expected_paths) != len(installed_manifest):
-        raise RuntimeError("tool-installation: installed-manifest-mismatch")  # NOSONAR -- stable reason code.
+        raise ToolInstallationError("tool-installation: installed-manifest-mismatch")  # NOSONAR -- stable reason code.
     result: dict[str, bytes] = {}
     for entry in installed_manifest:
         payload = materialized[entry.path]
         if len(payload) != entry.size or hashlib.sha256(payload).hexdigest() != entry.sha256:
-            raise RuntimeError("tool-installation: installed-manifest-mismatch")
+            raise ToolInstallationError("tool-installation: installed-manifest-mismatch")
         result[entry.path] = payload
     return result
 
@@ -207,15 +235,15 @@ def materialize_tar_gz(raw_bytes: bytes, selection: ArtifactSelection) -> dict[s
             for entry in selection.installed_manifest:
                 member = by_path.get(entry.path)
                 if member is None or not member.isfile():
-                    raise RuntimeError("tool-installation: installed-manifest-mismatch")
+                    raise ToolInstallationError("tool-installation: installed-manifest-mismatch")
                 stream = archive.extractfile(member)
                 if stream is None:
-                    raise RuntimeError("tool-installation: installed-manifest-mismatch")
+                    raise ToolInstallationError("tool-installation: installed-manifest-mismatch")
                 materialized[entry.path] = stream.read(entry.size + 1)
-    except RuntimeError:
+    except ToolInstallationError:
         raise
     except (OSError, tarfile.TarError, UnicodeError) as exc:
-        raise RuntimeError("tool-installation: unsafe-archive") from exc
+        raise ToolInstallationError("tool-installation: unsafe-archive") from exc
     return _validate_materialized(materialized, selection.installed_manifest)
 
 
@@ -223,17 +251,17 @@ def materialize_direct(raw_bytes: bytes, selection: ArtifactSelection) -> dict[s
     """Admit a direct-file carrier against the installed manifest."""
 
     if len(selection.installed_manifest) != 1:
-        raise RuntimeError("tool-installation: installed-manifest-mismatch")
+        raise ToolInstallationError("tool-installation: installed-manifest-mismatch")
     entry = selection.installed_manifest[0]
     return _validate_materialized({entry.path: raw_bytes}, selection.installed_manifest)
 
 
 def _validate_raw_bytes(raw_bytes: object, selection: ArtifactSelection) -> bytes:
     if len(selection.raw_manifest) != 1 or not isinstance(raw_bytes, bytes):
-        raise RuntimeError("tool-installation: raw-manifest-mismatch")
+        raise ToolInstallationError("tool-installation: raw-manifest-mismatch")
     entry = selection.raw_manifest[0]
     if len(raw_bytes) != entry.size or hashlib.sha256(raw_bytes).hexdigest() != entry.sha256:
-        raise RuntimeError("tool-installation: raw-manifest-mismatch")
+        raise ToolInstallationError("tool-installation: raw-manifest-mismatch")
     return raw_bytes
 
 
@@ -263,15 +291,15 @@ def _cross_principal_writable(state: os.stat_result) -> bool:
 
 def _assert_private_directory_state(state: os.stat_result, *, exact_mode: int | None = None) -> None:
     if not stat.S_ISDIR(state.st_mode) or state.st_uid != os.geteuid() or _cross_principal_writable(state):
-        raise RuntimeError("tool-installation: unsafe-private-root")  # NOSONAR -- stable reason code.
+        raise ToolInstallationError("tool-installation: unsafe-private-root")  # NOSONAR -- stable reason code.
     if exact_mode is not None and state.st_mode & 0o777 != exact_mode:
-        raise RuntimeError("tool-installation: unsafe-private-root")
+        raise ToolInstallationError("tool-installation: unsafe-private-root")
 
 
 def _assert_private_directory(path: Path, *, exact_mode: int | None = None) -> os.stat_result:
     state = path.lstat()
     if stat.S_ISLNK(state.st_mode):
-        raise RuntimeError("tool-installation: unsafe-private-root")
+        raise ToolInstallationError("tool-installation: unsafe-private-root")
     _assert_private_directory_state(state, exact_mode=exact_mode)
     return state
 
@@ -282,11 +310,11 @@ def _assert_trusted_anchor_chain(repo_root: Path) -> Path:
     while True:
         state = current.lstat()
         if stat.S_ISLNK(state.st_mode) or not stat.S_ISDIR(state.st_mode):
-            raise RuntimeError("tool-installation: unsafe-private-root")
+            raise ToolInstallationError("tool-installation: unsafe-private-root")
         writable_by_other_principal = _cross_principal_writable(state)
         sticky_parent = current != anchor and bool(state.st_mode & stat.S_ISVTX)
         if writable_by_other_principal and not sticky_parent:
-            raise RuntimeError("tool-installation: unsafe-private-root")
+            raise ToolInstallationError("tool-installation: unsafe-private-root")
         if current == current.parent:
             break
         current = current.parent
@@ -306,13 +334,13 @@ def _private_root_guard(repo_root: Path, path: Path) -> Iterator[None]:  # NOSON
     try:
         parts = path.relative_to(repo_root).parts
     except ValueError as exc:
-        raise RuntimeError("tool-installation: unsafe-private-root") from exc
+        raise ToolInstallationError("tool-installation: unsafe-private-root") from exc
     descriptors: list[tuple[int, Path]] = []
     try:
         descriptor = os.open(anchor, _directory_open_flags())
         descriptors.append((descriptor, anchor))
         if not os.path.samestat(os.fstat(descriptor), anchor.lstat()):
-            raise RuntimeError("tool-installation: unsafe-private-root")
+            raise ToolInstallationError("tool-installation: unsafe-private-root")
         current = anchor
         for part in parts:
             with suppress(FileExistsError):
@@ -323,13 +351,13 @@ def _private_root_guard(repo_root: Path, path: Path) -> Iterator[None]:  # NOSON
             _assert_private_directory_state(child_state, exact_mode=0o700 if current == path else None)
             if not os.path.samestat(child_state, current.lstat()):
                 os.close(child)
-                raise RuntimeError("tool-installation: unsafe-private-root")
+                raise ToolInstallationError("tool-installation: unsafe-private-root")
             descriptors.append((child, current))
             descriptor = child
     except OSError as exc:
         for descriptor, _held_path in reversed(descriptors):
             os.close(descriptor)
-        raise RuntimeError("tool-installation: unsafe-private-root") from exc
+        raise ToolInstallationError("tool-installation: unsafe-private-root") from exc
     except BaseException:
         for descriptor, _held_path in reversed(descriptors):
             os.close(descriptor)
@@ -338,7 +366,7 @@ def _private_root_guard(repo_root: Path, path: Path) -> Iterator[None]:  # NOSON
         yield
         for held, held_path in descriptors:
             if not os.path.samestat(os.fstat(held), held_path.lstat()):
-                raise RuntimeError("tool-installation: unsafe-private-root")
+                raise ToolInstallationError("tool-installation: unsafe-private-root")
     finally:
         for descriptor, _held_path in reversed(descriptors):
             os.close(descriptor)
@@ -348,7 +376,7 @@ def _ensure_private_subdirectory(path: Path, root: Path) -> None:
     try:
         relative = path.relative_to(root)
     except ValueError as exc:
-        raise RuntimeError("tool-installation: unsafe-private-root") from exc
+        raise ToolInstallationError("tool-installation: unsafe-private-root") from exc
     current = root
     _assert_private_directory(current, exact_mode=0o700)
     for part in relative.parts:
@@ -405,7 +433,7 @@ def _read_verified_file(  # NOSONAR -- paired before/open/after checks resist su
         or before.st_nlink != 1
         or before.st_size != entry.size
     ):
-        raise RuntimeError("tool-installation: file-integrity-failure")  # NOSONAR -- stable reason code.
+        raise ToolInstallationError("tool-installation: file-integrity-failure")  # NOSONAR -- stable reason code.
     flags = os.O_RDONLY | getattr(os, "O_BINARY", 0) | getattr(os, "O_NOFOLLOW", 0)
     flags |= getattr(os, "O_CLOEXEC", 0) | getattr(os, "O_NOINHERIT", 0)
     descriptor = os.open(path, flags)
@@ -414,12 +442,12 @@ def _read_verified_file(  # NOSONAR -- paired before/open/after checks resist su
     with os.fdopen(descriptor, "rb") as stream:
         opened = os.fstat(stream.fileno())
         if not stat.S_ISREG(opened.st_mode) or not os.path.samestat(before, opened):
-            raise RuntimeError("tool-installation: file-integrity-failure")
+            raise ToolInstallationError("tool-installation: file-integrity-failure")
         while chunk := stream.read(min(1024 * 1024, entry.size + 1 - len(payload))):
             payload.extend(chunk)
             digest.update(chunk)
             if len(payload) > entry.size:
-                raise RuntimeError("tool-installation: file-integrity-failure")
+                raise ToolInstallationError("tool-installation: file-integrity-failure")
     after = path.lstat()
     if (
         len(payload) != entry.size
@@ -427,7 +455,7 @@ def _read_verified_file(  # NOSONAR -- paired before/open/after checks resist su
         or not os.path.samestat(opened, after)
         or not stat.S_ISREG(after.st_mode)
     ):
-        raise RuntimeError("tool-installation: file-integrity-failure")
+        raise ToolInstallationError("tool-installation: file-integrity-failure")
     return bytes(payload)
 
 
@@ -447,15 +475,15 @@ def _validate_tree(  # NOSONAR -- the full tree shape and every leaf are checked
 ) -> dict[str, bytes]:
     state = tree.lstat()
     if not stat.S_ISDIR(state.st_mode) or tree.is_symlink():
-        raise RuntimeError("tool-installation: tree-integrity-failure")  # NOSONAR -- stable reason code.
+        raise ToolInstallationError("tool-installation: tree-integrity-failure")  # NOSONAR -- stable reason code.
     permissions = state.st_mode & 0o777
     valid_owners = {os.geteuid()}
     if state.st_uid not in valid_owners:
-        raise RuntimeError("tool-installation: tree-integrity-failure")
+        raise ToolInstallationError("tool-installation: tree-integrity-failure")
     if mode == "installed" and permissions != 0o500:
-        raise RuntimeError("tool-installation: tree-integrity-failure")
+        raise ToolInstallationError("tool-installation: tree-integrity-failure")
     if mode == "staged" and permissions != 0o700:
-        raise RuntimeError("tool-installation: tree-integrity-failure")
+        raise ToolInstallationError("tool-installation: tree-integrity-failure")
     actual_files: set[str] = set()
     actual_directories = {"."}
     for current, directories, files in os.walk(tree, followlinks=False):
@@ -464,19 +492,19 @@ def _validate_tree(  # NOSONAR -- the full tree shape and every leaf are checked
             child = current_path / name
             child_state = child.lstat()
             if child.is_symlink() or not stat.S_ISDIR(child_state.st_mode):
-                raise RuntimeError("tool-installation: tree-integrity-failure")
+                raise ToolInstallationError("tool-installation: tree-integrity-failure")
             child_permissions = child_state.st_mode & 0o777
             if child_state.st_uid not in valid_owners:
-                raise RuntimeError("tool-installation: tree-integrity-failure")
+                raise ToolInstallationError("tool-installation: tree-integrity-failure")
             if mode == "installed" and child_permissions != 0o500:
-                raise RuntimeError("tool-installation: tree-integrity-failure")
+                raise ToolInstallationError("tool-installation: tree-integrity-failure")
             if mode == "staged" and child_permissions != 0o700:
-                raise RuntimeError("tool-installation: tree-integrity-failure")
+                raise ToolInstallationError("tool-installation: tree-integrity-failure")
             actual_directories.add(child.relative_to(tree).as_posix())
         actual_files.update((current_path / name).relative_to(tree).as_posix() for name in files)
     expected_files = {entry.path for entry in entries}
     if actual_files != expected_files or actual_directories != _expected_directories(entries):
-        raise RuntimeError("tool-installation: tree-integrity-failure")
+        raise ToolInstallationError("tool-installation: tree-integrity-failure")
     return {entry.path: _read_verified_file(tree / entry.path, entry, mode=mode) for entry in entries}
 
 
@@ -526,11 +554,10 @@ def _portable_lock(path: Path, timeout: float | None = None) -> Iterator[None]:
     try:
         from filelock import FileLock, Timeout
     except ImportError:
-        raise RuntimeError("tool-installation: portable-lock-unavailable") from None
-    logging.getLogger("filelock").setLevel(logging.WARNING)
+        raise ToolInstallationError("tool-installation: portable-lock-unavailable") from None
     existing = _lstat(path)
     if existing is not None and not _private_lock_state(existing, exact_mode=False):
-        raise RuntimeError("tool-installation: unsafe-lock-file")
+        raise ToolInstallationError("tool-installation: unsafe-lock-file")
     wait_seconds = LOCK_TIMEOUT_SECONDS if timeout is None else timeout
     lock = FileLock(
         path,
@@ -542,10 +569,10 @@ def _portable_lock(path: Path, timeout: float | None = None) -> Iterator[None]:
     try:
         with lock:
             if not _private_lock_state(path.lstat(), exact_mode=True):
-                raise RuntimeError("tool-installation: unsafe-lock-file")
+                raise ToolInstallationError("tool-installation: unsafe-lock-file")
             yield
     except Timeout:
-        raise RuntimeError("tool-installation: lock-timeout") from None
+        raise ToolInstallationError("tool-installation: lock-timeout") from None
 
 
 def _tree_present(path: Path) -> bool:
@@ -682,7 +709,7 @@ def _legacy_carrier(
     if not _tree_present(legacy_path):
         return None
     if len(selection.installed_manifest) != 1:
-        raise RuntimeError("tool-installation: legacy-integrity-failure")
+        raise ToolInstallationError("tool-installation: legacy-integrity-failure")
     container = quarantine_root / f"legacy-{uuid.uuid4().hex}"
     container.mkdir(mode=0o700)
     moved = container / legacy_path.name
@@ -691,9 +718,9 @@ def _legacy_carrier(
     _fsync_directory(container)
     try:
         payload = _read_verified_file(moved, selection.installed_manifest[0], mode="legacy")
-    except (OSError, RuntimeError):
+    except (OSError, ToolInstallationError):
         _make_quarantine_non_executable(container)
-        raise RuntimeError("tool-installation: legacy-integrity-failure") from None
+        raise ToolInstallationError("tool-installation: legacy-integrity-failure") from None
     _make_quarantine_non_executable(container)
     _fsync_directory(container)
     return {selection.installed_manifest[0].path: payload}
@@ -707,9 +734,9 @@ def _validated_existing_or_quarantine(
     try:
         _complete_interrupted_seal(target)
         return _validated_installed_executable(target, selection)
-    except (OSError, RuntimeError):
+    except (OSError, ToolInstallationError):
         _quarantine(target, quarantine_root, prefix="cache")
-        raise RuntimeError("tool-installation: cache-integrity-failure") from None
+        raise ToolInstallationError("tool-installation: cache-integrity-failure") from None
 
 
 def _ensure_verified_installation(  # NOSONAR -- lock/recovery branches are explicit security states.
@@ -738,11 +765,11 @@ def _ensure_verified_installation(  # NOSONAR -- lock/recovery branches are expl
     if _tree_present(target):
         try:
             return _validated_installed_executable(target, selection)
-        except (OSError, RuntimeError):
+        except (OSError, ToolInstallationError):
             with _portable_lock(identity_lock):
                 if _tree_present(target):  # NOSONAR -- recheck under the lock closes the publication race.
                     return _validated_existing_or_quarantine(target, selection, quarantine_root)
-            raise RuntimeError("tool-installation: cache-integrity-failure") from None
+            raise ToolInstallationError("tool-installation: cache-integrity-failure") from None
 
     legacy_materialized: Mapping[str, bytes] | None = None
     if legacy_path is not None:
@@ -786,10 +813,10 @@ def ensure_verified_installation(
                 legacy_path=legacy_path,
                 installation_root=install_root,
             )
-    except RuntimeError:
+    except ToolInstallationError:
         raise
     except OSError as exc:
         reason = (
             "storage-exhausted" if exc.errno in {errno.ENOSPC, getattr(errno, "EDQUOT", -1)} else "filesystem-failure"
         )
-        raise RuntimeError(f"tool-installation: {reason}") from None
+        raise ToolInstallationError(f"tool-installation: {reason}") from None

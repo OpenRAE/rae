@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Collection, Mapping, Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
 from .participant_control import (
@@ -27,8 +27,9 @@ from .participant_flow_control import (
 from .runtime_facts import RuntimeFactBindingPlaneModel
 
 if TYPE_CHECKING:
+    from raes_contracts.contracts.participant_action_admission import ParticipantActionAdmissionRequest
+
     from ..participant_action_arguments import ParticipantValidatedActionSelection
-    from ..participant_binding import ParticipantActionAdmissionRequest
 
 FlowProfileKey = tuple[str, str]
 ActionSelectionKey = tuple[str, str]
@@ -54,6 +55,23 @@ class ParticipantFlowSinkCoordinate:
     sink_ref: str
     destination_ref: str
     audience_scope_ref: str
+
+
+@dataclass(frozen=True)
+class ParticipantFlowObligationAuthorityCoordinate:
+    """Independently authorized owner/clause for the complete exact release."""
+
+    release_digest: str
+    owner_ref: str
+    obligation_ref: str
+
+
+@dataclass(frozen=True)
+class ParticipantOwnerFlowSinkResolution:
+    """Trusted principal resolution and policy posture of one exact final sink."""
+
+    readers: frozenset[str]
+    accepts_untrusted_integrity: bool
 
 
 @dataclass(frozen=True)
@@ -114,3 +132,7 @@ class ParticipantFlowControlValidationContext:
     crossing_policies: Sequence[ParticipantCrossingPolicyReferenceModel]
     known_evidence_refs: Collection[str]
     known_authority_refs: Collection[str]
+    owner_release_authorities: Collection[ParticipantFlowObligationAuthorityCoordinate] = ()
+    owner_sink_resolutions: Mapping[ParticipantFlowSinkCoordinate, ParticipantOwnerFlowSinkResolution] = field(
+        default_factory=dict
+    )

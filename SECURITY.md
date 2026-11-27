@@ -1,12 +1,15 @@
 # Security policy
 
+Use this guide to send a private vulnerability report.
+Use [SUPPORT.md](SUPPORT.md) for ordinary bugs and documentation problems.
+
 ## Report a vulnerability
 
 Do not report suspected vulnerabilities through public GitHub issues.
 
-Use GitHub private vulnerability reporting when it is available. If it is not,
-contact the maintainer through the private path on Brad Edwards' GitHub
-profile. Put `RAES SDL security report` in the subject or first line.
+Use [GitHub private vulnerability reporting](https://github.com/OpenRAE/rae/security/advisories/new) when it is available.
+If it is unavailable, email **security@autarchy.ai**.
+Put `RAES SDL security report` in the subject or first line.
 
 Include enough detail to reproduce and assess the issue:
 
@@ -16,6 +19,9 @@ Include enough detail to reproduce and assess the issue:
 - expected and actual behavior
 - impact
 - proof of concept or logs, if available
+
+Remove live credentials and unrelated private data from examples and logs.
+Send only the material needed to assess the vulnerability.
 
 ## Check the scope
 

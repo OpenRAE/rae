@@ -63,3 +63,29 @@ class ControlSupportAssessmentV2Model(ContractModel):
     @property
     def satisfied(self) -> bool:
         return self.relation in {"exact", "bounded-compatible", "disclosed-weak-compatible"}
+
+
+def admitted_control_support_preserved(
+    promise: ControlEffectiveSupportModel, observed: ControlEffectiveSupportModel
+) -> bool:
+    """An admitted promise survives a fresh cut only with unchanged meaning.
+
+    No arbitrary constraint ordering is inferred. Changed installations or
+    constraint/limitation interpretations need explicit new admission. Fresh
+    evidence may extend, but cannot discard, the admitted evidence.
+    """
+    coordinates = (
+        "instance_id",
+        "feature",
+        "declaration_ref",
+        "declared_level",
+        "effective_level",
+        "installation",
+        "constraints",
+        "limitations",
+    )
+    return (
+        observed.status == "resolved"
+        and all(getattr(promise, name) == getattr(observed, name) for name in coordinates)
+        and set(promise.evidence) <= set(observed.evidence)
+    )

@@ -1,0 +1,26 @@
+{
+  "schema_version": "inject-trigger-request/v1",
+  "request_key": "operator-reset-key-1",
+  "occurrence_id": "reset-occurrence-1",
+  "target_scope": "target:reference",
+  "run_scope": "run:environment-1",
+  "plan": {
+    "contract_id": "orchestration-plan-v1",
+    "artifact_id": "orchestration-plan-1",
+    "digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+  },
+  "inject": "orchestration.inject.reset-badge",
+  "bindings": [
+    {
+      "binding": "orchestration.inject-binding.door-controller.reset-badge",
+      "node": "provision.node.door-controller",
+      "instance": "door-controller-1",
+      "revision": "realization-r2"
+    }
+  ],
+  "placement": {
+    "kind": "independent"
+  },
+  "input_ref": null,
+  "expected_head": "order-head-10"
+}

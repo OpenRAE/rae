@@ -1,8 +1,8 @@
-SDL Authoring Layer
+SDL authoring layer
 ===================
 
-The ``raes`` package provides the author-facing SDL models, parser,
-validator, instantiation, and composition machinery.
+Use the ``raes`` package to author SDL. It owns the models and parser, checks
+scenarios, instantiates variable values, and composes modules.
 
 .. currentmodule:: raes
 
@@ -20,7 +20,7 @@ Parser
 .. automodule:: raes.parser
    :members:
 
-Scenario Model
+Scenario model
 --------------
 
 .. automodule:: raes.scenario
@@ -38,13 +38,13 @@ Validator
 .. automodule:: raes.validator
    :members:
 
-Language Service
+Language service
 ----------------
 
 .. automodule:: raes.language_service
    :members:
 
-Agent Guidance
+Agent guidance
 --------------
 
 .. automodule:: raes.agent_guidance
@@ -57,19 +57,19 @@ Composition
    :members:
    :imported-members:
 
-Artifact Transformations
+Artifact transformations
 ------------------------
 
 .. automodule:: raes.transformations
    :members:
 
-Module Registry
+Module registry
 ---------------
 
 .. automodule:: raes.module_registry
    :members:
 
-SDL Models
+SDL models
 ----------
 
 Nodes

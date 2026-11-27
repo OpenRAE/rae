@@ -16,6 +16,7 @@ from control_plane_conformance_fixtures import (
     witness_events,
 )
 from raes_backend_stubs.stubs import create_stub_target
+from raes_contracts.errors import ConflictError
 from raes_contracts.runtime_state import OperationState, RuntimeSnapshot
 from raes_runtime.control_plane import RuntimeControlPlane
 from raes_runtime.control_plane_store import SnapshotRevisionConflict
@@ -83,12 +84,12 @@ def test_concurrent_same_actor_submissions_have_one_effect_and_terminal_cut(prof
 def test_profile_lease_scope_and_restore_keep_receipts_and_claims(profile, tmp_path) -> None:
     with profile_harness(profile, tmp_path) as harness:
         operation_id = harness.submit()
-        with pytest.raises(RuntimeError, match="exactly one worker"), profile_harness(profile, tmp_path):
+        with pytest.raises(ConflictError, match="exactly one worker"), profile_harness(profile, tmp_path):
             pytest.fail("second owner was admitted")
     for target_name, run in (("other", RUN_SCOPE), ("stub", "run:other")):
         target = replace(create_stub_target(), name=target_name)
         store = LocalControlPlaneStore(tmp_path / "store")
-        with pytest.raises(RuntimeError, match="scope does not match"):
+        with pytest.raises(ConflictError, match="scope does not match"):
             RuntimeControlPlane(target, store=store, run_scope=run)
     backup = tmp_path / "backup.sqlite3"
     maintain_local_control_plane_store(

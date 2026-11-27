@@ -17,8 +17,8 @@ def record_and_context():
     )
 
     record = ParticipantControlEvaluationModel.model_validate(evaluation_payload())
-    from raes.participant_inject_delivery import ParticipantInjectDelivery
     from raes_contracts.contracts.participant_crossing import ParticipantCrossingOccurrenceModel
+    from raes_contracts.participant_inject_delivery import ParticipantInjectDelivery
 
     crossing = ParticipantCrossingOccurrenceModel.model_validate(
         crossing_payload(record.request.context.model_dump(mode="json"))

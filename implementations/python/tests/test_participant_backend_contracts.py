@@ -26,8 +26,8 @@ from raes_contracts.contracts import (
     ParticipantStatusViewEpisodeStateModel,
     ParticipantStatusViewModel,
     ParticipantTimeManagementContextModel,
-    schema_bundle,
 )
+from raes_schemas import schema_bundle
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 FIXTURES_ROOT = REPO_ROOT / "contracts" / "fixtures"

@@ -246,7 +246,10 @@ case has zero prohibited external effects.
 - #1003 implements final-sink runtime enforcement after #1002.
 - #1004 implements apparatus and backend capability support after #1002.
 - #1007 implements adversarial evaluation after #1001 and #1002.
-- #1008 publishes evidenced claims after #1003, #1004, and #1007.
+- #1008 publishes RAE harness claims after RAE runtime, fixture apparatus, and #1007 evaluation evidence.
+
+RAE evaluation and publication do not depend on a concrete backend.
+A concrete backend claim requires separate exact realization evidence from its owner.
 
 ## Consequences
 
@@ -306,7 +309,7 @@ evidence records retain their own dates and scope.
 | 2026-09-06 | #1068 | Clarify modular composition, governed effects and the declared-world boundary under ADR-108 while preserving the security profile and runtime interpreter non-goal. |
 | 2026-09-23 | #1354 | Define IFC profile variability, requirement-relative support, per-obligation release and immutable migration under ADR-114. |
 | 2026-09-24 | #1383 | Rebind the #1354 publication reference to ADR-114 after ADR-113 was assigned to #1350; semantics are unchanged. |
-
+| 2026-10-29 | #1008 | Separate backend-neutral RAE harness evaluation and publication from concrete backend realization claims. |
 
 ## References
 

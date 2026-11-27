@@ -5,6 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Literal, Protocol
 
+from ._host_isolation import isolated_host_call
 from .canonical import canonical_json_digest
 from .contracts.artifact_transformations import (
     ArtifactTransformationReportModel,
@@ -358,10 +359,8 @@ def _resolve_evidence_record(
     *,
     digest_addressed: bool,
 ) -> tuple[ExperimentEvidenceRecordModel, str]:
-    try:
+    with isolated_host_call("semantic projection evidence authority resolution failed"):
         record = resolver(evidence_ref=evidence_ref, evidence_boundary=boundary)
-    except Exception as exc:
-        raise ValueError("semantic projection evidence authority resolution failed") from exc
     if record is None:
         raise ValueError("semantic projection evidence ref did not resolve authoritatively")
     digest = canonical_json_digest(record.model_dump(mode="json"))

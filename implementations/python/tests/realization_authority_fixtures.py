@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import replace
 
+from raes.runtime_configuration import RuntimeConfiguration
 from raes_contracts.observation_demand import EffectiveObservationDemand, ObservationSelector
 from raes_contracts.planning import (
     ChangeAction,
@@ -19,6 +20,18 @@ from raes_processor.semantics.realization_concerns import (
 )
 
 _MISSING = object()
+
+
+def empty_runtime_readback() -> dict:
+    """The synthetic backend world has no runtime members or special settings."""
+
+    return RuntimeConfiguration(
+        linux_capabilities={},
+        operational_policy={"resource_limits": {}},
+        container={},
+        local_identity={},
+        network={},
+    ).model_dump(mode="json")
 
 
 def _nested_value(payload: object, path: tuple[str, ...]) -> object:

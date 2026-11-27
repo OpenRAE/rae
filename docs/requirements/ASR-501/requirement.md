@@ -51,3 +51,4 @@ Current state: partially implemented. Checked-in normative schemas exist under c
 - IMPLEMENTS → CODE_FILE `tools/schema_coverage/_classify.py` (Published inventory to covering-leg join)
 - TESTS → TEST `implementations/python/tests/test_issue_1330_schema_coverage.py` (Published-schema coverage gate and backfilled contract corpora tests)
 - IMPLEMENTS → GITHUB_ISSUE `1330` (Issue #1330 detect missing fixture or formal coverage for published schemas)
+- IMPLEMENTS → SPEC `contracts/schemas/profiles/raes-semantic-invariants-v1.json` (raes-semantic-invariants-v1 published schema)

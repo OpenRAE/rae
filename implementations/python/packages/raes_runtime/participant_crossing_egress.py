@@ -2,17 +2,14 @@
 
 from __future__ import annotations
 
-import hashlib
-import json
-from dataclasses import dataclass, replace
-from typing import TypeVar, cast
+from dataclasses import replace
+from typing import cast
 from uuid import uuid4
 
 from raes_contracts.contracts import ParticipantFlowSinkKind
 from raes_contracts.contracts.base import ContractModel
 from raes_contracts.contracts.participant_crossing import (
     ParticipantCrossingDirection,
-    ParticipantCrossingInteractionKind,
     ParticipantCrossingOccurrenceModel,
     ParticipantCrossingOperation,
     ParticipantCrossingSubjectKind,
@@ -21,6 +18,8 @@ from raes_contracts.contracts.participant_crossing import (
 from raes_contracts.contracts.participant_crossing_validation import (
     validate_participant_crossing_occurrence_context,
 )
+from raes_contracts.errors import AuthorizationError, ConflictError, EvidenceIntegrityError, InvalidInputError
+from raes_contracts.json_serialization import sorted_json_digest
 from raes_contracts.runtime_state import OperationKind, OperationState
 
 from .control_plane_mutation import control_plane_mutation, external_control_plane_call, mutation_entry
@@ -28,7 +27,6 @@ from .control_plane_store import ControlPlaneOperationRecord
 from .participant_control_orchestration import admit_participant_control
 from .participant_crossing_commit import commit_prepared_crossing, participant_crossing_permitted
 from .participant_crossing_mediation import (
-    ParticipantCrossingEvidence,
     ParticipantCrossingIntent,
     PreparedParticipantCrossing,
     prepare_participant_crossing,
@@ -41,64 +39,32 @@ from .participant_flow_sink import (
     flow_sink_denied_record,
     resolve_participant_flow_sink_decision,
 )
-
-_ViewT = TypeVar("_ViewT", bound=ContractModel)
+from .participant_view_serialization import ParticipantViewSerialization
 
 _PROJECTION_NOT_PERMITTED = "participant projection was not permitted"
 
 
-@dataclass(frozen=True)
-class ParticipantViewSerialization:
-    """Exact projection and authorization context for one egress operation."""
-
-    participant_address: str
-    episode_id: str
-    subject_kind: ParticipantCrossingSubjectKind
-    interaction_kind: ParticipantCrossingInteractionKind
-    projection_ref: str
-    identity: object
-    crossing_evidence: ParticipantCrossingEvidence | None
-    idempotency_key: str
-    runtime_owned_revision_paths: tuple[RuntimeRevisionPath, ...] = ()
-
-    def with_crossing_evidence(
-        self,
-        crossing_evidence: ParticipantCrossingEvidence,
-    ) -> ParticipantViewSerialization:
-        """Return this immutable context with trusted evidence attached."""
-
-        return ParticipantViewSerialization(
-            participant_address=self.participant_address,
-            episode_id=self.episode_id,
-            subject_kind=self.subject_kind,
-            interaction_kind=self.interaction_kind,
-            projection_ref=self.projection_ref,
-            identity=self.identity,
-            crossing_evidence=crossing_evidence,
-            idempotency_key=self.idempotency_key,
-            runtime_owned_revision_paths=self.runtime_owned_revision_paths,
-        )
-
-
 @mutation_entry(OperationKind.PARTICIPANT_CROSSING)
-def serialize_participant_view(
+def serialize_participant_view[ViewT: ContractModel](
     control_plane: object,
-    view: _ViewT,
+    view: ViewT,
     serialization: ParticipantViewSerialization,
-) -> _ViewT:
+) -> ViewT:
     """Return a view only after its exact governed projection is committed."""
 
     if serialization.crossing_evidence is None:
-        raise ValueError("configured participant egress requires crossing evidence")
+        raise ConflictError("configured participant egress requires crossing evidence")
     with control_plane_mutation(control_plane, OperationKind.PARTICIPANT_CROSSING):
         return _serialize_participant_view_authorized(control_plane, view, serialization)
 
 
-def _serialize_participant_view_authorized(
+def _serialize_participant_view_authorized[ViewT: ContractModel](
     control_plane: object,
-    view: _ViewT,
+    view: ViewT,
     serialization: ParticipantViewSerialization,
-) -> _ViewT:
+) -> ViewT:
+    from .participant_inject_application import require_delivery_policy_pin, retained_delivery_control
+
     with control_plane._participant_control_lock:
         control_plane._reload_derived_state_if_unpinned()
         subject = _view_subject(
@@ -120,7 +86,9 @@ def _serialize_participant_view_authorized(
                 "authority_basis_refs": ["runtime.authority:participant-projection"],
                 "requested_operation": ParticipantCrossingOperation.PROJECTION,
                 "action_or_projection_ref": serialization.projection_ref,
-                "effective_order": _next_effective_order(control_plane, serialization.participant_address),
+                "effective_order": serialization.effective_order
+                if serialization.effective_order is not None
+                else _next_effective_order(control_plane, serialization.participant_address),
                 "order_model": "logical_clock",
             },
         )
@@ -131,6 +99,7 @@ def _serialize_participant_view_authorized(
             idempotency_key=serialization.idempotency_key,
             incumbent_carrier=view,
         )
+        require_delivery_policy_pin(control_plane, serialization, prepared)
         if prepared.existing_receipt is not None:
             return _replayed_projection_view(view, prepared.record)
         if not participant_crossing_permitted(prepared):
@@ -140,12 +109,16 @@ def _serialize_participant_view_authorized(
                 delivered=False,
             )
             commit_prepared_crossing(control_plane, prepared)
-            raise PermissionError(_PROJECTION_NOT_PERMITTED)
+            raise AuthorizationError(_PROJECTION_NOT_PERMITTED)
 
         sink_decision = _enforce_egress_flow_sink(control_plane, prepared)
         prepared = _enforce_egress_participant_control(control_plane, prepared)
 
         governed = _governed_egress_view(control_plane, prepared, view, serialization, subject)
+        if serialization.inject_application is not None:
+            from .participant_inject_application import revalidate_delivery_egress
+
+            governed = revalidate_delivery_egress(control_plane, serialization, prepared, governed, view.correlation)
         prepared = _with_opacity_egress_observation(
             control_plane,
             prepared,
@@ -160,6 +133,8 @@ def _serialize_participant_view_authorized(
                 record=replace(
                     prepared.record,
                     result_payload=governed.model_dump(mode="json"),
+                    inject_delivery=governed if serialization.inject_application is not None else None,
+                    inject_delivery_control=retained_delivery_control(control_plane, serialization.inject_application),
                 ),
             ),
         )
@@ -170,34 +145,34 @@ def _serialize_participant_view_authorized(
         return governed
 
 
-def _replayed_projection_view(view: _ViewT, record: ControlPlaneOperationRecord | None) -> _ViewT:
+def _replayed_projection_view[ViewT: ContractModel](view: ViewT, record: ControlPlaneOperationRecord | None) -> ViewT:
     """Read back only a successful incumbent's governed projection."""
 
     if record is not None and record.status.state is not OperationState.SUCCEEDED:
-        raise PermissionError(_PROJECTION_NOT_PERMITTED)
+        raise AuthorizationError(_PROJECTION_NOT_PERMITTED)
     if record is None or record.result_payload is None:
-        raise ValueError("idempotent participant projection is missing its governed result")
+        raise ConflictError("idempotent participant projection is missing its governed result")
     return type(view).model_validate(record.result_payload)
 
 
-def _governed_egress_view(
+def _governed_egress_view[ViewT: ContractModel](
     control_plane: object,
     prepared: PreparedParticipantCrossing,
-    view: _ViewT,
+    view: ViewT,
     serialization: ParticipantViewSerialization,
     subject: ParticipantCrossingSubjectReferenceModel,
-) -> _ViewT:
+) -> ViewT:
     """Return the trusted governed projection, revalidating any egress transformation."""
 
     if prepared.governed_subject == subject:
         return view
     transformer = getattr(control_plane._crossing_policy_resolver, "transform_egress", None)
     if not callable(transformer):
-        raise ValueError("transformed participant egress requires a trusted view transformer")
+        raise ConflictError("transformed participant egress requires a trusted view transformer")
     with external_control_plane_call(control_plane):
         candidate = transformer(prepared.intent, prepared.governed_subject, view)
     if not isinstance(candidate, type(view)):
-        raise ValueError("participant egress transformation returned an invalid governed view")
+        raise InvalidInputError("participant egress transformation returned an invalid governed view")
     actual = _view_subject(
         candidate,
         participant_address=serialization.participant_address,
@@ -206,7 +181,7 @@ def _governed_egress_view(
         runtime_owned_revision_paths=serialization.runtime_owned_revision_paths,
     )
     if actual != prepared.governed_subject:
-        raise ValueError("trusted egress transformation does not match its governed identity")
+        raise EvidenceIntegrityError("trusted egress transformation does not match its governed identity")
     return candidate
 
 
@@ -227,7 +202,7 @@ def _enforce_egress_flow_sink(
             sink_decision,
         )
         commit_prepared_crossing(control_plane, denied)
-        raise PermissionError(_PROJECTION_NOT_PERMITTED)
+        raise AuthorizationError(_PROJECTION_NOT_PERMITTED)
     return sink_decision
 
 
@@ -243,7 +218,7 @@ def _enforce_egress_participant_control(
         sink_kind=ParticipantFlowSinkKind.PARTICIPANT_OUTPUT,
     )
     if receipt is not None:
-        raise PermissionError(_PROJECTION_NOT_PERMITTED)
+        raise AuthorizationError(_PROJECTION_NOT_PERMITTED)
     return admitted
 
 
@@ -295,7 +270,8 @@ def _with_opacity_egress_observation(
     """Append supported delivery/observation facts to the same atomic write."""
 
     decision = prepared.decision
-    if decision is None or getattr(decision.occurrence, "opacity_enforcement", None) is None:
+    inject = prepared.intent.subject.subject_kind is ParticipantCrossingSubjectKind.PARTICIPANT_INJECT_DELIVERY
+    if decision is None or (not inject and getattr(decision.occurrence, "opacity_enforcement", None) is None):
         return prepared
     participant_address = prepared.intent.participant_address
     history = list(prepared.next_snapshot.participant_crossing_history.get(participant_address, ()))
@@ -306,6 +282,7 @@ def _with_opacity_egress_observation(
         prepared,
         predecessor,
         delivered=delivered,
+        record_observation=not inject,
     )
     candidate = [
         *history,
@@ -348,6 +325,7 @@ def _egress_observation_records(
     predecessor: ParticipantCrossingOccurrenceModel,
     *,
     delivered: bool,
+    record_observation: bool = True,
 ) -> list[ParticipantCrossingOccurrenceModel]:
     decision = prepared.decision
     assert decision is not None
@@ -419,6 +397,8 @@ def _egress_observation_records(
             },
         }
     )
+    if not record_observation:
+        return [attempt, delivery]
     observation_order = delivery_order + 1
     observed = ParticipantCrossingOccurrenceModel.model_validate(
         {
@@ -453,17 +433,13 @@ def _view_subject(
     payload.pop("generated_at", None)
     view_ref = payload.get("view_id")
     if not isinstance(view_ref, str) or not view_ref:
-        raise ValueError("participant projection requires an exact view identity")
-    encoded = json.dumps(
-        stable_projection_subject(payload, runtime_owned_revision_paths),
-        sort_keys=True,
-        separators=(",", ":"),
-    ).encode()
+        raise InvalidInputError("participant projection requires an exact view identity")
+    subject_digest = sorted_json_digest(stable_projection_subject(payload, runtime_owned_revision_paths))
     return ParticipantCrossingSubjectReferenceModel(
         subject_kind=subject_kind,
         contract_id=f"{subject_kind.value}-v1",
         subject_ref=view_ref,
-        subject_digest=f"sha256:{hashlib.sha256(encoded).hexdigest()}",
+        subject_digest=subject_digest,
         participant_address=participant_address,
         episode_id=episode_id,
     )

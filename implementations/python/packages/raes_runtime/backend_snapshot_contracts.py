@@ -1,12 +1,16 @@
 """Exhaustive snapshot carrier classification and bounded shape admission."""
 
-from dataclasses import fields
+from dataclasses import fields, is_dataclass
+from enum import Enum
 
+from pydantic import BaseModel
 from pydantic_core import to_jsonable_python
 from raes_contracts.addressing import require_compiled_address
 from raes_contracts.canonical import jsonable_fallback
 from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.domain_profiles import DomainProfileBindingModel
+from raes_contracts.immutable_history import HistoryMap
+from raes_contracts.planning import RuntimeDomain
 from raes_contracts.realization_structure import (
     ExactRealizationValue,
     structure_matches,
@@ -93,7 +97,7 @@ def _carrier_classification_violation(snapshot: RuntimeSnapshot) -> str | None:
 def _carrier_identity_violation(carrier: object) -> str | None:
     """Admit one addressed carrier as a bounded, string-keyed mapping."""
 
-    if not isinstance(carrier, dict):
+    if not isinstance(carrier, dict) and type(carrier) is not HistoryMap:
         return "Backend snapshot contains an invalid addressed carrier."
     if len(carrier) > _VALUE_LIMITS.max_members or any(not isinstance(key, str) for key in carrier):
         return "Backend snapshot contains invalid or excessive carrier identities."
@@ -154,7 +158,7 @@ def _profile_binding_violation(entry: SnapshotEntry) -> str | None:
 
     try:
         return _typed_profile_binding_violation(entry)
-    except (TypeError, ValueError, RecursionError):
+    except TypeError, ValueError, RecursionError:
         return "Backend snapshot contains invalid profile bindings."
 
 
@@ -164,9 +168,43 @@ def _payload_violation(entry: SnapshotEntry) -> str | None:
     if (
         isinstance(entry.payload, dict)
         and validate_realization_value(entry.payload, limits=_VALUE_LIMITS, python_carriers=True).conformant
+        and _payload_carriers_match(entry.payload)
     ):
         return None
     return "Backend snapshot contains an invalid resource payload."
+
+
+def _payload_carrier_record(value: object) -> object:
+    """Read the same model and dataclass fields as bounded value admission."""
+
+    if isinstance(value, BaseModel):
+        return {**{name: getattr(value, name) for name in type(value).model_fields}, **(value.model_extra or {})}
+    if is_dataclass(value) and not isinstance(value, type):
+        return {field.name: getattr(value, field.name) for field in fields(value)}
+    return value
+
+
+def _payload_carriers_match(payload: object) -> bool:
+    """Require each bounded carrier to serialize exactly the fields admission walked."""
+
+    pending = [payload]
+    while pending:
+        value = pending.pop()
+        if isinstance(value, Enum):
+            pending.append(value.value)
+            continue
+        record = _payload_carrier_record(value)
+        if record is not value:
+            projected = to_jsonable_python(value, fallback=jsonable_fallback)
+            if not validate_realization_value(projected, limits=_VALUE_LIMITS).conformant or not snapshot_values_equal(
+                projected, record
+            ):
+                return False
+        if isinstance(record, dict):
+            pending.extend(record.values())
+        elif isinstance(record, (list, tuple)):
+            pending.extend(record)
+    return True
 
 
 def _status_violation(entry: SnapshotEntry) -> str | None:
@@ -199,13 +237,26 @@ def _dependency_violation(entry: SnapshotEntry) -> str | None:
     return None
 
 
+def _domain_violation(entry: SnapshotEntry) -> str | None:
+    """Admit one entry's runtime domain only as a ``RuntimeDomain`` member.
+
+    ``RuntimeDomain`` is a ``str`` enum, so an equal-valued string would pass a
+    value comparison and then fail the identity comparisons runtime readers use.
+    """
+
+    if type(entry.domain) is not RuntimeDomain:
+        return "Backend snapshot contains an untyped runtime domain."
+    return None
+
+
 def _entry_violation(entry: object) -> str | None:
     """Admit one snapshot resource entry against its bounded shape contract."""
 
     if not isinstance(entry, SnapshotEntry):
         return "Backend snapshot contains a non-SnapshotEntry resource."
     return (
-        _profile_binding_violation(entry)
+        _domain_violation(entry)
+        or _profile_binding_violation(entry)
         or _payload_violation(entry)
         or _status_violation(entry)
         or _dependency_violation(entry)

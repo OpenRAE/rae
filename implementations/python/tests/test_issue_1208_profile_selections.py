@@ -280,12 +280,12 @@ def test_private_generator_capability_retains_exact_coordinate():
 
 
 def _mailbox_case(semantics=None):
+    """Plan an account mailbox selection against a profile-capable stub target."""
+
     from raes.scenario import Scenario
     from raes_contracts.account_materialization import ACCOUNT_MAILBOX_SEMANTICS
-    from raes_reference_backend import create_reference_backend_target
-    from raes_reference_backend.drivers.inprocess import InProcessDriver
-    from raes_reference_backend.mailbox_materialization import InProcessMailboxSink
     from raes_runtime.manager import RuntimeManager
+    from t1_profile_targets import profile_stub_target
     from test_issue_673_account_credential_bindings import _account_payload
 
     binding, context = _account_profile(semantics or ACCOUNT_MAILBOX_SEMANTICS)
@@ -312,122 +312,8 @@ def _mailbox_case(semantics=None):
             },
         }
     )
-    mailbox_ref = binding.value["mailbox_ref"]
-    sink = InProcessMailboxSink(authorized_bindings=frozenset({("provision.account.admin", mailbox_ref)}))
-    driver = InProcessDriver()
-    target = create_reference_backend_target(domain_profile_context=context, mailbox_sink=sink, driver=driver)
+    target = profile_stub_target(context, mailbox=True)
     manager = RuntimeManager(target)
     execution = manager.plan(scenario)
     assert not [item for item in execution.diagnostics if item.is_error]
-    return binding, sink, target, manager, execution, driver
-
-
-def test_reference_mailbox_materialization_uses_an_authorized_sink_and_value_free_outputs():
-    import json
-
-    from test_issue_673_account_credential_bindings import FIXTURE_SENTINEL, OPERATOR_REFERENCE
-
-    binding, sink, target, manager, execution, driver = _mailbox_case()
-    mailbox_ref = binding.value["mailbox_ref"]
-    result = manager.apply(execution)
-    assert result.success, result.diagnostics
-    assert sink.authenticates(mailbox_ref, FIXTURE_SENTINEL)
-    assert not sink.authenticates(mailbox_ref, "wrong-fixture")
-    rendered = json.dumps(result.snapshot.entries["provision.account.admin"].payload)
-    assert FIXTURE_SENTINEL not in rendered
-    assert OPERATOR_REFERENCE not in rendered
-    selected = result.snapshot.entries["provision.account.admin"].profile_bindings[0]
-    assert selected.coordinate == binding.coordinate
-    assert selected.provenance.basis.value == "backend-selected"
-    assert manager.destroy().success
-    assert not sink.authenticates(mailbox_ref, FIXTURE_SENTINEL)
-
-
-@pytest.mark.parametrize("mutation", ["denied", "wrong-account", "wrong-target", "extra-service", "label-semantics"])
-def test_mailbox_native_boundary_rejects_unsupported_semantics_before_driver_mutation(mutation):
-    from raes_contracts.runtime_state import RuntimeSnapshot
-    from raes_reference_backend.profile_preparation import RESOURCE_LABEL_SEMANTICS
-
-    binding, sink, target, manager, execution, driver = _mailbox_case(
-        RESOURCE_LABEL_SEMANTICS if mutation == "label-semantics" else None
-    )
-    prepared = target.provisioner.prepare(execution.provisioning, RuntimeSnapshot())
-    native_plan = replace(execution.provisioning, operations=list(prepared.operations))
-    if mutation == "denied":
-        sink.authorized_bindings = frozenset()
-    elif mutation == "wrong-target":
-        operation = next(item for item in native_plan.operations if item.resource_type == "account-placement")
-        operation.payload["target_address"] = "provision.node.somewhere-else"
-    elif mutation in {"wrong-account", "extra-service"}:
-        service = execution.provisioning.resources["provision.node.mail"].payload["spec"]["node"]["runtime"][
-            "mail_services"
-        ][0]
-        if mutation == "wrong-account":
-            service["mailboxes"][0]["account_ref"] = "someone-else"
-        else:
-            service["engine"] = "unsupported-engine"
-    result = target.provisioner.apply(native_plan, RuntimeSnapshot())
-    assert not result.success
-    assert not driver.recorded_ops
-    assert not sink._verifiers
-
-
-def test_private_generator_produces_bytes_and_enforces_consumer_projection():
-    import hashlib
-
-    from raes.scenario import Scenario
-    from raes_contracts.artifact_generation import DIGEST_ARTIFACT_SEMANTICS
-    from raes_reference_backend import create_reference_backend_target
-    from raes_runtime.manager import RuntimeManager
-
-    binding, context = _account_profile(
-        DIGEST_ARTIFACT_SEMANTICS,
-        profile_context="artifact-generation",
-        value={"seed": "public-example"},
-        address="provision.generated-artifact.seed",
-    )
-    scenario = Scenario.model_validate(
-        {
-            "name": "private-generator",
-            "nodes": {"host": {"type": "compute"}},
-            "generated_artifacts": {
-                "seed": {
-                    "generator": binding.model_dump(mode="json"),
-                    "lifecycle": "reuse_valid",
-                    "provenance": "urn:example:private-generator",
-                    "outputs": [
-                        {"name": "digest", "path": "digest.txt", "sensitivity": "public"},
-                        {
-                            "name": "private",
-                            "path": "private.txt",
-                            "sensitivity": "secret",
-                            "disposition": "producer_private",
-                        },
-                    ],
-                    "consumers": [
-                        {
-                            "node": "host",
-                            "mount_destination": "/generated",
-                            "access_mode": "read_only",
-                            "selected_outputs": ["digest"],
-                        }
-                    ],
-                }
-            },
-        }
-    )
-    target = create_reference_backend_target(domain_profile_context=context)
-    manager = RuntimeManager(target)
-    execution = manager.plan(scenario)
-    assert not [item for item in execution.diagnostics if item.is_error]
-    result = manager.apply(execution)
-    assert result.success, result.diagnostics
-    assert (
-        target.provisioner.generated_output("provision.generated-artifact.seed", "provision.node.host", "digest")
-        == hashlib.sha256(b"public-example").hexdigest().encode()
-    )
-    with pytest.raises(ValueError, match="consumer"):
-        target.provisioner.generated_output("provision.generated-artifact.seed", "provision.node.host", "private")
-    assert manager.destroy().success
-    with pytest.raises(ValueError, match="consumer"):
-        target.provisioner.generated_output("provision.generated-artifact.seed", "provision.node.host", "digest")
+    return binding, target, manager, execution

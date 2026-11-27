@@ -23,24 +23,34 @@ pass.
 from __future__ import annotations
 
 import ast
+import logging
 from pathlib import Path
 
+import pytest
 import raes.validator as validator_module
 
 
 def _all_class_methods(source: str) -> dict[str, ast.AST]:
-    """Collect every method from every class in ``source``.
+    """Collect methods from ``SemanticValidator`` and its local ancestors.
 
     The reference ``SemanticValidator`` is composed from per-seam mixin classes
     split across the ``raes.validator`` package (issue #42), so the boundary
-    lint aggregates methods across all classes in the source rather than a single
-    ``SemanticValidator`` ClassDef. Method names are unique across the mixins, so
-    a flat name->node map faithfully reconstructs the composed method set.
+    lint aggregates methods across its mixins. Composed helpers can have methods
+    with the same names, but are not part of the validator's inherited method set.
     """
     tree = ast.parse(source)
+    classes = {node.name: node for node in ast.walk(tree) if isinstance(node, ast.ClassDef)}
+    ancestors: set[str] = set()
+    pending = ["SemanticValidator"]
+    while pending:
+        name = pending.pop()
+        if name in ancestors or name not in classes:
+            continue
+        ancestors.add(name)
+        pending.extend(base.id for base in classes[name].bases if isinstance(base, ast.Name))
     methods: dict[str, ast.AST] = {}
     for cls in ast.walk(tree):
-        if not isinstance(cls, ast.ClassDef):
+        if not isinstance(cls, ast.ClassDef) or cls.name not in ancestors:
             continue
         for node in cls.body:
             if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
@@ -179,3 +189,60 @@ def test_lint_detects_synthetic_violations() -> None:
     assert "unregistered-advisory-pass:_warn_orphan" in violations
     assert "collect-advisories-not-invoked-in-validate" in violations
     assert "advisory-pass-invoked-outside-collect:_verify_indirect" in violations
+
+
+@pytest.mark.parametrize("helper_first", [False, True])
+def test_unrelated_validate_method_does_not_replace_the_validator_entry(helper_first: bool) -> None:
+    inherited = """
+class Core:
+    def validate(self):
+        self._collect_advisories()
+
+    def _collect_advisories(self):
+        pass
+
+class SemanticValidator(Core):
+    pass
+"""
+    helper = """
+class EpisodePolicyValidator:
+    def validate(self):
+        pass
+"""
+    source = helper + inherited if helper_first else inherited + helper
+
+    assert find_advisory_boundary_violations(source) == set()
+
+
+def test_unrelated_validate_method_does_not_hide_a_missing_advisory_call() -> None:
+    helper = """
+class OtherValidator:
+    def validate(self):
+        self._collect_advisories()
+"""
+
+    violations = find_advisory_boundary_violations(_SYNTHETIC_VIOLATING_SOURCE + helper)
+
+    assert "collect-advisories-not-invoked-in-validate" in violations
+
+
+def test_load_scenario_returns_advisories_without_logging_their_content(
+    tmp_path: Path,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Advisories reach the caller on the scenario; the log keeps only counts (ADR-116 rules E8, L3, L6)."""
+
+    from raes.scenarios import load_scenario
+
+    path = tmp_path / "scenario.yaml"
+    path.write_text(
+        "name: advisory-scenario\nnodes:\n  secret-node-name: {type: compute, os: linux}\n", encoding="utf-8"
+    )
+    with caplog.at_level(logging.DEBUG, logger="raes.scenarios"):
+        scenario = load_scenario(path)
+
+    assert len(scenario.advisories) == 1
+    records = [record for record in caplog.records if record.name == "raes.scenarios"]
+    assert [record.levelno for record in records] == [logging.INFO]
+    assert "secret-node-name" not in records[0].getMessage()
+    assert "with 1 advisories and 0 source diagnostics" in records[0].getMessage()

@@ -644,3 +644,9 @@ The grammar does not make every dotted string self-describing. Canonical
 addresses remain typed paths, and collision-free meaning comes from structured
 construction plus exact declaration-index lookup. This avoids both a global
 reserved-word list and a new general-purpose address parser.
+
+## Amendments
+
+| Date | Commit/PR | Summary |
+|------|-----------|---------|
+| 2026-11-06 | #1929 | The schema-publication change ledger is removed (ADR-061 amendment, #1929). Schema synchronization is governed by the generated-schema check and ADR-061 breaking-change detection. |

@@ -53,7 +53,7 @@ def test_immutable_bundle_index_preserves_concurrent_captures() -> None:
     bundles = copy_bundle(load_bundles, REPO_ROOT)
     assert {manifest["revision"] for manifest, *_rest in bundles} >= {"1.0.0", "1.1.0", "19.0.0"}
     manifest, *_rest = copy_bundle(load_bundle, REPO_ROOT)
-    assert manifest["revision"] == "68.0.0"
+    assert manifest["revision"].startswith("capture-")
 
 
 def test_historical_failures_name_the_revision_specific_documents() -> None:
@@ -68,7 +68,7 @@ def test_historical_failures_name_the_revision_specific_documents() -> None:
     assert by_rule["specification-coverage-analysis-join"].path == manifest["analysis_path"]
 
 
-def test_evaluate_routes_the_index_tip_through_strict_validation(monkeypatch) -> None:
+def test_evaluate_routes_the_selected_capture_through_strict_validation(monkeypatch) -> None:
     records = [
         ("bundle-old.json", {"revision": "98.0.0"}),
         ("bundle-tip.json", {"revision": "99.0.0"}),
@@ -76,6 +76,7 @@ def test_evaluate_routes_the_index_tip_through_strict_validation(monkeypatch) ->
     calls: list[tuple[str, str]] = []
 
     monkeypatch.setattr(coverage_gate, "_load_bundle_index", lambda _root: records)
+    monkeypatch.setattr(coverage_gate, "latest_recorded_release_path", lambda *_: "bundle-old.json")
     monkeypatch.setattr(
         coverage_gate,
         "_load_bundle_record",
@@ -93,7 +94,7 @@ def test_evaluate_routes_the_index_tip_through_strict_validation(monkeypatch) ->
     )
 
     assert coverage_gate.evaluate(REPO_ROOT) == []
-    assert calls == [("historical", "98.0.0"), ("current", "99.0.0")]
+    assert calls == [("current", "98.0.0"), ("historical", "99.0.0")]
 
 
 def test_gate_rejects_missing_strata_and_composite_concepts() -> None:
@@ -235,11 +236,11 @@ def test_historical_implementation_digest_does_not_bind_the_live_checkout() -> N
     assert "specification-coverage-implementation-identity" not in _rule_ids(failures)
 
 
-def test_current_implementation_surface_digest_binds_live_checkout() -> None:
+def test_recorded_implementation_surface_digest_does_not_require_recapture() -> None:
     manifest, protocol, snapshot, analysis = _bundle()
     snapshot["implementation_surfaces"][0]["content_sha256"] = "f" * 64
     failures = validate_bundle(REPO_ROOT, manifest, protocol, snapshot, analysis)
-    assert "specification-coverage-implementation-identity" in _rule_ids(failures)
+    assert "specification-coverage-implementation-identity" not in _rule_ids(failures)
 
 
 @pytest.mark.parametrize(

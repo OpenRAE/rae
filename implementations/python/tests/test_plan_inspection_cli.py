@@ -5,6 +5,8 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+import pytest
+import raes_cli.processor as processor_commands
 import yaml
 from paths import EXAMPLES_DIR
 from raes._errors import (
@@ -15,7 +17,7 @@ from raes._errors import (
     SDLSourceRange,
     SDLValidationError,
 )
-from raes_backend_protocols.manifest import backend_manifest_payload
+from raes_backend_protocols.manifest import BackendManifestInvalidError, backend_manifest_payload
 from raes_backend_stubs.manifest import create_stub_manifest
 from raes_cli.main import app
 from raes_cli.processor import _sdl_error_summary
@@ -24,6 +26,7 @@ from raes_contracts.contracts import (
     OrchestrationPlanModel,
     ProvisioningPlanModel,
 )
+from raes_contracts.errors import InvalidInputError, OperationalError
 from typer.testing import CliRunner
 
 _SCENARIO = EXAMPLES_DIR / "techvault-defensive-min.sdl.yaml"
@@ -174,6 +177,48 @@ def test_plan_invalid_manifest_does_not_leak_rejected_value(tmp_path: Path) -> N
     assert result.stdout.strip() == ""
     assert "ZZLEAKMARKER99" not in result.stderr
     assert "backend-manifest-v2" in result.stderr
+
+
+@pytest.mark.parametrize(
+    ("error", "expected"),
+    [
+        (InvalidInputError, "SDL compilation failed (InvalidInputError)"),
+        (OperationalError, "an SDL module import could not be fetched or cached (OperationalError)"),
+    ],
+)
+def test_plan_reports_compiler_and_import_failures_without_values(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, error: type[Exception], expected: str
+) -> None:
+    def _refuse(*_args: object, **_kwargs: object) -> None:
+        raise error("observation scope does not resolve: SECRETMARKER")
+
+    monkeypatch.setattr(processor_commands, "run_reference_processor", _refuse)
+    result = _invoke(str(_scenario_supported_by_default_manifest(tmp_path)), "--format", "json")
+
+    assert result.exit_code == 1
+    assert result.stdout.strip() == ""
+    assert expected in result.stderr
+    assert result.stderr.count("\n") <= 1
+    assert "SECRETMARKER" not in result.output
+
+
+def test_plan_manifest_rejected_by_capability_validation_is_a_bad_parameter(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    def _reject(_model: object) -> None:
+        raise BackendManifestInvalidError("backend manifest was rejected by backend capability validation")
+
+    monkeypatch.setattr(processor_commands, "backend_manifest_from_v2_model", _reject)
+    manifest_file = tmp_path / "manifest.json"
+    manifest_file.write_text(json.dumps(backend_manifest_payload(create_stub_manifest())), encoding="utf-8")
+
+    result = _invoke(
+        str(_scenario_supported_by_default_manifest(tmp_path)), "--manifest", str(manifest_file), "--format", "json"
+    )
+
+    assert result.exit_code == 2
+    assert result.stdout.strip() == ""
+    assert "rejected by backend capability validation" in result.stderr
 
 
 def test_plan_manifest_with_realization_envelope_fails_closed(tmp_path: Path) -> None:

@@ -9,6 +9,8 @@ from fractions import Fraction
 from raes_contracts.contracts.mixed_composition import MixedCompositionTransitionModel
 from raes_contracts.contracts.mixed_runtime import MixedCompositionRuntimeStateModel
 from raes_contracts.contracts.time_model import TimeRuntimeStateModel, validate_time_runtime_state
+from raes_contracts.errors import ConflictError, EvidenceIntegrityError
+from raes_contracts.operational_logging import foreign_failure_record, get_logger
 from raes_contracts.runtime_state import OperationState, RuntimeSnapshot
 
 from .control_plane_mutation import external_control_plane_call
@@ -17,6 +19,7 @@ from .mixed_runtime_edge import MixedTimeCoordinationEvidence
 from .mixed_runtime_handoff import MixedHandoffBinding, MixedHandoffEvidence, MixedHandoffReadback
 
 _UNSUPPORTED_HANDOFF_TIME = "handoff time coordination is unsupported"
+_LOGGER = get_logger(__name__)
 
 
 @dataclass(frozen=True)
@@ -76,7 +79,9 @@ def _resolve_required_handoff(
             time_state, grant = _request_handoff_grant(
                 control_plane, installed, declaration, transition, operation_id, baseline_snapshot
             )
-        except Exception:
+        # Isolation: the native time runtime and coordinator are foreign code; log only RAES frames.
+        except Exception as exc:
+            _LOGGER.exception("mixed handoff time coordination was refused", exc_info=foreign_failure_record(exc))
             resolution = _HandoffResolution(OperationState.FAILED, "order:handoff-time-refused")
         else:
             progress = _HandoffProgress(
@@ -87,7 +92,12 @@ def _resolve_required_handoff(
                     installed, declaration, transition, state, operation_id, baseline_snapshot, time_state, grant
                 )
                 _invoke_handoff_stage(control_plane, invocation, progress)
-            except Exception:
+            # Isolation: the native handoff service and its readback are foreign code; log only RAES frames.
+            except Exception as exc:
+                _LOGGER.exception(
+                    "mixed handoff stage did not complete; the handoff is indeterminate",
+                    exc_info=foreign_failure_record(exc),
+                )
                 resolution = _HandoffResolution(OperationState.INDETERMINATE, grant.order_ref, progress.confirmed_refs)
             else:
                 resolution = _handoff_stage_outcome(installed, state, operation_id, grant, progress)
@@ -108,7 +118,7 @@ def _request_handoff_grant(
             raise TypeError("handoff time readback must be typed")
         validate_time_runtime_state(declaration, time_state)
         if time_state != baseline_snapshot.time_model_state:
-            raise ValueError("handoff time readback differs from the committed snapshot")
+            raise EvidenceIntegrityError("handoff time readback differs from the committed snapshot")
         grant = MixedTimeCoordinationEvidence.model_validate(
             installed.coordinate(operation_id, deepcopy(transition), deepcopy(time_state))
         )
@@ -188,12 +198,12 @@ def _validate_handoff_time_readback(
         raise TypeError("handoff post-transfer time readback must be typed")
     validate_time_runtime_state(declaration, final_time)
     if final_time != baseline_snapshot.time_model_state:
-        raise ValueError("handoff post-transfer time readback differs from the committed snapshot")
+        raise EvidenceIntegrityError("handoff post-transfer time readback differs from the committed snapshot")
     for clock_address in (installed.source_clock_address, installed.destination_clock_address):
         previous = time_state.clocks[clock_address].coordinate
         current = final_time.clocks[clock_address].coordinate
         if (current.segment, current.tick, current.microstep) < (previous.segment, previous.tick, previous.microstep):
-            raise ValueError("handoff time readback regressed")
+            raise EvidenceIntegrityError("handoff time readback regressed")
 
 
 def _handoff_stage_outcome(
@@ -267,8 +277,8 @@ def _require_handoff_time_grant(
         destination.segment,
     )
     if granted != expected:
-        raise ValueError(_UNSUPPORTED_HANDOFF_TIME)
+        raise ConflictError(_UNSUPPORTED_HANDOFF_TIME)
     if (mapped_tick, source.microstep) > (destination.tick, destination.microstep):
-        raise ValueError(_UNSUPPORTED_HANDOFF_TIME)
+        raise ConflictError(_UNSUPPORTED_HANDOFF_TIME)
     if not required.issubset(set(grant.mapping_evidence_refs) | set(grant.timing_evidence_refs)):
-        raise ValueError(_UNSUPPORTED_HANDOFF_TIME)
+        raise ConflictError(_UNSUPPORTED_HANDOFF_TIME)

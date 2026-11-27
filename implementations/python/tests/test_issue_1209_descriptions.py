@@ -221,9 +221,10 @@ def test_private_offline_carriage_requires_explicit_host_admission_policy(monkey
 
 def test_description_json_ingress_rejects_duplicate_members_without_echoing_values():
     from raes_contracts.description_reporting import parse_realization_description
+    from raes_contracts.json_ingress import StrictJsonIngressError
 
     source = '{"description_id":"operator-private-sentinel","description_id":"duplicate"}'
-    with pytest.raises(ValueError, match="duplicate JSON member") as error:
+    with pytest.raises(StrictJsonIngressError, match="duplicate JSON member") as error:
         parse_realization_description(source)
     assert "operator-private-sentinel" not in str(error.value)
 

@@ -5,6 +5,8 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
+from raes_contracts.json_pointer import escape_token
+
 from ._errors import (
     SDLParseDiagnostic,
     SDLParseError,
@@ -12,10 +14,6 @@ from ._errors import (
     SDLSourceRange,
 )
 from ._source_profile import SDLMigrationPolicy
-
-
-def _pointer_token(value: object) -> str:
-    return str(value).replace("~", "~0").replace("/", "~1")
 
 
 def _source_range(pointer: str, source_ranges: dict[str, SDLSourceRange] | None) -> SDLSourceRange:
@@ -88,7 +86,7 @@ def _migrate_legacy_vm_node(
     *,
     path: Path | None,
 ) -> None:
-    field_pointer = f"/nodes/{_pointer_token(name)}"
+    field_pointer = f"/nodes/{escape_token(str(name))}"
     collision = any(
         isinstance(authored, dict)
         and authored.get("field_pointer") == field_pointer
@@ -130,7 +128,7 @@ def migrate_legacy_vm_nodes(
         return
     diagnostics = [
         _legacy_vm_diagnostic(
-            pointer=f"/nodes/{_pointer_token(name)}/type",
+            pointer=f"/nodes/{escape_token(str(name))}/type",
             path=path,
             source_ranges=source_ranges,
             severity="warning" if policy is SDLMigrationPolicy.ACCEPT else "error",

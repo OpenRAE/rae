@@ -24,6 +24,12 @@ from raes.stateful_resources import (
 )
 from raes_backend_protocols.provisioner_capabilities import ProvisionerCapabilities
 from raes_contracts.contracts import ProvisionerCapabilitiesModel
+from raes_contracts.contracts.plan_projection import (
+    evaluation_plan_model,
+    provisioning_plan_model,
+    runtime_plan_digest,
+)
+from raes_contracts.errors import ConflictError
 from raes_contracts.vocabulary import GeneratedArtifactKind
 
 
@@ -247,9 +253,8 @@ from raes_processor.planner import plan  # noqa: E402
 def _with_random_value_support(manifest):
     """Return ``manifest`` with its provisioner extended to support random_value.
 
-    The shipped stub and reference backends do not advertise random_value (the
-    stub's apply is a no-op; the reference has no container-level secret delivery),
-    so admission/pipeline tests construct a capable backend via ``replace`` to
+    The shipped stub backend does not advertise random_value (its apply only folds
+    the plan into the snapshot), so admission/pipeline tests construct a capable backend via ``replace`` to
     represent a provisioner that supports the generator (issue #1276).
     """
 
@@ -806,41 +811,45 @@ class TestDeferredVerification:
         assert any(d.code == "evaluator.unsupported-deferred-expected-comparison" for d in execution.diagnostics)
 
 
-# --- reference backend generation --------------------------------------------
+# --- planned generation recipe ------------------------------------------------
 
-from raes_reference_backend.artifact_generation import generated_artifact_projections  # noqa: E402
+from raes_contracts.random_value_generation import render_random_value  # noqa: E402
 
 
-class TestReferenceGeneration:
-    def test_reference_generates_formatted_secret_on_create(self) -> None:
+def _flag_operation(execution_plan):
+    return next(o for o in execution_plan.provisioning.operations if o.address == _FLAG_ARTIFACT_ADDRESS)
+
+
+class TestPlannedGeneration:
+    def test_planned_recipe_renders_formatted_secret(self) -> None:
+        # The plan carries the complete random_value recipe a backend realizes;
+        # the shared renderer turns it into the formatted secret (issue #1276).
         execution = plan(
             compile_runtime_model(parse_sdl(_FLAG_WITH_FILE_CONSUMER)),
             _capable_stub(),
             scope=PlanScope(run_id="r1"),
         )
-        projections = generated_artifact_projections(execution.provisioning)
-        assert len(projections) == 1
-        rendered = next(iter(projections.values())).decode("utf-8")
+        operation = _flag_operation(execution)
+        assert operation.action.value == "create"
+        rendered = render_random_value(operation.payload["spec"]["random_value"])
         assert rendered.startswith("TECHVAULT{")
         assert rendered.endswith("}")
         assert len(rendered) == len("TECHVAULT{") + 32 + len("}")
+        assert set(rendered[len("TECHVAULT{") : -1]) <= set("0123456789abcdef")
 
-    def test_reference_regenerates_only_on_scope_transition(self) -> None:
+    def test_generation_transitions_follow_scope_reconciliation(self) -> None:
         # Generation follows reconciliation, not invocation (issue #1276):
         # create generates; a same-run resume (UNCHANGED) retains it; a new run
         # (UPDATE) regenerates a fresh value.
         first = _plan_scoped("per_run", run_id="r1")
         assert _flag_action(first) == "create"
-        assert generated_artifact_projections(first.provisioning)  # generated on create
         snapshot = _snapshot_from_plan(first)
 
         resume = _plan_scoped("per_run", snapshot=snapshot, run_id="r1")
         assert _flag_action(resume) == "unchanged"
-        assert generated_artifact_projections(resume.provisioning) == {}  # retained, not rotated
 
         new_run = _plan_scoped("per_run", snapshot=snapshot, run_id="r2")
         assert _flag_action(new_run) == "update"
-        assert generated_artifact_projections(new_run.provisioning)  # regenerated for the new scope
 
 
 # --- direct-plan content-consumer admission (finding #4) ---------------------
@@ -927,11 +936,6 @@ class TestDirectPlanContentAdmission:
 
 # --- run-identity plumbing through published models + digest (finding #2) -----
 
-from raes_contracts.plan_projection import (  # noqa: E402
-    evaluation_plan_model,
-    provisioning_plan_model,
-    runtime_plan_digest,
-)
 from raes_contracts.planning import EvaluationPlan, ProvisioningPlan  # noqa: E402
 from raes_runtime.control_plane_api_models import _provisioning_plan  # noqa: E402
 
@@ -963,40 +967,43 @@ class TestRunIdentityPlumbing:
         assert restored.instantiation_id == "inst-1"
 
 
-# --- reference provisioner apply/readback + resume (findings #4, #5) ----------
+# --- runtime apply + resume through a capable target (findings #4, #5) --------
 
 
-class TestReferenceProvisionerDelivery:
-    def test_apply_delivers_secret_and_retains_across_same_scope_resume(self) -> None:
-        from raes_reference_backend import create_reference_backend_target
+class TestRuntimeApplyResume:
+    def test_runtime_applies_and_reconciles_across_same_scope_resume_and_new_run(self) -> None:
+        from raes_backend_stubs.stubs import create_stub_target
         from raes_runtime.manager import RuntimeManager
 
         scenario = parse_sdl(_FLAG_WITH_FILE_CONSUMER)
-        # The shipped reference does not advertise random_value (it has no
-        # container-level secret delivery); override its capabilities to represent
-        # a backend that supports the generator and exercise the generator end to
-        # end through the canonical apply path (issue #1276).
-        base = create_reference_backend_target()
+        # The stub does not advertise random_value; override its capabilities to
+        # represent a backend that supports the generator and drive the canonical
+        # plan/apply path end to end (issue #1276).
+        base = create_stub_target()
         target = replace(base, manifest=_with_random_value_support(base.manifest))
-        manager = RuntimeManager(target)
-        addr, node = "provision.generated-artifact.techvault-flag", "provision.node.web"
+        with RuntimeManager(target, run_scope="run:r1") as manager:
+            first = manager.plan(scenario, run_scope=PlanScope(run_id="r1"))
+            assert not [d for d in first.diagnostics if d.is_error], [d.message for d in first.diagnostics]
+            assert _flag_action(first) == "create"
+            assert manager.apply(first).success
+            assert _FLAG_ARTIFACT_ADDRESS in manager.snapshot.entries
 
-        first = manager.plan(scenario, run_scope=PlanScope(run_id="r1"))
-        assert not [d for d in first.diagnostics if d.is_error], [d.message for d in first.diagnostics]
-        assert manager.apply(first).success
-        v1 = target.provisioner.generated_output(addr, node, "flag").decode("utf-8")
-        assert v1.startswith("TECHVAULT{")
-        assert v1.endswith("}")
+            # The same run retains its generated-value binding.
+            resume = manager.plan(scenario, run_scope=PlanScope(run_id="r1"))
+            assert _flag_action(resume) == "unchanged"
+            assert manager.apply(resume).success
 
-        # Same-run resume reconciles UNCHANGED and RETAINS the delivered value.
-        resume = manager.plan(scenario, run_scope=PlanScope(run_id="r1"))
-        assert manager.apply(resume).success
-        assert target.provisioner.generated_output(addr, node, "flag").decode("utf-8") == v1
+            # A changed plan identity cannot retarget an admitted runtime.
+            new_run = manager.plan(scenario, run_scope=PlanScope(run_id="r2"))
+            assert _flag_action(new_run) == "update"
+            with pytest.raises(ConflictError, match="run scope"):
+                manager.apply(new_run)
+            assert manager.destroy().success
 
-        # A new authoritative run regenerates a fresh value.
-        new_run = manager.plan(scenario, run_scope=PlanScope(run_id="r2"))
-        assert manager.apply(new_run).success
-        assert target.provisioner.generated_output(addr, node, "flag").decode("utf-8") != v1
+        with RuntimeManager(target, run_scope="run:r2") as manager:
+            new_run = manager.plan(scenario, run_scope=PlanScope(run_id="r2"))
+            assert _flag_action(new_run) == "create"
+            assert manager.apply(new_run).success
 
 
 # --- module composition namespaces new artifact references (finding: security)
@@ -1094,3 +1101,85 @@ class TestCompositionNamespacing:
         ]
         assert len(sources) == 1
         assert sources[0].generated_artifact == "shared.flag"
+
+
+# --- prepared-node reconstruction rejoins content placements (issue #1955) ----
+
+from raes_contracts.errors import InvalidInputError  # noqa: E402
+from raes_processor.planner.prepared_node_semantics import validate_prepared_node_semantics  # noqa: E402
+from raes_processor.planner.resources import _collect_resources  # noqa: E402
+
+_CONTENT_ARTIFACT_ADDRESS = "provision.generated-artifact.techvault-flag"
+_CONTENT_PLACEMENT_ADDRESS = "provision.content.flag-file"
+
+
+def _content_live():
+    return _collect_resources(compile_runtime_model(parse_sdl(_content_scenario(_VALID_CONTENT))))
+
+
+class TestPreparedNodeContentPlacement:
+    def test_prepared_context_accepts_declared_content_placement(self) -> None:
+        validate_prepared_node_semantics(_content_live())
+
+    def test_prepared_context_rejects_absent_content_placement(self) -> None:
+        live = _content_live()
+        del live[_CONTENT_PLACEMENT_ADDRESS]
+        with pytest.raises(InvalidInputError, match="typed validation"):
+            validate_prepared_node_semantics(live)
+
+    def test_prepared_context_rejects_mismatched_content_binding(self) -> None:
+        live = _content_live()
+        spec = live[_CONTENT_PLACEMENT_ADDRESS].payload["spec"]
+        spec["text_from"] = {**spec["text_from"], "output": "other"}
+        with pytest.raises(InvalidInputError, match="typed validation"):
+            validate_prepared_node_semantics(live)
+
+    def test_prepared_context_rejects_unknown_content_output(self) -> None:
+        live = _content_live()
+        live[_CONTENT_ARTIFACT_ADDRESS].payload["spec"]["content_consumers"][0]["output"] = "ghost"
+        with pytest.raises(InvalidInputError, match="typed validation"):
+            validate_prepared_node_semantics(live)
+
+    def test_prepared_context_rejects_producer_private_content_output(self) -> None:
+        live = _content_live()
+        live[_CONTENT_ARTIFACT_ADDRESS].payload["spec"]["outputs"][0]["disposition"] = "producer_private"
+        with pytest.raises(InvalidInputError, match="typed validation"):
+            validate_prepared_node_semantics(live)
+
+    def test_unchanged_text_from_plan_reaches_backend_apply(self) -> None:
+        from raes_backend_stubs.stubs import StubProvisioner, create_stub_target
+        from raes_contracts.contracts.realization_preparation import RealizationPreparation
+        from raes_runtime.manager import RuntimeManager
+
+        base = create_stub_target()
+        manifest = _with_random_value_support(base.manifest)
+        manifest = replace(
+            manifest,
+            supported_contract_versions=manifest.supported_contract_versions | {"backend-realization-preparation-v1"},
+        )
+
+        class Preparing(StubProvisioner):
+            prepares = applies = 0
+
+            def prepare(self, request, previous):
+                self.prepares += 1
+                return RealizationPreparation.for_request(request, previous, operations=tuple(request.operations))
+
+            def apply(self, request, previous):
+                self.applies += 1
+                return super().apply(request, previous)
+
+        backend = Preparing(manifest.realization_envelope)
+        target = replace(base, manifest=manifest, provisioner=backend)
+        scenario = parse_sdl(_content_scenario(_VALID_CONTENT))
+        execution = plan(
+            compile_runtime_model(scenario), manifest, scope=PlanScope(target_name=target.name, run_id="r1")
+        )
+        assert execution.is_valid, [d.message for d in execution.diagnostics]
+        with RuntimeManager(target, run_scope="run:r1") as manager:
+            result = manager.apply(execution)
+        assert result.success, [(d.code, d.address) for d in result.diagnostics]
+        assert (backend.prepares, backend.applies) == (1, 1)
+        artifact = result.snapshot.entries[_CONTENT_ARTIFACT_ADDRESS].payload["spec"]
+        assert "value" not in artifact
+        assert artifact["content_consumers"][0]["target_address"] == _CONTENT_PLACEMENT_ADDRESS

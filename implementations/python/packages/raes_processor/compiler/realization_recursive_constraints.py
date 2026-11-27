@@ -5,14 +5,21 @@ from __future__ import annotations
 from collections.abc import Mapping
 from dataclasses import dataclass, field
 from enum import Enum
+from functools import cached_property
 
+from pydantic import ValidationError
 from pydantic_core import to_jsonable_python
-from raes.explicitness import ExplicitnessClass, ExplicitnessProvenance, ExplicitnessRecord
+from raes.explicitness import ExplicitnessRecord
+from raes.parameter_derivations import ParameterDerivation, finite_derivation_image
 from raes.runtime_software import RuntimeSoftwareComponent
 from raes.runtime_software_repositories import RuntimeSoftwareRepository, RuntimeSoftwareTrustBinding
 from raes.scenario import InstantiatedScenario
 from raes_contracts.bounded_domains import EnumDomain
 from raes_contracts.canonical import jsonable_fallback
+from raes_contracts.diagnostics import Diagnostic
+from raes_contracts.errors import RaesError
+from raes_contracts.explicitness import ExplicitnessClass, ExplicitnessProvenance
+from raes_contracts.json_pointer import escape_token
 from raes_contracts.realization_structure import (
     RealizationClosure,
     RealizationCollectionProfile,
@@ -20,6 +27,7 @@ from raes_contracts.realization_structure import (
     RealizationDelegatedValue,
     RealizationDomainValue,
     RealizationKnowledgeValue,
+    RealizationLiteral,
     RealizationNormalizationMetadata,
     RealizationOrigin,
     RealizationPresence,
@@ -27,10 +35,12 @@ from raes_contracts.realization_structure import (
     RealizationScope,
     RealizationStructure,
     RecursiveRealizationStructure,
+    evaluate_realization_constraint,
     normalize_realization_literal,
     realization_constraint_binding,
     validate_realization_value,
 )
+from raes_contracts.runtime_value_limits import PLAN_AUTHORITY_LIMITS
 from raes_contracts.vocabulary import Closure
 
 from ..semantics.realization_concerns import RegisteredRealizationConcern
@@ -38,12 +48,12 @@ from ..semantics.realization_specialized_projection import source_occurrences, s
 from ..semantics.software_identity import package_collection_identity
 from .realization_authority_posture import designated_registered_posture
 from .realization_scalar_sets import bind_scalar_set_choices
-from .realization_structure import compile_realization_structure
+from .realization_structure import _UnrepresentableAuthority, compile_realization_structure
 from .realization_value_domains import compiled_architecture_value_domain
 from .software_constraints import software_leaf_constraint
 
 
-class _PendingRecursiveClosure(Exception):
+class _PendingRecursiveClosure(RaesError):
     """The source is retained by RuntimeModel until apparatus resolution."""
 
 
@@ -56,7 +66,9 @@ def compile_registered_constraint(
     field_pointer: str,
     value_domain: EnumDomain | None = None,
     apparatus_closure: Closure | None = None,
-) -> tuple[RealizationStructure | None, RealizationConstraintDocument | None, str | None, bool, bool, bool]:
+) -> tuple[
+    RealizationStructure | None, RealizationConstraintDocument | None, str | None, bool | Diagnostic, bool, bool
+]:
     descriptor = registered.descriptor
     record = records.get(registered.field_path)
     if (
@@ -96,7 +108,9 @@ def _compiled_recursive_constraint(
     field_pointer: str,
     value_domain: EnumDomain | None,
     apparatus_closure: Closure | None,
-) -> tuple[RealizationStructure | None, RealizationConstraintDocument | None, str | None, bool, bool, bool]:
+) -> tuple[
+    RealizationStructure | None, RealizationConstraintDocument | None, str | None, bool | Diagnostic, bool, bool
+]:
     """Compile one recursive concern, deferring an unresolved apparatus closure."""
 
     try:
@@ -117,15 +131,12 @@ def _compiled_recursive_constraint(
             to_jsonable_python(
                 registered.descriptor.project(authored_value, recursive=True), fallback=jsonable_fallback
             ),
+            limits=PLAN_AUTHORITY_LIMITS,
         )
         if document is not None
         else None
     )
     return None, document, binding, error, opened, False
-
-
-def _escape(token: str) -> str:
-    return token.replace("~", "~0").replace("/", "~1")
 
 
 def _source_child(source: object, key: str) -> object:
@@ -148,6 +159,10 @@ class _SourceMetadata:
     leaf_constraints: dict[str, RecursiveRealizationStructure] = field(default_factory=dict)
     collection_profiles: list[RealizationCollectionProfile] = field(default_factory=list)
     member_presence: dict[str, RealizationPresence] = field(default_factory=dict)
+
+    @cached_property
+    def parameter_derivations(self) -> Mapping[str, ParameterDerivation]:
+        return {item.field_pointer: item for item in self.scenario.instantiation_provenance.parameter_derivations}
 
     @property
     def profile(self) -> str:
@@ -193,21 +208,25 @@ class _SourceMetadata:
         for key, child in projected.items():
             source_key = key.removesuffix("_present").removesuffix("_commitment")
             if scalar_alias:
-                self.collect(child, source, f"{pointer}/{_escape(key)}", path, source_pointer)
+                self.collect(child, source, f"{pointer}/{escape_token(key)}", path, source_pointer)
                 continue
             self.collect(
                 child,
                 _source_child(source, source_key),
-                f"{pointer}/{_escape(key)}",
+                f"{pointer}/{escape_token(key)}",
                 f"{path}.{source_key}",
-                f"{source_pointer}/{_escape(source_key)}",
+                f"{source_pointer}/{escape_token(source_key)}",
             )
         if isinstance(source, RuntimeSoftwareComponent):
             self._collect_software_constraints(source, pointer, path)
 
     def _collect_software_constraints(self, source: RuntimeSoftwareComponent, pointer: str, path: str) -> None:
         runtime = self.scenario.nodes[self.registered.declaration_name].runtime
-        linked = runtime.resolved_software_package(source) if source.package_ref is not None else None
+        try:
+            linked = runtime.resolved_software_package(source) if source.package_ref is not None else None
+        except ValueError as exc:
+            # The SDL owner refuses an unresolved package reference with ValueError (E3).
+            raise _UnrepresentableAuthority("software package reference does not resolve") from exc
         for key in ("version", "package_version", "package_name", "package_manager"):
             constraint = software_leaf_constraint(
                 source, key, authored_exact=f"{path}.{key}" in self.records, linked_package=linked
@@ -245,10 +264,10 @@ class _SourceMetadata:
                 )
             )
         if not isinstance(source, list):
-            raise ValueError("recursive projection must preserve source occurrences")
+            raise _UnrepresentableAuthority("recursive projection must preserve source occurrences")
         occurrences = source_occurrences(self.registered.descriptor.concern_kind, source_pointer, projected, source)
         if len(occurrences) != len(projected):
-            raise ValueError("recursive projection must preserve source occurrences")
+            raise _UnrepresentableAuthority("recursive projection must preserve source occurrences")
         for index, (child, (source_index, source_child)) in enumerate(zip(projected, occurrences, strict=True)):
             self.collect(
                 child,
@@ -268,7 +287,7 @@ class _SourceMetadata:
         elif isinstance(projected, list):
             self._collect_sequence(projected, source, pointer, path, source_pointer)
         else:
-            self.leaf(source, pointer, record, source_pointer)
+            self.leaf(source, pointer, record, source_pointer, projected)
 
     def _constrained_domain(self, pointer: str, source_pointer: str) -> EnumDomain:
         """Resolve the publication-safe domain one constrained leaf narrows to."""
@@ -286,10 +305,37 @@ class _SourceMetadata:
             if constraint is not None:
                 domain = EnumDomain(values=list(constraint.allowed_values))
         if domain is None:
-            raise ValueError("constrained leaf requires a publication-safe domain")
+            raise _UnrepresentableAuthority("constrained leaf requires a publication-safe domain")
         return domain
 
-    def leaf(self, source: object, pointer: str, record: ExplicitnessRecord | None, source_pointer: str) -> None:
+    def _parameter_constraint(
+        self, derivation: ParameterDerivation, source: object, pointer: str, projected: object
+    ) -> RealizationLiteral | RealizationDomainValue:
+        # Only a verbatim public leaf approved by the registered safe projection
+        # can consume scalar derivation evidence. Presence and commitment
+        # projections never expose their source value.
+        if (
+            pointer.endswith(("_present", "_commitment"))
+            or not isinstance(source, (str, int, float, bool))
+            or projected != to_jsonable_python(source, fallback=jsonable_fallback)
+        ):
+            raise _UnrepresentableAuthority("parameter derivation requires a public scalar projection")
+        try:
+            image = finite_derivation_image(derivation, scenario=self.scenario)
+        except ValueError as exc:
+            # The SDL owner refuses an image it cannot represent with ValueError (E3).
+            raise _UnrepresentableAuthority("parameter derivation image is not representable") from exc
+        return (
+            RealizationLiteral(kind="literal", value=projected, origin=RealizationOrigin.PROCESSOR)
+            if image is None
+            else RealizationDomainValue(
+                kind="domain", domain=EnumDomain(values=list(image)), origin=RealizationOrigin.PROCESSOR
+            )
+        )
+
+    def leaf(
+        self, source: object, pointer: str, record: ExplicitnessRecord | None, source_pointer: str, projected: object
+    ) -> None:
         classification = None if record is None else record.classification
         if classification is ExplicitnessClass.OPEN:
             # Legacy authoring specificity calls taxonomy sentinels "open".
@@ -297,14 +343,56 @@ class _SourceMetadata:
             # to substitute one of the products known to this core release.
             # DNS numeric extensions already mark their discriminator exact.
             if not isinstance(source, Enum) or source.value not in ("unknown", "other"):
-                raise ValueError("taxonomy knowledge must retain its typed source")
+                raise _UnrepresentableAuthority("taxonomy knowledge must retain its typed source")
             self.leaf_constraints[pointer] = RealizationKnowledgeValue(kind="knowledge", state="unknown")
         elif classification is ExplicitnessClass.CONSTRAINED:
+            derivation = self.parameter_derivations.get(f"{self.root_pointer}{source_pointer}")
+            if derivation is not None:
+                self.leaf_constraints[pointer] = self._parameter_constraint(derivation, source, pointer, projected)
+                return
             self.leaf_constraints[pointer] = RealizationDomainValue(
                 kind="domain", domain=self._constrained_domain(pointer, source_pointer)
             )
         elif record is None and self.closure(source_pointer).posture.value == "open":
             self.leaf_constraints[pointer] = RealizationDelegatedValue(kind="delegated")
+
+
+def _normalized_recursive_constraint(
+    metadata: _SourceMetadata, projected: object, authored_value: object
+) -> tuple[RealizationConstraintDocument | None, bool | Diagnostic, bool]:
+    """Normalize an admitted value with its original source metadata."""
+
+    metadata.collect(projected, authored_value, "", metadata.registered.field_path)
+    # Scalar literals/domains have no member universe to close. An exact
+    # scalar does not create a separate apparatus-default decision.
+    closure = metadata.closure("") if isinstance(projected, (dict, list)) else RealizationClosure()
+    built = normalize_realization_literal(
+        projected,
+        semantic_profile=metadata.profile,
+        default_closure=closure,
+        limits=PLAN_AUTHORITY_LIMITS,
+        metadata=RealizationNormalizationMetadata(
+            scopes=tuple(metadata.scopes),
+            collection_profiles=tuple(metadata.collection_profiles),
+            origins=metadata.origins,
+            leaf_constraints=metadata.leaf_constraints,
+            optional_fields=frozenset(metadata.optional_fields),
+            member_presence=metadata.member_presence,
+        ),
+    )
+    if built.status is not RealizationRelationStatus.CONFORMANT:
+        error = built.diagnostics[0] if built.status is RealizationRelationStatus.LIMIT_EXCEEDED else True
+        return None, error, False
+    document = bind_scalar_set_choices(built.document)
+    # Admission and evaluation share work: normalization alone cannot prove
+    # that the unchanged source fits downstream preparation and delivery.
+    evaluated = evaluate_realization_constraint(document, projected, limits=PLAN_AUTHORITY_LIMITS)
+    if evaluated.status is RealizationRelationStatus.LIMIT_EXCEEDED:
+        return None, evaluated.diagnostics[0], False
+    opened = any(scope.closure.posture.value == "open" for scope in metadata.scopes) or any(
+        isinstance(constraint, RealizationDelegatedValue) for constraint in metadata.leaf_constraints.values()
+    )
+    return document, False, opened
 
 
 def compile_recursive_realization_constraint(
@@ -316,7 +404,7 @@ def compile_recursive_realization_constraint(
     field_pointer: str,
     value_domain: EnumDomain | None = None,
     apparatus_closure: Closure | None = None,
-) -> tuple[RealizationConstraintDocument | None, bool, bool]:
+) -> tuple[RealizationConstraintDocument | None, bool | Diagnostic, bool]:
     """Retain source presence/provenance, safe leaves and local collection closure."""
 
     metadata = _SourceMetadata(scenario, registered, records, field_pointer, value_domain, apparatus_closure)
@@ -324,31 +412,20 @@ def compile_recursive_realization_constraint(
         projected = to_jsonable_python(
             registered.descriptor.project(authored_value, recursive=True), fallback=jsonable_fallback
         )
-        if validate_realization_value(projected).status is not RealizationRelationStatus.CONFORMANT:
-            raise ValueError("recursive projection exceeds the admitted value bounds")
-        metadata.collect(projected, authored_value, "", registered.field_path)
-        # Scalar literals/domains have no member universe to close. An exact
-        # scalar does not create a separate apparatus-default decision.
-        closure = metadata.closure("") if isinstance(projected, (dict, list)) else RealizationClosure()
-        built = normalize_realization_literal(
-            projected,
-            semantic_profile=metadata.profile,
-            default_closure=closure,
-            metadata=RealizationNormalizationMetadata(
-                scopes=tuple(metadata.scopes),
-                collection_profiles=tuple(metadata.collection_profiles),
-                origins=metadata.origins,
-                leaf_constraints=metadata.leaf_constraints,
-                optional_fields=frozenset(metadata.optional_fields),
-                member_presence=metadata.member_presence,
-            ),
-        )
-        if built.status is not RealizationRelationStatus.CONFORMANT:
-            raise ValueError("recursive normalization could not preserve the source authority")
-        document = bind_scalar_set_choices(built.document)
-    except (TypeError, ValueError, KeyError):
+    except TypeError, ValueError:
+        # The concern projection refuses a value outside its closed shape (E3).
         return None, True, False
-    return document, False, any(scope.closure.posture.value == "open" for scope in metadata.scopes)
+    # The structure models refuse values beyond their bounds with ValidationError.
+    try:
+        admitted = validate_realization_value(projected, limits=PLAN_AUTHORITY_LIMITS)
+        if admitted.status is not RealizationRelationStatus.CONFORMANT:
+            error = admitted.diagnostics[0] if admitted.status is RealizationRelationStatus.LIMIT_EXCEEDED else True
+            result = None, error, False
+        else:
+            result = _normalized_recursive_constraint(metadata, projected, authored_value)
+    except _UnrepresentableAuthority, ValidationError:
+        result = None, True, False
+    return result
 
 
 __all__ = ["compile_registered_constraint", "compile_recursive_realization_constraint"]

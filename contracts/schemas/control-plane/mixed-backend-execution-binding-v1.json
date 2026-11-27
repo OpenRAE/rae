@@ -1,0 +1,585 @@
+{
+  "$defs": {
+    "MixedBackendEdgeBindingModel": {
+      "additionalProperties": false,
+      "description": "Bridge, coordinator and readers for one admitted directed edge.\n\nThe destination provider executes the mapped action under one RAES\nparticipant-crossing operation; owning the effect confers no controller,\ndisclosure or terminal-commit authority. Native translation stays inside\nthe pinned bridge, so the compiled action subject is preserved. Each role\nis a distinct service, so the bridge never grants its own order or reads\nback its own delivery or observation.",
+      "properties": {
+        "audience_scope_ref": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Audience Scope Ref",
+          "type": "string"
+        },
+        "bridge": {
+          "$ref": "#/$defs/MixedBackendServiceModel"
+        },
+        "delivery_reader": {
+          "$ref": "#/$defs/MixedBackendServiceModel"
+        },
+        "destination_action_address": {
+          "maxLength": 2048,
+          "minLength": 3,
+          "not": {
+            "pattern": "[^a-z0-9_.-]"
+          },
+          "pattern": "^(?:[a-z0-9][a-z0-9_-]{0,63}|__private)(?:\\.(?:[a-z0-9][a-z0-9_-]{0,63}|__private))+$",
+          "title": "Destination Action Address",
+          "type": "string"
+        },
+        "edge_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Edge Id",
+          "type": "string"
+        },
+        "kind": {
+          "const": "edge",
+          "title": "Kind",
+          "type": "string"
+        },
+        "mapping_loss": {
+          "$ref": "#/$defs/MixedCompositionMappingLossModel"
+        },
+        "observation_reader": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/MixedBackendServiceModel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "operation_kind": {
+          "const": "participant-crossing",
+          "default": "participant-crossing",
+          "title": "Operation Kind",
+          "type": "string"
+        },
+        "owner_allocation_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Owner Allocation Id",
+          "type": "string"
+        },
+        "owner_component_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Owner Component Id",
+          "type": "string"
+        },
+        "participant_address": {
+          "maxLength": 2048,
+          "minLength": 3,
+          "not": {
+            "pattern": "[^a-z0-9_.-]"
+          },
+          "pattern": "^(?:[a-z0-9][a-z0-9_-]{0,63}|__private)(?:\\.(?:[a-z0-9][a-z0-9_-]{0,63}|__private))+$",
+          "title": "Participant Address",
+          "type": "string"
+        },
+        "required_evidence_refs": {
+          "items": {
+            "maxLength": 256,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 64,
+          "minItems": 1,
+          "title": "Required Evidence Refs",
+          "type": "array"
+        },
+        "source_action_address": {
+          "maxLength": 2048,
+          "minLength": 3,
+          "not": {
+            "pattern": "[^a-z0-9_.-]"
+          },
+          "pattern": "^(?:[a-z0-9][a-z0-9_-]{0,63}|__private)(?:\\.(?:[a-z0-9][a-z0-9_-]{0,63}|__private))+$",
+          "title": "Source Action Address",
+          "type": "string"
+        },
+        "subject_transformation": {
+          "const": "compiled-identity",
+          "default": "compiled-identity",
+          "title": "Subject Transformation",
+          "type": "string"
+        },
+        "time": {
+          "$ref": "#/$defs/MixedBackendEdgeTimeRequirementModel"
+        }
+      },
+      "required": [
+        "kind",
+        "edge_id",
+        "owner_component_id",
+        "owner_allocation_id",
+        "participant_address",
+        "audience_scope_ref",
+        "source_action_address",
+        "destination_action_address",
+        "bridge",
+        "time",
+        "mapping_loss",
+        "delivery_reader",
+        "required_evidence_refs"
+      ],
+      "title": "MixedBackendEdgeBindingModel",
+      "type": "object"
+    },
+    "MixedBackendEdgeTimeRequirementModel": {
+      "additionalProperties": false,
+      "description": "Edge time requirement that also carries the admitted edge's temporal coupling.",
+      "properties": {
+        "coordinator": {
+          "$ref": "#/$defs/MixedBackendServiceModel"
+        },
+        "destination_clock_address": {
+          "maxLength": 2048,
+          "minLength": 3,
+          "not": {
+            "pattern": "[^a-z0-9_.-]"
+          },
+          "pattern": "^(?:[a-z0-9][a-z0-9_-]{0,63}|__private)(?:\\.(?:[a-z0-9][a-z0-9_-]{0,63}|__private))+$",
+          "title": "Destination Clock Address",
+          "type": "string"
+        },
+        "mapping_ref": {
+          "maxLength": 2048,
+          "minLength": 3,
+          "not": {
+            "pattern": "[^a-z0-9_.-]"
+          },
+          "pattern": "^(?:[a-z0-9][a-z0-9_-]{0,63}|__private)(?:\\.(?:[a-z0-9][a-z0-9_-]{0,63}|__private))+$",
+          "title": "Mapping Ref",
+          "type": "string"
+        },
+        "ordering_basis": {
+          "enum": [
+            "total_order",
+            "partial_order",
+            "simultaneous",
+            "serialized_backend_order",
+            "simulation_tick",
+            "control_plane_order",
+            "logical_clock",
+            "vector_clock"
+          ],
+          "title": "Ordering Basis",
+          "type": "string"
+        },
+        "required_comparison": {
+          "const": "ordered",
+          "default": "ordered",
+          "title": "Required Comparison",
+          "type": "string"
+        },
+        "source_clock_address": {
+          "maxLength": 2048,
+          "minLength": 3,
+          "not": {
+            "pattern": "[^a-z0-9_.-]"
+          },
+          "pattern": "^(?:[a-z0-9][a-z0-9_-]{0,63}|__private)(?:\\.(?:[a-z0-9][a-z0-9_-]{0,63}|__private))+$",
+          "title": "Source Clock Address",
+          "type": "string"
+        },
+        "temporal_coupling": {
+          "enum": [
+            "tight",
+            "bounded-asynchronous",
+            "asynchronous"
+          ],
+          "title": "Temporal Coupling",
+          "type": "string"
+        },
+        "time_model_digest": {
+          "minLength": 1,
+          "pattern": "^(?:sha256:[A-Fa-f0-9]{64}|sha384:[A-Fa-f0-9]{96}|sha512:[A-Fa-f0-9]{128}|blake3:[A-Fa-f0-9]{64})$",
+          "title": "Time Model Digest",
+          "type": "string"
+        },
+        "time_model_ref": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Time Model Ref",
+          "type": "string"
+        }
+      },
+      "required": [
+        "time_model_ref",
+        "time_model_digest",
+        "source_clock_address",
+        "destination_clock_address",
+        "mapping_ref",
+        "ordering_basis",
+        "coordinator",
+        "temporal_coupling"
+      ],
+      "title": "MixedBackendEdgeTimeRequirementModel",
+      "type": "object"
+    },
+    "MixedBackendHandoffBindingModel": {
+      "additionalProperties": false,
+      "description": "Native responsibility transfer for one admitted component-changing transition.\n\nThe transfer service, coordinator and owner reader are distinct services,\nso a transfer never grants its own order or reads back its own owner.",
+      "properties": {
+        "destination_component_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Destination Component Id",
+          "type": "string"
+        },
+        "destination_owner_ref": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Destination Owner Ref",
+          "type": "string"
+        },
+        "kind": {
+          "const": "handoff",
+          "title": "Kind",
+          "type": "string"
+        },
+        "operation_kind": {
+          "const": "composition-phase",
+          "default": "composition-phase",
+          "title": "Operation Kind",
+          "type": "string"
+        },
+        "owner_reader": {
+          "$ref": "#/$defs/MixedBackendServiceModel"
+        },
+        "required_evidence_refs": {
+          "items": {
+            "maxLength": 256,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 64,
+          "minItems": 1,
+          "title": "Required Evidence Refs",
+          "type": "array"
+        },
+        "source_component_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Source Component Id",
+          "type": "string"
+        },
+        "source_owner_ref": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Source Owner Ref",
+          "type": "string"
+        },
+        "time": {
+          "$ref": "#/$defs/MixedBackendTimeRequirementModel"
+        },
+        "transfer": {
+          "$ref": "#/$defs/MixedBackendServiceModel"
+        },
+        "transition_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Transition Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "transition_id",
+        "source_component_id",
+        "destination_component_id",
+        "source_owner_ref",
+        "destination_owner_ref",
+        "transfer",
+        "time",
+        "owner_reader",
+        "required_evidence_refs"
+      ],
+      "title": "MixedBackendHandoffBindingModel",
+      "type": "object"
+    },
+    "MixedBackendServiceModel": {
+      "additionalProperties": false,
+      "description": "Pinned installed implementation identity; never a module, path, URL or command.",
+      "properties": {
+        "digest": {
+          "pattern": "^sha256:[a-f0-9]{64}$",
+          "title": "Digest",
+          "type": "string"
+        },
+        "service_ref": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Service Ref",
+          "type": "string"
+        },
+        "version": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "service_ref",
+        "version",
+        "digest"
+      ],
+      "title": "MixedBackendServiceModel",
+      "type": "object"
+    },
+    "MixedBackendTimeRequirementModel": {
+      "additionalProperties": false,
+      "description": "Named clocks, mapping and governed order a coordinator must grant before invocation.",
+      "properties": {
+        "coordinator": {
+          "$ref": "#/$defs/MixedBackendServiceModel"
+        },
+        "destination_clock_address": {
+          "maxLength": 2048,
+          "minLength": 3,
+          "not": {
+            "pattern": "[^a-z0-9_.-]"
+          },
+          "pattern": "^(?:[a-z0-9][a-z0-9_-]{0,63}|__private)(?:\\.(?:[a-z0-9][a-z0-9_-]{0,63}|__private))+$",
+          "title": "Destination Clock Address",
+          "type": "string"
+        },
+        "mapping_ref": {
+          "maxLength": 2048,
+          "minLength": 3,
+          "not": {
+            "pattern": "[^a-z0-9_.-]"
+          },
+          "pattern": "^(?:[a-z0-9][a-z0-9_-]{0,63}|__private)(?:\\.(?:[a-z0-9][a-z0-9_-]{0,63}|__private))+$",
+          "title": "Mapping Ref",
+          "type": "string"
+        },
+        "ordering_basis": {
+          "enum": [
+            "total_order",
+            "partial_order",
+            "simultaneous",
+            "serialized_backend_order",
+            "simulation_tick",
+            "control_plane_order",
+            "logical_clock",
+            "vector_clock"
+          ],
+          "title": "Ordering Basis",
+          "type": "string"
+        },
+        "required_comparison": {
+          "const": "ordered",
+          "default": "ordered",
+          "title": "Required Comparison",
+          "type": "string"
+        },
+        "source_clock_address": {
+          "maxLength": 2048,
+          "minLength": 3,
+          "not": {
+            "pattern": "[^a-z0-9_.-]"
+          },
+          "pattern": "^(?:[a-z0-9][a-z0-9_-]{0,63}|__private)(?:\\.(?:[a-z0-9][a-z0-9_-]{0,63}|__private))+$",
+          "title": "Source Clock Address",
+          "type": "string"
+        },
+        "time_model_digest": {
+          "minLength": 1,
+          "pattern": "^(?:sha256:[A-Fa-f0-9]{64}|sha384:[A-Fa-f0-9]{96}|sha512:[A-Fa-f0-9]{128}|blake3:[A-Fa-f0-9]{64})$",
+          "title": "Time Model Digest",
+          "type": "string"
+        },
+        "time_model_ref": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Time Model Ref",
+          "type": "string"
+        }
+      },
+      "required": [
+        "time_model_ref",
+        "time_model_digest",
+        "source_clock_address",
+        "destination_clock_address",
+        "mapping_ref",
+        "ordering_basis",
+        "coordinator"
+      ],
+      "title": "MixedBackendTimeRequirementModel",
+      "type": "object"
+    },
+    "MixedCompositionMappingLossModel": {
+      "additionalProperties": false,
+      "description": "Prospective mapping-loss obligation using the incumbent loss vocabulary.",
+      "properties": {
+        "affected_ref": {
+          "minLength": 1,
+          "title": "Affected Ref",
+          "type": "string"
+        },
+        "basis_ref": {
+          "minLength": 1,
+          "title": "Basis Ref",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "none",
+            "private_apparatus_detail",
+            "source_fields_omitted",
+            "semantics_approximated",
+            "redacted_by_policy",
+            "temporal_detail_collapsed",
+            "unknown",
+            "unsupported"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "limitation_ref": {
+          "minLength": 1,
+          "title": "Limitation Ref",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "basis_ref",
+        "affected_ref",
+        "limitation_ref"
+      ],
+      "title": "MixedCompositionMappingLossModel",
+      "type": "object"
+    }
+  },
+  "$id": "https://openrae.github.io/rae/schemas/mixed-backend-execution-binding-v1.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "One installed executable binding, joined to its sealed profile by identity and digest.",
+  "properties": {
+    "binding_id": {
+      "maxLength": 256,
+      "minLength": 1,
+      "title": "Binding Id",
+      "type": "string"
+    },
+    "profile_digest": {
+      "minLength": 1,
+      "pattern": "^(?:sha256:[A-Fa-f0-9]{64}|sha384:[A-Fa-f0-9]{96}|sha512:[A-Fa-f0-9]{128}|blake3:[A-Fa-f0-9]{64})$",
+      "title": "Profile Digest",
+      "type": "string"
+    },
+    "profile_id": {
+      "maxLength": 256,
+      "minLength": 1,
+      "title": "Profile Id",
+      "type": "string"
+    },
+    "profile_revision": {
+      "const": "mixed-cross-backend-participant-control-v1@rev1",
+      "default": "mixed-cross-backend-participant-control-v1@rev1",
+      "title": "Profile Revision",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "mixed-backend-execution-binding/v1",
+      "default": "mixed-backend-execution-binding/v1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "subject": {
+      "discriminator": {
+        "mapping": {
+          "edge": "#/$defs/MixedBackendEdgeBindingModel",
+          "handoff": "#/$defs/MixedBackendHandoffBindingModel"
+        },
+        "propertyName": "kind"
+      },
+      "oneOf": [
+        {
+          "$ref": "#/$defs/MixedBackendEdgeBindingModel"
+        },
+        {
+          "$ref": "#/$defs/MixedBackendHandoffBindingModel"
+        }
+      ],
+      "title": "Subject"
+    }
+  },
+  "required": [
+    "binding_id",
+    "profile_id",
+    "profile_digest",
+    "subject"
+  ],
+  "title": "MixedBackendExecutionBindingModel",
+  "type": "object",
+  "x-raes-invariants": [
+    {
+      "description": "Validate closed bounded fields, unique collections, a preserved compiled subject, distinct handoff components and a distinct pinned service for each role, so no two roles share a service reference or digest; structural validity does not prove backend truth, installation or runtime authority.",
+      "id": "mixed-backend-local-consistency",
+      "inputs": [
+        {
+          "contract_id": "mixed-backend-execution-binding-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error",
+      "validator": "raes_contracts.contracts.MixedBackendExecutionBindingModel.model_validate"
+    },
+    {
+      "description": "Require exactly one matching binding per active edge and one-to-one component-changing transition of the admitted sealed profile, with governed order, preserved compiled subjects, declared loss and the edge's admitted temporal coupling.",
+      "id": "mixed-backend-binding-profile-join",
+      "inputs": [
+        {
+          "contract_id": "mixed-participant-composition-profile-v1",
+          "instance_path": "#"
+        },
+        {
+          "contract_id": "mixed-backend-execution-binding-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error",
+      "validator": "raes_contracts.contracts.validate_mixed_backend_bindings"
+    },
+    {
+      "description": "Before invocation require the shared request to commit to this binding, its operation kind and its installed bridge or transfer service, then installed support and current exact-context willingness.",
+      "id": "mixed-backend-contextual-admission",
+      "inputs": [
+        {
+          "contract_id": "mixed-backend-execution-binding-v1",
+          "instance_path": "#"
+        },
+        {
+          "contract_id": "backend-operation-request-v1",
+          "instance_path": "#"
+        },
+        {
+          "contract_id": "backend-operation-capabilities-v1",
+          "instance_path": "#"
+        },
+        {
+          "contract_id": "backend-operation-response-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error",
+      "validator": "raes_contracts.contracts.require_mixed_backend_admission"
+    }
+  ],
+  "x-raes-semantic-profile": {
+    "contract_id": "mixed-backend-execution-binding-v1",
+    "entry_schema_contract_id": "raes-semantic-invariants-v1",
+    "entry_schema_pointer": "#/$defs/RaesSemanticInvariantEntryModel",
+    "id": "raes-semantic-invariants-v1",
+    "keyword": "x-raes-invariants",
+    "required": true,
+    "uri": "https://openrae.github.io/rae/schemas/semantic-invariants/v1"
+  }
+}

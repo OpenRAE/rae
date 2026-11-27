@@ -11,22 +11,11 @@ This package is a thin facade over cohesive subdomains:
 * :mod:`._view_boundaries` - view rules/transitions and the
   :class:`ParticipantObservationBoundary` projection.
 
-The ``ParticipantEffectClass`` / ``ParticipantFailureClass`` /
-``ParticipantPreconditionClass`` (and the imported action/temporal) names are
-re-exported here to preserve the pre-split ``raes.participant_behavior`` import
-surface; their object identity remains owned by
-:mod:`raes.participant_action_semantics` and
-:mod:`raes.participant_temporal_semantics`.
+The shared action vocabulary, including ``ParticipantInteractionClass``, is
+owned by :mod:`raes_contracts.participant_action_semantics` (ADR-121). The
+temporal names are re-exported from :mod:`raes.participant_temporal_semantics`.
 """
 
-from ..participant_action_semantics import (
-    ParticipantActionEffect,
-    ParticipantActionPrecondition,
-    ParticipantBackendFailureMapping,
-    ParticipantEffectClass,
-    ParticipantFailureClass,
-    ParticipantPreconditionClass,
-)
 from ..participant_temporal_semantics import (
     ParticipantBackendTimingDisclosure,
     ParticipantTemporalContract,
@@ -44,7 +33,6 @@ from ._action_contracts import (
     ParticipantActionContract,
     ParticipantActionGranularity,
     ParticipantActionLifecycle,
-    ParticipantInteractionClass,
     ParticipantInteractionDeclaration,
 )
 from ._view_boundaries import (

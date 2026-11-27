@@ -11,6 +11,8 @@ from tools.specification_coverage._primitives import (
     _bounded_list,
     _exact_keys,
     _failure,
+    _hashable,
+    _member,
     _record_ids,
 )
 
@@ -40,7 +42,7 @@ def _concept_reference_failures(
                 path,
             )
         )
-    if concept.get("request_id") not in request_ids:
+    if not _member(concept.get("request_id"), request_ids):
         failures.append(
             _failure(
                 "specification-coverage-concepts",
@@ -48,7 +50,7 @@ def _concept_reference_failures(
                 path,
             )
         )
-    if concept.get("expected_carrier_id") not in carrier_ids:
+    if not _member(concept.get("expected_carrier_id"), carrier_ids):
         failures.append(
             _failure(
                 "specification-coverage-concepts",
@@ -65,8 +67,11 @@ def _concept_classification_failures(
     path: str,
 ) -> None:
     expected_classification = concept.get("expected_classification")
-    carrier = carriers_by_id.get(concept.get("expected_carrier_id"))
-    if expected_classification not in EXPECTED_CLASSIFICATIONS:
+    carrier_id = concept.get("expected_carrier_id")
+    carrier = carriers_by_id.get(carrier_id) if _hashable(carrier_id) else None
+    kind = carrier.get("kind") if isinstance(carrier, dict) else None
+    allowed = _ALLOWED_CLASSIFICATIONS_BY_KIND.get(kind, set()) if _hashable(kind) else set()
+    if not _member(expected_classification, EXPECTED_CLASSIFICATIONS):
         failures.append(
             _failure(
                 "specification-coverage-classification-boundary",
@@ -74,9 +79,7 @@ def _concept_classification_failures(
                 path,
             )
         )
-    elif not isinstance(carrier, dict) or expected_classification not in _ALLOWED_CLASSIFICATIONS_BY_KIND.get(
-        carrier.get("kind"), set()
-    ):
+    elif not isinstance(carrier, dict) or expected_classification not in allowed:
         failures.append(
             _failure(
                 "specification-coverage-classification-boundary",
@@ -92,10 +95,9 @@ def _concept_classification_failures(
                 path,
             )
         )
-    if concept.get("load_bearing") is True and expected_classification not in {
-        "directly-expressible",
-        "profile-or-manifest-constraint",
-    }:
+    if concept.get("load_bearing") is True and not _member(
+        expected_classification, {"directly-expressible", "profile-or-manifest-constraint"}
+    ):
         failures.append(
             _failure(
                 "specification-coverage-classification-boundary",
@@ -115,6 +117,7 @@ def _concept_stage_declaration_failures(
     if (
         not isinstance(concept_stages, list)
         or not concept_stages
+        or not all(_hashable(stage) for stage in concept_stages)
         or len(concept_stages) != len(set(concept_stages))
         or any(stage not in stage_ids for stage in concept_stages)
     ):
@@ -209,7 +212,11 @@ def _request_concept_join_failures(
             continue
         declared.extend(request["concept_ids"])
         _request_join_failures(request, concepts, failures, path)
-    if len(declared) != len(set(declared)) or set(declared) != concept_ids:
+    if (
+        not all(_hashable(item) for item in declared)
+        or len(declared) != len(set(declared))
+        or set(declared) != concept_ids
+    ):
         failures.append(
             _failure(
                 "specification-coverage-concepts",

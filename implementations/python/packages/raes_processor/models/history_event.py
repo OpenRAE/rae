@@ -4,12 +4,12 @@ from collections.abc import Mapping
 from dataclasses import dataclass, field
 from typing import Any
 
-from raes.participant_attribution_semantics import (
+from raes_contracts.contracts.participant_temporal import ParticipantTemporalAssessmentModel
+from raes_contracts.participant_action_semantics import ParticipantInteractionClass
+from raes_contracts.participant_attribution_semantics import (
     OUTCOME_ATTRIBUTION_CANDIDATE_KINDS,
     ParticipantAttributionCandidateKind,
 )
-from raes.participant_behavior import ParticipantInteractionClass
-from raes_contracts.contracts.participant_temporal import ParticipantTemporalAssessmentModel
 from raes_contracts.participant_behavior import (
     ParticipantActionResultStatus,
     ParticipantAdmissionDisposition,
@@ -91,7 +91,7 @@ class ParticipantBehaviorHistoryEvent:
     def from_payload(
         cls,
         payload: Mapping[str, Any],
-    ) -> "ParticipantBehaviorHistoryEvent":
+    ) -> ParticipantBehaviorHistoryEvent:
         if not isinstance(payload, Mapping):
             raise TypeError("participant behavior history event must be a mapping")
         missing_keys = [

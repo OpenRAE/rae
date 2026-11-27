@@ -1,0 +1,133 @@
+{
+  "$defs": {
+    "ParticipantInjectControlReferenceModel": {
+      "additionalProperties": false,
+      "description": "One accepted application, never a reusable permission or latest-event query.",
+      "properties": {
+        "digest": {
+          "minLength": 1,
+          "pattern": "^(?:sha256:[A-Fa-f0-9]{64}|sha384:[A-Fa-f0-9]{96}|sha512:[A-Fa-f0-9]{128}|blake3:[A-Fa-f0-9]{64})$",
+          "title": "Digest",
+          "type": "string"
+        },
+        "event_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Event Id",
+          "type": "string"
+        },
+        "occurrence_revision": {
+          "maximum": 1000000,
+          "minimum": 1,
+          "title": "Occurrence Revision",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "event_id",
+        "occurrence_revision",
+        "digest"
+      ],
+      "title": "ParticipantInjectControlReferenceModel",
+      "type": "object"
+    }
+  },
+  "$id": "https://openrae.github.io/rae/schemas/participant-inject-application-v1.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Caller selection; the runtime resolves and authorizes every join independently.",
+  "properties": {
+    "control": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ParticipantInjectControlReferenceModel"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "delivery_address": {
+      "maxLength": 256,
+      "minLength": 1,
+      "title": "Delivery Address",
+      "type": "string"
+    },
+    "delivery_digest": {
+      "minLength": 1,
+      "pattern": "^(?:sha256:[A-Fa-f0-9]{64}|sha384:[A-Fa-f0-9]{96}|sha512:[A-Fa-f0-9]{128}|blake3:[A-Fa-f0-9]{64})$",
+      "title": "Delivery Digest",
+      "type": "string"
+    },
+    "episode_id": {
+      "maxLength": 256,
+      "minLength": 1,
+      "title": "Episode Id",
+      "type": "string"
+    },
+    "expected_snapshot_revision": {
+      "minimum": 0,
+      "title": "Expected Snapshot Revision",
+      "type": "integer"
+    },
+    "participant_address": {
+      "maxLength": 256,
+      "minLength": 1,
+      "title": "Participant Address",
+      "type": "string"
+    },
+    "request_key": {
+      "maxLength": 256,
+      "minLength": 1,
+      "title": "Request Key",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "participant-inject-application/v1",
+      "default": "participant-inject-application/v1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "world_operation_id": {
+      "maxLength": 256,
+      "minLength": 1,
+      "title": "World Operation Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "request_key",
+    "world_operation_id",
+    "delivery_address",
+    "delivery_digest",
+    "participant_address",
+    "episode_id",
+    "expected_snapshot_revision"
+  ],
+  "title": "ParticipantInjectApplicationModel",
+  "type": "object",
+  "x-raes-invariants": [
+    {
+      "description": "Pin an authored delivery, world operation, exact participant episode and snapshot cut, and optional exact control event; shape grants no delivery authority.",
+      "id": "participant-inject-application-local-consistency",
+      "inputs": [
+        {
+          "contract_id": "participant-inject-application-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error",
+      "validator": "raes_contracts.contracts.ParticipantInjectApplicationModel.model_validate"
+    }
+  ],
+  "x-raes-semantic-profile": {
+    "contract_id": "participant-inject-application-v1",
+    "entry_schema_contract_id": "raes-semantic-invariants-v1",
+    "entry_schema_pointer": "#/$defs/RaesSemanticInvariantEntryModel",
+    "id": "raes-semantic-invariants-v1",
+    "keyword": "x-raes-invariants",
+    "required": true,
+    "uri": "https://openrae.github.io/rae/schemas/semantic-invariants/v1"
+  }
+}

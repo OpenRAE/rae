@@ -3,7 +3,7 @@
 import pytest
 from raes import parse_sdl
 from raes_contracts.contracts import ProvisioningPlanModel
-from raes_contracts.plan_projection import provisioning_plan_model
+from raes_contracts.contracts.plan_projection import provisioning_plan_model
 from raes_contracts.vocabulary import Closure
 from raes_processor.compiler import compile_runtime_model
 from raes_processor.planner import plan

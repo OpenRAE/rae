@@ -2,16 +2,18 @@
 
 Extracted so every closed contract shares one canonicalizer instead of minting
 its own trial-plan or evidence serializer. ``canonical_contract_digest`` (in
-:mod:`raes_contracts.satisfiability`) and the admitted trial-plan integrity
+:mod:`raes_contracts.canonical`) and the admitted trial-plan integrity
 chain both route through here, keeping RFC 8785 canonicalization and the
 ``sha256:`` digest prefix identical across contracts.
 """
 
 from __future__ import annotations
 
-import hashlib
+from typing import Protocol, runtime_checkable
 
 import rfc8785
+
+from .digests import sha256_digest
 
 #: A JSON value produced by ``model_dump(mode="json")`` — the only input these
 #: canonicalizers accept.
@@ -30,14 +32,21 @@ def canonical_json_digest(payload: JsonValue) -> str:
     The payload must already be JSON-compatible (e.g. ``model_dump(mode="json")``).
     """
 
-    return "sha256:" + hashlib.sha256(canonical_json_bytes(payload)).hexdigest()
+    return sha256_digest(canonical_json_bytes(payload))
 
 
 #: Prefix marking a carrier that is outside the modelled realization value space.
 UNSERIALIZABLE_CARRIER_PREFIX = "urn:openrae:unserializable-carrier:"
 
 
-def jsonable_fallback(value: object) -> str:
+@runtime_checkable
+class JsonableCarrier(Protocol):
+    """A carrier that gives its own portable JSON value, for example a retained history."""
+
+    def __raes_jsonable__(self) -> JsonValue: ...
+
+
+def jsonable_fallback(value: object) -> JsonValue:
     """Render an unmodelled carrier as a stable, type-qualified marker.
 
     ``pydantic_core.to_jsonable_python`` raises on any carrier it has no schema
@@ -49,5 +58,7 @@ def jsonable_fallback(value: object) -> str:
     keeps it distinguishable from any modelled string value.
     """
 
+    if isinstance(value, JsonableCarrier):
+        return value.__raes_jsonable__()
     carrier = type(value)
     return f"{UNSERIALIZABLE_CARRIER_PREFIX}{carrier.__module__}.{carrier.__qualname__}"

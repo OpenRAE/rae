@@ -78,8 +78,9 @@ def test_selection_rejects_cycles_and_missing_required_profiles():
 
 def test_request_parser_hides_rejected_values_and_rejects_duplicate_keys():
     from raes_contracts.contracts.participant_control_composition import parse_participant_control_evaluation
+    from raes_contracts.errors import InvalidInputError
 
-    with pytest.raises(ValueError) as caught:
+    with pytest.raises(InvalidInputError) as caught:
         parse_participant_control_evaluation('{"private-secret":"never-echo","private-secret":1}')
     assert "never-echo" not in str(caught.value)
     assert "private-secret" not in str(caught.value)

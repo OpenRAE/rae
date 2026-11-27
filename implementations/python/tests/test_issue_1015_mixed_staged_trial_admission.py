@@ -7,7 +7,7 @@ from concurrent.futures import ThreadPoolExecutor
 from dataclasses import replace
 
 import pytest
-import raes_processor.trial_compiler.compiler as trial_compiler_module
+import raes_processor.trial_compiler.bindings as trial_bindings_module
 from paths import REPO_ROOT
 from raes import canonical_instantiated_sdl_digest, select_scenario_family
 from raes_contracts.canonical import canonical_json_digest
@@ -21,6 +21,7 @@ from raes_contracts.contracts import (
     seal_mixed_composition_profile,
 )
 from raes_contracts.contracts.mixed_composition import MixedCompositionValidationLimits
+from raes_contracts.errors import InvalidInputError
 from raes_processor.trial_compiler import compile_admitted_trial_plan
 from raes_processor.trial_compiler.profiles import derive_identity, realization_assignment_key
 from raes_processor.trial_compiler.realization_admission import validate_mixed_authority
@@ -269,7 +270,7 @@ def test_single_backend_realizer_rejects_mixed_entry_before_backend_selection() 
         realization_envelope=request.realization_envelope,
         backend_key=_BACKEND_KEY,
     )
-    with pytest.raises(ValueError, match="mixed-composition runtime coordination"):
+    with pytest.raises(InvalidInputError, match="mixed-composition runtime coordination"):
         realize_admitted_trial_entry(inputs=inputs, plan_entry_id=entry.plan_entry_id)
 
 
@@ -632,13 +633,13 @@ def test_mixed_binding_targets_receive_only_the_coordinate_profile_authority(mon
     )
     request = _mixed_request(_alternative_profile, base_request=base)
     observed: list[frozenset[tuple[str, str, str, str]]] = []
-    incumbent = trial_compiler_module.validate_experiment_binding_targets
+    incumbent = trial_bindings_module.validate_experiment_binding_targets
 
     def capture_authority(descriptors, **kwargs):
         observed.append(frozenset(kwargs["apparatus_manifests"]))
         return incumbent(descriptors, **kwargs)
 
-    monkeypatch.setattr(trial_compiler_module, "validate_experiment_binding_targets", capture_authority)
+    monkeypatch.setattr(trial_bindings_module, "validate_experiment_binding_targets", capture_authority)
     result = compile_admitted_trial_plan(request)
 
     expected = [

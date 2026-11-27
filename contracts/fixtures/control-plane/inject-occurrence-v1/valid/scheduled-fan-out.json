@@ -1,0 +1,90 @@
+{
+  "schema_version": "inject-occurrence/v1",
+  "operation_id": "operation-handover-1",
+  "request": {
+    "schema_version": "inject-trigger-request/v1",
+    "request_key": "slot-key-1",
+    "occurrence_id": "handover-occurrence-1",
+    "target_scope": "target:reference",
+    "run_scope": "run:exercise-1",
+    "plan": {
+      "contract_id": "orchestration-plan-v1",
+      "artifact_id": "orchestration-plan-1",
+      "digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+    },
+    "inject": "orchestration.inject.handover",
+    "bindings": [
+      {
+        "binding": "orchestration.inject-binding.workstation.handover",
+        "node": "provision.node.workstation",
+        "instance": "workstation-1",
+        "revision": "realization-r3"
+      },
+      {
+        "binding": "orchestration.inject-binding.workstation.handover",
+        "node": "provision.node.workstation",
+        "instance": "workstation-2",
+        "revision": "realization-r3"
+      }
+    ],
+    "placement": {
+      "kind": "schedule",
+      "event": "orchestration.event.shift-change",
+      "script": "orchestration.script.day-one",
+      "story": "orchestration.story.exercise",
+      "slot": "day-one/shift-change/1"
+    },
+    "input_ref": {
+      "contract_id": "handover-input-v1",
+      "artifact_id": "handover-input-1",
+      "digest": "sha256:8888888888888888888888888888888888888888888888888888888888888888"
+    },
+    "expected_head": "order-head-19"
+  },
+  "admission": {
+    "actor_id": "scheduler-1",
+    "authorization_scope": [
+      "role:operator"
+    ],
+    "target_scope": "target:reference",
+    "run_scope": "run:exercise-1",
+    "operation_kind": "orchestration",
+    "request_commitment": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+    "parent_operation_id": null
+  },
+  "admission_evidence": [
+    {
+      "contract_id": "proposition-truth-result-v1",
+      "artifact_id": "precondition-results-1",
+      "digest": "sha256:3333333333333333333333333333333333333333333333333333333333333333"
+    }
+  ],
+  "store_revision": "store-revision-41",
+  "order": {
+    "scope": "run:exercise-1",
+    "predecessor": "order-head-19",
+    "position": 20
+  },
+  "scenario": {
+    "contract_id": "instantiated-scenario-v1",
+    "artifact_id": "external-trigger-environment",
+    "digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444"
+  },
+  "source": {
+    "contract_id": "associated-artifact-manifest-v1",
+    "artifact_id": "release-notice-source",
+    "digest": "sha256:5555555555555555555555555555555555555555555555555555555555555555"
+  },
+  "realization": {
+    "contract_id": "backend-manifest-v2",
+    "artifact_id": "reference-realization",
+    "digest": "sha256:6666666666666666666666666666666666666666666666666666666666666666"
+  },
+  "evidence_requirements": [
+    {
+      "contract_id": "runtime-snapshot-v1",
+      "artifact_id": "readback-requirement-1",
+      "digest": "sha256:7777777777777777777777777777777777777777777777777777777777777777"
+    }
+  ]
+}

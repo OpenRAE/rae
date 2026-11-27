@@ -37,13 +37,18 @@ from collections.abc import Iterable
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-if str(REPO_ROOT) not in sys.path:
-    sys.path.insert(0, str(REPO_ROOT))
+RAES_PACKAGES_ROOT = REPO_ROOT / "implementations" / "python" / "packages"
+for _source_root in (REPO_ROOT, RAES_PACKAGES_ROOT):
+    if str(_source_root) not in sys.path:
+        sys.path.insert(0, str(_source_root))
 
 import yaml
+from raes_contracts.errors import InvalidInputError
+from raes_contracts.operational_logging import run_application
 
 from tools.check_schema_publication import load_schema_publication_catalog
 from tools.policy.common import (
+    YAML_CONTENT_FAILURES,
     PolicyFailure,
     apply_exceptions,
     failures_to_json,
@@ -279,7 +284,8 @@ def _load_removed_schema_paths(repo_root: Path) -> set[str]:
     """Return the schema paths in normalized publication tombstone records."""
     try:
         manifest = load_schema_publication_catalog(repo_root)
-    except (OSError, ValueError):
+    except OSError, UnicodeDecodeError, InvalidInputError:
+        # The publication gate reports a broken catalog; here it only means no tombstones.
         return set()
     removed = manifest.get("removed_schemas")
     if not isinstance(removed, list):
@@ -526,6 +532,14 @@ def evaluate_deprecation_records(repo_root: Path) -> list[PolicyFailure]:
                 DEPRECATION_RECORDS_RELATIVE_PATH,
             )
         ]
+    except YAML_CONTENT_FAILURES:
+        return [
+            _fail(
+                "deprecation-records-parse",
+                f"failed to parse {DEPRECATION_RECORDS_RELATIVE_PATH}",
+                DEPRECATION_RECORDS_RELATIVE_PATH,
+            )
+        ]
 
     if not isinstance(raw, dict):
         return [
@@ -568,7 +582,11 @@ def main(argv: Iterable[str] | None = None) -> int:
     failures = evaluate_deprecation_records(args.repo_root)
     exceptions_file = args.repo_root / "tools" / "policy" / "exceptions.yaml"
     if exceptions_file.is_file():
-        failures = apply_exceptions(failures, load_exceptions(args.repo_root))
+        try:
+            failures = apply_exceptions(failures, load_exceptions(args.repo_root))
+        except InvalidInputError as exc:
+            print(f"deprecation-lifecycle: {exc}", file=sys.stderr)
+            return 1
     if failures:
         if args.json:
             print(failures_to_json(failures))
@@ -580,4 +598,4 @@ def main(argv: Iterable[str] | None = None) -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(run_application(main))

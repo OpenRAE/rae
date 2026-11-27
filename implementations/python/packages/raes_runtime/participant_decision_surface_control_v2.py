@@ -6,8 +6,8 @@ from raes_contracts.contracts import (
     ParticipantDecisionSurfaceSelectionV2Model,
     ParticipantDecisionSurfaceV2Model,
 )
+from raes_contracts.contracts.participant_action_admission import ParticipantActionAdmissionRequest
 from raes_contracts.diagnostics import Diagnostic
-from raes_contracts.participant_binding import ParticipantActionAdmissionRequest
 from raes_contracts.participant_binding_v2 import (
     ParticipantDecisionSurfaceBindingResolversV2,
     bind_participant_decision_surface_selection_v2,
@@ -48,10 +48,12 @@ def _bind_participant_decision_surface_v2(
                 apparatus_resolver=resolvers.apparatus,
                 delivery_resolver=resolvers.delivery,
             )
-    except (TypeError, ValueError) as exc:
+    # The anchor check and the binding refuse with ValueError and the binding isolates host resolver
+    # failures itself; any other exception is a defect and propagates.
+    except ValueError:
         return None, _participant_binding_diagnostic(
             _participant_binding_address(participant_behavior),
-            str(exc),
+            "Participant decision surface binding could not be validated.",
         )
     return request, None
 

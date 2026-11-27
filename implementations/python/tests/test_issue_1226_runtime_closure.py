@@ -222,6 +222,39 @@ def test_dependency_missing_from_the_lock_fails_rather_than_being_omitted(
     assert excinfo.value.code == "runtime-closure-unlocked-dependency"
 
 
+def test_invalid_lock_marker_is_an_unlocked_dependency(tmp_path: Path) -> None:
+    lock = {
+        "package": [
+            _package("raes", "1.2.3"),
+            {**_package("typer", "0.24.1", "click"), "resolution-markers": ["python_version >>> '3'"]},
+            _package("click", "8.4.2"),
+        ]
+    }
+    with pytest.raises(RuntimeClosureError) as excinfo:
+        _reconcile(tmp_path, lock=lock)
+    assert excinfo.value.code == "runtime-closure-unlocked-dependency"
+
+
+def test_a_defect_in_the_closure_walker_is_not_reported_as_an_unlocked_dependency(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from tools import release_evidence_sbom
+
+    def defect(*_args: object, **_kwargs: object) -> list[dict[str, Any]]:
+        raise ValueError("synthetic defect")
+
+    monkeypatch.setattr(release_evidence_sbom, "locked_closure", defect)
+    with pytest.raises(ValueError, match="synthetic defect"):
+        _reconcile(tmp_path)
+
+
+def test_runtime_closure_errors_reject_evidence() -> None:
+    from raes_contracts.errors import EvidenceIntegrityError
+
+    assert issubclass(RuntimeClosureError, EvidenceIntegrityError)
+    assert RuntimeClosureError("code", "message").code == "code"
+
+
 def test_dependency_missing_from_the_installation_fails(tmp_path: Path) -> None:
     with pytest.raises(RuntimeClosureError) as excinfo:
         _reconcile(tmp_path, installed_versions={"typer": "0.24.1"})

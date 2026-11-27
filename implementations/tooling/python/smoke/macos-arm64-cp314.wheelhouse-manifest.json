@@ -41,14 +41,6 @@
       "version": "4.14.2"
     },
     {
-      "filename": "asyncssh-2.24.0-py3-none-any.whl",
-      "name": "asyncssh",
-      "sha256": "9abd46300adcb6d4b73269b34c53cd0d17a138b9a22b5b38008ce7d5808734b7",
-      "size": 381237,
-      "url": "https://files.pythonhosted.org/packages/3e/29/908ce0ca5e8cae76662e354a0f08df552d6d221844748b9e5ca06051cc44/asyncssh-2.24.0-py3-none-any.whl",
-      "version": "2.24.0"
-    },
-    {
       "filename": "attrs-26.1.0-py3-none-any.whl",
       "name": "attrs",
       "sha256": "c647aa4a12dfbad9333ca4e71fe62ddc36f4e63b2d260a37a8b83d2f043ac309",
@@ -81,12 +73,12 @@
       "version": "1.0.9"
     },
     {
-      "filename": "certifi-2026.2.25-py3-none-any.whl",
+      "filename": "certifi-2026.10.19-py3-none-any.whl",
       "name": "certifi",
-      "sha256": "027692e4402ad994f1c42e52a4997a9763c646b73e4096e4d5d6db8af1d6f0fa",
-      "size": 153684,
-      "url": "https://files.pythonhosted.org/packages/9a/3c/c17fb3ca2d9c3acff52e30b309f538586f9f5b9c9cf454f3845fc9af4881/certifi-2026.2.25-py3-none-any.whl",
-      "version": "2026.2.25"
+      "sha256": "42d35340cc5b9ba78e818ddbff0c5b1c2b779de448a340fd1b989f5fa8670e1b",
+      "size": 136464,
+      "url": "https://files.pythonhosted.org/packages/c4/51/29046e48f693c54e5b7412216d447a1d8362c9653148d98c02cdf65fa733/certifi-2026.10.19-py3-none-any.whl",
+      "version": "2026.10.19"
     },
     {
       "filename": "cffi-2.0.0-cp314-cp314-macosx_11_0_arm64.whl",
@@ -289,12 +281,12 @@
       "version": "3.0.3"
     },
     {
-      "filename": "mcp-1.28.1-py3-none-any.whl",
+      "filename": "mcp-1.30.0-py3-none-any.whl",
       "name": "mcp",
-      "sha256": "2726bca5e7193f61c5dde8b12500a6de2d9acf6d1a1c0be9e8c2e706437991df",
-      "size": 222620,
-      "url": "https://files.pythonhosted.org/packages/e2/5e/d118fce19f87a2e7d8101c35c8ae0ec289098a4df0ff244cec23e415aca0/mcp-1.28.1-py3-none-any.whl",
-      "version": "1.28.1"
+      "sha256": "666edb5009503e1047c9d60346a756f94b261f05cc2625f23d41c728ffc484d0",
+      "size": 234581,
+      "url": "https://files.pythonhosted.org/packages/f5/f4/e58bc33317c92a0203664daaf00bf6f41166cc0149e5d6870a03f7cd004a/mcp-1.30.0-py3-none-any.whl",
+      "version": "1.30.0"
     },
     {
       "filename": "mdit_py_plugins-0.6.0-py3-none-any.whl",
@@ -321,6 +313,14 @@
       "version": "5.0.0"
     },
     {
+      "filename": "nexus_rpc-1.4.0-py3-none-any.whl",
+      "name": "nexus-rpc",
+      "sha256": "14c953d3519113f8ccec533a9efdb6b10c28afef75d11cdd6d422640c40b3a49",
+      "size": 29645,
+      "url": "https://files.pythonhosted.org/packages/11/52/6327a5f4fda01207205038a106a99848a41c83e933cd23ea2cab3d2ebc6c/nexus_rpc-1.4.0-py3-none-any.whl",
+      "version": "1.4.0"
+    },
+    {
       "filename": "packaging-26.0-py3-none-any.whl",
       "name": "packaging",
       "sha256": "b36f1fef9334a5588b4166f8bcd26a14e521f2b55e6b9de3aaa80d3ff7a37529",
@@ -335,6 +335,30 @@
       "size": 20538,
       "url": "https://files.pythonhosted.org/packages/54/20/4d324d65cc6d9205fabedc306948156824eb9f0ee1633355a8f7ec5c66bf/pluggy-1.6.0-py3-none-any.whl",
       "version": "1.6.0"
+    },
+    {
+      "filename": "protobuf-7.36.2-cp310-abi3-macosx_10_9_universal2.whl",
+      "name": "protobuf",
+      "sha256": "cbc70b17ee27e28894c7fee8bb04be1abead49e936bc70eb60052531eee2079e",
+      "size": 456039,
+      "url": "https://files.pythonhosted.org/packages/32/72/98342feb672507c8f3a69e34b4fa8961f608edba5c1a48a6f47156d92cb5/protobuf-7.36.2-cp310-abi3-macosx_10_9_universal2.whl",
+      "version": "7.36.2"
+    },
+    {
+      "filename": "psycopg-3.3.8-py3-none-any.whl",
+      "name": "psycopg",
+      "sha256": "ca50af6072ba9ea6866f33021975230c2555d7bfdb9d8f94ca3af5c3d1bf2167",
+      "size": 216209,
+      "url": "https://files.pythonhosted.org/packages/7b/5c/50a0b0796ccb69b11934f7c5758051c08019bda2fafb417501109fffd569/psycopg-3.3.8-py3-none-any.whl",
+      "version": "3.3.8"
+    },
+    {
+      "filename": "psycopg_binary-3.3.8-cp314-cp314-macosx_11_0_arm64.whl",
+      "name": "psycopg-binary",
+      "sha256": "bf9388216da2069ca0dbad58479bb83e4b979ed35c4a80d247399ac93361417c",
+      "size": 4786289,
+      "url": "https://files.pythonhosted.org/packages/f3/0c/56a7a35b304a7ae9f2796f76dd76a847d34f0cdaa76f0945294c06d13220/psycopg_binary-3.3.8-cp314-cp314-macosx_11_0_arm64.whl",
+      "version": "3.3.8"
     },
     {
       "filename": "pycparser-3.0-py3-none-any.whl",
@@ -489,12 +513,12 @@
       "version": "4.1.0"
     },
     {
-      "filename": "rpds_py-0.30.0-cp314-cp314-macosx_11_0_arm64.whl",
+      "filename": "rpds_py-2026.9.1-cp314-cp314-macosx_11_0_arm64.whl",
       "name": "rpds-py",
-      "sha256": "ec7c4490c672c1a0389d319b3a9cfcd098dcdc4783991553c332a15acf7249be",
-      "size": 353192,
-      "url": "https://files.pythonhosted.org/packages/2b/60/19f7884db5d5603edf3c6bce35408f45ad3e97e10007df0e17dd57af18f8/rpds_py-0.30.0-cp314-cp314-macosx_11_0_arm64.whl",
-      "version": "0.30.0"
+      "sha256": "3f0e9ac28fc067d4d34b88ae43c48e9489455c97fee9633d851f7eeed5a05d35",
+      "size": 341878,
+      "url": "https://files.pythonhosted.org/packages/04/37/b751de2b59b0197a1d92a5dd491de88e8a5e928c2e6562581974f1e85263/rpds_py-2026.9.1-cp314-cp314-macosx_11_0_arm64.whl",
+      "version": "2026.9.1"
     },
     {
       "filename": "semantic_version-2.10.0-py2.py3-none-any.whl",
@@ -537,12 +561,12 @@
       "version": "2.4.0"
     },
     {
-      "filename": "soupsieve-2.9.1-py3-none-any.whl",
+      "filename": "soupsieve-4.1-py3-none-any.whl",
       "name": "soupsieve",
-      "sha256": "4f4477399246b7a0c720a88ca2454b11cd6bb9ae4c9d170140786e916776c14c",
-      "size": 37404,
-      "url": "https://files.pythonhosted.org/packages/0f/2c/437fe806897c2d6cfdc3ee43a18da8bf8e568530a4ae9bac781541ca9896/soupsieve-2.9.1-py3-none-any.whl",
-      "version": "2.9.1"
+      "sha256": "e4d667b3974ce6e038e7390486b8093369854a1d345ffdd4c121dfc4a782e809",
+      "size": 52302,
+      "url": "https://files.pythonhosted.org/packages/88/73/6a2087c72975cfc07394623bca8d17654342ea4055ae368deafe5a81a542/soupsieve-4.1-py3-none-any.whl",
+      "version": "4.1"
     },
     {
       "filename": "sphinx-9.1.0-py3-none-any.whl",
@@ -649,12 +673,28 @@
       "version": "1.3.1"
     },
     {
+      "filename": "temporalio-1.35.0-cp310-abi3-macosx_11_0_arm64.whl",
+      "name": "temporalio",
+      "sha256": "51bae017d484450084daa19afafad12fa0af1a00af351ba304104d7b97b44f9a",
+      "size": 13552491,
+      "url": "https://files.pythonhosted.org/packages/26/c1/94861d72cbe5e1778fcd4685db63231af01d40ad99f0375b4df6d4e60d06/temporalio-1.35.0-cp310-abi3-macosx_11_0_arm64.whl",
+      "version": "1.35.0"
+    },
+    {
       "filename": "typer-0.24.1-py3-none-any.whl",
       "name": "typer",
       "sha256": "112c1f0ce578bfb4cab9ffdabc68f031416ebcc216536611ba21f04e9aa84c9e",
       "size": 56085,
       "url": "https://files.pythonhosted.org/packages/4a/91/48db081e7a63bb37284f9fbcefda7c44c277b18b0e13fbc36ea2335b71e6/typer-0.24.1-py3-none-any.whl",
       "version": "0.24.1"
+    },
+    {
+      "filename": "types_protobuf-7.35.1.20260906-py3-none-any.whl",
+      "name": "types-protobuf",
+      "sha256": "5155e48569e0dabff303fdf578db96cd31ea9a4a63b18018a4ceac6b0ae17462",
+      "size": 86419,
+      "url": "https://files.pythonhosted.org/packages/44/4e/f63e826c68f77ef875506d72f225918800346545ee99847bc28f3394f18d/types_protobuf-7.35.1.20260906-py3-none-any.whl",
+      "version": "7.35.1.20260906"
     },
     {
       "filename": "typing_extensions-4.15.0-py3-none-any.whl",
@@ -730,8 +770,8 @@
     }
   ],
   "lock_path": "implementations/python/uv.lock",
-  "lock_sha256": "5d18f781062a6181e2a55d3f7d55911474005f091ba9babcfec40d4030276dad",
+  "lock_sha256": "d3f57eb3f12aa3ca583f9777d9167d2d6ee032fc9c7a9dc4fdd72d84fa53ceca",
   "python_closure_profile_id": "public-macos-arm64-cp314-all-extras",
-  "requirements_sha256": "ca99e96e0a20d0e6d58b9a957928b42046e2508711120c02ce4a92f9f1d8e86e",
+  "requirements_sha256": "e029d26dde8692e47f988318727032277cf130bca52cc29afb165026d7ab2fb0",
   "schema_version": "raes-python-wheelhouse-manifest/v1"
 }

@@ -4,13 +4,8 @@ from __future__ import annotations
 
 from collections.abc import Callable, Mapping
 
-from ._common import (
-    RealizationRelationResult,
-    actual_identity,
-    combine_relation_results,
-    pointer,
-    relation_result,
-)
+from ..json_pointer import pointer_from_tokens
+from ._common import RealizationRelationResult, actual_identity, combine_relation_results, relation_result
 from ._evaluation_context import EvaluationContext, evaluate_closure
 from ._models import (
     RealizationKeyedCollectionConstraint,
@@ -37,19 +32,19 @@ def _keyed_input_failure(
     if not isinstance(actual, list):
         failure = relation_result(
             RealizationRelationStatus.NONCONFORMANT,
-            pointer(path),
+            pointer_from_tokens(path),
             "Observed value is not the required keyed collection.",
         )
     elif len(actual) > context.budget.limits.max_members:
         failure = relation_result(
             RealizationRelationStatus.LIMIT_EXCEEDED,
-            pointer(path),
+            pointer_from_tokens(path),
             "Keyed collection evaluation exceeded max_members.",
         )
     elif not rule.min_items <= len(actual) <= rule.max_items:
         failure = relation_result(
             RealizationRelationStatus.NONCONFORMANT,
-            pointer(path),
+            pointer_from_tokens(path),
             "Observed keyed collection violates its declared cardinality.",
         )
     return failure
@@ -66,7 +61,7 @@ def _keyed_aliases(
         if exhausted := context.budget.spend_identity():
             failure = relation_result(
                 RealizationRelationStatus.LIMIT_EXCEEDED,
-                pointer(path),
+                pointer_from_tokens(path),
                 f"Keyed collection alias evaluation exceeded {exhausted}.",
             )
         else:
@@ -90,7 +85,7 @@ def _canonical_actual_item(
     if identity is None:
         failure = relation_result(
             RealizationRelationStatus.INVALID,
-            pointer(path),
+            pointer_from_tokens(path),
             "A keyed collection member has no complete concrete semantic identity.",
         )
     else:
@@ -99,7 +94,7 @@ def _canonical_actual_item(
         if source_key in aliases and (exhausted := context.budget.spend_identity()):
             failure = relation_result(
                 RealizationRelationStatus.LIMIT_EXCEEDED,
-                pointer(path),
+                pointer_from_tokens(path),
                 f"Keyed collection alias evaluation exceeded {exhausted}.",
             )
         else:
@@ -143,7 +138,7 @@ def _index_keyed_actuals(
         if exhausted := context.budget.spend_identity():
             failure = relation_result(
                 RealizationRelationStatus.LIMIT_EXCEEDED,
-                pointer(path),
+                pointer_from_tokens(path),
                 f"Keyed collection evaluation exceeded {exhausted}.",
             )
         else:
@@ -153,7 +148,7 @@ def _index_keyed_actuals(
                 if key in indexed:
                     failure = relation_result(
                         RealizationRelationStatus.INVALID,
-                        pointer(path),
+                        pointer_from_tokens(path),
                         "A keyed collection contains a duplicate or ambiguous semantic identity.",
                     )
                 else:
@@ -174,7 +169,7 @@ def _declared_keyed_members(
         if exhausted := context.budget.spend_identity():
             failure = relation_result(
                 RealizationRelationStatus.LIMIT_EXCEEDED,
-                pointer(path),
+                pointer_from_tokens(path),
                 f"Keyed collection declaration evaluation exceeded {exhausted}.",
             )
         else:
@@ -211,7 +206,7 @@ def _evaluate_keyed_members(
     results: list[RealizationRelationResult] = []
     for key, constraint in declared.items():
         present = key in indexed
-        address = f"{pointer(path)}/@{key.removeprefix('sha256:')[:16]}"
+        address = f"{pointer_from_tokens(path)}/@{key.removeprefix('sha256:')[:16]}"
         result = _evaluate_presence(
             constraint,
             present,
@@ -272,19 +267,19 @@ def _sequence_input_failure(
     if not isinstance(actual, list):
         failure = relation_result(
             RealizationRelationStatus.NONCONFORMANT,
-            pointer(path),
+            pointer_from_tokens(path),
             "Observed value is not the required ordered sequence.",
         )
     elif len(actual) > context.budget.limits.max_members:
         failure = relation_result(
             RealizationRelationStatus.LIMIT_EXCEEDED,
-            pointer(path),
+            pointer_from_tokens(path),
             "Ordered sequence evaluation exceeded max_members.",
         )
     elif not rule.min_items <= len(actual) <= rule.max_items:
         failure = relation_result(
             RealizationRelationStatus.NONCONFORMANT,
-            pointer(path),
+            pointer_from_tokens(path),
             "Observed sequence violates its declared cardinality.",
         )
     return failure
@@ -305,7 +300,7 @@ def _evaluate_sequence_members(
         result = _evaluate_presence(
             child,
             present,
-            pointer(item_path),
+            pointer_from_tokens(item_path),
             forbidden_message="A forbidden sequence occurrence is present.",
             required_message="A required sequence occurrence is absent.",
         )

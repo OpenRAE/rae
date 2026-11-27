@@ -7,12 +7,13 @@ from typing import TYPE_CHECKING
 from uuid import uuid4
 
 from raes_contracts.contracts.participant_outcomes import ParticipantOutcomeReportV2Model
+from raes_contracts.errors import AuthorizationError, ConflictError, InvalidInputError
 from raes_contracts.operation_lifecycle import OperationAdmissionContext
 from raes_contracts.planning import RuntimeDomain
 from raes_contracts.runtime_state import OperationKind, OperationReceipt, OperationState, OperationStatus
+from raes_contracts.timestamps import isoformat_z
 from raes_processor.models import ParticipantBehaviorRuntime, ParticipantOutcomeInterpretationRuleRuntime, RuntimeModel
 
-from .control_plane_execution import _utc_now
 from .control_plane_lifecycle import runtime_owned
 from .control_plane_mutation import control_plane_mutation, mutation_entry
 from .control_plane_operation_context import operation_admission_context
@@ -30,17 +31,17 @@ def _authorized_outcome_request(
     control_plane: RuntimeControlPlane, request: ParticipantOutcomeUpdateRequest, identity: ControlPlaneIdentity
 ) -> ParticipantOutcomeInterpretationRuleRuntime:
     if not isinstance(identity, ControlPlaneIdentity) or ControlPlaneRole.OPERATOR not in identity.roles:
-        raise PermissionError("participant outcome updates require an authenticated operator")
+        raise AuthorizationError("participant outcome updates require an authenticated operator")
     if identity.target_name is not None and identity.target_name != control_plane.target_name:
-        raise PermissionError("participant outcome identity is not authorized for this target")
+        raise AuthorizationError("participant outcome identity is not authorized for this target")
     _require_participant_binding(identity, request.participant_address)
     model = control_plane._participant_outcome_model
     if model is None:
-        raise ValueError("participant outcome compiled model is unavailable")
+        raise ConflictError("participant outcome compiled model is unavailable")
     participant = model.participant_behaviors.get(request.participant_address)
     rule = model.outcome_interpretation_rules.get(request.rule_address)
     if participant is None or rule is None:
-        raise ValueError("participant outcome participant or rule binding is invalid")
+        raise ConflictError("participant outcome participant or rule binding is invalid")
     _require_declared_rule(model, participant, rule)
     return rule
 
@@ -99,8 +100,8 @@ class ParticipantOutcomeControlMixin:
         # Revalidate model_copy/model_construct carriers at the mutation boundary.
         try:
             request = ParticipantOutcomeUpdateRequest.model_validate(request.model_dump(mode="json"))
-        except (TypeError, ValueError):
-            raise ValueError("participant outcome update contract is invalid") from None
+        except TypeError, ValueError:
+            raise InvalidInputError("participant outcome update contract is invalid") from None
         rule = _authorized_outcome_request(self, request, identity)
         with control_plane_mutation(self, OperationKind.PARTICIPANT_CONTROL), self._participant_control_lock:
             self._reload_derived_state()
@@ -110,7 +111,7 @@ class ParticipantOutcomeControlMixin:
             prior = self._store.find_by_idempotency(f"outcome:{request.event_id}", context=context)
             if prior is not None:
                 if prior.request_fingerprint != context.request_commitment:
-                    raise ValueError("participant outcome retry payload differs")
+                    raise ConflictError("participant outcome retry payload differs")
                 return prior.receipt
             if request.expected_snapshot_revision != self._snapshot_state.revision:
                 raise SnapshotRevisionConflict()
@@ -119,12 +120,12 @@ class ParticipantOutcomeControlMixin:
                 for records in self._snapshot.participant_outcome_history.values()
                 for raw in records
             ):
-                raise ValueError("participant outcome event identity already exists")
+                raise ConflictError("participant outcome event identity already exists")
             report = produce_participant_outcome(
                 self._snapshot,
                 rule,
                 request,
-                timestamp=_utc_now(),
+                timestamp=isoformat_z(self.wall_clock()),
                 actor_ref=identity.identity,
                 authorization_scope="role:operator",
             )
@@ -158,7 +159,7 @@ def _require_declared_rule(
         and (participant.address in specification.participant_addresses or role in specification.participant_role_refs)
         for specification in model.behavior_specifications.values()
     ):
-        raise ValueError("participant outcome behavior-specification binding is invalid")
+        raise ConflictError("participant outcome behavior-specification binding is invalid")
     for layer, ref in zip(rule.source_layers, rule.source_refs, strict=True):
         if layer == "participant_action_outcome" and ref not in participant.action_contract_addresses:
-            raise ValueError("participant outcome rule action binding is invalid")
+            raise ConflictError("participant outcome rule action binding is invalid")

@@ -145,9 +145,9 @@ reservation while releasing the short state permit needed by supervision.
 This requires implementation; the current logical permit still spans external
 calls. A deadline cannot release that reservation on the assumption that a
 worker has stopped, and revision CAS does not fence external effects.
-`RuntimeManager` is a separate direct-execution facade and does not coordinate
-with a control plane aimed at the same backend. Across processes, admission is
-the lease, not advisory locking.
+Issue #1660 consolidates the incumbent manager and control-plane responsibilities
+under the lifetime owner in section 11. Across processes, admission is the lease,
+not advisory locking.
 
 ### 6. Boundaries against the rest of RAES
 
@@ -301,6 +301,67 @@ or indeterminacy and its validity consequences without a weaker fallback.
 Physical-OT protection remains a selectable future concern, not a universal
 execution requirement or certification claim.
 
+### 11. One runtime owner for the interaction lifetime
+
+Issue #1660 replaces the independent `RuntimeManager` and `RuntimeControlPlane`
+execution paths with one runtime authority across planning handoff, apply,
+post-apply evaluation, supervision, state access and teardown. Reuse the
+control-plane operation, mutation, store, recovery and audit boundaries; retain
+the manager's lifecycle semantics as work directed by that same owner. Modules
+may perform distinct duties but may not own separate snapshots, claims or
+backend-dispatch lifecycles. A retained public facade delegates to the owner;
+it is not another controller. Closing one controller to construct another is
+not the consumer workflow for continuing an interaction.
+
+Composition installs only the components needed by the scenario, with existing
+manifest/component agreement and required-capability checks intact. Local
+embedding remains possible without an HTTP service, durable store or
+distributed execution service. Whole-lifetime ownership does not widen a
+store's immutable target/run scope, collapse experiment/trial/attempt identities,
+or authorize retry of uncertain effects. A fresh evaluation of later evidence
+is distinct from retrying an earlier evaluation submission and from refreshing
+backend inventory.
+
+The [issue #1660 preflight](../issue-1660-runtime-lifetime-controller-preflight.md)
+records the incumbent seams and security gates. This amendment replaces the
+design set's earlier disposition retaining an independent direct manager;
+historical current-state assessments remain historical. It defines the required
+architecture, not a claim that consolidation or new behavior already ships.
+
+### 12. Engine lifetime and fixed run contexts
+
+RAE uses one engine for all workloads.
+It can own more than one fixed run context.
+A plain SDL run needs no experiment wrapper.
+An experiment adds run order and result accounting.
+
+The engine owns backends, worker pools, and execution adapters.
+It also owns resource claims and shutdown.
+Each run has a fixed target and run scope.
+It owns its store, state, operations, and generation.
+It holds the modules used by that run.
+Contexts share the engine's services.
+They do not gain their own backend ownership.
+
+Existing single-run calls use the fixed default context.
+Each callback and state write keeps its bound context.
+A current-run pointer must not redirect work.
+Ending a run keeps its records and shared services.
+Reuse needs proof of cleanup and resolved effect claims.
+Unknown effects, active callbacks, or lost ownership block reuse.
+Store scope and commit checks stay in force.
+Write experiment decisions before effects.
+Use stable IDs and stored operations to resolve interrupted work.
+
+Local and Temporal drivers use the same RAE decisions.
+ADR-113 governs Temporal delivery and worker access.
+The author controls retries through the relevant scenario policy.
+That policy sets limits, evidence, and time.
+A delivery retry cannot grant another effect or trial.
+Refuse unsupported choices before effects.
+The trial compiler assigns each fresh trial.
+Keep its original attempts.
+
 ## Alternatives Considered
 
 ### One mandatory control-plane service
@@ -356,3 +417,5 @@ demonstrated its lost-update and partial-state failures.
 | 2026-09-22 | #1348 | Defined shared-runtime supervision, effect reservations, evidence-based settlement and authored recovery choices while preserving profile and implementation nonclaims. |
 | 2026-09-24 | #1356 | Bound participant clients to an organizational backend and kept privileged P2 credentials and raw control-plane outputs inside that boundary. |
 | 2026-09-25 | #1356 follow-up | Clarified SDK method access, optional P2 identity scope, host policy, and the legacy no-resolver projection gap. |
+| 2026-10-27 | #1660 | Required one runtime authority for the interaction lifetime, reusing control-plane invariants and composing only needed scenario components. |
+| 2026-10-28 | #1629 | Separated shared engine lifetime from fixed run contexts, preserving resource reservations and authored retry policy across local and Temporal execution. |

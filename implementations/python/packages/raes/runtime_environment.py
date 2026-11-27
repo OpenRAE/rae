@@ -5,18 +5,18 @@ from enum import Enum
 from pydantic import ConfigDict, Field, GetJsonSchemaHandler, field_validator, model_validator
 from pydantic.json_schema import JsonSchemaValue
 from pydantic_core import CoreSchema
+from raes_contracts.generated_artifact_value import GeneratedArtifactValueSource as _GeneratedArtifactValueSource
+from raes_contracts.governed_vocabulary import GovernedVocabulary
+from raes_contracts.runtime_values import enforce_observed_value_redaction
+from raes_contracts.runtime_values import parse_runtime_enum_or_var as _parse_runtime_enum_or_var
+from raes_contracts.sdl_model import SDLModel
 
 from raes.runtime_filesystem import redacted_raw_value_schema
-from raes.runtime_vocabulary import GovernedVocabulary
 
-from ._base import SDLModel
 from .runtime_generated_value import (
-    GeneratedArtifactValueSource,
     RuntimeEnvironmentFile,
     value_from_schema_exclusions,
 )
-from .runtime_values import enforce_observed_value_redaction
-from .runtime_values import parse_runtime_enum_or_var as _parse_runtime_enum_or_var
 
 
 class RuntimeEnvironmentValueClassification(str, Enum):
@@ -61,7 +61,7 @@ class RuntimeEnvironmentVariable(SDLModel):
 
     name: str
     value: str = ""
-    value_from: GeneratedArtifactValueSource | None = Field(default=None, exclude_if=lambda v: v is None)
+    value_from: _GeneratedArtifactValueSource | None = Field(default=None, exclude_if=lambda v: v is None)
     value_classification: GovernedVocabulary[RuntimeEnvironmentValueClassification] = (
         RuntimeEnvironmentValueClassification.UNKNOWN
     )
@@ -79,7 +79,7 @@ class RuntimeEnvironmentVariable(SDLModel):
         return v
 
     @model_validator(mode="after")
-    def validate_value_from_exclusivity(self) -> "RuntimeEnvironmentVariable":
+    def validate_value_from_exclusivity(self) -> RuntimeEnvironmentVariable:
         if self.value_from is not None:
             if self.value:
                 raise ValueError(
@@ -117,7 +117,7 @@ class RuntimeEnvironmentVariable(SDLModel):
         return _parse_runtime_enum_or_var(v, RuntimeEnvironmentVariableProvenance, field_name="provenance")
 
     @model_validator(mode="after")
-    def validate_redacted_value(self) -> "RuntimeEnvironmentVariable":
+    def validate_redacted_value(self) -> RuntimeEnvironmentVariable:
         enforce_observed_value_redaction(
             owner_label=f"runtime environment variable '{self.name}'",
             value=self.value,
@@ -142,7 +142,6 @@ class RuntimeEnvironmentVariable(SDLModel):
 
 
 __all__ = [
-    "GeneratedArtifactValueSource",
     "RuntimeEnvironmentFile",
     "RuntimeEnvironmentValueClassification",
     "RuntimeEnvironmentVariable",

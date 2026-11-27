@@ -10,8 +10,10 @@ from collections.abc import Iterable
 from dataclasses import dataclass, replace
 from enum import StrEnum
 
+from raes_contracts.errors import InvalidInputError
 
-class UnsupportedFlow(ValueError):
+
+class UnsupportedFlow(InvalidInputError):
     """The bounded model cannot resolve the requested flow operation."""
 
 

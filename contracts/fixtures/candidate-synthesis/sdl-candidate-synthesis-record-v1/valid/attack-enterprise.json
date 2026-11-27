@@ -61,7 +61,6 @@
         "version": "1"
       },
       "assertion_format": "stix-bundle/2.1",
-      "assertion_set_digest": "sha256:b24438b79cf95bc60bbc0326e8a088c45578e3da92c65ba0a89921606da59684",
       "authority": "mitre",
       "content_digest": "sha256:89506510066a02415856b5c9217dbb5ea03a603cb88d9078e74dd14a7c7eaa8c",
       "extraction_query": {
@@ -90,7 +89,6 @@
       "version": "1"
     }
   },
-  "input_digest": "sha256:5ebdf8274f7db5a6c45b76bc3d8d914ffaf6f33b0d74e32763880bee71986bcd",
   "input_id": "external-web-candidate",
   "profile": {
     "all_or_none": true,
@@ -104,7 +102,6 @@
       "max_decisions": 1024,
       "max_node_identifier_length": 35
     },
-    "profile_digest": "sha256:6d5a5d8faa996e0a0783f4b9c32ad8217571cb18bc5ce8ca3e359c547e0d642b",
     "profile_id": "concept-nodes/v1",
     "profile_version": "1",
     "refusal_reason_codes": [
@@ -192,7 +189,6 @@
       "profile": "source-neutral-candidate-provenance/v1"
     },
     "schema_version": "artifact-transformation-report/v1",
-    "source_digest": "sha256:5ebdf8274f7db5a6c45b76bc3d8d914ffaf6f33b0d74e32763880bee71986bcd",
     "source_profile": "sdl-candidate-synthesis-input/v1",
     "status": "success",
     "target_digest": "sha256:1d5f9c8107b2c1b84f404a24dbcf1260676fbb5cd94cfca7da5a04be6139c1af",

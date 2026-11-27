@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 330" width="960" height="330" role="img" aria-labelledby="raes-flow-title raes-flow-desc">
+  <title id="raes-flow-title">How a RAES scenario reaches a run</title>
+  <desc id="raes-flow-desc">You author a scenario in RAES SDL. RAES validates it, compiles a plan, and publishes the contracts and conformance tests that backends use. An external backend realizes the scenario: Shifter, LilRAE (formerly APTL), or your own backend. Simulator and gym adapters are unreleased. The backend builds the environment and participants act in it. Reports and evidence then describe what was realized and observed, and state the limits of the result. RAES owns the scenario meaning; backends own realization and operation.</desc>
+  <defs>
+    <marker id="raes-flow-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#424a53"/>
+    </marker>
+  </defs>
+  <rect x="0" y="0" width="960" height="330" rx="14" fill="#ffffff"/>
+  <g font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" text-anchor="middle" fill="#1f2328">
+    <g font-size="13" fill="#424a53">
+      <text x="125" y="30">This repository</text>
+      <text x="400" y="30">External projects</text>
+      <text x="655" y="30">During a run</text>
+      <text x="860" y="30">After a run</text>
+    </g>
+
+    <rect x="20" y="44" width="210" height="216" rx="10" fill="#ddf4ff" stroke="#0969da" stroke-width="2"/>
+    <text x="125" y="82" font-size="20" font-weight="700">RAES</text>
+    <g font-size="14">
+      <text x="125" y="118">Author a scenario</text>
+      <text x="125" y="137">in RAES SDL</text>
+      <text x="125" y="170">Validate it and</text>
+      <text x="125" y="189">compile a plan</text>
+      <text x="125" y="222">Contracts and</text>
+      <text x="125" y="241">conformance tests</text>
+    </g>
+
+    <rect x="270" y="44" width="260" height="216" rx="10" fill="none" stroke="#424a53" stroke-width="1.5" stroke-dasharray="6 5"/>
+    <g font-size="14">
+      <rect x="285" y="56" width="230" height="38" rx="6" fill="#f6f8fa" stroke="#6e7781"/>
+      <text x="400" y="80">Shifter</text>
+      <rect x="285" y="102" width="230" height="38" rx="6" fill="#f6f8fa" stroke="#6e7781"/>
+      <text x="400" y="126">LilRAE (formerly APTL)</text>
+      <rect x="285" y="148" width="230" height="38" rx="6" fill="#f6f8fa" stroke="#6e7781"/>
+      <text x="400" y="172">Your own backend</text>
+      <rect x="285" y="194" width="230" height="54" rx="6" fill="#f6f8fa" stroke="#6e7781"/>
+      <text x="400" y="216">Adapter to a simulator or gym</text>
+      <text x="400" y="235">(unreleased)</text>
+    </g>
+
+    <rect x="570" y="98" width="170" height="112" rx="10" fill="#f6f8fa" stroke="#424a53" stroke-width="1.5"/>
+    <text x="655" y="130" font-size="17" font-weight="700">Run</text>
+    <g font-size="14">
+      <text x="655" y="160">The backend builds</text>
+      <text x="655" y="179">the environment;</text>
+      <text x="655" y="198">participants act</text>
+    </g>
+
+    <rect x="780" y="98" width="160" height="112" rx="10" fill="#f6f8fa" stroke="#424a53" stroke-width="1.5"/>
+    <text x="860" y="128" font-size="16" font-weight="700">Reports and</text>
+    <text x="860" y="148" font-size="16" font-weight="700">evidence</text>
+    <g font-size="14">
+      <text x="860" y="177">What was realized</text>
+      <text x="860" y="196">and observed</text>
+    </g>
+
+    <g stroke="#424a53" stroke-width="2" fill="none" marker-end="url(#raes-flow-arrow)">
+      <line x1="232" y1="152" x2="266" y2="152"/>
+      <line x1="532" y1="152" x2="566" y2="152"/>
+      <line x1="742" y1="152" x2="776" y2="152"/>
+    </g>
+
+    <g font-size="13" fill="#424a53">
+      <text x="125" y="288">Owns scenario meaning,</text>
+      <text x="125" y="306">formats, and checks</text>
+      <text x="400" y="288">Own realization</text>
+      <text x="400" y="306">and operation</text>
+      <text x="760" y="288">Evidence states the</text>
+      <text x="760" y="306">limits of a result</text>
+    </g>
+  </g>
+</svg>

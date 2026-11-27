@@ -25,3 +25,4 @@ Requirement inventory expansion. Derived evaluations must stay distinct from the
 - DOCUMENTS → SPEC `specs/formal/experiment-core/README.md` (Experiment Core Formal Specification)
 - TESTS → TEST `implementations/python/tests/test_runtime_contracts.py` (Experiment derived measure conformance and rejection tests)
 - IMPLEMENTS → GITHUB_ISSUE `88` (Experiment evidence & measures (EXP-707, EXP-708, EXP-709, EXP-715))
+- IMPLEMENTS → SPEC `contracts/schemas/experiment-core/experiment-derived-measure-v1.json` (experiment-derived-measure-v1 published schema)

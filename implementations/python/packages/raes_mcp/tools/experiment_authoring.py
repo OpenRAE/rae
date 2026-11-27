@@ -14,6 +14,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from mcp.server.fastmcp import FastMCP
+from raes_contracts.errors import OperationalError
 from raes_contracts.experiment_spec import MAX_EXPERIMENT_SPEC_BYTES
 
 # Compatibility alias retained for callers/tests; the canonical loader owns
@@ -25,7 +26,8 @@ def _find_repo_root(start: Path) -> Path:
     for candidate in (start, *start.parents):
         if (candidate / ".git").exists() or (candidate / ".ground-control.yaml").exists():
             return candidate
-    raise RuntimeError(f"could not locate RAES repo root from {start}")
+    # An installed distribution has no repository checkout, so the example documents are unavailable.
+    raise OperationalError(f"could not locate RAES repo root from {start}")
 
 
 _REPO_ROOT = _find_repo_root(Path(__file__).resolve().parent)

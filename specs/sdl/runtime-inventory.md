@@ -1,32 +1,22 @@
-# Catalog 4 — Runtime-Family Index
+<!-- vale RAES.HeadingCase = NO -->
+# Catalog 4 — runtime-family index
 
 The runtime inventory is the node-scoped record of logical service state an SDL
-document declares for a node. This file is a normative **index**: it places the
-runtime inventory in the document, names each runtime family and its addressing
-shape, and states the invariants every family shares **once**. It deliberately
-**delegates** each family's per-field semantics to that family's ADR rather than
-restating them, so the authoring spec does not duplicate the runtime ADR
-sequence.
+document declares for a node. This file is a normative **index**. It places runtime inventory in the document, names each runtime family and its addressing shape, and states shared invariants **once**. It **delegates** each family's per-field semantics to that family's ADR rather than restating them. The authoring spec does not duplicate the runtime ADR sequence.
+
+<!-- vale RAES.HeadingCase = YES -->
 
 ## 1. Placement and boundary
 
 1. Runtime inventory lives under a node: `nodes.<node>.runtime.<collection>`. It
    is **not** a top-level authoring section.
 2. The runtime layer records **logical service state** — what a service is and
-   how it is configured — not delivery mechanics. The scenario/delivery boundary
-   for runtime node state is fixed by
-   [ADR-033](../../docs/decisions/adrs/adr-033-scenario-delivery-boundary-for-runtime-node-state.md);
-   the SDL/processor/runtime layering by
-   [ADR-004](../../docs/decisions/adrs/adr-004-sdl-runtime-layer.md) and
-   [ADR-036](../../docs/decisions/adrs/adr-036-sdl-processor-runtime-module-boundaries.md).
+   how it is configured — not delivery mechanics. The scenario/delivery boundary for runtime node state is fixed by [ADR-033](../../docs/decisions/adrs/adr-033-scenario-delivery-boundary-for-runtime-node-state.md). [ADR-004](../../docs/decisions/adrs/adr-004-sdl-runtime-layer.md) and [ADR-036](../../docs/decisions/adrs/adr-036-sdl-processor-runtime-module-boundaries.md) fix the SDL/processor/runtime layering.
 3. Runtime-family elements and their children are addressed by the
    nested runtime-family reference form
    ([references.md §1](references.md)):
    `nodes.<node>.runtime.<collection>.<id>[.<child-collection>.<child-id>…]`.
-4. `Node.services[]` is adjacent authored identity, not runtime inventory. Each
-   entry identifies a node-local transport binding by port, protocol, and
-   optional name; it does not authorize traffic, prove a live listener, publish
-   a host port, or classify an audience. Authorization remains in
+4. `nodes.<node>.services[]` is adjacent authored identity, not runtime inventory. Each entry identifies a node-local transport binding by port, protocol, and optional name. It grants no traffic authorization or proof of a live listener. It neither publishes a host port nor classifies an audience. Authorization remains in
    `infrastructure.*.acls`, observed bind state in
    `runtime.service_listeners`, and host publication in
    `runtime.network.published_ports`.
@@ -44,7 +34,7 @@ fields, enums, and profiles; this index does not restate them.
 | `applications` | `applications` | `application_id` | none | [ADR-026](../../docs/decisions/adrs/adr-026-application-http-surface-inventory.md) |
 | `database-services` | `database_services` | `database_service_id` | `databases:database_id` | [ADR-029](../../docs/decisions/adrs/adr-029-database-logical-state-runtime-surface.md) |
 | `dns-services` | `dns_services` | `dns_service_id` | `zones:zone_id, zones:zone_id/rrsets:rrset_id` | [ADR-039](../../docs/decisions/adrs/adr-039-dns-service-runtime-inventory.md) |
-| `identity-authorities` | `identity_authorities` | `identity_authority_id` | `services:service_id, subjects:subject_id, policies:policy_id, relationships:relationship_id` | [ADR-032](../../docs/decisions/adrs/adr-032-directory-domain-identity-runtime-surface.md) |
+| `identity-authorities` | `identity_authorities` | `identity_authority_id` | `services:service_id, subjects:subject_id, policies:policy_id, relationships:relationship_id, resource_scopes:scope_id, resource_scopes:scope_id/audit_logs:audit_log_id, identity_uses:use_id, access_observations:observation_id` | [ADR-032](../../docs/decisions/adrs/adr-032-directory-domain-identity-runtime-surface.md), [cloud resource access](cloud-resource-access.md) |
 | `file-services` | `file_services` | `file_service_id` | `shares:share_id, principals:principal_id, access_rules:rule_id, access_observations:observation_id` | [ADR-037](../../docs/decisions/adrs/adr-037-runtime-file-service-and-filesystem-presence-semantics.md) |
 | `mail-services` | `mail_services` | `mail_service_id` | `components:component_id, listeners:listener_id, domains:domain_id, mailbox_stores:store_id, mailboxes:mailbox_id, aliases:alias_id, routing_rules:rule_id, queues:queue_id, settings:setting_id` | [ADR-038](../../docs/decisions/adrs/adr-038-runtime-mail-service-logical-state.md) |
 | `network-sensors` | `network_sensors` | `network_sensor_id` | none | [ADR-042](../../docs/decisions/adrs/adr-042-network-sensor-runtime-monitoring.md) |
@@ -54,13 +44,18 @@ fields, enums, and profiles; this index does not restate them.
 | `app-authorizations` | `app_authorizations` | `app_authorization_id` | `principals:principal_id, roles:role_id, permission_grants:grant_id, role_mappings:mapping_id, tenants:tenant_id` | [ADR-046](../../docs/decisions/adrs/adr-046-app-authorization-runtime-inventory.md) |
 | `scheduled-jobs` | `scheduled_jobs` | `scheduled_job_id` | none | [ADR-047](../../docs/decisions/adrs/adr-047-scheduled-job-runtime-inventory.md) |
 | `datastore-services` | `datastore_services` | `datastore_service_id` | `nodes:node_id, nodes:node_id/plugins:plugin_id, nodes:node_id/endpoints:endpoint_id, partitions:partition_id, templates:template_id, mappings:mapping_id, settings:setting_id` | [ADR-048](../../docs/decisions/adrs/adr-048-datastore-service-runtime-inventory.md), [ADR-058](../../docs/decisions/adrs/adr-058-datastore-node-engine-provenance-and-endpoints.md) |
-| `platform-applications` | `platform_applications` | `platform_application_id` | `capabilities:capability_id, organizations:organization_id, tenants:tenant_id, content_objects:content_object_id, markings:marking_id, upstream_bindings:binding_id, connectors:connector_id, settings:setting_id` | [ADR-049](../../docs/decisions/adrs/adr-049-platform-application-runtime-inventory.md) |
+| `platform-applications` | `platform_applications` | `platform_application_id` | `secrets:secret_id, secrets:secret_id/versions:version_id, secrets:secret_id/consumers:selection_id, cloud_limits:limit_id, capabilities:capability_id, organizations:organization_id, tenants:tenant_id, content_objects:content_object_id, markings:marking_id, upstream_bindings:binding_id, connectors:connector_id, settings:setting_id` | [ADR-049](../../docs/decisions/adrs/adr-049-platform-application-runtime-inventory.md), [cloud resource access](cloud-resource-access.md) |
 | `forwarding-agents` | `forwarding_agents` | `forwarding_agent_id` | `sources:source_id, transforms:transform_id, ship_targets:target_id, reload_channels:reload_channel_id, settings:setting_id` | [ADR-050](../../docs/decisions/adrs/adr-050-forwarding-agent-runtime-inventory.md) |
 | `orchestration-authorities` | `orchestration_authorities` | `orchestration_authority_id` | `spawn_templates:template_id, realized_children:workload_id` | [ADR-051](../../docs/decisions/adrs/adr-051-orchestration-authority-runtime-inventory.md) |
 
 The node-scoped `forwarding_agents` family is distinct from the scenario-level
 `forwarding_agents` authoring section ([sections.md](sections.md)); they share
 identity and invariants but occupy different document positions.
+
+A network detection rule source can name the forwarding agent that writes it.
+Its `generated_by` value MUST resolve to exactly one declared forwarding agent.
+The agent can be node-scoped or scenario-level.
+A tool name or other text that names no declared agent fails semantic validation.
 
 Forwarding-agent entries also carry a closed ownership role:
 `system_under_test` (the default) or `measurement_apparatus`. This role
@@ -73,28 +68,22 @@ contracts.
 
 ### Other node-runtime surfaces
 
-A node's `runtime` also carries surfaces that are not ref-targetable families in
-the index above but follow the same invariants and are governed by their own
-ADRs: local identity
-([ADR-024](../../docs/decisions/adrs/adr-024-local-identity-inventory-surface.md)),
-container image provenance
-([ADR-023](../../docs/decisions/adrs/adr-023-container-image-build-provenance-surface.md)),
-software components
-([ADR-034](../../docs/decisions/adrs/adr-034-runtime-software-component-inventory.md)),
-service-manager units
-([ADR-035](../../docs/decisions/adrs/adr-035-service-manager-unit-state-runtime-surface.md)),
-and container init/reaper state
-([ADR-027](../../docs/decisions/adrs/adr-027-container-init-reaper-runtime-surface.md)).
-These authored identity surfaces are kept **separate** from one another:
-authored `accounts`, runtime local identity, application authorization, database
-roles, and participant identities are distinct models and MUST NOT be collapsed
-into one.
+A node's `runtime` also carries surfaces outside the ref-targetable family index above.
+They follow the same invariants and have their own ADRs:
+
+- [Local identity](../../docs/decisions/adrs/adr-024-local-identity-inventory-surface.md) (ADR-024).
+- [Container image provenance](../../docs/decisions/adrs/adr-023-container-image-build-provenance-surface.md) (ADR-023).
+- [Software components](../../docs/decisions/adrs/adr-034-runtime-software-component-inventory.md) (ADR-034).
+- [Service-manager units](../../docs/decisions/adrs/adr-035-service-manager-unit-state-runtime-surface.md) (ADR-035).
+- [Container init/reaper state](../../docs/decisions/adrs/adr-027-container-init-reaper-runtime-surface.md) (ADR-027).
+
+These authored identity surfaces remain **separate**.
+Authored `accounts`, runtime local identity, application authorization, database roles, and participant identities are distinct models.
+They MUST NOT be collapsed into one.
 
 Service-manager rows use portable `unit_id` as their stable comparison key.
 Their optional `unit_name` is exact native data, not a portable systemd name.
-Only explicit `manager_kind: systemd` selects the flat systemd lifecycle-state
-contract; omitted manager/name fields preserve partiality and inherited
-delegation, while private managers require admitted profiles for richer state.
+Only explicit `manager_kind: systemd` selects the flat systemd lifecycle-state contract. Omitted manager/name fields preserve partiality and inherited delegation. Private managers require admitted profiles for richer state.
 
 Component software requirements, exact-package shorthand, optional typed
 acquisition refinements and the node-local shared `repository_state` surface
@@ -148,10 +137,7 @@ not contradict these.
    likewise omit protocol knowledge; an explicitly contradictory known pairing
    remains invalid. Concrete references, stable identities, typed bounds,
    incompatible structural combinations and protection rules still apply.
-   A selected operation **MUST** satisfy its actual prerequisites through the
-   [admitted profile host](plan-realization-profiles.md) and
-   [backend preparation](backend-realization-preparation.md), including
-   independent trust, support and execution authorization. A product name,
+   A selected operation **MUST** satisfy its actual prerequisites through the [admitted profile host](plan-realization-profiles.md) and [backend preparation](backend-realization-preparation.md). These include independent trust, support and execution authorization. A product name,
    profile-shaped value, socket path, or partial observation supplies none of
    those authorities. Neither a core nor a private catalog is compulsory merely
    to describe state. Unmentioned detail follows the enclosing realization
@@ -167,8 +153,8 @@ not contradict these.
 
 ### Identity support and domain ownership
 
-RAE owns language semantics, portable contracts and conformance. Scenario packs
-own concrete scenario content, and backends own concrete realization and
+RAE owns language semantics, portable contracts and conformance. Environment
+packs own concrete scenario content, and backends own concrete realization and
 operations, as specified by [OpenRAE/hub#3](https://github.com/OpenRAE/hub/issues/3).
 A motivating product or backend does not define the language's universe.
 
@@ -186,19 +172,19 @@ runtime inventory. Reporting a choice, observing it, retaining it and exporting
 it remain independent decisions under the existing observation-demand owners.
 
 The [disposition inventory](../../docs/research/language-extensibility/scope-inventory.md)
-records each migrated and retained vocabulary. Python and published schema
+records each migrated and retained vocabulary. Reference implementation and published schema
 validation share the same core aliases, variable grammar and extension policy.
 Legacy data with no recoverable identity remains unknown; conversions must not
 invent a private token or collapse a known token into `other`.
 
 ## Extending the runtime-family index
 
-A new runtime family is added by: defining its model and published schema,
-authoring its owning ADR, registering it in the canonical family registry (key,
-collection, primary `<noun>_id`, child-ref tree), and adding one row to the index
-above. The shared invariants (§3) apply automatically; the nested runtime-family
-reference form ([references.md §1](references.md)) addresses its elements without
-bespoke prose. No second runtime-family registry exists or should be created.
+A new runtime family requires its model, published schema, and owning ADR.
+It also requires registration in the canonical family registry and one row in the index above.
+The registration gives the key, collection, primary `<noun>_id`, and child-ref tree.
+The shared invariants (§3) apply automatically.
+The nested runtime-family [reference form](references.md#1-reference-forms) addresses its elements without separate prose.
+No second runtime-family registry exists or should be created.
 
 ### Private identity example
 

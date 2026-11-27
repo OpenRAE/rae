@@ -8,7 +8,10 @@ Revision-1 typed result satisfaction comes from the incumbent SEM-235 oracle.
 from dataclasses import dataclass, replace
 from graphlib import TopologicalSorter
 
+from raes_contracts.operational_logging import get_logger
 from sem235_modular_control_model import Result, Slot, compose
+
+_LOGGER = get_logger(__name__)
 
 
 @dataclass(frozen=True)
@@ -111,7 +114,10 @@ def _input_satisfied(result):
 def _resolve(node, predecessors, cut, resolve):
     try:
         result = resolve(node, predecessors, cut)
-    except Exception:  # Deliberate per-invocation isolation; no exception value enters evidence.
+    except Exception:
+        # Isolation of one foreign resolver invocation (H2): the failure becomes a
+        # typed "failed" result, and only a value-free record keeps the cause.
+        _LOGGER.exception("control applicability resolver failed for slot %s", node.slot.ref)
         return Result(node.slot.ref, node.slot.kind, status="failed", cut=cut)
     if result is None:
         return Result(node.slot.ref, node.slot.kind, status="missing", cut=cut)

@@ -2,20 +2,20 @@
 
 import pytest
 from jsonschema import Draft202012Validator
-from raes_contracts.contracts import schema_bundle
 from raes_contracts.observation_demand import (
     EffectiveObservationDemand,
     ObservationDemandDocument,
     ObservationDemandRule,
     ObservationSelector,
-    execute_observation_lifecycle,
-    normalize_observation_demands,
 )
+from raes_contracts.observation_demand_resolution import normalize_observation_demands
+from raes_contracts.observation_lifecycle import execute_observation_lifecycle
 from raes_contracts.realization_structure import (
     RealizationClosure,
     RealizationCollectionProfile,
     canonical_semantic_address,
 )
+from raes_schemas import schema_bundle
 
 
 def _selector(scope: str, name: str) -> ObservationSelector:

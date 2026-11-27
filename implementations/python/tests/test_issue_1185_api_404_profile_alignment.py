@@ -103,7 +103,12 @@ def test_api_404_traceability_names_existing_local_evidence() -> None:
         "implementations/python/tests/test_issue_1189_control_plane_profile_declarations.py",
     ) in triples
     assert ("DOCUMENTS", "GITHUB_ISSUE", "1185") in triples
-    assert {link["artifact_type"] for link in links if link["link_type"] == "IMPLEMENTS"} <= {"CODE_FILE", "SPEC"}
+    assert ("IMPLEMENTS", "GITHUB_ISSUE", "1367") in triples
+    assert {link["artifact_type"] for link in links if link["link_type"] == "IMPLEMENTS"} <= {
+        "CODE_FILE",
+        "SPEC",
+        "GITHUB_ISSUE",
+    }
     assert {link["artifact_type"] for link in links if link["link_type"] == "TESTS"} == {"TEST"}
 
     local_artifact_types = {"CODE_FILE", "TEST", "SPEC", "DOCUMENTATION", "ADR"}

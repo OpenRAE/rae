@@ -11,6 +11,7 @@ from pydantic_core import CoreSchema
 
 from raes_contracts.canonical import canonical_json_digest
 
+from .._sealing import sealing_active
 from ..versions import (
     SDL_CANDIDATE_SYNTHESIS_INPUT_SCHEMA_VERSION,
     SDL_CANDIDATE_SYNTHESIS_RECORD_SCHEMA_VERSION,
@@ -33,7 +34,7 @@ from .candidate_synthesis_traces import (
     validate_resolved_contributions,
 )
 from .external_concept_bindings import ExternalConceptSchemeCoordinateModel
-from .schema_invariants import _add_raes_invariant
+from .schema_invariants import add_raes_invariant
 
 StableId = Annotated[
     str,
@@ -206,6 +207,11 @@ def _assertion_refs(assertion: SourceAssertion) -> tuple[str, ...]:
     return refs
 
 
+def assertion_set_digest(assertions: tuple[SourceAssertion, ...]) -> str:
+    """Return the digest that binds the complete, ordered assertion set."""
+    return canonical_json_digest([item.model_dump(mode="json") for item in assertions])
+
+
 def _validate_source_assertion_join(
     source: CandidateSynthesisSourceModel,
     assertions: tuple[SourceAssertion, ...],
@@ -213,22 +219,25 @@ def _validate_source_assertion_join(
     assertion_ids = tuple(item.assertion_id for item in assertions)
     if assertion_ids != tuple(sorted(set(assertion_ids))):
         raise ValueError("assertions must be sorted and unique by assertion_id")
-    expected_digest = canonical_json_digest([item.model_dump(mode="json") for item in assertions])
-    if source.assertion_set_digest != expected_digest:
+    if not sealing_active() and source.assertion_set_digest != assertion_set_digest(assertions):
         raise ValueError("assertion_set_digest does not match the complete assertion set")
     known = set(assertion_ids)
     for assertion in assertions:
         if not set(_assertion_refs(assertion)) <= known:
             raise ValueError("source assertion references must resolve inside the assertion set")
-        for coordinate in _assertion_coordinates(assertion):
-            if (
-                coordinate.authority != source.authority
-                or coordinate.scheme_id != source.scheme_id
-                or coordinate.revision != source.revision
-                or coordinate.source_digest != source.content_digest
-            ):
-                raise ValueError("source assertion coordinate is stale against the pinned source envelope")
+        _validate_assertion_coordinates(source, assertion)
     return assertion_ids
+
+
+def _validate_assertion_coordinates(source: CandidateSynthesisSourceModel, assertion: SourceAssertion) -> None:
+    for coordinate in _assertion_coordinates(assertion):
+        if (
+            coordinate.authority != source.authority
+            or coordinate.scheme_id != source.scheme_id
+            or coordinate.revision != source.revision
+            or coordinate.source_digest != source.content_digest
+        ):
+            raise ValueError("source assertion coordinate is stale against the pinned source envelope")
 
 
 class CandidateSynthesisInputModel(ContractModel):
@@ -270,14 +279,14 @@ class CandidateSynthesisInputModel(ContractModel):
         handler: GetJsonSchemaHandler,
     ) -> JsonSchemaValue:
         schema = handler.resolve_ref_schema(handler(core_schema))
-        _add_raes_invariant(
+        add_raes_invariant(
             schema,
             "candidate-synthesis-pinned-source-join",
             "Every assertion and reference resolves inside one digest-pinned source envelope and assertion set.",
             validator="raes_contracts.contracts.CandidateSynthesisInputModel.model_validate",
             inputs=[{"contract_id": "sdl-candidate-synthesis-input-v1", "instance_path": "#"}],
         )
-        _add_raes_invariant(
+        add_raes_invariant(
             schema,
             "candidate-synthesis-stable-input-order",
             "Assertions, assumptions, decisions, references, values, and target identities use stable unique ordering.",
@@ -354,11 +363,11 @@ class CandidateSynthesisRecordModel(ContractModel):
             if not set(item.assertion_ids) <= assertion_ids:
                 raise ValueError("record provenance references must resolve inside the assertion set")
         expected_input_digest = canonical_json_digest(self.input.model_dump(mode="json"))
-        if self.input_digest != expected_input_digest:
+        if not sealing_active() and self.input_digest != expected_input_digest:
             raise ValueError("record input_digest does not match the complete admitted input")
         if self.input_id != self.input.input_id:
             raise ValueError("record input_id does not match the admitted input")
-        if self.input_digest != self.transformation_report.source_digest:
+        if not sealing_active() and self.input_digest != self.transformation_report.source_digest:
             raise ValueError("record input_digest must match the transformation source digest")
         if self.profile is not None and self.input.transformation_profile != self.profile.coordinate():
             raise ValueError("record profile artifact does not match the input transformation coordinate")
@@ -442,7 +451,7 @@ class CandidateSynthesisRecordModel(ContractModel):
         handler: GetJsonSchemaHandler,
     ) -> JsonSchemaValue:
         schema = handler.resolve_ref_schema(handler(core_schema))
-        _add_raes_invariant(
+        add_raes_invariant(
             schema,
             "candidate-synthesis-all-or-none",
             (
@@ -452,7 +461,7 @@ class CandidateSynthesisRecordModel(ContractModel):
             validator="raes_contracts.contracts.CandidateSynthesisRecordModel.model_validate",
             inputs=[{"contract_id": "sdl-candidate-synthesis-record-v1", "instance_path": "#"}],
         )
-        _add_raes_invariant(
+        add_raes_invariant(
             schema,
             "candidate-synthesis-provenance-separation",
             (

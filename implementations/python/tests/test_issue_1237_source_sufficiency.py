@@ -4,12 +4,12 @@ from dataclasses import replace
 
 import pytest
 from raes import parse_sdl
-from raes.explicitness import ExplicitnessClass, ExplicitnessProvenance
+from raes_backend_stubs.stubs import create_stub_target
 from raes_contracts.apparatus import RealizationObservationCapability
+from raes_contracts.explicitness import ExplicitnessClass, ExplicitnessProvenance
 from raes_contracts.realization_envelope import RealizationConcern
-from raes_contracts.realization_observation import (
-    RealizationObservation,
-    RealizationObservationDisclosure,
+from raes_contracts.realization_observation import RealizationObservation, RealizationObservationDisclosure
+from raes_contracts.realization_operational_observation import (
     bind_compute_substrate_observations,
     compute_substrate_readback_addresses,
 )
@@ -18,7 +18,6 @@ from raes_contracts.vocabulary import ObservationStrength, RealizationVerificati
 from raes_processor.semantics.realization import _compute_substrate_claim_admits
 from raes_processor.semantics.realization_compute_substrate import evaluate_compute_substrate
 from raes_processor.semantics.realization_requirement import CompiledRealizationRequirement
-from raes_reference_backend import create_reference_backend_target
 from raes_runtime.manager import RuntimeManager
 from realization_authority_fixtures import with_compute_substrate_collection_demand
 from test_issue_1212_native_failure import _SCENARIO
@@ -26,7 +25,7 @@ from test_issue_1212_native_failure import _SCENARIO
 
 @pytest.fixture
 def substrate():
-    target = create_reference_backend_target()
+    target = create_stub_target()
     plan = RuntimeManager(target).plan(parse_sdl(_SCENARIO)).provisioning
     plan = with_compute_substrate_collection_demand(
         replace(plan, operation_id="source-sufficiency"), semantic_scope="/nodes/vm", address="provision.node.vm"

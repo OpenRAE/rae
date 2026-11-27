@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Iterator, Mapping
+from collections.abc import Mapping
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any
@@ -14,6 +14,7 @@ from raes_contracts._validation import (
     require_non_empty_string,
     require_non_negative_int,
     require_optional_non_empty_string,
+    text_value,
 )
 from raes_contracts.versions import PARTICIPANT_EPISODE_STATE_SCHEMA_VERSION
 
@@ -152,19 +153,21 @@ class ParticipantEpisodeExecutionState:
         status_raw = payload.get("status")
         terminal_reason_raw = payload.get("terminal_reason")
         last_control_action_raw = payload.get("last_control_action")
+        terminated_at_raw = payload.get("terminated_at")
+        previous_episode_id_raw = payload.get("previous_episode_id")
         return cls(
-            state_schema_version=str(payload.get("state_schema_version")),
-            participant_address=str(payload.get("participant_address")),
-            episode_id=str(payload.get("episode_id")),
+            state_schema_version=text_value(payload.get("state_schema_version"), "state_schema_version"),
+            participant_address=text_value(payload.get("participant_address"), "participant_address"),
+            episode_id=text_value(payload.get("episode_id"), "episode_id"),
             sequence_number=sequence_number_raw,
             status=enum_value(ParticipantEpisodeStatus, status_raw),
             terminal_reason=optional_enum_value(ParticipantEpisodeTerminalReason, terminal_reason_raw),
-            initialized_at=str(payload.get("initialized_at")),
-            updated_at=str(payload.get("updated_at")),
-            terminated_at=(str(payload["terminated_at"]) if payload.get("terminated_at") is not None else None),
+            initialized_at=text_value(payload.get("initialized_at"), "initialized_at"),
+            updated_at=text_value(payload.get("updated_at"), "updated_at"),
+            terminated_at=(None if terminated_at_raw is None else text_value(terminated_at_raw, "terminated_at")),
             last_control_action=enum_value(ParticipantEpisodeControlAction, last_control_action_raw),
             previous_episode_id=(
-                str(payload["previous_episode_id"]) if payload.get("previous_episode_id") is not None else None
+                None if previous_episode_id_raw is None else text_value(previous_episode_id_raw, "previous_episode_id")
             ),
         )
 
@@ -229,9 +232,9 @@ class ParticipantEpisodeHistoryEvent:
         control_action_raw = payload.get("control_action")
         return cls(
             event_type=enum_value(ParticipantEpisodeHistoryEventType, payload["event_type"]),
-            timestamp=str(payload["timestamp"]),
-            participant_address=str(payload["participant_address"]),
-            episode_id=str(payload["episode_id"]),
+            timestamp=text_value(payload["timestamp"], "timestamp"),
+            participant_address=text_value(payload["participant_address"], "participant_address"),
+            episode_id=text_value(payload["episode_id"], "episode_id"),
             sequence_number=sequence_number_raw,
             terminal_reason=optional_enum_value(ParticipantEpisodeTerminalReason, terminal_reason_raw),
             control_action=optional_enum_value(ParticipantEpisodeControlAction, control_action_raw),
@@ -358,17 +361,6 @@ def _validate_episode_history_sequence(event: ParticipantEpisodeHistoryEvent) ->
         )
 
 
-def iter_participant_episode_snapshot_violations(
-    participant_episode_results: object,
-    participant_episode_history: object,
-) -> Iterator[tuple[str, str]]:
-    from raes_contracts.participant_episode_snapshot import (
-        iter_participant_episode_snapshot_violations as _iter_snapshot_violations,
-    )
-
-    yield from _iter_snapshot_violations(participant_episode_results, participant_episode_history)
-
-
 __all__ = (
     "ParticipantEpisodeControlAction",
     "PARTICIPANT_EPISODE_CONTROL_EVENTS",
@@ -382,5 +374,4 @@ __all__ = (
     "ParticipantEpisodeStatus",
     "ParticipantEpisodeTerminalReason",
     "ParticipantEpisodeTerminateRequest",
-    "iter_participant_episode_snapshot_violations",
 )

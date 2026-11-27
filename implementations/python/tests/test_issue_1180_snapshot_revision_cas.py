@@ -9,6 +9,7 @@ from pathlib import Path
 
 import pytest
 from raes_backend_stubs.stubs import create_stub_target
+from raes_contracts.errors import ConflictError, EvidenceIntegrityError
 from raes_contracts.planning import EvaluationPlan, OrchestrationPlan, ProvisioningPlan, RuntimeDomain
 from raes_contracts.runtime_state import (
     ApplyResult,
@@ -301,7 +302,7 @@ def test_explicit_base_snapshot_must_equal_the_authoritative_observed_content(
     method = getattr(control_plane, method_name)
     caller_snapshot = RuntimeSnapshot(metadata={"cut": "caller"})
 
-    with pytest.raises(ValueError, match="explicit base snapshot does not match"):
+    with pytest.raises(ConflictError, match="explicit base snapshot does not match"):
         method(
             plan,
             base_snapshot=caller_snapshot,
@@ -368,24 +369,20 @@ def test_runtime_stale_terminal_conflict_discards_candidate_without_recovery_or_
     control_plane = RuntimeControlPlane(target, store=store)
     plan = ProvisioningPlan()
 
-    with pytest.raises(SnapshotRevisionConflict, match="^snapshot revision conflict$"):
-        control_plane.submit_provisioning(
-            plan,
-            idempotency_key="stale-terminal",
-        )
-
-    record = store.find_by_idempotency("stale-terminal")
-    assert record is not None
-    assert record.status.state is OperationState.RUNNING
-    assert control_plane.get_snapshot().snapshot.metadata == {"authority": "competing-writer"}
-    assert store.read_audit() == []
-
-    retry = control_plane.submit_provisioning(
-        ProvisioningPlan(),
-        idempotency_key="stale-terminal",
-    )
-    assert retry == record.receipt
-    assert provisioner.apply_count == 1
+    try:
+        receipt = control_plane.submit_provisioning(plan, idempotency_key="stale-terminal")
+        record = store.find_by_idempotency("stale-terminal")
+        assert record is not None
+        assert record.status.state is OperationState.INDETERMINATE
+        assert record.invocation.consumed
+        assert record.invocation.reserved
+        assert control_plane.get_snapshot().snapshot.metadata == {"authority": "competing-writer"}
+        assert len(store.read_audit()) == 1
+        retry = control_plane.submit_provisioning(ProvisioningPlan(), idempotency_key="stale-terminal")
+        assert retry == receipt
+        assert provisioner.apply_count == 1
+    finally:
+        control_plane.close()
 
 
 def test_local_store_migrates_v2_snapshot_to_revision_zero_without_payload_change(tmp_path: Path) -> None:
@@ -433,7 +430,7 @@ def test_local_store_rejects_corrupt_provider_revision(tmp_path: Path) -> None:
     with sqlite3.connect(store_path / "control-plane.sqlite3") as connection:
         connection.execute("UPDATE state SET revision=-1 WHERE key='runtime-snapshot'")
 
-    with pytest.raises(ValueError, match="snapshot revision"):
+    with pytest.raises(EvidenceIntegrityError, match="snapshot revision"):
         store.load_snapshot_state()
     store.close()
     lease.close()

@@ -7,7 +7,8 @@ class _ParticipantToolAffordancesMixin:
             raise RuntimeError("declaration index must be built before reference validation")
         for spec_name, behavior_spec in self._s.behavior_specifications.items():
             for affordance_id, binding in behavior_spec.tool_affordances.items():
-                self._verify_tool_affordance_tool_ref(spec_name, affordance_id, binding.tool_ref)
+                with self._owner(("behavior_specifications", spec_name)):
+                    self._verify_tool_affordance_tool_ref(spec_name, affordance_id, binding.tool_ref)
 
     def _verify_tool_affordance_tool_ref(self, spec_name: str, affordance_id: str, tool_ref: object) -> None:
         if tool_ref is None or self._is_unresolved_var(tool_ref):

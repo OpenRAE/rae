@@ -275,10 +275,11 @@ def _integrity_admitted(
     supported_sealing_modes: frozenset[str],
 ) -> bool:
     no_integrity = demand.integrity in {None, "none"}
+    # SDL's checksum requirement is realized by the manifest's digest sealing
+    # mode. These are separate governed vocabularies, not identical spellings.
+    sealing_mode = "digest" if demand.integrity == "checksum" else demand.integrity
     return bool(
-        no_integrity
-        or demand.integrity in supported_sealing_modes
-        and demand.integrity in capability.integrity_policies
+        no_integrity or sealing_mode in supported_sealing_modes and demand.integrity in capability.integrity_policies
     )
 
 

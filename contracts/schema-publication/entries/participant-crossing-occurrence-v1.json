@@ -1,10 +1,5 @@
 {
   "contract_id": "participant-crossing-occurrence-v1",
   "schema_path": "contracts/schemas/participant-runtime/participant-crossing-occurrence-v1.json",
-  "stability": "draft",
-  "content_hash": "e2757c45b507fbdf677709bf8148ab634d5de7f2695561724490eb86dfd405b5",
-  "last_change": {
-    "summary": "Added the optional closed participant-opacity runtime-enforcement binding to exact-cut crossing decisions for issue #964.",
-    "content_hash": "e2757c45b507fbdf677709bf8148ab634d5de7f2695561724490eb86dfd405b5"
-  }
+  "stability": "draft"
 }

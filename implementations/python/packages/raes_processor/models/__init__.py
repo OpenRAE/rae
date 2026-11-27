@@ -48,7 +48,7 @@ from raes_contracts.participant_episode import ParticipantEpisodeRestartRequest 
 from raes_contracts.participant_episode import ParticipantEpisodeStatus as ParticipantEpisodeStatus
 from raes_contracts.participant_episode import ParticipantEpisodeTerminalReason as ParticipantEpisodeTerminalReason
 from raes_contracts.participant_episode import ParticipantEpisodeTerminateRequest as ParticipantEpisodeTerminateRequest
-from raes_contracts.participant_episode import (
+from raes_contracts.participant_episode_snapshot import (
     iter_participant_episode_snapshot_violations as iter_participant_episode_snapshot_violations,
 )
 from raes_contracts.planning import ChangeAction as ChangeAction
@@ -103,6 +103,11 @@ from .attribution import (
     ParticipantAttributionEvidenceBasis,
     ParticipantAttributionOrderingBasis,
 )
+from .authored_participant_exposure_v2 import (
+    AuthoredParticipantExposureV2,
+    deliver_authored_participant_decision_surface_v2,
+    validate_authored_participant_exposure_v2,
+)
 from .behavior_history_violations import (
     ParticipantHistoryAddressScope,
     iter_participant_behavior_history_violations,
@@ -120,6 +125,7 @@ from .behavior_resources import (
     ParticipantExecutionBindingRuntime,
     ParticipantInjectDeliveryRuntime,
     ParticipantInteractiveAccessRuntime,
+    ParticipantInvocationToolBindingRuntime,
     ParticipantObservationBoundaryRuntime,
     ParticipantOutcomeInterpretationRuleRuntime,
     ParticipantResourceDemandRuntime,
@@ -152,6 +158,12 @@ from .decision_surface_v2 import (
 from .history_event import (
     ParticipantBehaviorHistoryEvent,
 )
+from .mixed_control_resources import (
+    MixedControlPermittedTransitionRuntime,
+    MixedControlPolicyRuntime,
+    MixedControlScriptStepRuntime,
+    ParticipantInjectDeliveryControlRuntime,
+)
 from .outcome import (
     ParticipantOutcomeInterpretationRecord,
     ParticipantOutcomeSourceRecord,
@@ -159,6 +171,10 @@ from .outcome import (
 )
 from .outcome_interpretation_validation import validate_participant_outcome_interpretation_record
 from .participant_action_arguments import resolve_participant_action_arguments
+from .participant_episode_resources import (
+    ParticipantEpisodeConditionRuntime,
+    ParticipantEpisodePolicyRuntime,
+)
 from .participant_exposure_authority import (
     ParticipantExposureAssessment,
     ParticipantExposureAuthorizationRecord,
@@ -198,6 +214,7 @@ from .runtime_model import (
     CompiledCapabilityConstraint,
     ExecutionPlan,
     ObjectiveRuntime,
+    PlanningContext,
     RuntimeModel,
     resource_payload,
 )
@@ -246,6 +263,7 @@ __all__ = [
     "EvaluationResultStatus",
     "EventRuntime",
     "ExecutionPlan",
+    "PlanningContext",
     "FeatureBinding",
     "InjectBinding",
     "InjectRuntime",
@@ -257,6 +275,10 @@ __all__ = [
     "MixedControlControllerStateRuntime",
     "MixedControlDispositionRulesRuntime",
     "MixedControlTransitionRuntime",
+    "MixedControlPermittedTransitionRuntime",
+    "MixedControlPolicyRuntime",
+    "MixedControlScriptStepRuntime",
+    "ParticipantInjectDeliveryControlRuntime",
     "OperationReceipt",
     "OperationAdmissionContext",
     "OperationKind",
@@ -291,8 +313,11 @@ __all__ = [
     "ParticipantBehaviorProjectionAnchorRequestV2",
     "ParticipantBehaviorSpecificationRuntime",
     "ParticipantInjectDeliveryRuntime",
+    "ParticipantEpisodeConditionRuntime",
+    "ParticipantEpisodePolicyRuntime",
     "ParticipantAutonomousExecutionRuntime",
     "ParticipantExecutionBindingRuntime",
+    "ParticipantInvocationToolBindingRuntime",
     "ParticipantResourceDemandRuntime",
     "ParticipantResourceFairnessRuntime",
     "ParticipantResourceOwnerRuntime",
@@ -320,6 +345,9 @@ __all__ = [
     "ParticipantRuntimeLifecyclePhase",
     "project_participant_decision_surface",
     "project_participant_decision_surface_v2",
+    "AuthoredParticipantExposureV2",
+    "deliver_authored_participant_decision_surface_v2",
+    "validate_authored_participant_exposure_v2",
     "resolve_participant_behavior_projection_anchor_v2",
     "resolve_participant_episode_readiness_anchor_v2",
     "ParticipantDecisionSurfaceProjectionInputV2",

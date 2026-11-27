@@ -29,8 +29,7 @@ from enum import Enum
 from typing import Annotated
 
 from pydantic import WithJsonSchema
-
-from ._base import VARIABLE_TOKEN_PATTERN, is_variable_ref, normalize_enum_value
+from raes_contracts.variable_references import VARIABLE_TOKEN_PATTERN, is_variable_ref, normalize_enum_value
 
 
 class NodeArchitecture(str, Enum):

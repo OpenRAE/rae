@@ -11,6 +11,12 @@ REPO_ROOT = Path(__file__).resolve().parents[3]
 SCOPE_PATH = REPO_ROOT / "docs/governance/requirement-scopes/1014.json"
 ORDER_PATH = REPO_ROOT / "tools/policy/requirement_order.yaml"
 UIDS = ["SEM-234", "SCE-002", "API-407", "API-423"]
+# ADR-121 later moved a delivered file. The scope keeps the delivered path, and ownership follows the move.
+MOVED_PATHS = {
+    "implementations/python/packages/raes_contracts/contracts/bundle.py": (
+        "implementations/python/packages/raes_contracts/schema_contributions.py"
+    ),
+}
 
 DELIVERY_PATHS = {
     "contracts/fixtures/plans/mixed-participant-composition-profile-v1/invalid/alternative-fallback-pool.json",
@@ -74,4 +80,4 @@ def test_all_scoped_requirements_and_delivery_paths_share_the_bounded_phase() ->
     assert mixed["blocked_until"] == ["reference-implementations"]
 
     ownership = set(policy["ownership"]["mixed-participant-composition"])
-    assert ownership >= DELIVERY_PATHS
+    assert ownership >= {MOVED_PATHS.get(path, path) for path in DELIVERY_PATHS}

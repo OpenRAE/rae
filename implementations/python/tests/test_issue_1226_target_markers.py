@@ -8,7 +8,6 @@ depend on who ran it. These cases pin every field to the reviewed target.
 from __future__ import annotations
 
 import json
-import tomllib
 from pathlib import Path
 
 import pytest
@@ -118,37 +117,42 @@ def test_full_version_must_belong_to_the_declared_minor_series() -> None:
 
 
 def test_patch_sensitive_selection_reaches_the_locked_closure() -> None:
-    """The defect this fixes changed a shipped projection, so pin that outcome.
+    """The closure walk must use the reviewed patch version, not `x.y.0`.
 
-    `coverage` requires `tomli` under `python_full_version <= '3.11'`. Synthesizing
-    the cp311 target as `3.11.0` satisfied that marker and pinned a `tomli` wheel
-    into the reviewed offline wheelhouse, even though the reviewed 3.11.16 payload
-    reports `3.11.16`, never selects it, and has `tomllib` in the standard library.
+    Synthesizing a target as `3.11.0` once satisfied a patch-sensitive `tomli`
+    marker and pinned a wheel that the reviewed payload never selects. The lock
+    fixture below keeps that marker shape for the reviewed 3.14 payload.
     """
 
-    lock = tomllib.loads((REPO_ROOT / "implementations" / "python" / "uv.lock").read_text(encoding="utf-8"))
-    selected = {
-        str(package["name"])
-        for package in locked_closure(
-            lock,
-            target_environment("3.11", _LINUX_X86, full_version=_reviewed_full_version("3.11")),
-            root_name="raes",
-            include_root_optional=True,
-        )
+    lock = {
+        "package": [
+            {
+                "name": "raes",
+                "version": "0",
+                "dependencies": [
+                    {"name": "always"},
+                    {"name": "patch-gated", "marker": "python_full_version < '3.14.1'"},
+                ],
+            },
+            {"name": "always", "version": "1"},
+            {"name": "patch-gated", "version": "1"},
+        ]
     }
-    assert "coverage" in selected, "guard: this case is meaningless if coverage stops being projected"
-    assert "tomli" not in selected
 
-    synthesized = {
-        str(package["name"])
-        for package in locked_closure(
-            lock,
-            target_environment("3.11", _LINUX_X86, full_version="3.11.0"),
-            root_name="raes",
-            include_root_optional=True,
-        )
-    }
-    assert "tomli" in synthesized, "guard: the marker must still be patch-sensitive for this case to bite"
+    def selected(full_version: str) -> set[str]:
+        return {
+            str(package["name"])
+            for package in locked_closure(
+                lock,
+                target_environment("3.14", _LINUX_X86, full_version=full_version),
+                root_name="raes",
+                include_root_optional=False,
+            )
+        }
+
+    assert _reviewed_full_version("3.14") != "3.14.0"
+    assert selected(_reviewed_full_version("3.14")) == {"always"}
+    assert selected("3.14.0") == {"always", "patch-gated"}, "guard: the marker must stay patch-sensitive"
 
 
 def test_every_reviewed_target_resolves_a_locked_full_version() -> None:

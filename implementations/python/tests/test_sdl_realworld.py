@@ -15,9 +15,10 @@ from raes import SDLParseError, SDLValidationError, parse_sdl
 def _parse(yaml_str: str, label: str):
     try:
         s = parse_sdl(textwrap.dedent(yaml_str))
-        return s, None
     except (SDLParseError, SDLValidationError) as e:
         return None, e
+    else:
+        return s, None
 
 
 # -----------------------------------------------------------------------

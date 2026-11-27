@@ -4,13 +4,22 @@ from __future__ import annotations
 
 import re
 import stat
+import sys
 from collections.abc import Mapping
 from contextlib import suppress
 from pathlib import Path, PurePosixPath
 from typing import Any
 from urllib.parse import parse_qsl, urlsplit
 
-from tools.policy.common import PolicyFailure, load_bounded_json_object, safe_repo_path
+REPO_ROOT = Path(__file__).resolve().parents[1]
+RAES_PACKAGES_ROOT = REPO_ROOT / "implementations" / "python" / "packages"
+for _source_root in (REPO_ROOT, RAES_PACKAGES_ROOT):
+    if str(_source_root) not in sys.path:
+        sys.path.insert(0, str(_source_root))
+
+from raes_contracts.errors import InvalidInputError  # noqa: E402
+
+from tools.policy.common import PolicyFailure, load_bounded_json_object, safe_repo_path  # noqa: E402
 
 TOOLING_ROOT = "implementations/tooling"
 ARTIFACT_LOCK_PATH = f"{TOOLING_ROOT}/artifacts.lock.json"
@@ -26,6 +35,7 @@ POLICY_SCHEMAS = {
 }
 MAX_JSON_BYTES = 2 * 1024 * 1024
 MAX_SCANNED_FILE_BYTES = 2 * 1024 * 1024
+_INVALID_AUTHORITY = "tooling authority is missing, unsafe, or malformed"
 SHA40_RE = re.compile(r"^[0-9a-f]{40}$")
 TOML_SUFFIX = ".toml"
 YAML_SUFFIXES = frozenset({".yaml", ".yml"})
@@ -123,7 +133,7 @@ def load_documents(
         try:
             document = load_bounded_json_object(repo_root, policy_path, max_bytes=MAX_JSON_BYTES)
             schema = load_bounded_json_object(repo_root, schema_path, max_bytes=MAX_JSON_BYTES)
-        except (OSError, ValueError):
+        except (OSError, InvalidInputError):
             failures.append(
                 failure(
                     "tooling-json-parse",
@@ -140,12 +150,12 @@ def load_documents(
 def read_tooling_document(repo_root: Path, path: str) -> dict[str, Any]:
     """Read one bounded, duplicate-free authority without following symlinks."""
 
+    if not is_regular_repo_file(repo_root, path):
+        raise InvalidInputError(_INVALID_AUTHORITY)
     try:
-        if not is_regular_repo_file(repo_root, path):
-            raise ValueError
         return load_bounded_json_object(repo_root, path, max_bytes=MAX_JSON_BYTES)
-    except (OSError, ValueError, RecursionError):
-        raise ValueError("tooling authority is missing, unsafe, or malformed") from None
+    except (OSError, InvalidInputError, RecursionError):
+        raise InvalidInputError(_INVALID_AUTHORITY) from None
 
 
 def validate_tooling_record(
@@ -162,7 +172,7 @@ def validate_tooling_record(
     if definition is not None:
         schema = {"$ref": f"#/$defs/{definition}", "$defs": schema.get("$defs", {})}
     if _schema_failures(document, schema, policy_path, schema_path):
-        raise ValueError("selected tooling authority has an invalid shape")
+        raise InvalidInputError("selected tooling authority has an invalid shape")
 
 
 def _schema_failures(
@@ -171,25 +181,59 @@ def _schema_failures(
     policy_path: str,
     schema_path: str,
 ) -> list[PolicyFailure]:
-    from jsonschema import Draft202012Validator, FormatChecker
-
     if contains_nonlocal_schema_reference(schema):
-        return [
-            failure(
-                "tooling-schema-reference",
-                "internal tooling schemas may use only local fragment references",
-                schema_path,
-            )
-        ]
-    validator = Draft202012Validator(schema, format_checker=FormatChecker())
+        message = "internal tooling schemas may use only local fragment references"
+        return [failure("tooling-schema-reference", message, schema_path)]
+    errors = _schema_errors(document, schema, policy_path, schema_path)
+    if isinstance(errors, PolicyFailure):
+        return [errors]
     return [
         failure(
             "tooling-schema",
             f"schema validation failed at {'.'.join(str(part) for part in error.absolute_path) or '<root>'}",
             policy_path,
         )
-        for error in sorted(validator.iter_errors(document), key=lambda item: list(item.absolute_path))
+        for error in errors
     ]
+
+
+def _schema_errors(
+    document: Mapping[str, Any],
+    schema: Mapping[str, Any],
+    policy_path: str,
+    schema_path: str,
+) -> list[Any] | PolicyFailure:
+    """Return the validation errors of a policy document, or the failure that prevents validation."""
+
+    from jsonschema import Draft202012Validator, FormatChecker
+    from jsonschema.exceptions import SchemaError
+
+    try:
+        from referencing.exceptions import Unresolvable
+    except ModuleNotFoundError:
+        # jsonschema before 4.18, such as the Ubuntu 24.04 package that the development container
+        # base image uses, resolves references itself and raises RefResolutionError.
+        from jsonschema.exceptions import RefResolutionError as Unresolvable
+
+    malformed = failure("tooling-schema", "internal tooling schema is malformed or nested too deeply", schema_path)
+    try:
+        Draft202012Validator.check_schema(schema)
+    except (SchemaError, RecursionError):
+        # The metaschema check refuses a malformed keyword or pattern, and stops at the
+        # recursion limit for a schema that nests too deeply.
+        return malformed
+    validator = Draft202012Validator(schema, format_checker=FormatChecker())
+    try:
+        errors = sorted(validator.iter_errors(document), key=lambda item: list(item.absolute_path))
+    except (Unresolvable, re.error):
+        # The metaschema check does not resolve references, so a dangling local $ref fails here. A
+        # jsonschema release whose metaschema check does not test regular expressions (4.10 on the
+        # base image) compiles a malformed schema pattern here.
+        errors = malformed
+    except RecursionError:
+        # The validator descends once for each level where the schema and the document nest together.
+        errors = failure("tooling-schema", "policy document nests too deeply to validate", policy_path)
+    return errors
 
 
 def is_regular_repo_file(repo_root: Path, relative_path: str) -> bool:
@@ -218,17 +262,18 @@ def is_regular_repo_file(repo_root: Path, relative_path: str) -> bool:
 def contains_nonlocal_schema_reference(value: object) -> bool:
     """Return whether a schema tree contains a non-fragment reference."""
 
-    found = False
-    if isinstance(value, Mapping):
-        found = any(
-            key == "$ref"
-            and (not isinstance(child, str) or not child.startswith("#"))
-            or contains_nonlocal_schema_reference(child)
-            for key, child in value.items()
-        )
-    elif isinstance(value, list):
-        found = any(contains_nonlocal_schema_reference(child) for child in value)
-    return found
+    # An explicit stack, because the JSON decoder accepts nesting beyond the interpreter recursion limit.
+    pending = [value]
+    while pending:
+        current = pending.pop()
+        if isinstance(current, Mapping):
+            for key, child in current.items():
+                if key == "$ref" and (not isinstance(child, str) or not child.startswith("#")):
+                    return True
+                pending.append(child)
+        elif isinstance(current, list):
+            pending.extend(current)
+    return False
 
 
 def as_list(value: object) -> list[Any]:
@@ -241,6 +286,21 @@ def as_mapping(value: object) -> Mapping[str, Any]:
 
 def string_set(value: object) -> set[str]:
     return {item for item in as_list(value) if isinstance(item, str)}
+
+
+def _policy_compatibility_failures(
+    subject: object, evidence_compatible: bool, expected_subjects: set[str], path: str, context: str
+) -> list[PolicyFailure]:
+    failures: list[PolicyFailure] = []
+    # The expected subjects are text, so a subject of another type, also one that cannot be hashed, is incompatible.
+    if not isinstance(subject, str) or subject not in expected_subjects:
+        failures.append(
+            failure("tooling-policy-subject", f"{context} admission policy has an incompatible subject", path)
+        )
+    if not evidence_compatible:
+        message = f"{context} does not supply evidence accepted by its admission policy"
+        failures.append(failure("tooling-policy-evidence", message, path))
+    return failures
 
 
 def policy_join_failures(
@@ -274,27 +334,12 @@ def policy_join_failures(
         if isinstance(subject, str):
             joined_subjects.add(subject)
         joined_evidence.update(accepted_evidence)
-        if subject not in expected_subjects:
-            failures.append(
-                failure(
-                    "tooling-policy-subject",
-                    f"{context} admission policy has an incompatible subject",
-                    path,
-                )
-            )
         evidence_compatible = (
             provided_evidence <= accepted_evidence
             if require_all_evidence_per_policy
             else bool(provided_evidence & accepted_evidence)
         )
-        if not evidence_compatible:
-            failures.append(
-                failure(
-                    "tooling-policy-evidence",
-                    f"{context} does not supply evidence accepted by its admission policy",
-                    path,
-                )
-            )
+        failures.extend(_policy_compatibility_failures(subject, evidence_compatible, expected_subjects, path, context))
     if expected_subjects - joined_subjects:
         failures.append(
             failure(
@@ -316,20 +361,30 @@ def policy_join_failures(
 
 def walk_forbidden_keys(value: object, *, path: str = "<root>") -> list[PolicyFailure]:
     failures: list[PolicyFailure] = []
-    if isinstance(value, Mapping):
-        for key, child in value.items():
-            if isinstance(key, str) and key.lower() in FORBIDDEN_EXECUTABLE_KEYS:
-                failures.append(
-                    failure(
-                        "tooling-executable-field",
-                        f"declarative policy contains forbidden executable field {key!r}",
-                        path,
-                    )
+    # An explicit stack of pending steps keeps the depth-first order of the findings,
+    # because the JSON decoder accepts nesting beyond the interpreter recursion limit.
+    # A step is a forbidden key to report or a child value to walk.
+    pending: list[tuple[bool, object, str]] = [(False, value, path)]
+    while pending:
+        is_key, current, current_path = pending.pop()
+        if is_key:
+            failures.append(
+                failure(
+                    "tooling-executable-field",
+                    f"declarative policy contains forbidden executable field {current!r}",
+                    current_path,
                 )
-            failures.extend(walk_forbidden_keys(child, path=f"{path}.{key}"))
-    elif isinstance(value, list):
-        for index, child in enumerate(value):
-            failures.extend(walk_forbidden_keys(child, path=f"{path}[{index}]"))
+            )
+            continue
+        steps: list[tuple[bool, object, str]] = []
+        if isinstance(current, Mapping):
+            for key, child in current.items():
+                if isinstance(key, str) and key.lower() in FORBIDDEN_EXECUTABLE_KEYS:
+                    steps.append((True, key, current_path))
+                steps.append((False, child, f"{current_path}.{key}"))
+        elif isinstance(current, list):
+            steps = [(False, child, f"{current_path}[{index}]") for index, child in enumerate(current)]
+        pending.extend(reversed(steps))
     return failures
 
 

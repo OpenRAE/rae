@@ -1,0 +1,109 @@
+{
+  "$defs": {
+    "OperationArtifactReferenceModel": {
+      "additionalProperties": false,
+      "description": "Content-bound reference resolved through the owning admitted artifact authority.",
+      "properties": {
+        "artifact_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Artifact Id",
+          "type": "string"
+        },
+        "contract_id": {
+          "maxLength": 128,
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*-v[0-9]+$",
+          "title": "Contract Id",
+          "type": "string"
+        },
+        "digest": {
+          "pattern": "^sha256:[a-f0-9]{64}$",
+          "title": "Digest",
+          "type": "string"
+        }
+      },
+      "required": [
+        "contract_id",
+        "artifact_id",
+        "digest"
+      ],
+      "title": "OperationArtifactReferenceModel",
+      "type": "object"
+    }
+  },
+  "$id": "https://openrae.github.io/rae/schemas/inject-occurrence-correlation-v1.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Exact applied occurrence, settled outcome and produced result a participant consumer joins.",
+  "properties": {
+    "occurrence": {
+      "$ref": "#/$defs/OperationArtifactReferenceModel"
+    },
+    "outcome": {
+      "$ref": "#/$defs/OperationArtifactReferenceModel"
+    },
+    "result": {
+      "$ref": "#/$defs/OperationArtifactReferenceModel"
+    },
+    "schema_version": {
+      "const": "inject-occurrence-correlation/v1",
+      "default": "inject-occurrence-correlation/v1",
+      "title": "Schema Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "occurrence",
+    "outcome",
+    "result"
+  ],
+  "title": "InjectOccurrenceCorrelationModel",
+  "type": "object",
+  "x-raes-invariants": [
+    {
+      "description": "Validate that the correlation joins an inject occurrence and an outcome of that same occurrence; structural validity proves no effect, delivery or observation.",
+      "id": "inject-occurrence-correlation-local-consistency",
+      "inputs": [
+        {
+          "contract_id": "inject-occurrence-correlation-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error",
+      "validator": "raes_contracts.contracts.InjectOccurrenceCorrelationModel.model_validate"
+    },
+    {
+      "description": "A received correlation equals the join recomputed from its occurrence, invocation and validated outcome; only a successful applied world effect with a produced result yields one.",
+      "id": "inject-occurrence-correlation-source",
+      "inputs": [
+        {
+          "contract_id": "inject-occurrence-v1",
+          "instance_path": "#"
+        },
+        {
+          "contract_id": "backend-operation-request-v1",
+          "instance_path": "#"
+        },
+        {
+          "contract_id": "inject-occurrence-outcome-v1",
+          "instance_path": "#"
+        },
+        {
+          "contract_id": "inject-occurrence-correlation-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error",
+      "validator": "raes_contracts.contracts.validate_inject_occurrence_correlation"
+    }
+  ],
+  "x-raes-semantic-profile": {
+    "contract_id": "inject-occurrence-correlation-v1",
+    "entry_schema_contract_id": "raes-semantic-invariants-v1",
+    "entry_schema_pointer": "#/$defs/RaesSemanticInvariantEntryModel",
+    "id": "raes-semantic-invariants-v1",
+    "keyword": "x-raes-invariants",
+    "required": true,
+    "uri": "https://openrae.github.io/rae/schemas/semantic-invariants/v1"
+  }
+}

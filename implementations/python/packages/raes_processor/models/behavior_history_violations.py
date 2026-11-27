@@ -4,6 +4,7 @@ from collections.abc import Iterable, Iterator, Mapping
 from dataclasses import dataclass
 from typing import Any
 
+from raes_contracts.immutable_history import EventHistory
 from raes_contracts.participant_behavior import ParticipantBehaviorHistoryEventType, ParticipantObservationStatus
 
 from .behavior_anchor_checks import (
@@ -95,8 +96,9 @@ def _normalize_participant_behavior_events(
             continue
         try:
             normalized = ParticipantBehaviorHistoryEvent.from_payload(event)
-        except (TypeError, ValueError) as exc:
-            violations.append((locator, f"participant behavior history event is invalid: {exc}"))
+        except TypeError, ValueError:
+            # The value object refuses a malformed payload with TypeError or ValueError (E3).
+            violations.append((locator, "participant behavior history event is invalid"))
             continue
         if expected_participant_address is not None and normalized.participant_address != expected_participant_address:
             violations.append(
@@ -273,7 +275,7 @@ def iter_participant_behavior_history_violations(
     against the time-indexed participant view relation.
     """
 
-    if not isinstance(participant_behavior_history, list):
+    if not isinstance(participant_behavior_history, (list, EventHistory)):
         yield (_PARTICIPANT_BEHAVIOR_HISTORY_KEY, "participant behavior history must be a list of events")
         return
     yield from _iter_validated_participant_behavior_violations(
@@ -423,7 +425,7 @@ def iter_participant_behavior_joint_action_violations(
 
     normalized_events: list[ParticipantBehaviorHistoryEvent] = []
     for history in participant_behavior_history_by_participant.values():
-        if not isinstance(history, list):
+        if not isinstance(history, (list, EventHistory)):
             continue
         participant_events, entry_violations = _normalize_participant_behavior_events(
             history,

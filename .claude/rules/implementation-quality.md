@@ -5,12 +5,13 @@ paths:
   - "frontend/src/**/*.tsx"
 ---
 
-## Implementation Standards
+## Implementation standards
+
+The path filter above does not select the current Python source tree.
+Use root `AGENTS.md` and the repository coding standards for current Python work.
 
 - Never take shortcuts. Implement features properly and completely.
-  You are not under time pressure. You operate at 200x human coding
-  speed. There is no reason to cut corners, use placeholder
-  implementations, or defer work.
+  Use complete implementations and verify their behavior.
 
 - Never recommend deferring a fix or improvement "for later" or
   "in a follow-up". If something is broken or missing, fix it now.
@@ -24,8 +25,8 @@ paths:
   something new. Read surrounding code first.
 
 - Do not add unnecessary abstractions, indirection layers, or
-  "extensibility" that isn't required by the current task. Three
+  "extensibility" that is not required by the current task. Three
   similar lines of code are better than a premature abstraction.
 
 - Do not create stub or placeholder implementations that "will be
-  filled in later." Either implement it fully or don't create it.
+  filled in later." Either implement it fully or do not create it.

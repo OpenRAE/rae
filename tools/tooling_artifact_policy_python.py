@@ -3,21 +3,31 @@
 from __future__ import annotations
 
 import re
+import sys
 import tomllib
-from collections.abc import Mapping, Sequence
+from collections.abc import Iterable, Mapping, Sequence
 from pathlib import Path
 from typing import Any, cast
 
-from packaging.requirements import InvalidRequirement, Requirement
+REPO_ROOT = Path(__file__).resolve().parents[1]
+RAES_PACKAGES_ROOT = REPO_ROOT / "implementations" / "python" / "packages"
+for _source_root in (REPO_ROOT, RAES_PACKAGES_ROOT):
+    if str(_source_root) not in sys.path:
+        sys.path.insert(0, str(_source_root))
 
-from tools.generate_python_closures import generate as generate_python_closures
-from tools.policy.common import PolicyFailure
-from tools.tooling_artifact_policy_common import (
+from packaging.requirements import InvalidRequirement, Requirement  # noqa: E402
+from raes_contracts.errors import InvalidInputError  # noqa: E402
+
+from tools.generate_python_closures import generate as generate_python_closures  # noqa: E402
+from tools.policy.common import PolicyFailure  # noqa: E402
+from tools.tooling_artifact_policy_common import (  # noqa: E402
     PROFILES_PATH,
+    as_list,
+    as_mapping,
     failure,
     is_regular_repo_file,
 )
-from tools.tooling_artifact_policy_python_profiles import profile_semantic_failures
+from tools.tooling_artifact_policy_python_profiles import profile_semantic_failures  # noqa: E402
 
 PYTHON_PROJECT_PATH = "implementations/python/pyproject.toml"
 PYTHON_PROJECT_LOCK_PATH = "implementations/python/uv.lock"
@@ -54,9 +64,13 @@ def _toml(repo_root: Path, relative_path: str) -> Mapping[str, Any] | None:
     if payload is None:
         return None
     try:
-        return tomllib.loads(payload.decode("utf-8"))
-    except ValueError:
+        document = tomllib.loads(payload.decode("utf-8"))
+    except (ValueError, RecursionError):
+        # UnicodeDecodeError and TOMLDecodeError are ValueErrors. tomllib also converts an integer
+        # literal with int(), which raises a plain ValueError beyond the interpreter digit limit, and
+        # its recursive parser stops at the interpreter recursion limit for deep nesting.
         return None
+    return document
 
 
 def _exact_pin(value: object, seen: Mapping[str, str]) -> tuple[str, str]:
@@ -89,7 +103,7 @@ def _direct_pins(requirements: object) -> dict[str, str] | None:
 
 def _lock_versions(lock: Mapping[str, Any]) -> dict[str, set[str]]:
     versions: dict[str, set[str]] = {}
-    for package in lock.get("package", []):
+    for package in as_list(lock.get("package")):
         if not isinstance(package, Mapping) or not isinstance(package.get("name"), str):
             continue
         versions.setdefault(package["name"].lower(), set()).add(str(package.get("version", "")))
@@ -205,9 +219,10 @@ def _dependency_pin_failures(
     """Require exact native project pins and agreement with the frozen lock."""
 
     failures: list[PolicyFailure] = []
-    tool_pins = _direct_pins(tool_project.get("project", {}).get("dependencies"))
-    build_pins = _direct_pins(tool_project.get("dependency-groups", {}).get("build"))
-    acquisition_pins = _direct_pins(tool_project.get("dependency-groups", {}).get("acquisition-tests"))
+    # A table that is not a table, such as `project = "x"`, declares no pins.
+    tool_pins = _direct_pins(as_mapping(tool_project.get("project")).get("dependencies"))
+    build_pins = _direct_pins(as_mapping(tool_project.get("dependency-groups")).get("build"))
+    acquisition_pins = _direct_pins(as_mapping(tool_project.get("dependency-groups")).get("acquisition-tests"))
     if not tool_pins or not build_pins or not acquisition_pins:
         failures.append(
             failure(
@@ -230,7 +245,7 @@ def _dependency_pin_failures(
         }.items()
         if versions.get(name) != {version}
     )
-    if _direct_pins(project.get("build-system", {}).get("requires")) != build_pins:
+    if _direct_pins(as_mapping(project.get("build-system")).get("requires")) != build_pins:
         failures.append(
             failure(
                 "tooling-python-build-system",
@@ -245,11 +260,19 @@ def _governed_pin_failures(repo_root: Path, project: Mapping[str, Any]) -> list[
     """Require the governed solver pin and hash-complete build constraints."""
 
     failures: list[PolicyFailure] = []
-    z3_requirements = [
-        Requirement(value)
-        for value in project.get("project", {}).get("dependencies", [])
-        if isinstance(value, str) and Requirement(value).name.lower() == "z3-solver"
-    ]
+    dependencies = as_mapping(project.get("project")).get("dependencies", [])
+    if not isinstance(dependencies, Iterable):
+        # A scalar in place of the dependency array declares no dependency.
+        dependencies = ()
+    try:
+        z3_requirements = [
+            requirement
+            for requirement in (Requirement(value) for value in dependencies if isinstance(value, str))
+            if requirement.name.lower() == "z3-solver"
+        ]
+    except InvalidRequirement:
+        # A dependency that is not a requirement leaves the governed pin unverifiable.
+        z3_requirements = []
     if len(z3_requirements) != 1 or str(z3_requirements[0].specifier) != "==4.16.0.0":
         failures.append(
             failure(
@@ -258,9 +281,14 @@ def _governed_pin_failures(repo_root: Path, project: Mapping[str, Any]) -> list[
                 PYTHON_PROJECT_PATH,
             )
         )
-    constraints = _constraint_records((repo_root / PYTHON_BUILD_CONSTRAINTS_PATH).read_text(encoding="utf-8"))
+    try:
+        constraints_text = (repo_root / PYTHON_BUILD_CONSTRAINTS_PATH).read_text(encoding="utf-8")
+    except UnicodeDecodeError:
+        constraints = None
+    else:
+        constraints = _constraint_records(constraints_text)
     recorded = {name: record[0] for name, record in (constraints or {}).items()}
-    build_pins = _direct_pins(project.get("build-system", {}).get("requires"))
+    build_pins = _direct_pins(as_mapping(project.get("build-system")).get("requires"))
     hash_complete = constraints is not None and bool(build_pins) and build_pins.items() <= recorded.items()
     if not hash_complete:
         failures.append(
@@ -278,7 +306,7 @@ def _projection_generation_failures(repo_root: Path) -> list[PolicyFailure]:
 
     try:
         projections_current = generate_python_closures(check=True, repo_root=repo_root)
-    except (OSError, ValueError):
+    except (OSError, InvalidInputError):
         projections_current = False
     if projections_current:
         return []

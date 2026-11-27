@@ -8,10 +8,21 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 import yaml
-from pydantic import Field
+from pydantic import Field, ValidationError
+from raes_contracts.json_ingress import StrictJsonIngressError, parse_bounded_json_object
+from raes_contracts.operational_logging import get_logger
+from raes_contracts.sdl_model import SDLModel
 
-from .._base import SDLModel
-from .._errors import SDLParseError
+from .._errors import (
+    SDLImportError,
+    SDLImportErrorCode,
+    SDLParseDiagnostic,
+    SDLParseError,
+    SDLSourcePosition,
+    SDLSourceRange,
+)
+from .._source_profile import DEFAULT_PARSER_LIMITS
+from .._source_validation import validate_source_graph, validate_source_tokens
 from ..scenario import ImportDecl, ModuleDescriptor, Scenario
 from ._constants import (
     LOCKFILE_NAME,
@@ -23,6 +34,10 @@ from ._constants import (
 if TYPE_CHECKING:
     from ..parser import SDLSourceDocument
     from ._verified_sources import _VerifiedSourceBundle
+
+_LOGGER = get_logger(__name__)
+# A lock is an object of records of scalars; the bound leaves room only for that shape.
+_LOCKFILE_MAX_DEPTH = 8
 
 
 class RegistryTrustPolicy(SDLModel):
@@ -54,6 +69,11 @@ class Lockfile(SDLModel):
     schema_version: str = LOCKFILE_SCHEMA_VERSION
     imports: list[LockRecord] = Field(default_factory=list)
 
+    def locked_record(self, locked_ref: str) -> LockRecord | None:
+        """Return the record that a ``locked:<ref>`` import names, by resolved or requested source."""
+
+        return next((record for record in self.imports if locked_ref in {record.resolved_source, record.source}), None)
+
 
 @dataclass(frozen=True)
 class ResolvedModule:
@@ -72,7 +92,8 @@ class ResolvedModule:
 def _scenario_module_descriptor(scenario: Scenario, *, source_id: str) -> ModuleDescriptor:
     if scenario.module is not None:
         return scenario.module
-    raise SDLParseError(
+    raise SDLImportError(
+        SDLImportErrorCode.DESCRIPTOR_MISSING,
         "Imported SDL units require an explicit module descriptor",
         path=Path(source_id),
     )
@@ -80,17 +101,102 @@ def _scenario_module_descriptor(scenario: Scenario, *, source_id: str) -> Module
 
 def load_trust_policy(base_dir: Path) -> TrustPolicy:
     path = base_dir / TRUST_POLICY_NAME
-    if not path.exists():
+    content = _read_workspace_config(path)
+    if content is None:
         return TrustPolicy()
-    payload = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
-    return TrustPolicy.model_validate(payload)
+    loader: yaml.SafeLoader | None = None
+    try:
+        validate_source_tokens(content, path=path, limits=DEFAULT_PARSER_LIMITS)
+        loader = yaml.SafeLoader(content)
+        root = loader.get_single_node()
+        if root is None:
+            return TrustPolicy()
+        validate_source_graph(root, path=path, limits=DEFAULT_PARSER_LIMITS)
+        return TrustPolicy.model_validate(loader.construct_document(root))
+    except (yaml.YAMLError, ValidationError, SDLParseError, ValueError, RecursionError) as exc:
+        raise _workspace_config_error(path, exc) from None
+    finally:
+        if loader is not None:
+            loader.dispose()
 
 
 def load_lockfile(base_dir: Path) -> Lockfile | None:
     path = base_dir / LOCKFILE_NAME
-    if not path.exists():
+    raw = _read_workspace_bytes(path)
+    if raw is None:
         return None
-    return Lockfile.model_validate_json(path.read_text(encoding="utf-8"))
+    return decode_lockfile(raw, path=path)
+
+
+def decode_lockfile(
+    raw: bytes,
+    *,
+    path: Path,
+    max_bytes: int = DEFAULT_PARSER_LIMITS.max_input_bytes,
+) -> Lockfile:
+    """Decode one ``raes-lock/v1`` document from exact bytes (ADR-119 section 5).
+
+    The decoder refuses duplicate members, non-finite numbers, excess size or
+    depth, closed-key violations and an unsupported schema version. The
+    refusal names only the lock path, never a lock value.
+    """
+
+    try:
+        payload = parse_bounded_json_object(raw, max_bytes=max_bytes, max_depth=_LOCKFILE_MAX_DEPTH)
+        lockfile = Lockfile.model_validate(payload)
+    except StrictJsonIngressError, ValidationError:
+        raise _lockfile_error(path) from None
+    if lockfile.schema_version != LOCKFILE_SCHEMA_VERSION:
+        raise _lockfile_error(path)
+    return lockfile
+
+
+def _lockfile_error(path: Path) -> SDLImportError:
+    return SDLImportError(SDLImportErrorCode.LOCK_INVALID, f"Cannot load workspace configuration {path.name}.", path)
+
+
+def _read_workspace_config(path: Path) -> str | None:
+    raw = _read_workspace_bytes(path)
+    if raw is None:
+        return None
+    try:
+        return raw.decode("utf-8")
+    except UnicodeDecodeError as exc:
+        raise _workspace_config_error(path, exc) from None
+
+
+def _read_workspace_bytes(path: Path) -> bytes | None:
+    try:
+        with path.open("rb") as handle:
+            raw = handle.read(DEFAULT_PARSER_LIMITS.max_input_bytes + 1)
+    except FileNotFoundError:
+        return None
+    except OSError as exc:
+        # ``from None`` keeps OS error text out of the parse error, so record the cause first (rule L3).
+        _LOGGER.warning("workspace configuration %s could not be read", path.name, exc_info=True)
+        raise _workspace_config_error(path, exc) from None
+    if len(raw) > DEFAULT_PARSER_LIMITS.max_input_bytes:
+        raise _workspace_config_error(path)
+    return raw
+
+
+def _workspace_config_error(path: Path, exc: Exception | None = None) -> SDLParseError:
+    """Expose source metadata without YAML/Pydantic input values or OS error prose."""
+
+    message = f"Cannot load workspace configuration {path.name}."
+    mark = getattr(exc, "problem_mark", None)
+    position = SDLSourcePosition(mark.line + 1, mark.column + 1) if mark else SDLSourcePosition(1, 1)
+    source_range = SDLSourceRange(start=position, end=position)
+    if isinstance(exc, SDLParseError) and exc.diagnostics:
+        source_range = exc.diagnostics[0].primary_range
+    diagnostic = SDLParseDiagnostic(
+        code="sdl.workspace-config.invalid",
+        message=message,
+        pointer="",
+        primary_range=source_range,
+        source=str(path),
+    )
+    return SDLParseError(message, path=path, diagnostics=(diagnostic,))
 
 
 def write_lockfile(base_dir: Path, lockfile: Lockfile) -> Path:

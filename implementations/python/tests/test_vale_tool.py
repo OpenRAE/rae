@@ -15,6 +15,7 @@ if str(REPO_ROOT) not in sys.path:
 
 import tools.vale_tool as vale_tool  # noqa: E402
 from tools import verified_tool_installation as installation  # noqa: E402
+from tools.tooling_policy_gate import ArtifactPolicyError  # noqa: E402
 
 
 def test_vale_binary_uses_versioned_repository_cache(tmp_path: Path) -> None:
@@ -25,11 +26,11 @@ def test_vale_binary_uses_versioned_repository_cache(tmp_path: Path) -> None:
 
 def test_vale_rejects_an_asset_without_a_repository_pin(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     def reject_selection(**_kwargs: object) -> object:
-        raise RuntimeError("no reviewed lock selection")
+        raise ArtifactPolicyError("no reviewed lock selection")
 
     monkeypatch.setattr("tools.tooling_policy_gate.load_tooling_artifact_selection", reject_selection)
 
-    with pytest.raises(RuntimeError, match="no reviewed lock selection"):
+    with pytest.raises(ArtifactPolicyError, match="no reviewed lock selection"):
         vale_tool.ensure_vale(tmp_path, version="3.15.2")
 
 
@@ -60,5 +61,5 @@ def test_vale_extraction_rejects_archive_without_root_binary(tmp_path: Path) -> 
             )
         },
     )()
-    with pytest.raises(RuntimeError, match="unsafe-archive-member"):
+    with pytest.raises(installation.ToolInstallationError, match="unsafe-archive-member"):
         installation.materialize_tar_gz(archive_bytes, selection)

@@ -41,6 +41,7 @@ def participant_execution_capability_payload(
             if capability.resource_budgets is not None
             else None
         ),
+        "invocation_tool_actions": capability.invocation_tool_actions,
     }
 
 
@@ -74,6 +75,7 @@ def participant_execution_capability_kwargs(model: object) -> dict[str, object]:
             if model.resource_budgets is not None
             else None
         ),
+        "invocation_tool_actions": model.invocation_tool_actions,
     }
 
 

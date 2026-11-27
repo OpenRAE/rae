@@ -6,10 +6,14 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 from pathlib import Path
 
+from raes_contracts.errors import EvidenceIntegrityError, InvalidInputError, OperationalError
+
 from tools.formal_semantic_validation._shape import (
     _closed_object,
     _failure,
+    _hashable,
     _is_sequence,
+    _lookup,
     _nonempty_string,
     _sha256_file,
     _stable_ids,
@@ -189,7 +193,8 @@ def _validated_satisfiability_cases(
     controls = [item.get("control") for item in cases if isinstance(item, Mapping)]
     case_ids, unique_case_ids = _stable_ids(cases, "case_id")
     if (
-        set(controls) != set(_SATISFIABILITY_CONTROL_OUTCOMES)
+        not all(_hashable(control) for control in controls)
+        or set(controls) != set(_SATISFIABILITY_CONTROL_OUTCOMES)
         or len(controls) != len(set(controls))
         or len(case_ids) != len(cases)
         or not unique_case_ids
@@ -402,7 +407,8 @@ def _satisfiability_case_entry_failures(
 def _historical_control_matches(
     scope: _SatisfiabilityScope, item: Mapping[str, object], fixture: Path, expected_for_control: object
 ) -> bool:
-    observation = scope.observations_by_case.get(item.get("case_id"), {})
+    case_id = item.get("case_id")
+    observation = scope.observations_by_case.get(case_id, {}) if _hashable(case_id) else {}
     digest = item.get("expected_normalized_model_digest")
     return (
         isinstance(digest, str)
@@ -423,7 +429,7 @@ def _current_control_failures(
     try:
         evidence = analyze_scenario_file(fixture, profile=_CURRENT_SATISFIABILITY_PROFILE)
         replay_satisfiability_evidence(fixture, evidence)
-    except (OSError, ValueError, RuntimeError) as exc:
+    except (OSError, InvalidInputError, OperationalError, EvidenceIntegrityError) as exc:
         failures.append(
             _failure(
                 "formal-satisfiability-replay-error",
@@ -440,7 +446,7 @@ def _current_control_failures(
                 scope.path,
             )
         )
-    if _observation_drifted(scope.observations_by_case.get(case_id), evidence, scope.snapshot):
+    if _observation_drifted(_lookup(scope.observations_by_case, case_id), evidence, scope.snapshot):
         failures.append(
             _failure(
                 "formal-satisfiability-snapshot-drift",

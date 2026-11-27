@@ -27,6 +27,7 @@ Different experiments may need to add or tighten evidence requirements without c
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/_evidence_requirement_exports.py` (Evidence-requirement facade exports extracted to keep the public contract surface within static-analysis limits)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/_exports.py` (Governed public evidence-requirement relation exports)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/experiment_evidence_refinement.py` (Typed scoped relation, exact lineage resolution, and governed monotone refinement validation)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/authored_scenario_evidence.py` (Typed scoped relation, exact lineage resolution, and governed monotone refinement validation)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/experiment_evidence.py` (Evidence-contract public relation surface)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/experiment_apparatus.py` (Compatibility export for the extracted task relation carrier)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/experiment_task.py` (Task-scoped evidence-requirement relation carrier)
@@ -52,3 +53,8 @@ Different experiments may need to add or tighten evidence requirements without c
 - TESTS → TEST `implementations/python/tests/test_issue_989_versioned_evidence.py` (Current and historical research evidence release integrity coverage)
 - TESTS → TEST `implementations/python/tests/test_issue_1210_semantic_comparison.py` (Owner-projection revision compatibility coverage)
 - TESTS → TEST `implementations/python/tests/test_specification_coverage.py` (Integrated specification-coverage release selection and immutable bundle coverage)
+
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/runtime_study_records.py` (Keep the authored study definition and its scoped evidence rules.)
+- TESTS → TEST `implementations/python/tests/test_issue_1630_run_records.py` (Check that a study snapshot keeps its definition identity.)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/experiment_study_definition.py` (Resolve exact authored policy before accepting inherited evidence scope.)
+- TESTS → TEST `implementations/python/tests/test_issue_1630_record_failures.py` (Reject altered inherited policy and invalid definition pins.)

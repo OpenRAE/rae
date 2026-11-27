@@ -1,5 +1,5 @@
 {
-  "revision": "participant-control-delivery/rev1",
+  "revision": "participant-control-delivery/rev2",
   "architecture": "OpenRAE/rae#1068",
   "status_at_design_cut": "open",
   "nodes": [
@@ -179,13 +179,8 @@
         "OpenRAE/rae#1069",
         "OpenRAE/rae#1071"
       ],
-      "requires_any": [
-        [
-          "OpenRAE/lilrae#22",
-          "Brad-Edwards/shifter#1969"
-        ]
-      ],
-      "claim_gate": "Every backend used by an evaluation needs its own completed proof branch and exact released profile evidence."
+      "requires_any": [],
+      "claim_gate": "RAE-owned harness evidence binds exact source, profile, fixture composition, configuration and observed runtime results. Concrete backend claims require separate owner-supplied realization evidence."
     },
     {
       "id": "OpenRAE/rae#1008",
@@ -204,13 +199,8 @@
         "OpenRAE/rae#1071",
         "OpenRAE/rae#1007"
       ],
-      "requires_any": [
-        [
-          "OpenRAE/lilrae#22",
-          "Brad-Edwards/shifter#1969"
-        ]
-      ],
-      "claim_gate": "Each published claim must use the same exact completed backend/profile/evaluation evidence, with Hub #36 current."
+      "requires_any": [],
+      "claim_gate": "RAE-owned harness evidence binds exact source, profile, fixture composition, configuration and observed runtime results. Concrete backend claims require separate owner-supplied realization evidence."
     },
     {
       "id": "OpenRAE/hub#36",

@@ -10,6 +10,7 @@ from jsonschema import Draft202012Validator
 from jsonschema import ValidationError as SchemaValidationError
 from pydantic import ValidationError
 from raes_contracts import contracts
+from raes_schemas import schema_bundle
 from tools.policy.requirement_governance import evaluate_requirement_governance
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -336,7 +337,7 @@ def test_published_family_and_profile_are_consumable_without_runtime():
     }
     profile = load_backend_profile("operation-supervision")
     assert set(family) <= set(profile.required_contracts)
-    bundle = contracts.schema_bundle()
+    bundle = schema_bundle()
     for name, value in family.items():
         schema = json.loads((ROOT / f"contracts/schemas/control-plane/{name}.json").read_text())
         assert schema == bundle[name]
@@ -388,7 +389,7 @@ def test_example_corpus_exercises_every_message_and_required_scenario():
         assert reports
         for report in reports:
             kinds.add(report.message.kind)
-            Draft202012Validator(contracts.schema_bundle()["backend-operation-response-v1"]).validate(
+            Draft202012Validator(schema_bundle()["backend-operation-response-v1"]).validate(
                 report.model_dump(mode="json")
             )
         contracts.validate_backend_operation_history(op, reports, controls=controls)

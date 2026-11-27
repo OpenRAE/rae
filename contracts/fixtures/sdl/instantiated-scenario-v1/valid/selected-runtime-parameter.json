@@ -1,0 +1,31 @@
+{
+  "name": "selected-runtime-parameter",
+  "nodes": {
+    "host": {
+      "type": "compute",
+      "runtime": {
+        "database_services": [
+          {
+            "database_service_id": "db",
+            "engine": "sqlite",
+            "databases": [{"database_id": "data", "name": "customer_data"}]
+          }
+        ]
+      }
+    }
+  },
+  "instantiation_provenance": {
+    "authored_digest": {
+      "profile": "raes-sdl-semantic/v2",
+      "algorithm": "sha256",
+      "value": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    "bindings": [{"parameter": ["database_name"], "origin": "provided", "value": "customer_data"}],
+    "parameter_derivations": [
+      {
+        "field_pointer": "/nodes/host/runtime/database_services/0/databases/0/name",
+        "segments": [{"kind": "parameter", "parameter": ["database_name"], "variable_type": "string"}]
+      }
+    ]
+  }
+}

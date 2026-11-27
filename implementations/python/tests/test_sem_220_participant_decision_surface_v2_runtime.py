@@ -11,6 +11,7 @@ from raes_contracts.contracts import (
     ParticipantDecisionSurfaceDeliveryV2Model,
     ParticipantDecisionSurfaceSelectionV2Model,
 )
+from raes_contracts.errors import AuthorizationError, ConflictError
 from raes_contracts.participant_binding_v2 import ParticipantDecisionSurfaceBindingResolversV2
 from raes_contracts.participant_decision_surface_delivery import deliver_participant_decision_surface_v2
 from raes_processor.models import (
@@ -321,7 +322,7 @@ def test_v2_governed_admission_requires_caller_context(missing: str) -> None:
     }
     context.pop(missing)
 
-    with pytest.raises((PermissionError, ValueError)):
+    with pytest.raises((AuthorizationError, ConflictError)):
         _admit_governed_selection(control, delivered, implementation_selection, delivery, **context)
 
     assert control.get_snapshot().snapshot.participant_behavior_history.get(PARTICIPANT, []) == []
@@ -339,7 +340,7 @@ def test_v2_governed_admission_rejects_unauthorized_caller(unauthorized: str) ->
         caller = identity(participant_address="participant.behavior.other")
 
     crossing_evidence = evidence()
-    with pytest.raises(PermissionError):
+    with pytest.raises(AuthorizationError):
         _admit_governed_selection(
             control,
             delivered,

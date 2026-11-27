@@ -14,25 +14,12 @@ from typing import Any, TypedDict, Unpack
 from pydantic import ValidationError
 
 from .._composition_budget import CompositionBudget, CompositionTraversal
-from .._composition_provenance import (
-    prefixed_constraint as _prefixed_constraint,
+from .._declaration_sources import (
+    DeclarationSource,
+    namespace_declaration_sources,
 )
-from .._composition_provenance import (
-    prefixed_explicitness as _prefixed_explicitness,
-)
-from .._composition_provenance import (
-    prefixed_import_record as _prefixed_import_record,
-)
-from .._composition_provenance import (
-    prefixed_realization_constraint as _prefixed_realization_constraint,
-)
-from .._composition_provenance import (
-    prefixed_realization_designation as _prefixed_realization_designation,
-)
-from .._composition_provenance import (
-    resolved_import_record as _resolved_import_record,
-)
-from .._errors import SDLInstantiationError, SDLParseDiagnostic, SDLParseError
+from .._errors import SDLImportError, SDLImportErrorCode, SDLInstantiationError, SDLParseDiagnostic, SDLParseError
+from .._model_diagnostics import _model_parse_error
 from .._module_symbols import FORWARDING_AGENTS_SECTION
 from .._module_symbols import HASHMAP_SECTIONS as _HASHMAP_SECTIONS
 from .._module_symbols import (
@@ -45,21 +32,23 @@ from .._source_profile import (
     SDLParserLimits,
     SDLSourceParseOptions,
 )
-from ..instantiate import _bind_scenario_content, _BoundScenarioResult
+from .._supplied_sources import SuppliedSources
+from ..instantiate import _bind_scenario_content
 from ..module_registry import (
+    LOCKFILE_NAME,
     Lockfile,
-    ResolvedModule,
     TrustPolicy,
     _VerifiedSourceBundle,
+    decode_lockfile,
     load_lockfile,
     load_trust_policy,
     resolve_import,
 )
-from ..parser import _load_normalized_data
 from ..phase_contracts import (
     CapabilityConstraint,
     ExpansionProvenance,
     ExplicitnessProvenanceRecord,
+    ParameterDerivation,
     ResolvedImportProvenance,
 )
 from ..realization_designation import (
@@ -71,10 +60,18 @@ from ..realization_designation import (
 )
 from ..scenario import ExpandedScenario, ImportDecl, ModuleDescriptor, ScenarioContent
 from ._augmentation import merge_augmentation_scope, rewrite_augmentation_scope
-from ._behavior import _behavior_reference_maps, _rewrite_agent_sections, _rewrite_behavior_sections
+from ._behavior import (
+    _behavior_reference_maps,
+    _reject_ambiguous_unit_behavior_refs,
+    _rewrite_agent_sections,
+    _rewrite_behavior_sections,
+)
 from ._execution_policy import merge_execution_policy, rewrite_execution_policy
+from ._import_admission import admit_import_source
 from ._profiles import rewrite_profile_selections
+from ._provenance import import_provenance_additions as _import_provenance_additions
 from ._references import _rewrite_variable_tokens
+from ._safe_state import merge_safe_state, rewrite_safe_state
 from ._sections import (
     _rewrite_account_and_domain_sections,
     _rewrite_content_sections,
@@ -127,8 +124,12 @@ def _rewrite_payload_with_symbols(
     _rewrite_terminal_sections(namespaced, symbols, tool_affordance_refs)
     rewrite_augmentation_scope(namespaced, symbols, namespace)
     rewrite_execution_policy(namespaced, symbols, namespace)
+    rewrite_safe_state(namespaced, symbols, namespace)
 
+    pinned_assets = namespaced.pop("control_context_assets", None)
     rewritten = _rewrite_variable_tokens(namespaced, symbols["variables"])
+    if pinned_assets is not None:
+        rewritten["control_context_assets"] = pinned_assets
     if not isinstance(rewritten, dict):
         raise TypeError("variable rewriting returned a non-object payload")
     namespaced = rewritten
@@ -169,12 +170,15 @@ def _merge_sections(
     merged = dict(root)
     merge_augmentation_scope(merged, incoming)
     merge_execution_policy(merged, incoming)
+    merge_safe_state(merged, incoming)
     for section_name in _HASHMAP_SECTIONS:
         current = dict(merged.get(section_name, {}))
         additions = dict(incoming.get(section_name, {}))
         collisions = sorted(set(current).intersection(additions))
         if collisions:
-            raise SDLParseError(f"Import from {path} collides on {section_name}: {', '.join(collisions)}")
+            raise SDLImportError(
+                SDLImportErrorCode.COLLISION, f"Import from {path} collides on {section_name}: {', '.join(collisions)}"
+            )
         current.update(additions)
         merged[section_name] = current
     current_agents = list(merged.get(FORWARDING_AGENTS_SECTION, []))
@@ -183,16 +187,22 @@ def _merge_sections(
     incoming_ids = {agent.get("forwarding_agent_id") for agent in incoming_agents if isinstance(agent, dict)}
     collisions = sorted(identifier for identifier in current_ids.intersection(incoming_ids) if identifier)
     if collisions:
-        raise SDLParseError(f"Import from {path} collides on {FORWARDING_AGENTS_SECTION}: {', '.join(collisions)}")
+        raise SDLImportError(
+            SDLImportErrorCode.COLLISION,
+            f"Import from {path} collides on {FORWARDING_AGENTS_SECTION}: {', '.join(collisions)}",
+        )
     merged[FORWARDING_AGENTS_SECTION] = [*current_agents, *incoming_agents]
     merged["imports"] = []
     return merged
 
 
-def _import_decl(value: object) -> ImportDecl:
+def _import_decl(value: object, *, path: Path, index: int) -> ImportDecl:
     if isinstance(value, ImportDecl):
         return value
-    return ImportDecl.model_validate(value)
+    try:
+        return ImportDecl.model_validate(value)
+    except ValidationError as exc:
+        raise _model_parse_error(exc, path=path, source_ranges={}, location_prefix=("imports", index)) from exc
 
 
 @dataclass(frozen=True)
@@ -212,6 +222,7 @@ class _ImportContext:
     verified_sources: _VerifiedSourceBundle | None
     registry_base_dir: Path
     semantic_revision: str | None
+    declaration_sources: dict[str, DeclarationSource]
 
 
 @dataclass(frozen=True)
@@ -223,6 +234,7 @@ class _ExpansionContext:
     inherited_lockfile: Lockfile | None = None
     inherited_trust_policy: TrustPolicy | None = None
     registry_base_dir: Path | None = None
+    declaration_sources: dict[str, DeclarationSource] | None = None
 
 
 class _ExpansionPrivateOptions(TypedDict, total=False):
@@ -234,6 +246,7 @@ class _ExpansionPrivateOptions(TypedDict, total=False):
     _inherited_lockfile: Lockfile | None
     _inherited_trust_policy: TrustPolicy | None
     _registry_base_dir: Path | None
+    _declaration_sources: dict[str, DeclarationSource]
 
 
 def _expansion_context(options: _ExpansionPrivateOptions) -> _ExpansionContext:
@@ -246,17 +259,19 @@ def _expansion_context(options: _ExpansionPrivateOptions) -> _ExpansionContext:
         inherited_lockfile=options.get("_inherited_lockfile"),
         inherited_trust_policy=options.get("_inherited_trust_policy"),
         registry_base_dir=options.get("_registry_base_dir"),
+        declaration_sources=options.get("_declaration_sources"),
     )
 
 
 def _expand_one_import(
-    raw_import: object,
+    import_decl: ImportDecl,
     merged: dict[str, Any],
     context: _ImportContext,
 ) -> tuple[
     dict[str, Any],
     list[ResolvedImportProvenance],
     list[CapabilityConstraint],
+    list[ParameterDerivation],
     list[ExplicitnessProvenanceRecord],
     list[RealizationDesignationRecord],
     list[RealizationConstraintRecord],
@@ -264,41 +279,41 @@ def _expand_one_import(
     """Resolve, expand, namespace, and merge a single import; return provenance additions."""
 
     context.budget.add_import(path=context.path)
-    import_decl = _import_decl(raw_import)
     if "__private." in import_decl.namespace:
-        raise SDLParseError(
+        raise SDLImportError(
+            SDLImportErrorCode.NAMESPACE_INVALID,
             "Import namespaces may not contain the reserved '__private' segment",
             path=context.path,
         )
+    source_options = SDLSourceParseOptions(
+        source_format=context.source_format,
+        migration_policy=context.migration_policy,
+        limits=context.limits,
+        required_semantic_revision=context.semantic_revision,
+    )
     resolved_import = resolve_import(
         import_decl,
         base_dir=context.resolved_path.parent,
         lockfile=context.lockfile,
         trust_policy=context.trust_policy,
-        source_options=SDLSourceParseOptions(
-            source_format=context.source_format,
-            migration_policy=context.migration_policy,
-            limits=context.limits,
-            required_semantic_revision=context.semantic_revision,
-        ),
+        source_options=source_options,
         source_diagnostics=context.source_diagnostics,
         verified_sources=context.verified_sources,
         _registry_base_dir=context.registry_base_dir,
+        _local_sources_only=context.child_traversal.local_sources_only,
+        _supplied_sources=context.child_traversal.sources,
     )
     import_path = resolved_import.root_file
-    imported_raw = _load_normalized_data(
-        resolved_import.source_document.text,
-        path=import_path,
-        source_options=SDLSourceParseOptions(
-            source_format=context.source_format,
-            migration_policy=context.migration_policy,
-            limits=context.limits,
-            required_semantic_revision=context.semantic_revision,
-        ),
-        source_diagnostics=context.source_diagnostics,
+    imported_raw, source_ranges, local_sources = admit_import_source(
+        resolved_import, source_options, context.source_diagnostics
     )
+    inner_sources: dict[str, DeclarationSource] = {}
     if imported_raw.get("semantic_revision") != context.semantic_revision:
-        raise SDLParseError("Imported SDL semantic revision must match the root revision.", path=import_path)
+        raise SDLImportError(
+            SDLImportErrorCode.REVISION_MISMATCH,
+            "Imported SDL semantic revision must match the root revision.",
+            path=import_path,
+        )
     imported_expanded, inner_provenance = expand_sdl_modules(
         imported_raw,
         path=import_path,
@@ -312,6 +327,7 @@ def _expand_one_import(
             inherited_lockfile=context.lockfile,
             inherited_trust_policy=context.trust_policy,
             registry_base_dir=context.registry_base_dir if resolved_import.verified_sources is not None else None,
+            declaration_sources=inner_sources,
         ),
     )
     try:
@@ -322,7 +338,7 @@ def _expand_one_import(
             preserve_variation_variables=True,
         )
     except ValidationError as exc:
-        raise SDLParseError("Imported SDL unit is structurally invalid", path=import_path) from exc
+        raise _model_parse_error(exc, path=import_path, source_ranges=source_ranges) from exc
     except SDLInstantiationError as exc:
         raise SDLParseError(str(exc), path=import_path) from exc
     namespace = import_decl.namespace
@@ -334,6 +350,7 @@ def _expand_one_import(
         restrict_to_descriptor=True,
     )
 
+    _reject_ambiguous_unit_behavior_refs(bound.content, path=import_path)
     namespaced_payload = _namespace_payload(
         bound.content.model_dump(mode="python", by_alias=True),
         bound.content,
@@ -341,55 +358,58 @@ def _expand_one_import(
         descriptor,
     )
     context.budget.check_namespaces(namespaced_payload, path=import_path)
+    context.declaration_sources.update(
+        namespace_declaration_sources(
+            {**inner_sources, **local_sources},
+            bound.content,
+            ExpandedScenario.model_validate(namespaced_payload),
+            symbols,
+            namespace,
+        )
+    )
     merged = _merge_sections(merged, namespaced_payload, path=import_path)
 
     return (merged, *_import_provenance_additions(resolved_import, import_decl, bound, inner_provenance, symbols))
 
 
-def _import_provenance_additions(
-    resolved_import: ResolvedModule,
-    import_decl: ImportDecl,
-    bound: _BoundScenarioResult,
-    inner_provenance: ExpansionProvenance,
-    symbols: dict[str, dict[str, str] | set[str]],
-) -> tuple[
-    list[ResolvedImportProvenance],
-    list[CapabilityConstraint],
-    list[ExplicitnessProvenanceRecord],
-    list[RealizationDesignationRecord],
-    list[RealizationConstraintRecord],
-]:
-    """Build the namespaced provenance additions contributed by one import."""
+def _workspace_policy(
+    resolved_path: Path, context: _ExpansionContext, traversal: CompositionTraversal, *, has_imports: bool
+) -> tuple[Lockfile | None, TrustPolicy]:
+    sources = traversal.sources
+    if sources is not None:
+        # A consumer composition reads only the lock beside this document and never a trust policy.
+        lockfile = _supplied_lockfile(resolved_path, sources, traversal.budget) if has_imports else None
+        return lockfile, TrustPolicy()
+    if context.verified_sources is not None:
+        return context.inherited_lockfile, context.inherited_trust_policy or TrustPolicy()
+    lockfile = load_lockfile(resolved_path.parent)
+    trust_policy = load_trust_policy(resolved_path.parent)
+    if traversal.local_sources_only:
+        # Editor path mode never fetches, so trust cannot authorize a registry request.
+        trust_policy = trust_policy.model_copy(update={"registries": {}})
+    return lockfile, trust_policy
 
-    namespace = import_decl.namespace
-    import_records: list[ResolvedImportProvenance] = [
-        _resolved_import_record(resolved_import, requested=import_decl, bindings=bound)
-    ]
-    import_records.extend(_prefixed_import_record(record, namespace) for record in inner_provenance.imports)
-    capability_constraints = [
-        _prefixed_constraint(constraint, namespace=namespace, symbols=symbols)
-        for constraint in bound.capability_constraints
-    ]
-    explicitness_records = [
-        _prefixed_explicitness(record, namespace=namespace, imported=bound.content, symbols=symbols)
-        for record in bound.explicitness
-        if any(record.model_path.startswith(f"{section_name}.") for section_name in _HASHMAP_SECTIONS)
-    ]
-    realization_records = [
-        _prefixed_realization_designation(record, namespace=namespace, symbols=symbols)
-        for record in inner_provenance.realization_designations
-    ]
-    realization_constraints = [
-        _prefixed_realization_constraint(record, namespace=namespace, symbols=symbols)
-        for record in inner_provenance.realization_constraints
-    ]
-    return (
-        import_records,
-        capability_constraints,
-        explicitness_records,
-        realization_records,
-        realization_constraints,
-    )
+
+def _supplied_lockfile(resolved_path: Path, sources: SuppliedSources, budget: CompositionBudget) -> Lockfile | None:
+    raw = sources.companion(resolved_path.parent, LOCKFILE_NAME)
+    if raw is None:
+        return None
+    lock_path = resolved_path.parent / LOCKFILE_NAME
+    try:
+        budget.add_bytes(len(raw), path=lock_path)
+        return decode_lockfile(raw, path=lock_path, max_bytes=budget.limits.max_input_bytes)
+    except SDLImportError as exc:
+        # Name the importing document, so a parent import does not claim a nested lock failure.
+        raise exc.with_location(resolved_path, "/imports") from exc.__cause__
+
+
+def _document_identity(path: Path, context: _ExpansionContext, traversal: CompositionTraversal) -> Path:
+    if traversal.sources is not None:
+        # Supplied sources already have lexical virtual paths; resolving them would read the filesystem.
+        return path
+    if context.verified_sources is not None:
+        return context.verified_sources.identity_path(path)
+    return path.resolve()
 
 
 def expand_sdl_modules(
@@ -413,13 +433,9 @@ def expand_sdl_modules(
     budget = traversal.budget
     budget.check_depth(traversal.depth, path=path)
     budget.add_document(data, path=path)
-    resolved_path = (
-        expansion_context.verified_sources.identity_path(path)
-        if expansion_context.verified_sources is not None
-        else path.resolve()
-    )
+    resolved_path = _document_identity(path, expansion_context, traversal)
     if resolved_path in traversal.seen:
-        raise SDLParseError(f"Import cycle detected at {resolved_path}", path=path)
+        raise SDLImportError(SDLImportErrorCode.CYCLE, f"Import cycle detected at {resolved_path}", path=path)
     child_traversal = traversal.descend_from(resolved_path)
     registry_base_dir = (
         resolved_path.parent if expansion_context.registry_base_dir is None else expansion_context.registry_base_dir
@@ -427,9 +443,13 @@ def expand_sdl_modules(
 
     merged = dict(data)
     merged.setdefault("imports", [])
+    # The editor context composes before structural validation, so the import list can have any shape.
+    if not isinstance(merged["imports"], list):
+        raise SDLParseError("SDL imports must be a list", path=path)
     merged.setdefault("version", "*")
     import_records: list[ResolvedImportProvenance] = []
     capability_constraints: list[CapabilityConstraint] = []
+    parameter_derivations: list[ParameterDerivation] = []
     explicitness_records: list[ExplicitnessProvenanceRecord] = []
     realization_records: list[RealizationDesignationRecord] = []
     realization_constraints: list[RealizationConstraintRecord] = []
@@ -441,16 +461,9 @@ def expand_sdl_modules(
             realization_constraints.extend(constraint_records(typed_designation))
         except ValidationError as exc:
             raise SDLParseError("Realization designation is structurally invalid", path=path) from exc
-    if expansion_context.verified_sources is None:
-        lockfile = load_lockfile(resolved_path.parent)
-        trust_policy = load_trust_policy(resolved_path.parent)
-    else:
-        lockfile = expansion_context.inherited_lockfile
-        trust_policy = (
-            expansion_context.inherited_trust_policy
-            if expansion_context.inherited_trust_policy is not None
-            else TrustPolicy()
-        )
+    lockfile, trust_policy = _workspace_policy(
+        resolved_path, expansion_context, traversal, has_imports=bool(merged["imports"])
+    )
     context = _ImportContext(
         path=path,
         resolved_path=resolved_path,
@@ -465,14 +478,24 @@ def expand_sdl_modules(
         verified_sources=expansion_context.verified_sources,
         registry_base_dir=registry_base_dir,
         semantic_revision=data.get("semantic_revision"),
+        declaration_sources=expansion_context.declaration_sources
+        if expansion_context.declaration_sources is not None
+        else {},
     )
 
-    for raw_import in merged.get("imports", []):
-        merged, import_add, capability_add, explicitness_add, realization_add, constraint_add = _expand_one_import(
-            raw_import, merged, context
-        )
+    for index, raw_import in enumerate(merged.get("imports", [])):
+        import_decl = _import_decl(raw_import, path=path, index=index)
+        try:
+            merged, import_add, capability_add, derivation_add, explicitness_add, realization_add, constraint_add = (
+                _expand_one_import(import_decl, merged, context)
+            )
+        except SDLImportError as exc:
+            if exc.located:
+                raise
+            raise exc.with_location(path, f"/imports/{index}") from exc.__cause__
         import_records.extend(import_add)
         capability_constraints.extend(capability_add)
+        parameter_derivations.extend(derivation_add)
         explicitness_records.extend(explicitness_add)
         realization_records.extend(realization_add)
         realization_constraints.extend(constraint_add)
@@ -480,6 +503,7 @@ def expand_sdl_modules(
     provenance = ExpansionProvenance(
         imports=tuple(import_records),
         capability_constraints=tuple(capability_constraints),
+        parameter_derivations=tuple(parameter_derivations),
         explicitness=tuple(explicitness_records),
         realization_designations=tuple(realization_records),
         realization_constraints=tuple(realization_constraints),

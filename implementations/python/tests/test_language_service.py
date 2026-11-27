@@ -107,7 +107,7 @@ workflows:
 
     result = language_completions(sdl, cursor_path="/objectives/inspect/targets")
 
-    assert result["context"] == "reference:targetable"
+    assert result["context"] == "reference:eligible:objective_subject"
     details = {item["detail"] for item in result["items"]}
     assert "nodes.web" in details
     assert not details & {
@@ -142,7 +142,7 @@ relationships:
     result = language_completions(sdl, cursor_path="/relationships/serves/target")
     by_detail = {item["detail"]: item for item in result["items"]}
 
-    assert result["context"] == "reference:targetable"
+    assert result["context"] == "reference:eligible:relationship_endpoint"
     assert by_detail["content.fixtures.items.seed-file"]["label"] == "seed-file"
     assert by_detail["nodes.web.services.http"]["label"] == "nodes.web.services.http"
     assert by_detail["nodes.api.services.http"]["label"] == "nodes.api.services.http"
@@ -359,7 +359,23 @@ def test_structured_edit_handles_root_and_list_mutations() -> None:
         ),
         pytest.param("append", "/name", "x", "is not a list", id="append-non-list"),
         pytest.param("delete", "/missing", None, "missing path segment", id="delete-missing-segment"),
-        pytest.param("delete", "/infrastructure/web/links/nope", None, "is not an integer", id="index-not-integer"),
+        pytest.param(
+            "delete", "/infrastructure/web/links/nope", None, "is not a canonical array index", id="index-not-integer"
+        ),
+        pytest.param(
+            "delete",
+            "/infrastructure/web/links/²",
+            None,
+            "list path segment is not a canonical array index",
+            id="index-non-ascii-digit",
+        ),
+        pytest.param(
+            "delete",
+            "/infrastructure/web/links/00",
+            None,
+            "list path segment is not a canonical array index",
+            id="index-leading-zero",
+        ),
         pytest.param("delete", "/infrastructure/web/links/10", None, "out of range", id="index-out-of-range"),
         pytest.param(
             "set",
@@ -374,3 +390,20 @@ def test_structured_edit_reports_invalid_edit_requests(operation, pointer, value
     payload = apply_structured_edit(SAMPLE_SDL, operation=operation, pointer=pointer, value=value)
     assert payload["status"] == "invalid"
     assert expected in payload["diagnostics"][0]["message"]
+
+
+def test_edit_refusals_are_invalid_input_and_defects_are_not_reported_as_refusals(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from raes import _language_edit, language_service
+    from raes_contracts.errors import InvalidInputError
+
+    with pytest.raises(InvalidInputError, match="missing path segment"):
+        _language_edit.apply_edit({"nodes": {}}, operation="delete", tokens=["nodes", "web"], value=None)
+
+    def defect(*_args: object, **_kwargs: object) -> object:
+        raise ValueError("SECRET-DEFECT-DETAIL")
+
+    monkeypatch.setattr(language_service, "apply_edit", defect)
+    with pytest.raises(ValueError, match="SECRET-DEFECT-DETAIL"):
+        apply_structured_edit(SAMPLE_SDL, operation="set", pointer="/description", value="x")

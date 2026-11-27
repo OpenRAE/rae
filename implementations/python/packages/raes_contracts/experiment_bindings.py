@@ -1,9 +1,15 @@
-"""Cross-artifact admission for authoritative experiment binding targets."""
+"""Cross-artifact admission for authoritative experiment binding targets.
+
+A target that does not resolve through its plane owner raises
+``ExperimentBindingTargetError`` (ADR-116).
+"""
 
 from __future__ import annotations
 
 from collections.abc import Mapping
 from typing import Literal, Protocol
+
+from pydantic import ValidationError
 
 from .contracts.base import ContractModel, NonEmptyString
 from .contracts.experiment_bindings import (
@@ -11,6 +17,7 @@ from .contracts.experiment_bindings import (
     BindingOwnerModel,
     BindingScalarType,
     ConfigurationTargetDeclarationModel,
+    ConfigurationTargetRegistryModel,
     ExperimentBindingDescriptorModel,
     ExperimentBindingDescriptorSetModel,
     ParticipantImplementationBindingTargetModel,
@@ -21,10 +28,15 @@ from .contracts.participant_manifests import (
     BackendManifestV2Model,
     ParticipantImplementationManifestModel,
 )
+from .errors import InvalidInputError
 
 ParticipantManifestKey = tuple[str, str, str, str]
 ApparatusManifestKey = tuple[str, str, str, str]
 ApparatusManifest = ProcessorManifestV2Model | BackendManifestV2Model
+
+
+class ExperimentBindingTargetError(InvalidInputError):
+    """A binding descriptor target does not resolve through its plane owner."""
 
 
 class ScenarioBindingResolution(ContractModel):
@@ -38,7 +50,10 @@ class ScenarioBindingResolution(ContractModel):
 
 
 class ScenarioBindingTargetResolver(Protocol):
-    """Public SDL variation-target resolution seam used during admission."""
+    """Public SDL variation-target resolution seam used during admission.
+
+    ``resolve`` raises ``ExperimentBindingTargetError`` for a target that does not resolve.
+    """
 
     def resolve(
         self,
@@ -70,10 +85,14 @@ def validate_experiment_binding_targets(
         else:
             raise ValueError("unknown binding plane")
         admitted.append(descriptor.model_copy(update={"target": canonical_target}))
-    return ExperimentBindingDescriptorSetModel(
-        schema_version=descriptors.schema_version,
-        descriptors=admitted,
-    )
+    try:
+        return ExperimentBindingDescriptorSetModel(
+            schema_version=descriptors.schema_version,
+            descriptors=admitted,
+        )
+    except ValidationError as exc:
+        # An alias and its canonical target can resolve to the same target, which the set refuses.
+        raise ExperimentBindingTargetError("binding descriptors must not contain a duplicate canonical target") from exc
 
 
 def _resolve_scenario_target(
@@ -87,13 +106,13 @@ def _resolve_scenario_target(
         target.target_id,
     )
     if resolution.value_type != descriptor.value_type:
-        raise ValueError("scenario target value_type does not match binding descriptor")
+        raise ExperimentBindingTargetError("scenario target value_type does not match binding descriptor")
     if resolution.owner != descriptor.owner:
-        raise ValueError("scenario target owner does not match binding descriptor")
+        raise ExperimentBindingTargetError("scenario target owner does not match binding descriptor")
     if descriptor.value.kind not in resolution.allowed_value_kinds:
-        raise ValueError("scenario target rejects the binding value kind")
+        raise ExperimentBindingTargetError("scenario target rejects the binding value kind")
     if resolution.sensitivity == "secret" and descriptor.value.kind != "secret-reference":
-        raise ValueError("secret scenario targets admit only secret-reference values")
+        raise ExperimentBindingTargetError("secret scenario targets admit only secret-reference values")
     return target.model_copy(update={"target_id": resolution.canonical_target_id})
 
 
@@ -110,17 +129,17 @@ def _resolve_participant_target(
     )
     manifest = manifests.get(key)
     if manifest is None:
-        raise ValueError("participant binding target owner must resolve to the selected manifest")
+        raise ExperimentBindingTargetError("participant binding target owner must resolve to the selected manifest")
     if (
         manifest.identity.name != target.implementation_name
         or manifest.identity.version != target.implementation_version
         or manifest.schema_version != target.manifest_version
     ):
-        raise ValueError("participant binding target identity must match the resolved manifest")
+        raise ExperimentBindingTargetError("participant binding target identity must match the resolved manifest")
     registry = manifest.configuration_registry
     if registry is None:
-        raise ValueError("selected participant manifest has no configuration target registry")
-    declaration = registry.resolve(target.target_id)
+        raise ExperimentBindingTargetError("selected participant manifest has no configuration target registry")
+    declaration = _declared_target(registry, target.target_id)
     _validate_declared_target(descriptor, declaration, registry.owner)
     return target.model_copy(update={"target_id": declaration.target_id})
 
@@ -138,7 +157,7 @@ def _resolve_apparatus_target(
     )
     manifest = manifests.get(key)
     if manifest is None:
-        raise ValueError("apparatus binding target owner must resolve to the selected manifest")
+        raise ExperimentBindingTargetError("apparatus binding target owner must resolve to the selected manifest")
     manifest_kind = "processor" if isinstance(manifest, ProcessorManifestV2Model) else "backend"
     if (
         target.component_kind != manifest_kind
@@ -146,13 +165,23 @@ def _resolve_apparatus_target(
         or manifest.identity.version != target.component_version
         or manifest.schema_version != target.manifest_version
     ):
-        raise ValueError("apparatus binding target identity and kind must match the resolved manifest")
+        raise ExperimentBindingTargetError(
+            "apparatus binding target identity and kind must match the resolved manifest"
+        )
     registry = manifest.configuration_registry
     if registry is None:
-        raise ValueError("selected apparatus manifest has no configuration target registry")
-    declaration = registry.resolve(target.target_id)
+        raise ExperimentBindingTargetError("selected apparatus manifest has no configuration target registry")
+    declaration = _declared_target(registry, target.target_id)
     _validate_declared_target(descriptor, declaration, registry.owner)
     return target.model_copy(update={"target_id": declaration.target_id})
+
+
+def _declared_target(registry: ConfigurationTargetRegistryModel, target_id: str) -> ConfigurationTargetDeclarationModel:
+    try:
+        return registry.resolve(target_id)
+    except ValueError as exc:
+        # The registry is a value object, so it refuses an unknown id with ValueError (rule E3).
+        raise ExperimentBindingTargetError("unknown configuration target in the selected manifest registry") from exc
 
 
 def _validate_declared_target(
@@ -161,15 +190,22 @@ def _validate_declared_target(
     owner: BindingOwnerModel,
 ) -> None:
     if descriptor.owner != owner:
-        raise ValueError("configuration target owner does not match binding descriptor")
+        raise ExperimentBindingTargetError("configuration target owner does not match binding descriptor")
     if descriptor.value_type != declaration.value_type:
-        raise ValueError("configuration target value_type does not match binding descriptor")
-    declaration.validate_value(descriptor.value)
+        raise ExperimentBindingTargetError("configuration target value_type does not match binding descriptor")
+    try:
+        declaration.validate_value(descriptor.value)
+    except ValueError as exc:
+        # The declaration is a value object, so it refuses an out-of-domain value with ValueError (rule E3).
+        raise ExperimentBindingTargetError(
+            "binding descriptor value is outside the configuration target domain"
+        ) from exc
 
 
 __all__ = [
     "ApparatusManifest",
     "ApparatusManifestKey",
+    "ExperimentBindingTargetError",
     "ParticipantManifestKey",
     "ScenarioBindingResolution",
     "ScenarioBindingTargetResolver",

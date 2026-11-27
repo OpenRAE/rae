@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 
 from pydantic.json_schema import JsonSchemaValue
 
-from .schema_invariants import _add_raes_invariant
+from .schema_invariants import add_raes_invariant
 
 if TYPE_CHECKING:
     from .difficulty_adaptation import DifficultyPolicyRegistryModel
@@ -84,7 +84,7 @@ def _validate_difficulty_assignments(
 def add_adaptive_study_invariant(json_schema: JsonSchemaValue) -> None:
     """Publish the adaptive-study validity-treatment requirement."""
 
-    _add_raes_invariant(
+    add_raes_invariant(
         json_schema,
         "adaptive-difficulty-study-validity-treatment-required",
         "Any adaptive or scaffolded allocation condition requires an analysis plan and explicit validity notes.",
@@ -96,7 +96,7 @@ def add_adaptive_study_invariant(json_schema: JsonSchemaValue) -> None:
 def add_difficulty_registry_invariant(json_schema: JsonSchemaValue) -> None:
     """Publish the authoring difficulty-registry join requirement."""
 
-    _add_raes_invariant(
+    add_raes_invariant(
         json_schema,
         "difficulty-policy-registry-valid",
         "Difficulty variants resolve fixed admitted selection policies; condition policy ids resolve the "

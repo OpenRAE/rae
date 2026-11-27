@@ -10,28 +10,33 @@ from pydantic import Field, GetJsonSchemaHandler, model_validator
 from pydantic.json_schema import JsonSchemaValue
 from pydantic_core import CoreSchema
 
-from ..versions import PARTICIPANT_INFORMATION_RECONSTRUCTION_PROFILE_V1_SCHEMA_VERSION
-from .base import ContractModel, NonEmptyString, PrefixedDigestString, SemanticProfileId
+from .._host_isolation import isolated_host_call
+from ..operational_logging import foreign_failure_record, get_logger
+from .base import ContractModel, NonEmptyString, PrefixedDigestString
 from .participant_decision_state_cut import (
     ParticipantDecisionSurfaceSequenceCutModel,
     ParticipantDecisionSurfaceStateCutModel,
 )
 from .participant_envelopes import ParticipantRuntimeBaseEnvelopeModel
+from .participant_information_reconstruction_profiles import (
+    ParticipantInformationReconstructionProfileModel as _ParticipantInformationReconstructionProfileModel,
+)
+from .participant_information_reconstruction_profiles import (
+    ParticipantInformationSourceContract as _ParticipantInformationSourceContract,
+)
+from .participant_information_reconstruction_profiles import (
+    load_participant_information_reconstruction_profile,
+)
 from .participant_information_state_sources import require_source_coordinate, validate_resolved_source
 from .participant_observation import ParticipantObservationEnvelopeModel
 from .participant_runtime import ParticipantRuntimeInformationGuarantee
-from .schema_invariants import _add_raes_invariant
+from .schema_invariants import add_raes_invariant
 
 if TYPE_CHECKING:
     from .participant_decision_surface_v2 import ParticipantDecisionSurfaceV2Model
 
-ParticipantInformationSourceContract = Literal[
-    "participant-observation-envelope-v1",
-    "participant-context-view-v1",
-    "participant-shared-state-record-v1",
-    "participant-behavior-history-event-stream-v1",
-    "participant-episode-state-envelope-v1",
-]
+_LOGGER = get_logger(__name__)
+_MALFORMED_CONTEXT = "participant information-state resolved context is malformed"
 
 ParticipantInformationSourceRelation = Literal[
     "authored_initial",
@@ -46,10 +51,6 @@ ParticipantInformationMemoryScope = Literal[
     "persistent_across_episodes",
 ]
 
-ParticipantInformationOrderSemantics = Literal[
-    "sequence_prefix",
-    "causal_frontier",
-]
 
 ParticipantInformationSourceKey = tuple[str, str]
 
@@ -88,37 +89,9 @@ ParticipantInformationStateContextResolver = Callable[
 class ParticipantInformationStateSourceRefModel(ContractModel):
     """One closed typed relation to an incumbent information source."""
 
-    contract_id: ParticipantInformationSourceContract
+    contract_id: _ParticipantInformationSourceContract
     ref: NonEmptyString
     relation: ParticipantInformationSourceRelation
-
-
-class ParticipantInformationReconstructionProfileModel(ContractModel):
-    """One immutable, non-executable reconstruction profile declaration."""
-
-    schema_version: Literal[PARTICIPANT_INFORMATION_RECONSTRUCTION_PROFILE_V1_SCHEMA_VERSION]
-    profile_id: SemanticProfileId
-    title: NonEmptyString
-    description: NonEmptyString
-    algorithm_id: NonEmptyString
-    algorithm_version: NonEmptyString
-    information_state_schema_version: NonEmptyString
-    projection_version: NonEmptyString
-    determinism_basis: Literal["exact_occurrence_prefix_and_proof_digest"]
-    accepted_input_contracts: list[ParticipantInformationSourceContract] = Field(min_length=1)
-    accepted_order_semantics: list[ParticipantInformationOrderSemantics] = Field(min_length=1)
-    fixture_format: NonEmptyString
-    proof_artifact_format: NonEmptyString
-    normative_artifact_ref: NonEmptyString
-    normative_artifact_digest: PrefixedDigestString
-
-    @model_validator(mode="after")
-    def _validate_closed_profile(self) -> ParticipantInformationReconstructionProfileModel:
-        for field_name in ("accepted_input_contracts", "accepted_order_semantics"):
-            values = getattr(self, field_name)
-            if len(values) != len(set(values)):
-                raise ValueError(f"{field_name} values must be unique")
-        return self
 
 
 class ParticipantInformationStateRecordModel(ParticipantRuntimeBaseEnvelopeModel):
@@ -248,7 +221,7 @@ class ParticipantInformationStateRecordModel(ParticipantRuntimeBaseEnvelopeModel
                 },
             ]
         )
-        _add_raes_invariant(
+        add_raes_invariant(
             json_schema,
             "participant-information-state-context-resolution",
             "Strong information-state claims resolve one profile, occurrence history, typed source set, proof "
@@ -261,8 +234,8 @@ class ParticipantInformationStateRecordModel(ParticipantRuntimeBaseEnvelopeModel
 
 def _resolve_information_state_profile(
     record: ParticipantInformationStateRecordModel,
-    reconstruction_profiles: Mapping[str, ParticipantInformationReconstructionProfileModel],
-) -> ParticipantInformationReconstructionProfileModel | None:
+    reconstruction_profiles: Mapping[str, _ParticipantInformationReconstructionProfileModel],
+) -> _ParticipantInformationReconstructionProfileModel | None:
     if record.information_guarantee not in {"history_consistent", "perfect_recall"}:
         return None
     profile_ref = record.reconstruction_profile_ref
@@ -330,7 +303,7 @@ def _validate_information_state_history(
 
 def _validate_information_state_sources(
     record: ParticipantInformationStateRecordModel,
-    profile: ParticipantInformationReconstructionProfileModel | None,
+    profile: _ParticipantInformationReconstructionProfileModel | None,
     resolved_sources: Mapping[ParticipantInformationSourceKey, object],
     source_coordinates: Mapping[
         ParticipantInformationSourceKey,
@@ -416,7 +389,7 @@ def _validate_matching_decision_surfaces(
 def validate_participant_information_state_context(
     record: ParticipantInformationStateRecordModel,
     *,
-    reconstruction_profiles: Mapping[str, ParticipantInformationReconstructionProfileModel],
+    reconstruction_profiles: Mapping[str, _ParticipantInformationReconstructionProfileModel],
     occurrence_histories: Mapping[str, Sequence[ParticipantObservationEnvelopeModel]],
     resolved_sources: Mapping[tuple[str, str], object],
     proof_digests: Mapping[str, str],
@@ -448,24 +421,15 @@ def validate_participant_information_state_resolved_context(
 
     if resolver is None:
         raise ValueError("participant information-state context resolver is required")
-    try:
+    with isolated_host_call("participant information-state context resolution failed"):
         context = resolver(record, scope)
-    except Exception as exc:
-        raise ValueError("participant information-state context resolution failed") from exc
     if not isinstance(context, ParticipantInformationStateValidationContext):
         raise ValueError("participant information-state context did not resolve")
-    if any(
-        not isinstance(coordinate, ParticipantInformationStateSourceCoordinate)
-        for coordinate in context.source_coordinates.values()
-    ):
+    coordinates = context.source_coordinates.values()
+    if not all(isinstance(coordinate, ParticipantInformationStateSourceCoordinate) for coordinate in coordinates):
         raise ValueError("participant information-state source coordinate resolution is invalid")
-
-    reconstruction_profiles: dict[str, ParticipantInformationReconstructionProfileModel] = {}
+    reconstruction_profiles: dict[str, _ParticipantInformationReconstructionProfileModel] = {}
     if record.reconstruction_profile_ref is not None:
-        from ..participant_information_reconstruction_profiles import (
-            load_participant_information_reconstruction_profile,
-        )
-
         profile = load_participant_information_reconstruction_profile(record.reconstruction_profile_ref)
         reconstruction_profiles[profile.profile_id] = profile
 
@@ -479,13 +443,16 @@ def validate_participant_information_state_resolved_context(
             proof_digests=context.proof_digests,
             decision_surfaces=context.decision_surfaces,
         )
+    # Isolation: the host-resolved context holds the indexes and histories that the validation reads.
     except (AttributeError, KeyError, TypeError) as exc:
-        raise ValueError("participant information-state resolved context is malformed") from exc
+        _LOGGER.exception(_MALFORMED_CONTEXT, exc_info=foreign_failure_record(exc))
+    else:
+        return
+    raise ValueError(_MALFORMED_CONTEXT)
 
 
 __all__ = (
     "ParticipantInformationStateContextResolver",
-    "ParticipantInformationReconstructionProfileModel",
     "ParticipantInformationStateRecordModel",
     "ParticipantInformationStateSourceCoordinate",
     "ParticipantInformationStateSourceRefModel",

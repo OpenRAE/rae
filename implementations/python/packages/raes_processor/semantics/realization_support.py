@@ -2,13 +2,13 @@
 
 from __future__ import annotations
 
-from raes.explicitness import ExplicitnessClass
 from raes_backend_protocols.capabilities import BackendManifest
 from raes_contracts.apparatus import (
     DECLARED_CAPABILITY_MATCH_REQUIREMENT_KIND,
     RealizationSupportDeclaration,
 )
 from raes_contracts.diagnostics import Diagnostic, Severity
+from raes_contracts.explicitness import ExplicitnessClass
 from raes_contracts.realization_structure import RealizationCollection, RealizationRecord
 from raes_contracts.software_versions import has_version_constraints, version_relations_supported
 from raes_contracts.vocabulary import RealizationSupportMode
@@ -136,10 +136,16 @@ def _open_support_diagnostic(
             if declaration.support_mode is RealizationSupportMode.OPEN_REALIZATION
         ]
         if supporting:
-            sufficiently_observed = requirement.verification_scope is None or has_required_observation_support(
-                requirement,
-                supporting,
-                observation_kind=_observation_kind(requirement),
+            # An open concern the author left empty demands readback only for a member the
+            # backend reports; the runtime gate rejects one that lacks corroboration (SEM-218 I2).
+            sufficiently_observed = (
+                requirement.verification_scope is None
+                or requirement.authored_empty
+                or has_required_observation_support(
+                    requirement,
+                    supporting,
+                    observation_kind=_observation_kind(requirement),
+                )
             )
             if not sufficiently_observed:
                 diagnostic = _under_observed_support_diagnostic(requirement, posture="open")

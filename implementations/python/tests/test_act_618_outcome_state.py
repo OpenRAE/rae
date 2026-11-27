@@ -5,6 +5,7 @@ from copy import deepcopy
 import pytest
 import yaml
 from raes.parser import parse_sdl
+from raes_contracts.errors import ConflictError
 from raes_contracts.runtime_state import RuntimeSnapshot
 from raes_processor.compiler import compile_runtime_model
 from test_act_618_outcome_definition import local_scenario
@@ -99,7 +100,7 @@ def test_conflicting_effect_evidence_is_retained():
 def test_wrong_episode_is_rejected():
     state = snapshot()
     state.participant_episode_results[PARTICIPANT_ADDRESS]["episode_id"] = "episode-2"
-    with pytest.raises(ValueError, match="episode"):
+    with pytest.raises(ConflictError, match="episode"):
         produce(state)
 
 
@@ -148,7 +149,7 @@ def test_current_projection_becomes_absent_on_reset_and_preserves_history():
 
 def test_stale_predecessor_cannot_overwrite_current_report():
     state = recorded_snapshot()
-    with pytest.raises(ValueError, match="stale"):
+    with pytest.raises(ConflictError, match="stale"):
         produce(state)
 
 
@@ -256,7 +257,7 @@ def test_withheld_action_does_not_disclose_an_attained_outcome():
 def test_live_episode_map_key_cannot_hide_a_different_participant():
     state = snapshot()
     state.participant_episode_results[PARTICIPANT_ADDRESS]["participant_address"] = "participant.behavior.other"
-    with pytest.raises(ValueError, match="binding"):
+    with pytest.raises(ConflictError, match="binding"):
         produce(state)
 
 

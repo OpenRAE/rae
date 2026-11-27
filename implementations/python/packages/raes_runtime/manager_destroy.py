@@ -7,7 +7,7 @@ from raes_contracts.planning import ChangeAction, ProvisioningPlan, ProvisionOp,
 from raes_contracts.runtime_state import ApplyResult, RuntimeSnapshot
 from raes_processor.planner import snapshot_delete_order
 
-from .backend_calls import _BackendCallContext, _call_backend_apply
+from .backend_calls import _BackendCallContext
 from .backend_realization_authority import _RealizationApplyContext
 
 
@@ -44,7 +44,7 @@ class _DestroyPhaseMixin:
 
         if service is None:
             return None
-        return _call_backend_apply(
+        return self._interaction_backend_call(
             service.stop,
             snapshot,
             address=address,

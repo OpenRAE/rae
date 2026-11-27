@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "branches": {
+    "dev": {
+      "merge_queue": true,
+      "strict_status_checks": false,
+      "required_checks": [
+        {"context": "verify", "workflow": ".github/workflows/ci.yml", "job": "verify"},
+        {"context": "sonar", "workflow": ".github/workflows/ci.yml", "job": "sonar"},
+        {"context": "fuzz", "workflow": ".github/workflows/ci.yml", "job": "fuzz"},
+        {"context": "supply-chain", "workflow": ".github/workflows/ci.yml", "job": "supply-chain"},
+        {"context": "CPython 3.14 compatibility", "workflow": ".github/workflows/ci.yml", "job": "distribution"},
+        {"context": "Analyze (actions)", "workflow": ".github/workflows/codeql.yml", "job": "analyze"},
+        {"context": "Analyze (python)", "workflow": ".github/workflows/codeql.yml", "job": "analyze"},
+        {"context": "GitGuardian Security Checks", "workflow": ".github/workflows/secret-scan.yml", "job": "ggshield"},
+        {"context": "title-guard", "workflow": ".github/workflows/pr-title-lint.yml", "job": "title-guard"},
+        {"context": "body-guard", "workflow": ".github/workflows/pr-body-policy.yml", "job": "body-guard"}
+      ]
+    },
+    "main": {
+      "merge_queue": false,
+      "strict_status_checks": true,
+      "required_checks": [
+        {"context": "verify", "workflow": ".github/workflows/ci.yml", "job": "verify"},
+        {"context": "sonar", "workflow": ".github/workflows/ci.yml", "job": "sonar"},
+        {"context": "fuzz", "workflow": ".github/workflows/ci.yml", "job": "fuzz"},
+        {"context": "supply-chain", "workflow": ".github/workflows/ci.yml", "job": "supply-chain"},
+        {"context": "CPython 3.14 compatibility", "workflow": ".github/workflows/ci.yml", "job": "distribution"},
+        {"context": "CodeQL", "workflow": ".github/workflows/codeql.yml", "job": "analyze"},
+        {"context": "Analyze (actions)", "workflow": ".github/workflows/codeql.yml", "job": "analyze"},
+        {"context": "Analyze (python)", "workflow": ".github/workflows/codeql.yml", "job": "analyze"},
+        {"context": "GitGuardian Security Checks", "app": "GitGuardian"},
+        {"context": "title-guard", "workflow": ".github/workflows/pr-title-lint.yml", "job": "title-guard"},
+        {"context": "body-guard", "workflow": ".github/workflows/pr-body-policy.yml", "job": "body-guard"}
+      ]
+    }
+  }
+}

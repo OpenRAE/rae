@@ -118,7 +118,12 @@ def _validate_https_locator(locator: object, failures: list[PolicyFailure], sour
     if not isinstance(locator, str):
         failures.append(_failure("dsl-evaluation-source-locator", f"{source_id}: locator must be text"))
         return
-    parsed = urlsplit(locator)
+    try:
+        parsed = urlsplit(locator)
+    except ValueError:
+        # urlsplit refuses a malformed authority, such as an unclosed IPv6 bracket.
+        failures.append(_failure("dsl-evaluation-source-locator", f"{source_id}: locator must be absolute HTTPS"))
+        return
     if parsed.scheme != "https" or not parsed.netloc:
         failures.append(
             _failure(

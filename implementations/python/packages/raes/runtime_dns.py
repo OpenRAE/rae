@@ -15,11 +15,23 @@ than the portable SDL model.
 import ipaddress
 
 from pydantic import ConfigDict, Field, ValidationInfo, field_validator, model_validator
+from raes_contracts.governed_vocabulary import GovernedVocabulary
+from raes_contracts.runtime_values import (
+    RuntimeSensitivityClassification,
+    absolute_path_or_var,
+    coerce_string_list,
+    enforce_observed_value_redaction,
+    parse_optional_bool_or_var,
+    parse_runtime_enum_or_var,
+    reject_duplicates,
+    require_non_empty,
+    require_symbol,
+)
+from raes_contracts.sdl_model import SDLModel
+from raes_contracts.variable_references import is_variable_ref
 
 from raes.runtime_filesystem import redacted_raw_value_schema
-from raes.runtime_vocabulary import GovernedVocabulary
 
-from ._base import SDLModel, is_variable_ref
 from .runtime_dns_records import (
     DnsMxRdata,
     DnsResourceRecord,
@@ -41,17 +53,6 @@ from .runtime_dns_vocab import (
     DnsSettingProvenance,
     DnsZoneKind,
     DnsZonePurpose,
-)
-from .runtime_filesystem import RuntimeSensitivityClassification
-from .runtime_values import (
-    absolute_path_or_var,
-    coerce_string_list,
-    enforce_observed_value_redaction,
-    parse_optional_bool_or_var,
-    parse_runtime_enum_or_var,
-    reject_duplicates,
-    require_non_empty,
-    require_symbol,
 )
 
 __all__ = [
@@ -265,7 +266,7 @@ class DnsRuntimeSetting(SDLModel):
         return parse_runtime_enum_or_var(v, DnsSettingProvenance, field_name="provenance")
 
     @model_validator(mode="after")
-    def validate_redacted_value(self) -> "DnsRuntimeSetting":
+    def validate_redacted_value(self) -> DnsRuntimeSetting:
         enforce_observed_value_redaction(
             owner_label=f"DNS setting '{self.name}'",
             value=self.value,
@@ -330,7 +331,7 @@ class DnsZone(SDLModel):
         return [absolute_path_or_var(item, field_name="zone_file_refs") for item in v]
 
     @model_validator(mode="after")
-    def validate_zone(self) -> "DnsZone":
+    def validate_zone(self) -> DnsZone:
         reject_duplicates(
             (rrset.rrset_id for rrset in self.rrsets),
             label="rrset_id",
@@ -402,7 +403,7 @@ class RuntimeDnsService(SDLModel):
         return [absolute_path_or_var(item, field_name=info.field_name) for item in v]
 
     @model_validator(mode="after")
-    def validate_service(self) -> "RuntimeDnsService":
+    def validate_service(self) -> RuntimeDnsService:
         reject_duplicates(
             (zone.zone_id for zone in self.zones),
             label="zone_id",

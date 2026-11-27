@@ -2,17 +2,15 @@
 
 from __future__ import annotations
 
-import hashlib
-import json
-
+from raes_contracts.digests import sha256_hex
+from raes_contracts.json_serialization import sorted_json_digest, sorted_json_text
 from raes_contracts.runtime_state import RuntimeSnapshot
 
 
 def canonical_crossing_digest(payload: object) -> str:
     """Return the stable digest used for crossing subjects and history heads."""
 
-    encoded = json.dumps(payload, sort_keys=True, separators=(",", ":"), default=str).encode()
-    return f"sha256:{hashlib.sha256(encoded).hexdigest()}"
+    return sorted_json_digest(payload, default=str)
 
 
 def history_record_identity(record: dict[str, object]) -> str | None:
@@ -83,8 +81,7 @@ def control_history_head_refs(snapshot: RuntimeSnapshot, participant_address: st
 
 
 def _head_digest(key: str, value: str | None) -> str:
-    encoded = json.dumps([key, value], sort_keys=True, separators=(",", ":")).encode()
-    return hashlib.sha256(encoded).hexdigest()
+    return sha256_hex(sorted_json_text([key, value]).encode())
 
 
 __all__ = [

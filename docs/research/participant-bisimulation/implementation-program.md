@@ -82,6 +82,11 @@ Only after #974 and #975 produce a positive reproduced result, update
 scientific-completeness, assurance fulfillment, lineage, and reader-facing
 claim surfaces with the exact profile and limitations.
 
+Delivery status: #971 through #976 are delivered. Issue #976 also separates
+each retained record's subject identity from its execution provenance and
+retains a separately reviewed qualified reproduction. See the
+[evidence identity design](../../decisions/issue-976-crossing-evidence-identity-design.md).
+
 ## Program Invariants
 
 - The required relation id is

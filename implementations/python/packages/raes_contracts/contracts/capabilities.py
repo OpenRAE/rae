@@ -25,7 +25,7 @@ from ..vocabulary import (
 )
 from ._capability_schema import provisioner_capability_conditionals
 from .base import ContractModel, NonEmptyString
-from .validators import _validate_controlled_vocabulary_terms
+from .validators import validate_controlled_vocabulary_terms
 
 OSReleaseString = Annotated[str, Field(min_length=1, max_length=128, pattern=OS_VERSION_PATTERN)]
 
@@ -39,11 +39,11 @@ class OperatingSystemCompatibilityModel(ContractModel):
 
     @model_validator(mode="after")
     def _validate_terms(self) -> OperatingSystemCompatibilityModel:
-        _validate_controlled_vocabulary_terms(
+        validate_controlled_vocabulary_terms(
             "capabilities.provisioner.supported_os_families",
             [self.family],
         )
-        _validate_controlled_vocabulary_terms(
+        validate_controlled_vocabulary_terms(
             "capabilities.provisioner.operating_systems.distribution",
             [self.distribution],
         )
@@ -158,32 +158,32 @@ class ProvisionerCapabilitiesModel(ContractModel):
 
     @model_validator(mode="after")
     def _validate_account_support(self) -> ProvisionerCapabilitiesModel:
-        _validate_controlled_vocabulary_terms(
+        validate_controlled_vocabulary_terms(
             "capabilities.provisioner.supported_node_types",
             self.supported_node_types,
         )
-        _validate_controlled_vocabulary_terms(
+        validate_controlled_vocabulary_terms(
             "capabilities.provisioner.supported_os_families",
             self.supported_os_families,
         )
         _validate_operating_system_rows(self)
-        _validate_controlled_vocabulary_terms(
+        validate_controlled_vocabulary_terms(
             "capabilities.provisioner.supported_node_architectures",
             self.supported_node_architectures,
         )
-        _validate_controlled_vocabulary_terms(
+        validate_controlled_vocabulary_terms(
             "capabilities.provisioner.supported_content_types",
             self.supported_content_types,
         )
-        _validate_controlled_vocabulary_terms(
+        validate_controlled_vocabulary_terms(
             "capabilities.provisioner.supported_account_features",
             self.supported_account_features,
         )
-        _validate_controlled_vocabulary_terms(
+        validate_controlled_vocabulary_terms(
             "capabilities.provisioner.supported_domain_profiles",
             [value for value in self.supported_domain_profiles if isinstance(value, str)],
         )
-        _validate_controlled_vocabulary_terms(
+        validate_controlled_vocabulary_terms(
             "capabilities.provisioner.supported_service_materialization_profiles",
             [value for value in self.supported_service_materialization_profiles if isinstance(value, str)],
         )
@@ -215,7 +215,7 @@ class OrchestratorCapabilitiesModel(ContractModel):
 
     @model_validator(mode="after")
     def _validate_workflow_support(self) -> OrchestratorCapabilitiesModel:
-        _validate_controlled_vocabulary_terms(
+        validate_controlled_vocabulary_terms(
             "capabilities.orchestrator.supported_sections",
             self.supported_sections,
         )
@@ -290,7 +290,7 @@ class EvaluatorCapabilitiesModel(ContractModel):
 
     @model_validator(mode="after")
     def _validate_evaluator_support(self) -> EvaluatorCapabilitiesModel:
-        _validate_controlled_vocabulary_terms(
+        validate_controlled_vocabulary_terms(
             "capabilities.evaluator.supported_sections",
             self.supported_sections,
         )

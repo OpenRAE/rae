@@ -8,9 +8,9 @@ from typing import Any
 from pydantic import ValidationError
 from pydantic_core import to_jsonable_python
 from raes.runtime_capabilities import RuntimeProcessIdentity
-from raes.runtime_generated_value import GeneratedArtifactValueSource
 from raes.runtime_resource_limits import project_process_resource_limit
 from raes_contracts.canonical import canonical_json_digest, jsonable_fallback
+from raes_contracts.generated_artifact_value import GeneratedArtifactValueSource
 
 from .realization_concern_observations import validate_value_commitment
 from .realization_runtime_concern_profiles import RUNTIME_NON_REALIZATION_FIELDS

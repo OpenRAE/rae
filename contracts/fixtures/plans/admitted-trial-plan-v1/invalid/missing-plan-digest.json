@@ -211,7 +211,6 @@
       "ref_version": "1"
     }
   },
-  "isolation_proof": null,
   "plan_id": "plan-a",
   "profiles": {
     "canonicalization_profile": "jcs-sha256-v1",
@@ -221,7 +220,6 @@
     "entry_identity_profile": "trial-entry-identity-v1",
     "execution_control_profile": "attempt-control-v1",
     "integrity_profile": "acyclic-digest-chain-v1",
-    "isolation_profile": "scheduler-isolation-v1",
     "random_stream_profile": "blake3-xof-v1",
     "run_identity_profile": "archival-run-identity-v1",
     "selection_policy_profile": "experiment-selection-v1"

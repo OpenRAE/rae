@@ -7,6 +7,7 @@ from pathlib import Path
 import pytest
 from jsonschema import Draft202012Validator
 from pydantic import ValidationError
+from raes_contracts.canonical import canonical_contract_digest
 from raes_contracts.contracts import (
     ParticipantDecisionSurfaceAssuranceV2Model,
     ParticipantDecisionSurfaceBehaviorAnchorV2Model,
@@ -18,9 +19,8 @@ from raes_contracts.contracts import (
     ParticipantDecisionSurfaceSequenceCutModel,
     ParticipantDecisionSurfaceV2Model,
     ParticipantDecisionSurfaceViewV2Model,
-    schema_bundle,
 )
-from raes_contracts.satisfiability import canonical_contract_digest
+from raes_schemas import schema_bundle
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 FIXTURE_ROOT = REPO_ROOT / "contracts" / "fixtures" / "control-plane" / "participant-decision-surface-v2"

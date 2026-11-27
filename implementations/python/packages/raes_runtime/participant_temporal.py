@@ -1,26 +1,27 @@
 """Bounded guarantee checks against the existing shared-time authority."""
 
 from dataclasses import replace
-from datetime import UTC, datetime
 from typing import Literal, cast
 
 from raes_backend_protocols.participant_action_commit import participant_binding_post_state_digest
 from raes_contracts.contracts import ParticipantActionResultModel, ParticipantBehaviorHistoryEventModel
+from raes_contracts.contracts.participant_action_admission import ParticipantActionAdmissionRequest
 from raes_contracts.contracts.participant_temporal import (
     ParticipantTemporalAssessmentModel,
     ParticipantTemporalEvidenceModel,
     ParticipantTemporalExecutionContextModel,
 )
+from raes_contracts.contracts.participant_temporal_assessment import coordinate_key
+from raes_contracts.contracts.participant_temporal_history import assess_temporal_guarantee
 from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.participant_behavior import ParticipantAdmissionDisposition
 from raes_contracts.participant_binding import (
-    ParticipantActionAdmissionRequest,
     ParticipantActionApplyResult,
     participant_action_binding_events,
     participant_behavior_event_payload,
 )
-from raes_contracts.participant_temporal import assess_temporal_guarantee, coordinate_key
 from raes_contracts.runtime_state import RuntimeSnapshot
+from raes_contracts.timestamps import WallClock
 
 
 def temporal_pre_dispatch_assessments(
@@ -60,6 +61,8 @@ def temporal_guarantee_diagnostic(request: ParticipantActionAdmissionRequest) ->
 def temporal_pre_dispatch_result(
     request: ParticipantActionAdmissionRequest,
     snapshot: RuntimeSnapshot,
+    *,
+    wall_clock: WallClock,
 ) -> ParticipantActionApplyResult | None:
     """Record a rejected portable attempt without calling the native runtime."""
 
@@ -103,7 +106,7 @@ def temporal_pre_dispatch_result(
         participant_action_binding_events(
             replace(request, action_result=action_result, state_transition_kind="participant_temporal_rejected"),
             episode_id=context.episode_id,
-            timestamp=datetime.now(UTC).isoformat(),
+            timestamp=wall_clock().isoformat(),
             post_state_digest=participant_binding_post_state_digest(request),
         )
     )

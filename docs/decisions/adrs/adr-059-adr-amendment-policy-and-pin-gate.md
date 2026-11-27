@@ -155,3 +155,9 @@ cannot become flaky in CI):
   minimal (drop the `## Amendments` section; strip per-line trailing whitespace;
   normalize only the file-final newline) and lives in one place shared by the
   manifest generator and the checker.
+
+## Amendments
+
+| Date | Commit/PR | Summary |
+|------|-----------|---------|
+| 2026-11-06 | #1929 | The manifest no longer stores a per-ADR content pin or a hash algorithm. The gate compares each accepted ADR with the base revision and requires an `## Amendments` row for any canonical-content change; git holds the history. |

@@ -1,10 +1,5 @@
 {
   "contract_id": "participant-decision-surface-v2",
   "schema_path": "contracts/schemas/control-plane/participant-decision-surface-v2.json",
-  "stability": "draft",
-  "content_hash": "108160544035735645be7fe705212c557407ff992ddc5edb3102847877edf63b",
-  "last_change": {
-    "summary": "Rebound the published schema namespace to the renamed OpenRAE GitHub organization for issue #963.",
-    "content_hash": "108160544035735645be7fe705212c557407ff992ddc5edb3102847877edf63b"
-  }
+  "stability": "draft"
 }

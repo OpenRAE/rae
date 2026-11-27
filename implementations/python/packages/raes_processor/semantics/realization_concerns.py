@@ -6,6 +6,7 @@ from collections.abc import Callable, Iterable, Mapping
 from dataclasses import dataclass
 from enum import Enum
 
+from .realization_comparison import portable_realization_value
 from .realization_concern_observations import (
     validate_capability_policy_observation,
     validate_environment_observation,
@@ -375,10 +376,18 @@ def project_realization_concern(
     observed: bool = False,
     recursive: bool = False,
 ) -> object:
-    """Project one value through its canonical registered descriptor."""
+    """Project one value through its canonical registered descriptor.
+
+    A value outside the concern's closed shape raises ``ValueError`` or, for an
+    unvalidated value of the wrong Python type, ``TypeError``.
+    """
 
     descriptor = realization_concern_descriptor(concern_kind)
-    return descriptor.project(value, observed=observed, recursive=recursive) if descriptor is not None else value
+    return (
+        descriptor.project(value, observed=observed, recursive=recursive)
+        if descriptor is not None
+        else portable_realization_value(value)
+    )
 
 
 __all__ = [

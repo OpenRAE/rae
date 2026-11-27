@@ -12,8 +12,8 @@ at instantiation time when a backend deploys the scenario.
 from enum import Enum
 
 from pydantic import Field, field_validator, model_validator
-
-from ._base import SDLModel, normalize_enum_value
+from raes_contracts.sdl_model import SDLModel
+from raes_contracts.variable_references import normalize_enum_value
 
 
 class VariableType(str, Enum):
@@ -58,7 +58,7 @@ class Variable(SDLModel):
         return normalize_enum_value(v)
 
     @model_validator(mode="after")
-    def validate_typed_values(self) -> "Variable":
+    def validate_typed_values(self) -> Variable:
         """Defaults and allowed values must match the declared type."""
         if self.default is not None and not _matches_variable_type(self.default, self.type):
             raise ValueError(f"default must match variable type '{self.type.value}'")

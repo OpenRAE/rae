@@ -6,6 +6,8 @@ from dataclasses import replace
 from typing import cast
 from uuid import uuid4
 
+from raes_contracts.diagnostics import Diagnostic
+from raes_contracts.errors import ConflictError
 from raes_contracts.planning import RuntimeDomain
 from raes_contracts.runtime_state import (
     ApplyResult,
@@ -16,8 +18,9 @@ from raes_contracts.runtime_state import (
     RuntimeSnapshot,
     operation_terminal_diagnostics,
 )
+from raes_contracts.timestamps import isoformat_z
 
-from .control_plane_execution import _utc_now, apply_authorized_participant_action
+from .control_plane_execution import apply_authorized_participant_action
 from .control_plane_mutation import control_plane_mutation
 from .control_plane_operation_context import legacy_operation_request_commitment, operation_admission_context
 from .control_plane_store import AuditEvent, ControlPlaneOperationRecord, terminal_operation_audit
@@ -42,7 +45,7 @@ def _new_lifecycle_operation(
         identity=identity,
     )
     operation_id = str(uuid4())
-    submitted_at = _utc_now()
+    submitted_at = isoformat_z(control_plane.wall_clock())
     prepared = prepare_mixed_lifecycle_dispatch(control_plane, request, method_name, operation_id, identity)
     receipt = OperationReceipt(
         operation_id=operation_id,
@@ -75,7 +78,7 @@ def _authorize_lifecycle(
     prepared: PreparedMixedLifecycleDispatch,
     action: str,
 ) -> ControlPlaneOperationRecord:
-    authorized_at = _utc_now()
+    authorized_at = isoformat_z(control_plane.wall_clock())
     running = cast(
         ControlPlaneOperationRecord,
         replace(
@@ -125,8 +128,8 @@ def _terminal_lifecycle_record(
     running: ControlPlaneOperationRecord,
     result: ApplyResult,
     snapshot: RuntimeSnapshot,
+    final_state: OperationState,
 ) -> ControlPlaneOperationRecord:
-    final_state = OperationState.SUCCEEDED if result.success else OperationState.FAILED
     history_key = f"mixed_composition_history:{control_plane._mixed_runtime.entry.run_id}"
     history_head = snapshot.mixed_composition_states[control_plane._mixed_runtime.entry.run_id]["history_head"]
     return cast(
@@ -136,13 +139,41 @@ def _terminal_lifecycle_record(
             status=replace(
                 running.status,
                 state=final_state,
-                updated_at=_utc_now(),
+                updated_at=isoformat_z(control_plane.wall_clock()),
                 diagnostics=operation_terminal_diagnostics(final_state, result.diagnostics),
                 changed_addresses=list(result.changed_addresses),
             ),
             result_history_heads={history_key: history_head},
         ),
     )
+
+
+def _retain_lifecycle_result(
+    control_plane: object, result: ApplyResult, operation_id: str
+) -> tuple[ApplyResult, RuntimeSnapshot, OperationState]:
+    binding = control_plane.participant_episode
+    if result.success and binding is not None:
+        try:
+            binding.require_snapshot(result.snapshot)
+        except ConflictError:
+            # An effect ran, but its policy outcome is unproved. Retain the
+            # durable attempt and exclusion rather than claiming a rollback.
+            result = ApplyResult(
+                False,
+                control_plane.snapshot,
+                diagnostics=[
+                    Diagnostic(
+                        code="runtime.participant-episode-result-unverified",
+                        domain="participant",
+                        address="runtime.control-plane.participant",
+                        message="Returned episode history violates the installed policy; reconciliation is required.",
+                    )
+                ],
+            )
+            return result, result.snapshot, OperationState.INDETERMINATE
+    snapshot = record_mixed_lifecycle_result(control_plane, result.snapshot, operation_id, success=result.success)
+    state = OperationState.SUCCEEDED if result.success else OperationState.FAILED
+    return result, snapshot, state
 
 
 def execute_mixed_participant_lifecycle(
@@ -160,6 +191,8 @@ def execute_mixed_participant_lifecycle(
     del request_fingerprint
     with control_plane_mutation(control_plane, OperationKind.PARTICIPANT_ACTION):
         control_plane._reload_derived_state()
+        if control_plane.participant_episode is not None:
+            control_plane.participant_episode.require_request(request)
         receipt, accepted, prepared = _new_lifecycle_operation(
             control_plane,
             request,
@@ -178,13 +211,10 @@ def execute_mixed_participant_lifecycle(
             return claimed.receipt
         running = _authorize_lifecycle(control_plane, accepted, prepared, action)
         result = _apply_lifecycle(control_plane, request, prepared)
-        snapshot = record_mixed_lifecycle_result(
-            control_plane,
-            result.snapshot,
-            receipt.operation_id,
-            success=result.success,
+        result, snapshot, final_state = _retain_lifecycle_result(control_plane, result, receipt.operation_id)
+        terminal: ControlPlaneOperationRecord = _terminal_lifecycle_record(
+            control_plane, running, result, snapshot, final_state
         )
-        terminal: ControlPlaneOperationRecord = _terminal_lifecycle_record(control_plane, running, result, snapshot)
         control_plane._commit_participant_transition(
             expected_history_heads=prepared.committed_history_heads,
             snapshot=snapshot,

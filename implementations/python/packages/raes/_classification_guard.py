@@ -5,8 +5,7 @@ from typing import ClassVar
 
 from pydantic import model_validator
 from pydantic_core import PydanticCustomError
-
-from ._base import SDLModel
+from raes_contracts.sdl_model import SDLModel
 
 CLASSIFICATION_MIGRATION_CODE = "sdl.classification-migration-required"
 CLASSIFICATION_MIGRATION_MESSAGE = (

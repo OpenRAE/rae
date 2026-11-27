@@ -10,7 +10,7 @@ from jsonschema import Draft202012Validator
 from pydantic import ValidationError
 from raes_backend_stubs.stubs import create_stub_target
 from raes_conformance.conformance import _semantic_diagnostics
-from raes_contracts.contracts import ParticipantSharedStateRecordModel, schema_bundle
+from raes_contracts.contracts import ParticipantSharedStateRecordModel
 from raes_contracts.participant_shared_state import (
     iter_participant_shared_state_history_transition_violations,
     iter_participant_shared_state_snapshot_violations,
@@ -24,6 +24,7 @@ from raes_runtime.control_plane_security import (
     ControlPlaneRole,
     ControlPlaneSecurityConfig,
 )
+from raes_schemas import schema_bundle
 from starlette.testclient import TestClient
 
 PARTICIPANT = "participants.red.llm"

@@ -10,12 +10,13 @@ from pydantic_core import CoreSchema
 
 from raes_contracts.canonical import canonical_json_digest
 
+from .._sealing import sealing_active
 from ..versions import (
     SDL_CANDIDATE_SYNTHESIS_INPUT_SCHEMA_VERSION,
     SDL_CANDIDATE_SYNTHESIS_PROFILE_SCHEMA_VERSION,
 )
 from .base import ContractModel, NonEmptyString, PrefixedDigestString
-from .schema_invariants import _add_raes_invariant
+from .schema_invariants import add_raes_invariant
 
 StableId = Annotated[
     str,
@@ -94,7 +95,7 @@ class CandidateSynthesisProfileDefinitionModel(ContractModel):
             if values != tuple(sorted(set(values))):
                 raise ValueError(f"candidate synthesis profile {label} must be sorted and unique")
         expected = canonical_json_digest(self.model_dump(mode="json", exclude={"profile_digest"}))
-        if self.profile_digest != expected:
+        if not sealing_active() and self.profile_digest != expected:
             raise ValueError("candidate synthesis profile_digest does not match the complete profile artifact")
         return self
 
@@ -112,7 +113,7 @@ class CandidateSynthesisProfileDefinitionModel(ContractModel):
         handler: GetJsonSchemaHandler,
     ) -> JsonSchemaValue:
         schema = handler.resolve_ref_schema(handler(core_schema))
-        _add_raes_invariant(
+        add_raes_invariant(
             schema,
             "candidate-synthesis-complete-profile-digest",
             "The profile digest covers every output-affecting rule, default, limit, and refusal posture.",

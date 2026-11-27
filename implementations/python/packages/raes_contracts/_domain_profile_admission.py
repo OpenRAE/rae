@@ -193,19 +193,18 @@ def _admit_unresolved_binding(
         )
     try:
         _inspect_json_value(binding.value, _InspectionBudget(context.limits))
-        result = _admission_result(
-            binding,
-            DomainProfileAdmissionOutcome.OPAQUE_PRESERVED,
-            opaque=True,
-            resolution_outcome=resolution.outcome,
-        )
     except _ProfileAdmissionError as exc:
-        result = _admission_result(
+        return _admission_result(
             binding,
             exc.outcome,
             resolution_outcome=resolution.outcome,
         )
-    return result
+    return _admission_result(
+        binding,
+        DomainProfileAdmissionOutcome.OPAQUE_PRESERVED,
+        opaque=True,
+        resolution_outcome=resolution.outcome,
+    )
 
 
 def _resolved_support(
@@ -241,20 +240,19 @@ def _admit_resolved_binding(
         selected_required, support = _resolved_support(binding, definition, context, required)
         if DomainProfileOperation.STRUCTURAL_VALIDATION in selected_required:
             _validate_structural_value(binding, definition, support, context.limits)
-        result = _admission_result(
-            binding,
-            DomainProfileAdmissionOutcome.VALIDATED,
-            semantics_supported=bool(set(support.operations) - {DomainProfileOperation.STRUCTURAL_VALIDATION}),
-            provenance=resolution.provenance,
-            resolution_outcome=resolution.outcome,
-        )
     except _ProfileAdmissionError as exc:
-        result = _admission_result(
+        return _admission_result(
             binding,
             exc.outcome,
             resolution_outcome=resolution.outcome,
         )
-    return result
+    return _admission_result(
+        binding,
+        DomainProfileAdmissionOutcome.VALIDATED,
+        semantics_supported=bool(set(support.operations) - {DomainProfileOperation.STRUCTURAL_VALIDATION}),
+        provenance=resolution.provenance,
+        resolution_outcome=resolution.outcome,
+    )
 
 
 def _admit_one_binding(

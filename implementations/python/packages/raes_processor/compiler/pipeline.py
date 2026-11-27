@@ -3,15 +3,18 @@
 from collections.abc import Mapping
 
 from raes import build_declaration_index
+from raes.descriptor_profiles import authored_descriptor_profiles
 from raes.instantiate import admit_instantiated_scenario, instantiate_scenario
 from raes.materialization import MaterializedScenario, admit_materialized_scenario
+from raes.observation_scope import resolve_safe_states
 from raes.scenario import ExpandedScenario, InstantiatedScenario, Scenario
 from raes.semantics.domain_topology import (
     analyze_domain_topology,
 )
-from raes.value_parsing import is_variable_ref
+from raes_contracts.errors import InvalidInputError
 from raes_contracts.realization_profiles import PlanProfileAuthority
 from raes_contracts.realization_structure import validate_realization_value
+from raes_contracts.variable_references import is_variable_ref
 
 from ..capture_admission import compile_scenario_capture_demands
 from ..models import (
@@ -29,6 +32,7 @@ from .orchestration import (
     _compile_scripts,
     _compile_stories,
 )
+from .participant_autonomous_execution import with_invocation_tool_bindings
 from .participant_behaviors import (
     _compile_behavior_specifications,
     _compile_participant_behaviors,
@@ -39,6 +43,7 @@ from .participant_contracts import (
     _compile_observation_boundaries,
     _compile_outcome_interpretation_rules,
 )
+from .participant_episode_policies import compile_participant_episode_policies
 from .participant_inject_deliveries import _compile_participant_inject_deliveries
 from .placement import (
     _compile_account_placements,
@@ -82,7 +87,7 @@ def _admitted_profile_authority(profile_authority: PlanProfileAuthority | None) 
     if profile_authority is None:
         return None
     if not validate_realization_value(profile_authority, python_carriers=True).conformant:
-        raise ValueError("Plan profile carrier exceeds bounded public input limits")
+        raise InvalidInputError("Plan profile carrier exceeds bounded public input limits")
     return PlanProfileAuthority.model_validate(profile_authority.model_dump(mode="json"))
 
 
@@ -142,15 +147,22 @@ def _compiled_behavior_parts(
     realization_requirements, realization_authority = (
         ((), ()) if descriptive else _compile_realization(scenario, domain_analysis)
     )
+    action_contracts = _compile_action_contracts(scenario)
+    observation_boundaries = _compile_observation_boundaries(scenario)
+    outcome_interpretation_rules = _compile_outcome_interpretation_rules(scenario)
+    participant_behaviors = _compile_participant_behaviors(scenario, diagnostics)
+    behavior_specifications = _compile_behavior_specifications(scenario, diagnostics)
+    tool_affordances = _compile_tool_affordances(scenario, diagnostics)
     return {
         "assertions": assertions,
-        "action_contracts": _compile_action_contracts(scenario),
-        "observation_boundaries": _compile_observation_boundaries(scenario),
-        "outcome_interpretation_rules": _compile_outcome_interpretation_rules(scenario),
-        "participant_behaviors": _compile_participant_behaviors(scenario, diagnostics),
-        "behavior_specifications": _compile_behavior_specifications(scenario, diagnostics),
-        "tool_affordances": _compile_tool_affordances(scenario, diagnostics),
-        "participant_inject_deliveries": _compile_participant_inject_deliveries(scenario),
+        "action_contracts": action_contracts,
+        "observation_boundaries": observation_boundaries,
+        "outcome_interpretation_rules": outcome_interpretation_rules,
+        "participant_behaviors": participant_behaviors,
+        "behavior_specifications": with_invocation_tool_bindings(scenario, behavior_specifications, tool_affordances),
+        "tool_affordances": tool_affordances,
+        "participant_inject_deliveries": _compile_participant_inject_deliveries(scenario, diagnostics),
+        "participant_episode_policies": compile_participant_episode_policies(scenario, declaration_index),
         "events": _compile_events(
             scenario, assertions, structure["injects"], structure["inject_bindings"], diagnostics
         ),
@@ -200,8 +212,10 @@ def compile_runtime_model(
     )
     return RuntimeModel(
         scenario_name=scenario.name,
+        safe_states=resolve_safe_states(scenario),
         execution_policies=compile_execution_policies(scenario, {**structure, **behavior}),
         profile_authority=authority,
+        descriptor_profile_bindings=authored_descriptor_profiles(scenario),
         realization_instance=scenario if isinstance(scenario, InstantiatedScenario) else None,
         materialization_description=scenario if isinstance(scenario, MaterializedScenario) else None,
         diagnostics=diagnostics,

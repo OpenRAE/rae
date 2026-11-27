@@ -2,7 +2,56 @@
 
 from typing import Any
 
+from raes_contracts.errors import InvalidInputError
+
 _VISIBLE_VIEW_DISPOSITIONS = frozenset({"observable", "discovered", "inferred", "disclosed", "deceptive"})
+
+
+def _normalize_visibility_references(
+    boundary_spec: dict[str, Any], addressable_ref_index: dict[str, set[str]]
+) -> dict[str, Any]:
+    """Resolve observation references without modifying the authored specification."""
+
+    def resolve(ref: str) -> str:
+        matches = addressable_ref_index.get(ref, set())
+        if len(matches) > 1:
+            raise InvalidInputError("ambiguous observation visibility reference: " + ref[:128])
+        return next(iter(matches)) if matches else ref
+
+    normalized = dict(boundary_spec)
+    for field in ("observable_refs", "hidden_refs", "evidence_refs"):
+        normalized[field] = list(dict.fromkeys(resolve(str(ref)) for ref in boundary_spec.get(field, [])))
+    for field in ("view_rules", "view_transitions"):
+        normalized[field] = [
+            {**item, "information_ref": resolve(str(item["information_ref"]))} for item in boundary_spec.get(field, [])
+        ]
+    return normalized
+
+
+def _visibility_aliases_by_address(
+    address_index: dict[str, set[str]],
+) -> dict[str, dict[str, tuple[str, ...]]]:
+    """Index aliases once; retain ambiguity for fail-closed history checks."""
+    aliases: dict[str, dict[str, tuple[str, ...]]] = {}
+    for ref, matches in address_index.items():
+        targets = tuple(sorted(matches))
+        if targets == (ref,):
+            continue
+        for address in targets:
+            aliases.setdefault(address, {})[ref] = targets
+    return aliases
+
+
+def _boundary_reference_aliases(
+    spec: dict[str, Any], aliases_by_address: dict[str, dict[str, tuple[str, ...]]]
+) -> dict[str, tuple[str, ...]]:
+    """Carry only aliases that can refer to this boundary's policy items."""
+    refs = {ref for field in ("observable_refs", "hidden_refs", "evidence_refs") for ref in spec.get(field, [])}
+    refs.update(item["information_ref"] for field in ("view_rules", "view_transitions") for item in spec.get(field, []))
+    aliases: dict[str, tuple[str, ...]] = {}
+    for ref in sorted(refs):
+        aliases.update(aliases_by_address.get(ref, {}))
+    return dict(sorted(aliases.items()))
 
 
 def _initial_view_relation(*, view_rules: list[Any]) -> dict[str, str]:
@@ -15,6 +64,8 @@ def _initial_view_relation(*, view_rules: list[Any]) -> dict[str, str]:
         if not information_ref or not disposition:
             continue
         ref = str(information_ref)
+        if ref in view_relation and view_relation[ref] != str(disposition):
+            raise InvalidInputError("conflicting observation visibility dispositions: " + ref[:128])
         view_relation[ref] = str(disposition)
     return view_relation
 
@@ -89,7 +140,10 @@ def _compile_view_relation_timeline(
         to_disposition = transition.get("to_disposition")
         if not information_ref or not to_disposition:
             continue
-        view_relation[str(information_ref)] = str(to_disposition)
+        ref = str(information_ref)
+        if ref in view_relation and transition.get("from_disposition") != view_relation[ref]:
+            raise InvalidInputError("conflicting observation visibility transition: " + ref[:128])
+        view_relation[ref] = str(to_disposition)
         timeline.append(
             _view_relation_snapshot(
                 transition_id=str(transition.get("transition_id") or ""),

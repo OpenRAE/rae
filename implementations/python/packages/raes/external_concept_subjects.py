@@ -9,8 +9,8 @@ from raes_contracts.contracts.external_concept_bindings import (
     ExternalConceptLifecyclePhase,
     ExternalConceptSubjectModel,
 )
+from raes_contracts.variable_references import contains_variable_token
 
-from ._base import contains_variable_token
 from ._declarations import build_declaration_index
 from .canonical import canonical_instantiated_sdl_digest, canonical_sdl_digest
 from .scenario import ExpandedScenario, InstantiatedScenario, Scenario, ScenarioContent

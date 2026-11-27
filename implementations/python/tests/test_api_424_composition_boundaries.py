@@ -46,7 +46,9 @@ def test_zero_remaining_trigger_bound_rejects_new_effect(bound):
 def test_ifc_result_requires_its_selected_domain():
     payload = evaluation_payload()
     profile = payload["request"]["selection"]["bindings"][0]["profiles"][0]
-    from raes_contracts.participant_flow_policy_profiles import PARTICIPANT_BOUNDARY_FLOW_POLICY_PROFILE_REV1_DIGEST
+    from raes_contracts.contracts.participant_flow_policy_profiles import (
+        PARTICIPANT_BOUNDARY_FLOW_POLICY_PROFILE_REV1_DIGEST,
+    )
 
     profile.update(
         ref="participant-boundary-flow-policy-v1", digest=PARTICIPANT_BOUNDARY_FLOW_POLICY_PROFILE_REV1_DIGEST

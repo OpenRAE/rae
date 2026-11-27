@@ -127,7 +127,6 @@
         "condition_id": "baseline",
         "replicate_id": null
       },
-      "entry_digest": "sha256:e1e0533ce89453684a554361eee26f2c561b2675172710cb161358e6f8c67eec",
       "execution_controls": {
         "attempt_timeout_seconds": 600,
         "cleanup_plan_ref": "cleanup-a",
@@ -211,8 +210,6 @@
       "ref_version": "1"
     }
   },
-  "isolation_proof": null,
-  "plan_digest": "sha256:6cf259e1cd9d60745dec7ae118be964aca47a65606fed309a10db14cb52ba5db",
   "plan_id": "plan-a",
   "profiles": {
     "canonicalization_profile": "jcs-sha256-v1",
@@ -222,7 +219,6 @@
     "entry_identity_profile": "trial-entry-identity-v1",
     "execution_control_profile": "attempt-control-v1",
     "integrity_profile": "acyclic-digest-chain-v1",
-    "isolation_profile": "scheduler-isolation-v1",
     "random_stream_profile": "blake3-xof-v1",
     "run_identity_profile": "archival-run-identity-v1",
     "selection_policy_profile": "experiment-selection-v1"

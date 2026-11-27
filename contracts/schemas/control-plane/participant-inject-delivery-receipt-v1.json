@@ -1,0 +1,311 @@
+{
+  "$defs": {
+    "InjectOccurrenceCorrelationModel": {
+      "additionalProperties": false,
+      "description": "Exact applied occurrence, settled outcome and produced result a participant consumer joins.",
+      "properties": {
+        "occurrence": {
+          "$ref": "#/$defs/OperationArtifactReferenceModel"
+        },
+        "outcome": {
+          "$ref": "#/$defs/OperationArtifactReferenceModel"
+        },
+        "result": {
+          "$ref": "#/$defs/OperationArtifactReferenceModel"
+        },
+        "schema_version": {
+          "const": "inject-occurrence-correlation/v1",
+          "default": "inject-occurrence-correlation/v1",
+          "title": "Schema Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "occurrence",
+        "outcome",
+        "result"
+      ],
+      "title": "InjectOccurrenceCorrelationModel",
+      "type": "object"
+    },
+    "OperationArtifactReferenceModel": {
+      "additionalProperties": false,
+      "description": "Content-bound reference resolved through the owning admitted artifact authority.",
+      "properties": {
+        "artifact_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Artifact Id",
+          "type": "string"
+        },
+        "contract_id": {
+          "maxLength": 128,
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*-v[0-9]+$",
+          "title": "Contract Id",
+          "type": "string"
+        },
+        "digest": {
+          "pattern": "^sha256:[a-f0-9]{64}$",
+          "title": "Digest",
+          "type": "string"
+        }
+      },
+      "required": [
+        "contract_id",
+        "artifact_id",
+        "digest"
+      ],
+      "title": "OperationArtifactReferenceModel",
+      "type": "object"
+    },
+    "ParticipantInjectApplicationModel": {
+      "additionalProperties": false,
+      "description": "Caller selection; the runtime resolves and authorizes every join independently.",
+      "properties": {
+        "control": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ParticipantInjectControlReferenceModel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "delivery_address": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Delivery Address",
+          "type": "string"
+        },
+        "delivery_digest": {
+          "minLength": 1,
+          "pattern": "^(?:sha256:[A-Fa-f0-9]{64}|sha384:[A-Fa-f0-9]{96}|sha512:[A-Fa-f0-9]{128}|blake3:[A-Fa-f0-9]{64})$",
+          "title": "Delivery Digest",
+          "type": "string"
+        },
+        "episode_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Episode Id",
+          "type": "string"
+        },
+        "expected_snapshot_revision": {
+          "minimum": 0,
+          "title": "Expected Snapshot Revision",
+          "type": "integer"
+        },
+        "participant_address": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Participant Address",
+          "type": "string"
+        },
+        "request_key": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Request Key",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "participant-inject-application/v1",
+          "default": "participant-inject-application/v1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "world_operation_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "World Operation Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "request_key",
+        "world_operation_id",
+        "delivery_address",
+        "delivery_digest",
+        "participant_address",
+        "episode_id",
+        "expected_snapshot_revision"
+      ],
+      "title": "ParticipantInjectApplicationModel",
+      "type": "object"
+    },
+    "ParticipantInjectContentModel": {
+      "additionalProperties": false,
+      "description": "Owner-projected content with explicit encoding; no implicit world-evidence copy.",
+      "properties": {
+        "application": {
+          "$ref": "#/$defs/ParticipantInjectApplicationModel"
+        },
+        "content": {
+          "maxLength": 87384,
+          "title": "Content",
+          "type": "string"
+        },
+        "content_encoding": {
+          "default": "utf-8",
+          "enum": [
+            "utf-8",
+            "base64"
+          ],
+          "title": "Content Encoding",
+          "type": "string"
+        },
+        "correlation": {
+          "$ref": "#/$defs/InjectOccurrenceCorrelationModel"
+        },
+        "disclosed_item": {
+          "$ref": "#/$defs/OperationArtifactReferenceModel"
+        },
+        "episode_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Episode Id",
+          "type": "string"
+        },
+        "media_type": {
+          "default": "text/plain",
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[a-zA-Z0-9.+-]+/[a-zA-Z0-9.+-]+$",
+          "title": "Media Type",
+          "type": "string"
+        },
+        "observation_boundary_ref": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Observation Boundary Ref",
+          "type": "string"
+        },
+        "participant_address": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Participant Address",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "participant-inject-delivery/v1",
+          "default": "participant-inject-delivery/v1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "source_snapshot_ref": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Source Snapshot Ref",
+          "type": "string"
+        },
+        "view_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "View Id",
+          "type": "string"
+        },
+        "visibility_projection_ref": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Visibility Projection Ref",
+          "type": "string"
+        }
+      },
+      "required": [
+        "view_id",
+        "participant_address",
+        "episode_id",
+        "application",
+        "source_snapshot_ref",
+        "correlation",
+        "disclosed_item",
+        "visibility_projection_ref",
+        "observation_boundary_ref",
+        "content"
+      ],
+      "title": "ParticipantInjectContentModel",
+      "type": "object"
+    },
+    "ParticipantInjectControlReferenceModel": {
+      "additionalProperties": false,
+      "description": "One accepted application, never a reusable permission or latest-event query.",
+      "properties": {
+        "digest": {
+          "minLength": 1,
+          "pattern": "^(?:sha256:[A-Fa-f0-9]{64}|sha384:[A-Fa-f0-9]{96}|sha512:[A-Fa-f0-9]{128}|blake3:[A-Fa-f0-9]{64})$",
+          "title": "Digest",
+          "type": "string"
+        },
+        "event_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Event Id",
+          "type": "string"
+        },
+        "occurrence_revision": {
+          "maximum": 1000000,
+          "minimum": 1,
+          "title": "Occurrence Revision",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "event_id",
+        "occurrence_revision",
+        "digest"
+      ],
+      "title": "ParticipantInjectControlReferenceModel",
+      "type": "object"
+    }
+  },
+  "$id": "https://openrae.github.io/rae/schemas/participant-inject-delivery-receipt-v1.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Durable delivery operation identity and its governed local result.",
+  "properties": {
+    "delivery": {
+      "$ref": "#/$defs/ParticipantInjectContentModel"
+    },
+    "operation_id": {
+      "maxLength": 256,
+      "minLength": 1,
+      "title": "Operation Id",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "participant-inject-delivery-receipt/v1",
+      "default": "participant-inject-delivery-receipt/v1",
+      "title": "Schema Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "operation_id",
+    "delivery"
+  ],
+  "title": "ParticipantInjectDeliveryReceiptModel",
+  "type": "object",
+  "x-raes-invariants": [
+    {
+      "description": "Bind the durable operation identity to its governed local delivery result; this is neither participant observation nor external transport acknowledgement.",
+      "id": "participant-inject-delivery-receipt-local-consistency",
+      "inputs": [
+        {
+          "contract_id": "participant-inject-delivery-receipt-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error",
+      "validator": "raes_contracts.contracts.ParticipantInjectDeliveryReceiptModel.model_validate"
+    }
+  ],
+  "x-raes-semantic-profile": {
+    "contract_id": "participant-inject-delivery-receipt-v1",
+    "entry_schema_contract_id": "raes-semantic-invariants-v1",
+    "entry_schema_pointer": "#/$defs/RaesSemanticInvariantEntryModel",
+    "id": "raes-semantic-invariants-v1",
+    "keyword": "x-raes-invariants",
+    "required": true,
+    "uri": "https://openrae.github.io/rae/schemas/semantic-invariants/v1"
+  }
+}

@@ -37,3 +37,4 @@ Requirement inventory expansion. Multi-participant experiments require runtime s
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/compiler/participant_autonomous_execution.py` (Compiled action-interaction footprints and explicit concurrent composition authority)
 - IMPLEMENTS → SPEC `contracts/schemas/sdl/sdl-authoring-input-v1.json` (Authored participant-interaction commutativity and merge-rule declarations)
 - TESTS → TEST `implementations/python/tests/test_participant_concurrent_batch_reservations.py` (Concurrent reservation failure and rollback regressions)
+- TESTS → TEST `implementations/python/tests/test_issue_1373_history_consumers.py` (Stored shared-state and concurrency references retain validation)

@@ -15,7 +15,7 @@ from raes_conformance.conformance.validators import (
     _SEMANTIC_CONTEXT_REQUIRED_CONTRACTS,
     _STRUCTURAL_ONLY_VALIDATORS,
 )
-from raes_contracts.contracts import ExternalConceptBindingDocumentModel, schema_bundle
+from raes_contracts.contracts import ExternalConceptBindingDocumentModel
 from raes_contracts.contracts.external_concept_bindings import (
     ExternalConceptApproximationPosture,
     ExternalConceptConfidencePosture,
@@ -39,6 +39,7 @@ from raes_contracts.vocabulary_sources import (
     load_fipa_communicative_acts_source,
     load_nist_csf_defensive_categories_source,
 )
+from raes_schemas import schema_bundle
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 FIXTURE_ROOT = REPO_ROOT / "contracts" / "fixtures" / "concept-authority" / "external-concept-bindings-v1"

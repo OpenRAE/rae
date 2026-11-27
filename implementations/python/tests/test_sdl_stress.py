@@ -15,9 +15,10 @@ def _parse(yaml_str: str, label: str):
     """Parse SDL and report what worked and what didn't."""
     try:
         s = parse_sdl(textwrap.dedent(yaml_str))
-        return s, None
     except (SDLParseError, SDLValidationError) as e:
         return None, e
+    else:
+        return s, None
 
 
 # -----------------------------------------------------------------------

@@ -9,6 +9,8 @@ resolves.
 
 from __future__ import annotations
 
+import json
+from collections.abc import Hashable
 from pathlib import Path
 
 from tools.policy.common import PolicyFailure
@@ -77,7 +79,11 @@ def _duplicate_reason(source: dict[str, object], seen: set[tuple[str, object]]) 
     identity is the pair rather than the artifact alone.
     """
 
-    identity = (str(source["path"]), source.get("pointer"))
+    pointer = source.get("pointer")
+    # An object or list pointer has no hash, so its JSON text identifies it; the
+    # embedded-source check refuses such a pointer later.
+    node = pointer if isinstance(pointer, Hashable) else ("unhashable", json.dumps(pointer, sort_keys=True))
+    identity = (str(source["path"]), node)
     if identity in seen:
         return f"coverage sources must be unique: {identity[0]}"
     seen.add(identity)

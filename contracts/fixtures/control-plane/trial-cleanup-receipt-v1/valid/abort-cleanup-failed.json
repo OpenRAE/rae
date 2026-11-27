@@ -1,0 +1,21 @@
+{
+  "schema_version": "trial-cleanup-receipt/v1",
+  "receipt_id": "receipt-abort-failed",
+  "cleanup_plan_ref": "cleanup-plan-a",
+  "plan_entry_id": "trial-entry-a",
+  "run_id": "run-a",
+  "execution_attempt_id": "attempt-abort-failed",
+  "trial_outcome": "aborted",
+  "cleanup_status": "failed",
+  "obligation_results": {
+    "destroy-range": {
+      "obligation_id": "destroy-range",
+      "status": "failed",
+      "evidence_refs": [],
+      "residual_state_refs": [
+        "residual:network.lab-a"
+      ]
+    }
+  },
+  "clean_state_claim": null
+}

@@ -1,11 +1,15 @@
-# Supply Chain Specs
+# Supply chain specs
 
-Normative prose for the **Packaging & Supply Chain** wave, under the
-[RAES SDL authority boundary](../authority/authority-boundary.yaml). Documents
-here are authoritative independent of any reference implementation.
+Find exact rules for reusable assets and artifact evidence here.
+These references cover the **Packaging & Supply Chain** wave under the
+[RAES SDL authority boundary](../authority/authority-boundary.yaml).
+Their authority does not depend on a reference implementation.
 
 ## Contents
 
+- [Participant control-context assets](participant-control-context-assets.md) —
+  immutable instruction, directive, policy, and guidance versions with scoped
+  lifecycle, selection, withholding, and separate delivery evidence (ACT-620).
 - [`reusable-asset-trust-integrity.md`](reusable-asset-trust-integrity.md) —
   the reusable-asset trust, authenticity, and integrity policy model
   (GOV-913, [ADR-071](../../docs/decisions/adrs/adr-071-reusable-asset-trust-and-integrity-policy.md)).

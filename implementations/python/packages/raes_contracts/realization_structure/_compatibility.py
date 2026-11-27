@@ -6,14 +6,9 @@ from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 
 from ..diagnostics import Diagnostic
+from ..json_pointer import pointer_from_tokens
 from ._build import RealizationConstraintBuildResult, build_failure
-from ._common import (
-    RelationBudget,
-    actual_identity,
-    pointer,
-    recursive_diagnostic,
-    validate_bounded_value,
-)
+from ._common import RelationBudget, actual_identity, recursive_diagnostic, validate_bounded_value
 from ._compatibility_checks import CompatibilityLimit
 from ._compatibility_downgrade_helpers import (
     RecursiveDowngrader,
@@ -107,7 +102,7 @@ def _upgrade_legacy_node(
     semantic_profile: str,
     budget: RelationBudget,
 ) -> tuple[RecursiveRealizationStructure | None, RealizationConstraintBuildResult | None]:
-    current_pointer = pointer(path)
+    current_pointer = pointer_from_tokens(path)
     node = None
     failure = None
     if exhausted := budget.spend_node(len(path)):
@@ -140,7 +135,7 @@ def _upgrade_record_fields(
         if key not in expected:
             failure = build_failure(
                 RealizationRelationStatus.UNSUPPORTED,
-                pointer((*path, key)),
+                pointer_from_tokens((*path, key)),
                 "A legacy record child absent from its baseline has no lossless recursive form.",
             )
         else:
@@ -191,7 +186,7 @@ def _legacy_record_precondition(
     if not isinstance(expected, Mapping):
         failure = build_failure(
             RealizationRelationStatus.INVALID,
-            pointer(path),
+            pointer_from_tokens(path),
             "Legacy record conversion requires a record baseline.",
         )
     if failure is None:
@@ -204,7 +199,7 @@ def _legacy_record_precondition(
     if failure is None and any(key.endswith(("_present", "_commitment")) for key in structure.fields):
         failure = build_failure(
             RealizationRelationStatus.UNSUPPORTED,
-            pointer(path),
+            pointer_from_tokens(path),
             "Recursive conversion does not reinterpret legacy suffixed field names.",
         )
     if failure is None:
@@ -212,7 +207,7 @@ def _legacy_record_precondition(
         if not structure.additional and set(expected) != set(structure.fields):
             failure = build_failure(
                 RealizationRelationStatus.UNSUPPORTED,
-                pointer(path),
+                pointer_from_tokens(path),
                 "A closed legacy record with unbound baseline fields has no lossless recursive form.",
             )
     return failure
@@ -234,7 +229,7 @@ def _upgrade_collection_members(
         if exhausted := budget.spend_identity():
             failure = build_failure(
                 RealizationRelationStatus.LIMIT_EXCEEDED,
-                pointer(path),
+                pointer_from_tokens(path),
                 f"Legacy collection conversion exceeded {exhausted}.",
             )
         else:
@@ -288,7 +283,7 @@ def _legacy_collection_baseline(
     if not isinstance(expected, list):
         failure = build_failure(
             RealizationRelationStatus.INVALID,
-            pointer(path),
+            pointer_from_tokens(path),
             "Legacy collection conversion requires a list baseline.",
         )
     if failure is None:
@@ -304,7 +299,7 @@ def _legacy_collection_baseline(
     if failure is None and (indexed is None or set(indexed) != set(structure.members)):
         failure = build_failure(
             RealizationRelationStatus.INVALID,
-            pointer(path),
+            pointer_from_tokens(path),
             "Legacy collection identities disagree with the baseline.",
         )
     return indexed, failure
@@ -382,7 +377,7 @@ def _attempt_recursive_downgrade(
         )
     else:
         if error is not None:
-            diagnostic = recursive_diagnostic("realization.unsupported", pointer(error[0]), error[1])
+            diagnostic = recursive_diagnostic("realization.unsupported", pointer_from_tokens(error[0]), error[1])
             result = RealizationCompatibilityResult(
                 RealizationRelationStatus.UNSUPPORTED,
                 diagnostics=(diagnostic,),
@@ -411,7 +406,7 @@ def _downgrade_recursive_node(
     budget: RelationBudget,
 ) -> tuple[RealizationStructure | None, tuple[tuple[str, ...], str] | None]:
     if exhausted := budget.spend_node(len(path)):
-        raise CompatibilityLimit(pointer(path), f"Legacy projection exceeded {exhausted}.")
+        raise CompatibilityLimit(pointer_from_tokens(path), f"Legacy projection exceeded {exhausted}.")
     result: tuple[RealizationStructure | None, tuple[tuple[str, ...], str] | None]
     if node.presence is not RealizationPresence.REQUIRED or node.origin is not RealizationOrigin.AUTHOR:
         result = (None, (path, "Legacy structure cannot preserve presence or non-author origin."))
@@ -489,7 +484,7 @@ def _budgeted_indexed_collection(
         if exhausted := budget.spend_identity():
             return None, build_failure(
                 RealizationRelationStatus.LIMIT_EXCEEDED,
-                pointer(path),
+                pointer_from_tokens(path),
                 f"Legacy collection conversion exceeded {exhausted}.",
             )
         identity = realization_member_identity(item, fields)

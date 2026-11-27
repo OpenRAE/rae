@@ -1,15 +1,20 @@
 """Compilation of autonomous participant execution policies."""
 
+from collections.abc import Mapping
+from dataclasses import replace
 from typing import Any
 
+from raes import ReferencePurpose
 from raes.scenario import InstantiatedScenario
 
 from ..models import (
     ParticipantAutonomousExecutionRuntime,
     ParticipantExecutionBindingRuntime,
+    ParticipantInvocationToolBindingRuntime,
     ParticipantResourceDemandRuntime,
     ParticipantResourceFairnessRuntime,
     ParticipantResourceOwnerRuntime,
+    ParticipantToolAffordanceRuntime,
 )
 from .addresses import (
     _action_contract_address,
@@ -162,6 +167,23 @@ def _compiled_resource_budget(
     )
 
 
+def _action_target_addresses(action: object, addressable_ref_index: object) -> tuple[str, ...]:
+    """Derive the authored target relation of one action from its effects and preconditions."""
+
+    effect_refs = [str(ref) for effect in action.effects for ref in effect.target_refs]
+    support_refs = [str(ref) for precondition in action.preconditions for ref in precondition.support_refs]
+    return tuple(
+        dict.fromkeys(
+            [
+                *_runtime_addresses_for_refs(
+                    effect_refs, addressable_ref_index=addressable_ref_index, purpose=ReferencePurpose.ACTION_TARGET
+                ),
+                *_runtime_addresses_for_refs(support_refs, addressable_ref_index=addressable_ref_index),
+            ]
+        )
+    )
+
+
 def _compiled_execution_bindings(
     scenario: InstantiatedScenario,
     policy: object,
@@ -176,15 +198,8 @@ def _compiled_execution_bindings(
             scenario.action_contracts,
         )
         action = scenario.action_contracts[action_name]
-        target_refs = [
-            *(str(ref) for effect in action.effects for ref in effect.target_refs),
-            *(str(ref) for precondition in action.preconditions for ref in precondition.support_refs),
-        ]
         action_contract_address = _action_contract_address(action_name)
-        target_addresses = _runtime_addresses_for_refs(
-            list(dict.fromkeys(target_refs)),
-            addressable_ref_index=addressable_ref_index,
-        )
+        target_addresses = _action_target_addresses(action, addressable_ref_index)
         interactions = tuple(action.interactions)
         interaction_classes = tuple(dict.fromkeys(interaction.interaction_class.value for interaction in interactions))
         shared_state_refs = tuple(
@@ -430,4 +445,72 @@ def _compile_autonomous_execution(
     )
 
 
-__all__ = ["_compile_autonomous_execution"]
+def compile_invocation_tool_bindings(
+    scenario: InstantiatedScenario,
+    policy: ParticipantAutonomousExecutionRuntime,
+    tool_affordances: Mapping[str, ParticipantToolAffordanceRuntime],
+) -> tuple[ParticipantInvocationToolBindingRuntime, ...]:
+    """Join a policy with the authored affordances of its behavior specification (issue #1740)."""
+
+    addressable_ref_index = _runtime_addressable_ref_index(scenario)
+    action_names = {_action_contract_address(name): name for name in scenario.action_contracts}
+    boundary_evidence = {
+        _observation_boundary_address(name): tuple(str(ref) for ref in boundary.evidence_refs)
+        for name, boundary in scenario.observation_boundaries.items()
+    }
+    bindings: list[ParticipantInvocationToolBindingRuntime] = []
+    for affordance in sorted(tool_affordances.values(), key=lambda item: item.address):
+        if affordance.behavior_specification_address != policy.behavior_specification_address:
+            continue
+        participants = tuple(
+            address
+            for address in policy.participant_addresses
+            if not affordance.participant_addresses or address in affordance.participant_addresses
+        )
+        for action_address in affordance.action_contract_addresses:
+            action_name = action_names.get(action_address)
+            if not participants or action_name is None:
+                continue
+            action = scenario.action_contracts[action_name]
+            (interaction,), _ = _compiled_execution_bindings(scenario, policy, [action_name])
+            bindings.append(
+                ParticipantInvocationToolBindingRuntime(
+                    tool_affordance_address=affordance.address,
+                    tool_address=affordance.tool_address,
+                    action_contract_address=action_address,
+                    observation_boundary_addresses=affordance.observation_boundary_addresses,
+                    participant_addresses=participants,
+                    target_addresses=_action_target_addresses(action, addressable_ref_index),
+                    shared_time_bound=any(
+                        temporal.shared_time_binding is not None for temporal in action.temporal_contracts
+                    ),
+                    observation_boundary_evidence_refs=tuple(
+                        (address, boundary_evidence.get(address, ()))
+                        for address in affordance.observation_boundary_addresses
+                    ),
+                    interaction=interaction,
+                )
+            )
+    return tuple(bindings)
+
+
+def with_invocation_tool_bindings(
+    scenario: InstantiatedScenario,
+    behavior_specifications: Mapping[str, Any],
+    tool_affordances: Mapping[str, ParticipantToolAffordanceRuntime],
+) -> dict[str, Any]:
+    """Return behavior specifications whose autonomous policies carry their tool relation."""
+
+    joined: dict[str, Any] = {}
+    for address, specification in behavior_specifications.items():
+        policy = specification.autonomous_execution
+        bindings = () if policy is None else compile_invocation_tool_bindings(scenario, policy, tool_affordances)
+        joined[address] = (
+            replace(specification, autonomous_execution=replace(policy, invocation_tool_bindings=bindings))
+            if bindings
+            else specification
+        )
+    return joined
+
+
+__all__ = ["_compile_autonomous_execution", "compile_invocation_tool_bindings", "with_invocation_tool_bindings"]

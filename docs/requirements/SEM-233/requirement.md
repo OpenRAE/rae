@@ -75,7 +75,6 @@ met before claiming those meanings across contracts, live state or history.
 - DOCUMENTS → GITHUB_ISSUE `https://github.com/OpenRAE/rae/issues/1002` (Issue #1002 portable contracts)
 - DOCUMENTS → GITHUB_ISSUE `https://github.com/OpenRAE/rae/issues/1004` (Issue #1004 apparatus and backend support)
 - DOCUMENTS → GITHUB_ISSUE `https://github.com/OpenRAE/rae/issues/1007` (Issue #1007 adversarial evaluation)
-- DOCUMENTS → GITHUB_ISSUE `https://github.com/OpenRAE/rae/issues/1008` (Issue #1008 evidenced documentation)
 - DOCUMENTS → GITHUB_ISSUE `812` (Issue #812 adversarial participant control design)
 
 - IMPLEMENTS → GITHUB_ISSUE `1070` (Modular participant-control semantic publication)

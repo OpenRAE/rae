@@ -1,5 +1,7 @@
 """Read-only identity metadata for registered runtime inventory collections."""
 
+from raes_contracts.json_pointer import is_array_index_token
+
 from ._runtime_service_families import (
     RUNTIME_SERVICE_FAMILIES as _RUNTIME_SERVICE_FAMILIES,
 )
@@ -44,11 +46,7 @@ def _nested_collection_identity(children: tuple[_RuntimeReferenceChild, ...], to
         # Registry field names are literal identifiers: escaped names cannot
         # alias an addressable collection in this contract.
         selected = next((child for child in children if child.collection_name == name), None)
-        if not _canonical_index(index) or selected is None:
+        if not is_array_index_token(index) or selected is None:
             return None
         children = selected.children
     return selected.id_field if selected is not None else None
-
-
-def _canonical_index(index: str) -> bool:
-    return index.isascii() and index.isdecimal() and (index == "0" or not index.startswith("0"))

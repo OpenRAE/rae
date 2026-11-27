@@ -2,35 +2,7 @@
   "$id": "https://openrae.github.io/rae/schemas/batch-execution-receipt-v1.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "additionalProperties": false,
-  "allOf": [
-    {
-      "if": {
-        "properties": {
-          "effective_parallelism": {
-            "minimum": 2
-          }
-        },
-        "required": [
-          "effective_parallelism"
-        ]
-      },
-      "then": {
-        "properties": {
-          "isolation_proof_ref": {
-            "type": "string"
-          },
-          "lease_evidence_refs": {
-            "minItems": 1
-          }
-        },
-        "required": [
-          "isolation_proof_ref",
-          "lease_evidence_refs"
-        ]
-      }
-    }
-  ],
-  "description": "Immutable receipt for one admitted-trial execution attempt (SCE-006).\n\nIt composes the scheduling decision and the incumbent operation/cleanup\nevidence for a single attempt without becoming queue state or a second run.\n``effective_parallelism``, ``isolation_proof_ref``, and ``lease_evidence_refs``\nrecord a prior allocator decision; they do not authorize execution.",
+  "description": "Immutable receipt for one admitted-trial execution attempt (SCE-006).\n\nIt composes the scheduling decision and the incumbent operation/cleanup\nevidence for a single attempt without becoming queue state or a second run.\n``effective_parallelism`` records a prior allocator decision; it does not\nauthorize execution.",
   "properties": {
     "attempt_deadline": {
       "anyOf": [
@@ -68,28 +40,6 @@
       "title": "Execution Attempt Id",
       "type": "string"
     },
-    "isolation_proof_ref": {
-      "anyOf": [
-        {
-          "minLength": 1,
-          "type": "string"
-        },
-        {
-          "type": "null"
-        }
-      ],
-      "default": null,
-      "title": "Isolation Proof Ref"
-    },
-    "lease_evidence_refs": {
-      "items": {
-        "minLength": 1,
-        "type": "string"
-      },
-      "title": "Lease Evidence Refs",
-      "type": "array",
-      "uniqueItems": true
-    },
     "operation_refs": {
       "items": {
         "minLength": 1,
@@ -126,8 +76,11 @@
       "type": "string"
     },
     "scheduling_policy_id": {
-      "const": "trial-coordinate-canonical-v1",
       "default": "trial-coordinate-canonical-v1",
+      "enum": [
+        "trial-coordinate-canonical-v1",
+        "experiment-recorded-allocation-v1"
+      ],
       "title": "Scheduling Policy Id",
       "type": "string"
     },
@@ -164,7 +117,7 @@
   "type": "object",
   "x-raes-invariants": [
     {
-      "description": "A batch execution receipt keeps attempt identity distinct from plan, entry, and run identities, records the canonical dispatch ordinal under the closed canonical order policy, cites an isolation proof plus live lease evidence only for bounded parallelism (serial default cites neither), and references the cleanup receipt that proves its terminal cleanup.",
+      "description": "A batch execution receipt keeps attempt identity distinct from plan, entry, and run identities, records the canonical dispatch ordinal under the closed canonical order policy, and references the cleanup receipt that proves its terminal cleanup.",
       "id": "batch-execution-receipt-binds-plan-schedule-and-attempt",
       "inputs": [
         {

@@ -10,13 +10,13 @@ from typing import Annotated, Literal
 
 from pydantic import AfterValidator, Field, model_validator
 
-from .contracts import (
-    BehavioralClaimBindingModel,
-    BehavioralRelationId,
-    ContractModel,
-    NonEmptyString,
-)
+from raes_contracts._base import ContractModel, NonEmptyString
+from raes_contracts.behavioral_claims import BehavioralClaimBindingModel, BehavioralRelationId
+
+from .behavioral_authority_errors import BehavioralAuthorityArtifactError
+from .behavioral_relations import load_behavioral_relation_catalog, validate_behavioral_claim_binding
 from .corpus import PROFILES, corpus_family_root
+from .errors import NotFoundError, OperationalError
 from .versions import (
     SCIENTIFIC_COMPLETENESS_ASSESSMENT_SCHEMA_VERSION,
     SCIENTIFIC_COMPLETENESS_TAXONOMY_SCHEMA_VERSION,
@@ -89,7 +89,15 @@ class CompletenessProfileModel(ContractModel):
 
     @model_validator(mode="after")
     def validate_behavioral_claims(self) -> CompletenessProfileModel:
-        from .behavioral_relations import load_behavioral_relation_catalog, validate_behavioral_claim_binding
+
+        try:
+            self._check_behavioral_claims()
+        except BehavioralAuthorityArtifactError as exc:
+            # A Pydantic validator raises only ValueError (E3); the loader has logged the damage.
+            raise ValueError("the packaged behavioral relation authority is damaged") from exc
+        return self
+
+    def _check_behavioral_claims(self) -> None:
 
         catalog = load_behavioral_relation_catalog()
         claimed_ids = [claim.relation_id for claim in self.behavioral_claims]
@@ -104,7 +112,6 @@ class CompletenessProfileModel(ContractModel):
             raise ValueError(f"relations cannot be both claimed and explicitly non-claimed: {overlap}")
         for claim in self.behavioral_claims:
             validate_behavioral_claim_binding(claim)
-        return self
 
 
 class ScientificCompletenessTaxonomyModel(ContractModel):
@@ -278,13 +285,28 @@ def load_scientific_completeness_taxonomy() -> ScientificCompletenessTaxonomyMod
     return ScientificCompletenessTaxonomyModel.model_validate_json(path.read_text(encoding="utf-8"))
 
 
+# The reviewed current delivery assessment. A delivery change publishes a new
+# assessment and moves this selection; retained assessments never change.
+CURRENT_ASSESSMENT_REVISION = "2026-10-31"
+RETAINED_ASSESSMENT_REVISIONS = frozenset({"2026-07-12", CURRENT_ASSESSMENT_REVISION})
+
+
 @cache
-def load_scientific_completeness_assessment() -> ScientificCompletenessAssessmentModel:
-    path = scientific_completeness_root() / "delivery-assessment-2026-07-12.json"
-    return ScientificCompletenessAssessmentModel.model_validate_json(path.read_text(encoding="utf-8"))
+def load_scientific_completeness_assessment(
+    assessment_revision: str = CURRENT_ASSESSMENT_REVISION,
+) -> ScientificCompletenessAssessmentModel:
+    if assessment_revision not in RETAINED_ASSESSMENT_REVISIONS:
+        raise NotFoundError("unknown scientific-completeness assessment revision")
+    path = scientific_completeness_root() / f"delivery-assessment-{assessment_revision}.json"
+    assessment = ScientificCompletenessAssessmentModel.model_validate_json(path.read_text(encoding="utf-8"))
+    if assessment.assessment_revision != assessment_revision:
+        # A packaged assessment fails here only when the artifact or installation is damaged.
+        raise OperationalError("scientific-completeness assessment revision does not match its file")
+    return assessment
 
 
 __all__ = [
+    "CURRENT_ASSESSMENT_REVISION",
     "DeliveryStatus",
     "ProfileCompletenessResult",
     "ProfileDisposition",

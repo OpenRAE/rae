@@ -5,20 +5,24 @@ from __future__ import annotations
 from dataclasses import dataclass, replace
 from typing import Protocol, cast
 
-from .contracts import (
+from raes_contracts.contracts.participant_action_admission import (
+    ParticipantActionAdmissionRequest,
+    participant_action_admission_request_violations,
+)
+from raes_contracts.contracts.participant_decision_surface import (
     ParticipantDecisionSurfaceActionEntryModel,
     ParticipantDecisionSurfaceCandidateSetFormModel,
     ParticipantDecisionSurfaceConstrainedFormModel,
+)
+from raes_contracts.contracts.participant_decision_surface_v2 import (
     ParticipantDecisionSurfaceSelectionV2Model,
     ParticipantDecisionSurfaceV2Model,
-    ParticipantImplementationSelectionModel,
 )
+from raes_contracts.contracts.participant_manifests import ParticipantImplementationSelectionModel
+
+from ._host_isolation import isolated_host_call
 from .participant_action_arguments import ParticipantValidatedActionSelection
-from .participant_binding import (
-    ParticipantActionAdmissionRequest,
-    ParticipantDecisionSurfaceArgumentShapeResolver,
-    participant_action_admission_request_violations,
-)
+from .participant_binding import ParticipantDecisionSurfaceArgumentShapeResolver
 from .participant_decision_surface_delivery import (
     ParticipantDecisionSurfaceDeliveryResolverV2,
     validate_participant_decision_surface_v2_delivery,
@@ -162,14 +166,12 @@ def _resolve_apparatus_selection(
     resolver: ParticipantDecisionSurfaceApparatusResolverV2,
 ) -> None:
     assurance = surface.assurance
-    try:
+    with isolated_host_call("participant decision surface exact-cut apparatus resolution failed"):
         resolved = resolver(
             implementation_selection_ref=assurance.implementation_selection_ref,
             exposure_policy_ref=assurance.exposure_policy_ref,
             decision_cut_ref=assurance.derivation_anchor.state_cut.cut_ref,
         )
-    except Exception as exc:
-        raise ValueError("participant decision surface exact-cut apparatus resolution failed") from exc
     if resolved is None:
         raise ValueError("participant decision surface apparatus refs did not resolve at the derivation cut")
     if resolved.model_dump(mode="json") != admission_request.implementation_selection.model_dump(mode="json"):
@@ -180,15 +182,13 @@ def _resolve_validated_selection(
     selection: ParticipantDecisionSurfaceSelectionV2Model,
     resolver: ParticipantDecisionSurfaceArgumentShapeResolver,
 ) -> ParticipantValidatedActionSelection:
-    try:
+    with isolated_host_call("participant decision surface argument-shape resolution failed"):
         validated = resolver(
             action_contract_address=selection.action_contract_address,
             argument_shape_ref=selection.argument_shape_ref,
             proposal_ref=selection.proposal_ref,
             proposed_arguments=selection.arguments,
         )
-    except Exception as exc:
-        raise ValueError("participant decision surface argument-shape resolution failed") from exc
     if not isinstance(validated, ParticipantValidatedActionSelection):
         raise ValueError("participant decision surface proposal failed governed argument-shape validation")
     coordinates = (

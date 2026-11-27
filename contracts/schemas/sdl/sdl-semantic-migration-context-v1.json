@@ -162,7 +162,7 @@
         }
       ],
       "level": "error",
-      "validator": "raes_contracts.sdl_semantic_migration.SDLSemanticMigrationContext.model_validate"
+      "validator": "raes.semantic_migration_context.SDLSemanticMigrationContext.model_validate"
     }
   ],
   "x-raes-semantic-profile": {

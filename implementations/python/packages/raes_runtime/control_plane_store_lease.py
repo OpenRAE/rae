@@ -7,7 +7,12 @@ import stat
 from contextlib import suppress
 from pathlib import Path
 
+from raes_contracts.errors import ConflictError, OperationalError
+
 _WORKER_COUNT_ENVIRONMENTS = ("WEB_CONCURRENCY", "UVICORN_WORKERS")
+_RUNTIME_OWNER_CONFLICT = (
+    "local control-plane store already has a runtime owner; use exactly one worker with reload disabled"
+)
 
 
 def _is_windows() -> bool:
@@ -22,14 +27,14 @@ def _runtime_owner_is_reparse_point(metadata: os.stat_result) -> bool:
 
 def _require_safe_runtime_owner_metadata(metadata: os.stat_result, path: Path) -> None:
     if stat.S_ISLNK(metadata.st_mode) or _runtime_owner_is_reparse_point(metadata):
-        raise RuntimeError(f"runtime-owner lock path must not be a symlink or reparse point: {path}")
+        raise OperationalError(f"runtime-owner lock path must not be a symlink or reparse point: {path}")
     if not stat.S_ISREG(metadata.st_mode):
-        raise RuntimeError(f"runtime-owner lock path must be a regular file: {path}")
+        raise OperationalError(f"runtime-owner lock path must be a regular file: {path}")
     get_effective_uid = getattr(os, "geteuid", None)
     if callable(get_effective_uid) and metadata.st_uid != get_effective_uid():
-        raise RuntimeError(f"runtime-owner lock path must be owned by the current user: {path}")
+        raise OperationalError(f"runtime-owner lock path must be owned by the current user: {path}")
     if getattr(metadata, "st_nlink", 1) != 1:
-        raise RuntimeError(f"runtime-owner lock path must not have hard links: {path}")
+        raise OperationalError(f"runtime-owner lock path must not have hard links: {path}")
 
 
 def _existing_runtime_owner_metadata(path: Path) -> os.stat_result | None:
@@ -49,9 +54,9 @@ def require_single_worker_configuration() -> None:
         try:
             worker_count = int(configured)
         except ValueError as exc:
-            raise RuntimeError(f"{variable} must be 1 for a local control-plane store") from exc
+            raise OperationalError(f"{variable} must be 1 for a local control-plane store") from exc
         if worker_count != 1:
-            raise RuntimeError(
+            raise OperationalError(
                 f"{variable}={worker_count} is unsupported for a local control-plane store; "
                 "use exactly one worker with reload disabled"
             )
@@ -93,17 +98,15 @@ def _acquire_store_directory_guard(path: Path) -> int | None:
     try:
         descriptor = os.open(path.parent, flags)
     except OSError as exc:
-        raise RuntimeError(f"could not securely open runtime-owner store directory: {path.parent}") from exc
+        raise OperationalError(f"could not securely open runtime-owner store directory: {path.parent}") from exc
     try:
         metadata = os.fstat(descriptor)
         if not stat.S_ISDIR(metadata.st_mode):
-            raise RuntimeError(f"runtime-owner store path must be a directory: {path.parent}")
+            raise OperationalError(f"runtime-owner store path must be a directory: {path.parent}")
         _lock_runtime_owner(descriptor)
     except OSError as exc:
         os.close(descriptor)
-        raise RuntimeError(
-            "local control-plane store already has a runtime owner; use exactly one worker with reload disabled"
-        ) from exc
+        raise ConflictError(_RUNTIME_OWNER_CONFLICT) from exc
     except BaseException:
         os.close(descriptor)
         raise
@@ -128,7 +131,7 @@ def _open_runtime_owner_file(path: Path) -> tuple[int, os.stat_result]:
     try:
         descriptor = os.open(path, flags, 0o600)
     except OSError as exc:
-        raise RuntimeError(f"could not securely open runtime-owner lock path: {path}") from exc
+        raise OperationalError(f"could not securely open runtime-owner lock path: {path}") from exc
     try:
         opened_metadata = _validate_open_runtime_owner_file(descriptor, path)
         _claim_runtime_owner_file(descriptor)
@@ -144,7 +147,7 @@ def _validate_open_runtime_owner_file(descriptor: int, path: Path) -> os.stat_re
     current_metadata = path.lstat()
     _require_safe_runtime_owner_metadata(current_metadata, path)
     if not os.path.samestat(opened_metadata, current_metadata):
-        raise RuntimeError(f"runtime-owner lock path changed while it was opened: {path}")
+        raise OperationalError(f"runtime-owner lock path changed while it was opened: {path}")
     return opened_metadata
 
 
@@ -154,9 +157,7 @@ def _claim_runtime_owner_file(descriptor: int) -> None:
     try:
         _lock_runtime_owner(descriptor)
     except OSError as exc:
-        raise RuntimeError(
-            "local control-plane store already has a runtime owner; use exactly one worker with reload disabled"
-        ) from exc
+        raise ConflictError(_RUNTIME_OWNER_CONFLICT) from exc
     owner = f"{os.getpid()}\n".encode("ascii")
     os.ftruncate(descriptor, 0)
     os.write(descriptor, owner)
@@ -202,7 +203,7 @@ class RuntimeOwnerLease:
 
     def assert_owner(self) -> None:
         if self._closed:
-            raise RuntimeError("local control-plane runtime-owner lease is closed")
+            raise OperationalError("local control-plane runtime-owner lease is closed")
         if os.getpid() != self._owner_pid:
             raise RuntimeError(
                 "local control-plane runtime-owner lease cannot be used after fork; "
@@ -212,7 +213,7 @@ class RuntimeOwnerLease:
             return
         current_metadata = _existing_runtime_owner_metadata(self._path)
         if current_metadata is None or not os.path.samestat(self._identity, current_metadata):
-            raise RuntimeError(f"runtime-owner lock path changed while the lease was active: {self._path}")
+            raise OperationalError(f"runtime-owner lock path changed while the lease was active: {self._path}")
 
     def close(self) -> None:
         if self._closed:

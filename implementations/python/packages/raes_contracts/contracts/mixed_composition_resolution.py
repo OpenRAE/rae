@@ -5,6 +5,7 @@ from __future__ import annotations
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass, field
 
+from .._host_isolation import isolated_host_call
 from ..vocabulary import ParticipantFeatureSupportLevel
 from .experiment_manifest_references import ExperimentManifestReferenceModel
 from .experiment_references import ExperimentReferenceModel
@@ -179,10 +180,9 @@ def _validate_feature_requirements(
             )
             if authorization not in context.feature_downgrade_authorizations:
                 raise ValueError("composition feature downgrade authorization is unresolved")
-        try:
+        # The resolver refuses support with ValueError or a RaesError; other exceptions are logged.
+        with isolated_host_call("composition allocation feature support resolution failed", keep_cause=False):
             context.feature_support_resolver(profile_id, allocation.provider_component_id, requirement)
-        except Exception:
-            raise ValueError("composition allocation feature support resolution failed") from None
 
 
 def _validate_allocation_context(

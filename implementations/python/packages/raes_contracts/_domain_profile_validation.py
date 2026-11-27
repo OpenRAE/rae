@@ -18,6 +18,7 @@ from ._domain_profile_contracts import (
     DomainProfileSupportDeclarationModel,
 )
 from ._domain_profile_schema_registry import profile_schema_registry
+from .errors import InvalidInputError
 from .json_ingress import parse_bounded_json_object
 
 SAFE_DOMAIN_PROFILE_SCHEMA_KEYWORDS = tuple(
@@ -80,7 +81,7 @@ _SCHEMA_SINGLE_CHILDREN = frozenset(
 _SCHEMA_SEQUENCE_CHILDREN = frozenset({"allOf", "anyOf", "oneOf", "prefixItems"})
 
 
-class _ProfileAdmissionError(ValueError):
+class _ProfileAdmissionError(InvalidInputError):
     def __init__(self, outcome: DomainProfileAdmissionOutcome, message: str) -> None:
         self.outcome = outcome
         super().__init__(message)

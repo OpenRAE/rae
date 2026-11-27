@@ -265,6 +265,28 @@
     },
     "ParticipantCrossingOccurrenceFlowBindingModel": {
       "additionalProperties": false,
+      "anyOf": [
+        {
+          "properties": {
+            "subject_revision": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "subject_revision"
+          ]
+        },
+        {
+          "properties": {
+            "subject_digest": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "subject_digest"
+          ]
+        }
+      ],
       "properties": {
         "binding_id": {
           "minLength": 1,
@@ -417,9 +439,17 @@
           "type": "string"
         },
         "subject_revision": {
-          "minLength": 1,
-          "title": "Subject Revision",
-          "type": "string"
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Subject Revision"
         },
         "target_episode_id": {
           "minLength": 1,
@@ -451,7 +481,6 @@
         "subject_kind",
         "subject_contract_id",
         "subject_ref",
-        "subject_revision",
         "crossing_policy_id",
         "crossing_policy_revision",
         "crossing_policy_digest",
@@ -1091,7 +1120,10 @@
           "type": "string"
         },
         "profile_id": {
-          "const": "participant-boundary-flow-policy-v1",
+          "enum": [
+            "participant-boundary-flow-policy-v1",
+            "participant-owner-flow-policy-v1"
+          ],
           "title": "Profile Id",
           "type": "string"
         },
@@ -1481,6 +1513,7 @@
           }
         ]
       },
+      "maxItems": 256,
       "minItems": 1,
       "title": "Bindings",
       "type": "array"
@@ -1489,6 +1522,7 @@
       "items": {
         "$ref": "#/$defs/ParticipantFlowDerivationModel"
       },
+      "maxItems": 256,
       "minItems": 1,
       "title": "Derivations",
       "type": "array"
@@ -1507,6 +1541,7 @@
       "items": {
         "$ref": "#/$defs/ParticipantEffectiveFlowLabelModel"
       },
+      "maxItems": 256,
       "minItems": 1,
       "title": "Labels",
       "type": "array"
@@ -1532,6 +1567,7 @@
           }
         ]
       },
+      "maxItems": 256,
       "minItems": 1,
       "title": "Releases",
       "type": "array"
@@ -1546,6 +1582,7 @@
       "items": {
         "$ref": "#/$defs/ParticipantFlowSinkDecisionModel"
       },
+      "maxItems": 256,
       "minItems": 1,
       "title": "Sink Decisions",
       "type": "array"

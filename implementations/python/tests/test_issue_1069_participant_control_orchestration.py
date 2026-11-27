@@ -34,6 +34,7 @@ from participant_crossing_fixtures import (
     identity,
     policy_capable_target,
 )
+from raes_contracts.errors import AuthorizationError
 from raes_contracts.runtime_state import OperationState
 from raes_runtime.control_plane import RuntimeControlPlane
 
@@ -321,7 +322,7 @@ def test_non_eligible_composition_refuses_egress_and_serializes_nothing():
     providers = {INSTANCE: SyntheticControlProvider(omits_slot="fact")}
     plane = _plane(control_binding(providers=providers), target=_egress_target())
 
-    with pytest.raises(PermissionError, match="not permitted"):
+    with pytest.raises(AuthorizationError, match="not permitted"):
         _status_view(plane, idempotency_key="control-egress-deny")
 
     stages = [item["occurrence"]["stage"] for item in plane.snapshot.participant_crossing_history[PARTICIPANT]]

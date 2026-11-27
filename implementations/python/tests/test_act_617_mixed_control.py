@@ -440,7 +440,8 @@ def test_published_sdl_schemas_are_closed_and_include_mixed_control(schema_path:
     mixed_control = schema["$defs"]["MixedControlParticipantOperation"]
 
     assert behavior["additionalProperties"] is False
-    assert behavior["properties"]["mixed_control"]["anyOf"][0]["$ref"].endswith("/MixedControlParticipantOperation")
+    legacy_choice = behavior["properties"]["mixed_control"]["anyOf"][0]["oneOf"][0]
+    assert legacy_choice["$ref"].endswith("/MixedControlParticipantOperation")
     assert mixed_control["additionalProperties"] is False
     assert set(mixed_control["required"]) == {
         "participant_ref",

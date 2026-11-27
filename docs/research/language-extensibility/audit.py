@@ -390,10 +390,17 @@ realization:
     return results
 
 
-if __name__ == "__main__":
+def main() -> int:
     import argparse
 
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("mode", choices=("census", "probes"))
     args = parser.parse_args()
     print(json.dumps(census() if args.mode == "census" else probes(), indent=2))
+    return 0
+
+
+if __name__ == "__main__":
+    from raes_contracts.operational_logging import run_application
+
+    raise SystemExit(run_application(main))

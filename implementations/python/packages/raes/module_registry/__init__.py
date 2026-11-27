@@ -11,20 +11,27 @@ source module below the repository size cap.
 
 from __future__ import annotations
 
+import gzip
 import json
 import os
 import tarfile
 import time
 import zlib
 from dataclasses import dataclass
+from functools import partial
+from http.client import HTTPException
 from pathlib import Path, PurePosixPath
 from typing import Any, Protocol
-from urllib.error import URLError
+
+# Registry requests resolve ``urlopen`` through this facade, the transport patch seam.
 from urllib.request import Request, urlopen
 
+from raes_contracts.digests import sha256_digest
+from raes_contracts.errors import OperationalError
+
 # The submodule imports below retain the package's documented domain re-exports
-# plus the private ``_sha256_digest`` / ``_signable_payload`` /
-# ``_verify_signatures`` seams used by existing tests. Incidental implementation
+# plus the private ``_signable_payload`` / ``_verify_signatures`` seams used by
+# existing tests. Incidental implementation
 # imports are not an API; F401 is ignored for this facade because these deliberate
 # domain re-exports otherwise look unused inside this file.
 from .._errors import SDLParseError
@@ -64,7 +71,6 @@ from ._constants import (
     TRUST_POLICY_NAME,
     TRUST_POLICY_SCHEMA_VERSION,
 )
-from ._digests import _sha256_digest
 from ._extraction import (
     _HTTP_TIMEOUT_SECONDS,
     _extract_tar_to_stage,
@@ -92,11 +98,13 @@ from .models import (
     RegistryTrustPolicy,
     ResolvedModule,
     TrustPolicy,
+    decode_lockfile,
     load_lockfile,
     load_trust_policy,
     write_lockfile,
 )
 from .publishing import publish_module_to_oci_layout
+from .registry_auth import RegistryTokens, registry_get, request_anonymous_token
 from .resolution import resolve_import, resolve_lock_records
 from .signing import _signable_payload, _verify_signatures
 
@@ -128,7 +136,7 @@ def _declared_content_length(response: _CappableResponse) -> int | None:
     try:
         value = int(raw)
     except (TypeError, ValueError) as exc:
-        raise SDLParseError(f"OCI response declares an invalid Content-Length: {raw!r}") from exc
+        raise SDLParseError("OCI response declares an invalid Content-Length") from exc
     if value < 0:
         raise SDLParseError(f"OCI response declares a negative Content-Length: {value}")
     return value
@@ -153,14 +161,41 @@ def _read_capped(response: _CappableResponse, *, url: str, max_bytes: int) -> by
     return data
 
 
-def _json_request(url: str, *, headers: dict[str, str] | None = None, max_bytes: int | None = None) -> dict[str, Any]:
-    request = Request(url, headers=headers or {})
+def registry_tokens() -> RegistryTokens:
+    """Create a request-scoped token cache using the facade's current bounded transport."""
+    return RegistryTokens(
+        partial(
+            request_anonymous_token,
+            timeout_seconds=_OCI_LIMITS.timeout_seconds,
+            max_metadata_bytes=_OCI_LIMITS.max_metadata_bytes,
+            read_capped=_read_capped,
+            decode_json_object=_decode_json_object,
+        )
+    )
+
+
+def _open_registry_request(request: Request, url: str, max_bytes: int) -> bytes:
+    with urlopen(request, timeout=_OCI_LIMITS.timeout_seconds) as response:
+        return _read_capped(response, url=url, max_bytes=max_bytes)
+
+
+def _json_request(
+    url: str,
+    *,
+    headers: dict[str, str] | None = None,
+    max_bytes: int | None = None,
+    tokens: RegistryTokens | None = None,
+) -> dict[str, Any]:
     limit = _OCI_LIMITS.max_metadata_bytes if max_bytes is None else max_bytes
-    try:
-        with urlopen(request, timeout=_OCI_LIMITS.timeout_seconds) as response:
-            payload = _read_capped(response, url=url, max_bytes=limit)
-    except URLError as exc:
-        raise SDLParseError(f"Failed to fetch OCI metadata from {url}") from exc
+    failure = f"Failed to fetch OCI metadata from {url}"
+    payload = registry_get(
+        url,
+        headers=headers,
+        max_bytes=limit,
+        tokens=registry_tokens() if tokens is None else tokens,
+        open_capped=_open_registry_request,
+        failure=failure,
+    )
     return _decode_json_object(payload, context=f"OCI metadata from {url}")
 
 
@@ -176,14 +211,23 @@ def _decode_json_object(payload: bytes, *, context: str) -> dict[str, Any]:
     return decoded
 
 
-def _bytes_request(url: str, *, headers: dict[str, str] | None = None, max_bytes: int | None = None) -> bytes:
-    request = Request(url, headers=headers or {})
+def _bytes_request(
+    url: str,
+    *,
+    headers: dict[str, str] | None = None,
+    max_bytes: int | None = None,
+    tokens: RegistryTokens | None = None,
+) -> bytes:
     limit = _OCI_LIMITS.max_metadata_bytes if max_bytes is None else max_bytes
-    try:
-        with urlopen(request, timeout=_OCI_LIMITS.timeout_seconds) as response:
-            return _read_capped(response, url=url, max_bytes=limit)
-    except URLError as exc:
-        raise SDLParseError(f"Failed to fetch OCI blob from {url}") from exc
+    failure = f"Failed to fetch OCI blob from {url}"
+    return registry_get(
+        url,
+        headers=headers,
+        max_bytes=limit,
+        tokens=registry_tokens() if tokens is None else tokens,
+        open_capped=_open_registry_request,
+        failure=failure,
+    )
 
 
 def _oci_cache_dir(base_dir: Path) -> Path:
@@ -251,7 +295,7 @@ def _validated_root_file(root_file: str) -> PurePosixPath:
 
 
 def _validated_content_digest(bundle_bytes: bytes, expected: str | None) -> str:
-    actual = f"sha256:{_sha256_digest(bundle_bytes)}"
+    actual = sha256_digest(bundle_bytes)
     expected_digest = expected or actual
     if expected_digest != actual:
         raise SDLParseError("OCI module bundle does not match its expected content digest")
@@ -357,7 +401,7 @@ def _commit_extracted_stage(
         root_relative=extraction.root_relative,
     )
     if staged_validation is None:
-        raise SDLParseError("Staged OCI module cache entry failed validation")
+        raise OperationalError("Staged OCI module cache entry failed validation")
     version_name = _new_digest_version_name(extraction.content_digest)
     installed = _install_version_directory(
         staged=staging,
@@ -371,7 +415,7 @@ def _commit_extracted_stage(
         root_relative=extraction.root_relative,
     )
     if committed is None:
-        raise SDLParseError("Committed OCI module cache entry failed validation")
+        raise OperationalError("Committed OCI module cache entry failed validation")
     _prune_version_directories(
         versions=versions,
         retain_names={version_name, *(() if prior_version is None else (prior_version,))},
@@ -484,5 +528,8 @@ def _extract_bundle_to_cache(
                 tarfile.open(fileobj=tar_stream, mode="r:") as tar,
             ):
                 return _read_or_install_extracted_source(extraction, tar=tar, versions=versions)
-        except (EOFError, OSError, tarfile.TarError, zlib.error) as exc:
+        except (EOFError, gzip.BadGzipFile, tarfile.TarError, zlib.error) as exc:
             raise SDLParseError("OCI module bundle is not a valid gzip-compressed tar archive") from exc
+        # gzip.BadGzipFile is an OSError, so the bundle clause above comes first.
+        except OSError as exc:
+            raise OperationalError("Unable to extract the OCI module bundle into the cache") from exc

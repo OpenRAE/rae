@@ -26,7 +26,8 @@ from ..realization_structure import (
     semantic_address_contains,
     validate_realization_value,
 )
-from .base import ContractModel, NonEmptyString, Rfc3339DateTimeString, _parse_rfc3339_datetime
+from ..timestamps import parse_rfc3339_datetime
+from .base import ContractModel, NonEmptyString, Rfc3339DateTimeString
 from .experiment_references import ExperimentReferenceModel
 
 DescriptionPointer = Annotated[str, Field(pattern=r"^(?:/(?:[^~/]|~[01])*)*$", max_length=4096)]
@@ -56,7 +57,7 @@ class DescriptionProvenanceModel(DescriptionModel):
 
     @model_validator(mode="after")
     def _validate_provenance(self) -> DescriptionProvenanceModel:
-        _parse_rfc3339_datetime("recorded_at", self.recorded_at)
+        parse_rfc3339_datetime("recorded_at", self.recorded_at)
         if not self.observer_ref.ref_version:
             raise ValueError("description observer requires an explicit version")
         if (

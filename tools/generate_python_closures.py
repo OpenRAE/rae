@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import sys
 import tomllib
 from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass, field
@@ -13,20 +14,37 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import urlsplit
 
-from packaging.tags import Tag, compatible_tags, cpython_tags, mac_platforms
-from packaging.utils import InvalidWheelFilename, parse_wheel_filename
+REPO_ROOT = Path(__file__).resolve().parents[1]
+RAES_PACKAGES_ROOT = REPO_ROOT / "implementations" / "python" / "packages"
+for _source_root in (REPO_ROOT, RAES_PACKAGES_ROOT):
+    if str(_source_root) not in sys.path:
+        sys.path.insert(0, str(_source_root))
 
-from tools.generate_python_closures_locks import (
+from packaging.tags import Tag, compatible_tags, cpython_tags, mac_platforms  # noqa: E402
+from packaging.utils import InvalidWheelFilename, parse_wheel_filename  # noqa: E402
+from raes_contracts.errors import InvalidInputError  # noqa: E402
+from raes_contracts.operational_logging import run_application  # noqa: E402
+
+from tools.generate_python_closures_locks import (  # noqa: E402
+    lock_list,
     lock_mappings,
+    lock_table,
     locked_closure,
     target_environment,
 )
 
-REPO_ROOT = Path(__file__).resolve().parents[1]
 _SHA256_PREFIX = "sha256:"
-_BUILD_CONSTRAINT_PYTHON_VERSIONS = ("3.11", "3.12", "3.13", "3.14")
+_BUILD_CONSTRAINT_PYTHON_VERSIONS = ("3.14",)
 _TOOL_ROOT_NAME = "raes-development-tools"
 _ARTIFACT_LOCK = ("implementations", "tooling", "artifacts.lock.json")
+
+
+def _artifact_lock_integer(literal: str) -> int:
+    # The decoder passes only JSON integer literals, so int() fails only beyond the interpreter digit limit.
+    try:
+        return int(literal)
+    except ValueError as exc:
+        raise InvalidInputError("artifact lock contains an integer beyond the digit limit") from exc
 
 
 def reviewed_python_full_version(python_version: str, *, repo_root: Path = REPO_ROOT) -> str:
@@ -36,39 +54,33 @@ def reviewed_python_full_version(python_version: str, *, repo_root: Path = REPO_
     payload version rather than synthesizing one from the minor series.
     """
 
-    lock = json.loads(repo_root.joinpath(*_ARTIFACT_LOCK).read_text(encoding="utf-8"))
+    try:
+        lock = json.loads(
+            repo_root.joinpath(*_ARTIFACT_LOCK).read_text(encoding="utf-8"),
+            parse_int=_artifact_lock_integer,
+        )
+    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise InvalidInputError("artifact lock is not valid UTF-8 JSON") from exc
+    except RecursionError as exc:
+        # Without a depth limit, the recursive decoder stops at the interpreter recursion limit.
+        raise InvalidInputError("artifact lock exceeds the decoder nesting limit") from exc
+    entries = lock.get("artifacts", []) if isinstance(lock, dict) else None
+    if not isinstance(entries, list):
+        raise InvalidInputError("artifact lock must be an object with an artifacts array")
     artifacts = [
         artifact
-        for artifact in lock.get("artifacts", [])
+        for artifact in entries
         if isinstance(artifact, Mapping) and artifact.get("artifact_id") == f"cpython-{python_version}"
     ]
     if len(artifacts) != 1:
-        raise ValueError(f"artifact lock must pin exactly one cpython-{python_version} interpreter")
+        raise InvalidInputError(f"artifact lock must pin exactly one cpython-{python_version} interpreter")
     version = artifacts[0].get("version")
     if not isinstance(version, str) or not version.startswith(f"{python_version}."):
-        raise ValueError(f"cpython-{python_version} is pinned to an invalid version {version!r}")
+        raise InvalidInputError(f"cpython-{python_version} is pinned to an invalid version {version!r}")
     return version
 
 
 TARGETS = (
-    (
-        "public-linux-x86_64-cp311-all-extras",
-        "3.11",
-        "cp311",
-        "x86_64-unknown-linux-gnu",
-    ),
-    (
-        "public-linux-x86_64-cp312-all-extras",
-        "3.12",
-        "cp312",
-        "x86_64-unknown-linux-gnu",
-    ),
-    (
-        "public-linux-x86_64-cp313-all-extras",
-        "3.13",
-        "cp313",
-        "x86_64-unknown-linux-gnu",
-    ),
     (
         "public-linux-x86_64-cp314-all-extras",
         "3.14",
@@ -91,16 +103,17 @@ def _build_group_dependencies(lock: Mapping[str, Any]) -> list[Mapping[str, Any]
     root = next(
         (
             package
-            for package in lock.get("package", [])
+            for package in lock_list(lock.get("package", []), "packages")
             if isinstance(package, Mapping) and package.get("name") == _TOOL_ROOT_NAME
         ),
         None,
     )
     if root is None:
-        raise ValueError("tool lock has no project root")
-    dependencies = lock_mappings(root.get("dev-dependencies", {}).get("build", []))
+        raise InvalidInputError("tool lock has no project root")
+    development = lock_table(root.get("dev-dependencies", {}), "tool root development dependencies")
+    dependencies = lock_mappings(development.get("build", []))
     if not dependencies:
-        raise ValueError("tool lock has no build dependency group")
+        raise InvalidInputError("tool lock has no build dependency group")
     return dependencies
 
 
@@ -127,14 +140,14 @@ def _build_constraint_packages(
         ):
             name = str(package["name"])
             if selected.setdefault(name, package).get("version") != package.get("version"):
-                raise ValueError(f"build constraint selects multiple versions of {name}")
+                raise InvalidInputError(f"build constraint selects multiple versions of {name}")
     return selected
 
 
 def _sha256_artifact_hashes(package: Mapping[str, Any]) -> list[str]:
     """Collect the SHA-256 artifact identities of one locked package."""
 
-    artifact_values = [package.get("sdist"), *package.get("wheels", [])]
+    artifact_values = [package.get("sdist"), *lock_list(package.get("wheels", []), "package wheels")]
     return sorted(
         {
             str(artifact["hash"])
@@ -155,8 +168,11 @@ def render_build_constraints(lock: Mapping[str, Any], *, repo_root: Path = REPO_
         package = selected[name]
         hashes = _sha256_artifact_hashes(package)
         if not hashes:
-            raise ValueError(f"build constraint {name} has no SHA-256 artifacts")
-        lines.append(f"{name}=={package['version']} \\")
+            raise InvalidInputError(f"build constraint {name} has no SHA-256 artifacts")
+        version = package.get("version")
+        if not isinstance(version, str):
+            raise InvalidInputError(f"build constraint {name} has no locked version")
+        lines.append(f"{name}=={version} \\")
         for index, digest in enumerate(hashes):
             suffix = " \\" if index < len(hashes) - 1 else ""
             lines.append(f"    --hash={digest}{suffix}")
@@ -193,10 +209,16 @@ def _supported_tags(python_version: str, abi: str, platform: str) -> tuple[Tag, 
 
 def _select_wheel(package: Mapping[str, Any], supported: Sequence[Tag]) -> Mapping[str, Any]:
     wheel_tags: list[tuple[Mapping[str, Any], frozenset[Tag]]] = []
-    for wheel in package.get("wheels", []):
+    for wheel in lock_list(package.get("wheels", []), "package wheels"):
         if not isinstance(wheel, Mapping) or not isinstance(wheel.get("url"), str):
             continue
-        filename = Path(urlsplit(wheel["url"]).path).name
+        try:
+            locator = urlsplit(wheel["url"])
+        except ValueError as exc:
+            raise InvalidInputError(
+                f"{package.get('name')}=={package.get('version')} has an invalid wheel URL"
+            ) from exc
+        filename = Path(locator.path).name
         try:
             tags = parse_wheel_filename(filename)[3]
         except InvalidWheelFilename:
@@ -206,21 +228,25 @@ def _select_wheel(package: Mapping[str, Any], supported: Sequence[Tag]) -> Mappi
         for wheel, tags in wheel_tags:
             if tag in tags:
                 return wheel
-    raise ValueError(f"{package.get('name')}=={package.get('version')} has no wheel for the selected target")
+    raise InvalidInputError(f"{package.get('name')}=={package.get('version')} has no wheel for the selected target")
 
 
 def _artifact(package: Mapping[str, Any], wheel: Mapping[str, Any]) -> dict[str, object]:
     url = str(wheel["url"])
-    digest = str(wheel["hash"])
+    digest = str(wheel.get("hash", ""))
     if not digest.startswith(_SHA256_PREFIX):
-        raise ValueError(f"{package.get('name')} has a non-SHA256 wheel identity")
+        raise InvalidInputError(f"{package.get('name')} has a non-SHA256 wheel identity")
+    version = package.get("version")
+    size = wheel.get("size")
+    if not isinstance(version, str) or not isinstance(size, int) or isinstance(size, bool):
+        raise InvalidInputError(f"{package.get('name')} has no locked version or wheel byte size")
     return {
         "name": package["name"],
-        "version": package["version"],
+        "version": version,
         "filename": Path(urlsplit(url).path).name,
         "url": url,
         "sha256": digest.removeprefix(_SHA256_PREFIX),
-        "size": wheel["size"],
+        "size": size,
     }
 
 
@@ -285,11 +311,34 @@ def render_target(request: _TargetRequest) -> tuple[str, str]:
     return requirements, json.dumps(manifest, indent=2, sort_keys=True) + "\n"
 
 
+def _load_toml_lock(path: Path) -> dict[str, Any]:
+    """Parse one reviewed uv lock; invalid content is an input failure, not a defect."""
+
+    try:
+        text = path.read_text(encoding="utf-8")
+    except UnicodeDecodeError as exc:
+        raise InvalidInputError(f"{path.name} is not valid UTF-8 TOML") from exc
+    try:
+        return tomllib.loads(text)
+    except ValueError as exc:
+        # TOMLDecodeError is a ValueError. tomllib also converts an integer literal with
+        # int(), which raises a plain ValueError beyond the interpreter digit limit.
+        raise InvalidInputError(f"{path.name} is not valid UTF-8 TOML") from exc
+    except RecursionError as exc:
+        # Without a depth limit, the recursive parser stops at the interpreter recursion limit.
+        raise InvalidInputError(f"{path.name} is not valid UTF-8 TOML") from exc
+
+
 def _write_if_changed(path: Path, content: str, *, check: bool) -> bool:
     """Report whether the content differs, writing it unless this is a check run."""
 
-    if path.exists() and path.read_text(encoding="utf-8") == content:
-        return False
+    if path.exists():
+        try:
+            current = path.read_text(encoding="utf-8")
+        except UnicodeDecodeError as exc:
+            raise InvalidInputError(f"{path.name} is not valid UTF-8") from exc
+        if current == content:
+            return False
     if not check:
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(content, encoding="utf-8")
@@ -312,7 +361,7 @@ def _definition_changes(
 ) -> bool:
     """Project every target of one lock authority and report whether any changed."""
 
-    lock = tomllib.loads(definition.lock_path.read_text(encoding="utf-8"))
+    lock = _load_toml_lock(definition.lock_path)
     changed = False
     for profile_id, python_version, abi, platform in definition.targets:
         requirements, manifest = render_target(
@@ -344,10 +393,7 @@ def generate(*, check: bool, repo_root: Path = REPO_ROOT) -> bool:
     tool_root = repo_root / "implementations" / "tooling" / "python"
     tool_lock_path = tool_root / "uv.lock"
     output_root = tool_root / "smoke"
-    constraints = render_build_constraints(
-        tomllib.loads(tool_lock_path.read_text(encoding="utf-8")),
-        repo_root=repo_root,
-    )
+    constraints = render_build_constraints(_load_toml_lock(tool_lock_path), repo_root=repo_root)
     changed = _write_if_changed(tool_root / "build-constraints.txt", constraints, check=check)
     definitions = (
         _LockDefinition(
@@ -366,7 +412,11 @@ def main(argv: Iterable[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--check", action="store_true")
     args = parser.parse_args(list(argv) if argv is not None else None)
-    current = generate(check=args.check)
+    try:
+        current = generate(check=args.check)
+    except (OSError, InvalidInputError) as exc:
+        print(f"generate-python-closures: {exc}", file=sys.stderr)
+        return 1
     if args.check and not current:
         print("Python closure projections are stale")
         return 1
@@ -374,4 +424,4 @@ def main(argv: Iterable[str] | None = None) -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(run_application(main))

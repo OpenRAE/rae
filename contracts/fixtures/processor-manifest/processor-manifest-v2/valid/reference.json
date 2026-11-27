@@ -15,15 +15,25 @@
     "runtime-snapshot-v1"
   ],
   "compatibility": {
-    "backends": ["stub"]
+    "backends": [
+      "stub"
+    ]
   },
   "concept_bindings": [
-    {"scope": "capabilities.supported_sdl_versions", "family": "scenarios"},
-    {"scope": "capabilities.supported_features", "family": "apparatus-declarations"}
+    {
+      "scope": "capabilities.supported_sdl_versions",
+      "family": "scenarios"
+    },
+    {
+      "scope": "capabilities.supported_features",
+      "family": "apparatus-declarations"
+    }
   ],
   "constraints": {},
   "capabilities": {
-    "supported_sdl_versions": ["sdl-authoring-input-v1"],
+    "supported_sdl_versions": [
+      "sdl-authoring-input-v1"
+    ],
     "supported_features": [
       "compilation",
       "planning",
@@ -33,6 +43,37 @@
       "objective-window-consistency",
       "dependency-ordering",
       "runtime-control-plane"
-    ]
+    ],
+    "participant_tools": {
+      "semantic_versions": [
+        "participant-tool-profile/v1"
+      ],
+      "max_bindings_per_profile": null,
+      "max_participants_per_binding": null,
+      "feature_support": [
+        {
+          "feature": "tool_affordances",
+          "support_level": "exact",
+          "constraint_refs": [],
+          "limitation_refs": [],
+          "disclosure_refs": [],
+          "evidence_refs": [
+            "tests:ACT-619",
+            "tests:API-414"
+          ]
+        },
+        {
+          "feature": "scoped_tool_affordances",
+          "support_level": "exact",
+          "constraint_refs": [],
+          "limitation_refs": [],
+          "disclosure_refs": [],
+          "evidence_refs": [
+            "tests:ACT-619",
+            "tests:API-414"
+          ]
+        }
+      ]
+    }
   }
 }

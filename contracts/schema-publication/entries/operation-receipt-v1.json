@@ -1,10 +1,5 @@
 {
   "contract_id": "operation-receipt-v1",
   "schema_path": "contracts/schemas/control-plane/operation-receipt-v1.json",
-  "stability": "draft",
-  "content_hash": "6449c3dd60d34b2d40f8bfee5c6bb3360f2ceee3c04c0d34ec520dbc036cd7ed",
-  "last_change": {
-    "summary": "Add the runtime-owned mixed-composition phase operation kind (#1016).",
-    "content_hash": "6449c3dd60d34b2d40f8bfee5c6bb3360f2ceee3c04c0d34ec520dbc036cd7ed"
-  }
+  "stability": "draft"
 }

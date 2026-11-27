@@ -24,3 +24,4 @@ Current state: identified gap. If the same scenario can be driven by different p
 - TESTS → TEST `implementations/python/tests/test_runtime_contracts.py` (Participant provenance schema bundle tests)
 - DOCUMENTS → ADR `ADR-041` (Participant Implementation Manifest and Provenance Surface)
 - IMPLEMENTS → SPEC `contracts/schemas/participant-implementation-provenance/participant-implementation-provenance-v1.json` (Participant implementation provenance v1 JSON Schema)
+- IMPLEMENTS → SPEC `contracts/schemas/participant-implementation-configuration/participant-configuration-result-v1.json` (participant-configuration-result-v1 published schema)

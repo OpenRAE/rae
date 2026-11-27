@@ -2609,6 +2609,38 @@
       ]
     },
     {
+      "subject_id": "sdl-field:safe_state",
+      "subject_kind": "top_level_field",
+      "disposition": "current",
+      "authority": {
+        "artifact": "contracts/schemas/sdl/sdl-authoring-input-v1.json",
+        "pointer": "#/properties/safe_state",
+        "contract_id": "sdl-authoring-input-v1"
+      },
+      "claims": [
+        {
+          "plane": "semantics",
+          "classification": "raes_native",
+          "source_refs": [],
+          "raes_boundaries": [
+            {
+              "artifact": "contracts/schemas/sdl/sdl-authoring-input-v1.json",
+              "symbol_or_pointer": "#/properties/safe_state"
+            }
+          ],
+          "source_boundaries": [],
+          "divergence": "RAES defines authored safe-state intent with lexical scopes and target-specific observed proof retained in admitted plans. Declarations grant no execution or observation authority; backends supply the mechanism.",
+          "compatibility": "not_applicable",
+          "citation_refs": [],
+          "internal_authority_refs": [
+            "docs/decisions/adrs/adr-113-reusable-execution-machinery.md",
+            "specs/sdl/safe-state.md"
+          ],
+          "compatibility_direction": "not_applicable"
+        }
+      ]
+    },
+    {
       "subject_id": "sdl-field:scripts",
       "subject_kind": "top_level_field",
       "disposition": "current",
@@ -5137,6 +5169,69 @@
           "citation_refs": [],
           "internal_authority_refs": [
             "specs/evolution/progressive-semantics.md"
+          ],
+          "compatibility_direction": "not_applicable"
+        }
+      ]
+    },
+    {
+      "subject_id": "sdl-field:control_context_assets",
+      "subject_kind": "top_level_field",
+      "disposition": "current",
+      "authority": {
+        "artifact": "contracts/schemas/sdl/sdl-authoring-input-v1.json",
+        "pointer": "#/properties/control_context_assets",
+        "contract_id": "sdl-authoring-input-v1"
+      },
+      "claims": [
+        {
+          "plane": "semantics",
+          "classification": "raes_native",
+          "source_refs": [],
+          "raes_boundaries": [
+            {
+              "artifact": "contracts/schemas/sdl/sdl-authoring-input-v1.json",
+              "symbol_or_pointer": "#/properties/control_context_assets"
+            }
+          ],
+          "source_boundaries": [],
+          "divergence": "RAES-native declarations reuse exact participant control-context asset identities, versions and content commitments. Participant selection and trial binding preserve those pins without granting visibility, authorization or delivery.",
+          "compatibility": "not_applicable",
+          "citation_refs": [],
+          "internal_authority_refs": [
+            "specs/sdl/participant-control-context.md",
+            "docs/requirements/DSL-118/requirement.md"
+          ],
+          "compatibility_direction": "not_applicable"
+        }
+      ]
+    },
+    {
+      "subject_id": "sdl-field:trial_parallelism",
+      "subject_kind": "top_level_field",
+      "disposition": "current",
+      "authority": {
+        "artifact": "contracts/schemas/sdl/sdl-authoring-input-v1.json",
+        "pointer": "#/properties/trial_parallelism",
+        "contract_id": "sdl-authoring-input-v1"
+      },
+      "claims": [
+        {
+          "plane": "semantics",
+          "classification": "raes_native",
+          "source_refs": [],
+          "raes_boundaries": [
+            {
+              "artifact": "contracts/schemas/sdl/sdl-authoring-input-v1.json",
+              "symbol_or_pointer": "#/properties/trial_parallelism"
+            }
+          ],
+          "source_boundaries": [],
+          "divergence": "RAES-native experiment capacity constrains an allocator without granting isolation or live resource leases.",
+          "compatibility": "not_applicable",
+          "citation_refs": [],
+          "internal_authority_refs": [
+            "specs/formal/scenario-variation-trial-realization/README.md"
           ],
           "compatibility_direction": "not_applicable"
         }

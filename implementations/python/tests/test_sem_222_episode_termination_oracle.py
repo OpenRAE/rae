@@ -37,13 +37,13 @@ from dataclasses import dataclass, replace
 from pathlib import Path
 
 import pytest
-from raes_contracts.participant_episode import iter_participant_episode_snapshot_violations
 from raes_contracts.participant_episode_closure import (
     PARTICIPANT_EPISODE_CLOSURE_SIGNAL_TERMINAL_REASONS,
     ParticipantEpisodeClosureRecord,
     ParticipantEpisodeClosureSignal,
     iter_participant_episode_closure_violations,
 )
+from raes_contracts.participant_episode_snapshot import iter_participant_episode_snapshot_violations
 
 SPEC_PATH = Path(__file__).resolve().parents[3] / "specs/formal/participant-episode-model/README.md"
 _OWNER_ISSUE = "#305"
@@ -159,7 +159,7 @@ def _closures_normalize(state: EpisodeProgression) -> bool:
         for payload in records:
             try:
                 ParticipantEpisodeClosureRecord.from_payload(payload)
-            except (TypeError, ValueError):
+            except TypeError, ValueError:
                 return False
     return True
 

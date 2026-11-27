@@ -1,0 +1,37 @@
+{
+  "schema_version": "requirement-scope/v1",
+  "issue_number": 1958,
+  "primary_requirement_uid": "ASR-532",
+  "requirement_uids": [
+    "ASR-532"
+  ],
+  "bindings": {
+    "docs/governance/requirement-scopes/1958.json": [
+      "ASR-532"
+    ],
+    "docs/requirements/ASR-532/requirement.md": [
+      "ASR-532"
+    ],
+    "implementations/python/packages/raes_contracts/runtime_value_limits.py": [
+      "ASR-532"
+    ],
+    "implementations/python/packages/raes_contracts/realization_structure/_common.py": [
+      "ASR-532"
+    ],
+    "implementations/python/packages/raes_processor/compiler/realization_recursive_constraints.py": [
+      "ASR-532"
+    ],
+    "implementations/python/tests/test_issue_1885_cloud_authority_budget.py": [
+      "ASR-532"
+    ],
+    "implementations/python/tests/cloud_authority_budget_fixtures.py": [
+      "ASR-532"
+    ],
+    "specs/sdl/recursive-realization-constraints.md": [
+      "ASR-532"
+    ],
+    "implementations/python/tests/test_issue_1885_binding_limits.py": [
+      "ASR-532"
+    ]
+  }
+}

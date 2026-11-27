@@ -11,6 +11,7 @@ did not validate.
 
 from __future__ import annotations
 
+import ast
 import hashlib
 import json
 from pathlib import Path
@@ -240,6 +241,18 @@ def test_cli_canonicalizes_the_emit_subjects_sink() -> None:
     assert "emit_subjects" in canonicalized
 
 
+def _release_evidence_function(name: str) -> ast.FunctionDef:
+    import inspect
+
+    from tools import release_evidence
+
+    return next(
+        node
+        for node in ast.walk(ast.parse(inspect.getsource(release_evidence)))
+        if isinstance(node, ast.FunctionDef) and node.name == name
+    )
+
+
 def test_cli_checks_subject_names_on_every_admission() -> None:
     """The name check is not conditional on the handoff being written out.
 
@@ -249,19 +262,10 @@ def test_cli_checks_subject_names_on_every_admission() -> None:
     foreign-version artifact.
     """
 
-    import ast
-    import inspect
-
-    from tools import release_evidence
-
-    main = next(
-        node
-        for node in ast.walk(ast.parse(inspect.getsource(release_evidence)))
-        if isinstance(node, ast.FunctionDef) and node.name == "main"
-    )
+    verify = _release_evidence_function("_verify")
     call = next(
         node
-        for node in ast.walk(main)
+        for node in ast.walk(verify)
         if isinstance(node, ast.Call)
         and isinstance(node.func, ast.Name)
         and node.func.id == "admitted_publication_subjects"
@@ -269,9 +273,14 @@ def test_cli_checks_subject_names_on_every_admission() -> None:
 
     # Its enclosing statement must not sit under the `--emit-subjects` guard.
     guarded = [
-        node for node in ast.walk(main) if isinstance(node, ast.If) and any(call is inner for inner in ast.walk(node))
+        node for node in ast.walk(verify) if isinstance(node, ast.If) and any(call is inner for inner in ast.walk(node))
     ]
     assert guarded == []
+    # The verify command runs through _verify.
+    assert any(
+        isinstance(node, ast.Call) and isinstance(node.func, ast.Name) and node.func.id == "_verify"
+        for node in ast.walk(_release_evidence_function("main"))
+    )
 
 
 def test_cli_emits_the_handoff_only_after_admission_succeeds() -> None:
@@ -282,21 +291,12 @@ def test_cli_emits_the_handoff_only_after_admission_succeeds() -> None:
     admission boundary had not accepted.
     """
 
-    import ast
-    import inspect
-
-    from tools import release_evidence
-
-    main = next(
-        node
-        for node in ast.walk(ast.parse(inspect.getsource(release_evidence)))
-        if isinstance(node, ast.FunctionDef) and node.name == "main"
-    )
+    verify = _release_evidence_function("_verify")
 
     def _position(needle: str) -> int:
         return next(
             index
-            for index, statement in enumerate(ast.walk(main))
+            for index, statement in enumerate(ast.walk(verify))
             if isinstance(statement, ast.Call) and isinstance(statement.func, ast.Name) and statement.func.id == needle
         )
 

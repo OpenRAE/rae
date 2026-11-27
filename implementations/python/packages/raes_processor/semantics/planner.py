@@ -3,12 +3,13 @@
 from __future__ import annotations
 
 from collections import deque
-from collections.abc import Callable, Iterable, Iterator, Mapping
+from collections.abc import Callable, Iterable, Mapping
 from dataclasses import dataclass
 from enum import Enum
-from typing import Protocol, TypeVar
+from typing import Protocol
 
 from raes_contracts.addressing import require_compiled_address
+from raes_contracts.graphs import cyclic_components, stable_topological_order
 
 
 class DependencyKind(str, Enum):
@@ -112,70 +113,7 @@ def dependency_cycles(
 ) -> list[tuple[str, ...]]:
     """Return strongly connected components that represent dependency cycles."""
 
-    graph = dependency_graph(dependencies_by_node)
-    if not graph:
-        return []
-
-    index = 0
-    indices: dict[str, int] = {}
-    lowlinks: dict[str, int] = {}
-    stack: list[str] = []
-    on_stack: set[str] = set()
-    cycles: list[tuple[str, ...]] = []
-
-    def visit(node: str) -> None:
-        nonlocal index
-        indices[node] = index
-        lowlinks[node] = index
-        index += 1
-        stack.append(node)
-        on_stack.add(node)
-
-    def close_component(node: str) -> None:
-        component: list[str] = []
-        while stack:
-            member = stack.pop()
-            on_stack.remove(member)
-            component.append(member)
-            if member == node:
-                break
-
-        component = sorted(component)
-        if len(component) > 1 or component[0] in graph[component[0]]:
-            cycles.append(tuple(component))
-
-    # Tarjan is driven from an explicit stack rather than recursion: DFS depth
-    # reaches the longest dependency path, so a recursive walk raises
-    # RecursionError on scenarios with more than roughly a thousand chained
-    # resources, aborting planning instead of reporting cycles.
-    def strongconnect(root: str) -> None:
-        visit(root)
-        frames: list[tuple[str, Iterator[str]]] = [(root, iter(graph[root]))]
-        while frames:
-            node, dependencies = frames[-1]
-            descended = False
-            for dependency in dependencies:
-                if dependency not in indices:
-                    visit(dependency)
-                    frames.append((dependency, iter(graph[dependency])))
-                    descended = True
-                    break
-                if dependency in on_stack:
-                    lowlinks[node] = min(lowlinks[node], indices[dependency])
-            if descended:
-                continue
-            frames.pop()
-            if frames:
-                parent = frames[-1][0]
-                lowlinks[parent] = min(lowlinks[parent], lowlinks[node])
-            if lowlinks[node] == indices[node]:
-                close_component(node)
-
-    for node in sorted(graph, key=canonical_resource_identity):
-        if node not in indices:
-            strongconnect(node)
-
-    return sorted(cycles, key=lambda cycle: tuple(canonical_resource_identity(node) for node in cycle))
+    return cyclic_components(dependency_graph(dependencies_by_node), key=canonical_resource_identity)
 
 
 def topological_dependency_order(
@@ -183,40 +121,7 @@ def topological_dependency_order(
 ) -> list[str]:
     """Return a stable topological order, appending residual nodes on cycles."""
 
-    graph = dependency_graph(dependencies_by_node)
-    dependents: dict[str, list[str]] = {node: [] for node in graph}
-    indegree: dict[str, int] = {node: 0 for node in graph}
-
-    for node, dependencies in graph.items():
-        for dependency in dependencies:
-            dependents[dependency].append(node)
-            indegree[node] += 1
-
-    queue = deque(
-        sorted(
-            (node for node, degree in indegree.items() if degree == 0),
-            key=canonical_resource_identity,
-        )
-    )
-    order: list[str] = []
-
-    while queue:
-        current = queue.popleft()
-        order.append(current)
-        for dependent in sorted(dependents[current], key=canonical_resource_identity):
-            indegree[dependent] -= 1
-            if indegree[dependent] == 0:
-                queue.append(dependent)
-
-    if len(order) != len(graph):
-        order.extend(
-            sorted(
-                (node for node in graph if node not in order),
-                key=canonical_resource_identity,
-            )
-        )
-
-    return order
+    return stable_topological_order(dependency_graph(dependencies_by_node), key=canonical_resource_identity)
 
 
 def reverse_delete_order(
@@ -278,21 +183,17 @@ def refresh_impacted_nodes(
     return tuple(address for address in refresh_order if address in impacted_set)
 
 
-_TResource = TypeVar("_TResource")
-_TSnapshot = TypeVar("_TSnapshot")
-
-
-def reconcile_resource_actions(
-    resources: Mapping[str, _TResource],
-    snapshot_entries: Mapping[str, _TSnapshot],
+def reconcile_resource_actions[TResource, TSnapshot](
+    resources: Mapping[str, TResource],
+    snapshot_entries: Mapping[str, TSnapshot],
     *,
-    resource_dependencies: Callable[[_TResource], SupportsDependencySemantics],
-    matches: Callable[[_TSnapshot, _TResource], bool],
-) -> tuple[dict[str, ReconciliationAction], dict[str, _TSnapshot]]:
+    resource_dependencies: Callable[[TResource], SupportsDependencySemantics],
+    matches: Callable[[TSnapshot, TResource], bool],
+) -> tuple[dict[str, ReconciliationAction], dict[str, TSnapshot]]:
     """Compute create/update/delete/unchanged actions from semantic dependencies."""
 
     actions: dict[str, ReconciliationAction] = {}
-    deleted_entries: dict[str, _TSnapshot] = {}
+    deleted_entries: dict[str, TSnapshot] = {}
 
     for address, resource in resources.items():
         existing = snapshot_entries.get(address)

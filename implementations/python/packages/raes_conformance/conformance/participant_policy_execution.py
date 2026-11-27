@@ -13,7 +13,9 @@ from __future__ import annotations
 from collections.abc import Iterator, Mapping
 from dataclasses import dataclass, field, replace
 
+from pydantic import ValidationError
 from raes_contracts.contracts.participant_crossing import ParticipantCrossingOccurrenceModel
+from raes_contracts.errors import AuthorizationError, ConflictError, EvidenceIntegrityError, InvalidInputError
 from raes_contracts.runtime_state import OperationState
 from raes_runtime.control_plane import RuntimeControlPlane
 from raes_runtime.registry import RuntimeTarget
@@ -114,7 +116,7 @@ def _validate_records(plane: RuntimeControlPlane) -> tuple[tuple[str, ...], str 
                 # The published model covers the whole event record, not just
                 # its nested occurrence, so validate the record as committed.
                 record = ParticipantCrossingOccurrenceModel.model_validate(entry)
-            except Exception as exc:
+            except ValidationError as exc:
                 return tuple(dispositions), sanitized_failure_message(exc)
             # ``occurrence`` is a union over crossing stages; only the decision
             # stage carries a disposition, and that is the stage an obligation's
@@ -228,20 +230,24 @@ def _prepared_plane(
         behavior_specifications=case.behavior_specifications,
         enforce_final_sink_flow_control=False,
     )
-    plane.initialize_participant_episode(case.participant_address, episode_id=case.episode_id)
-    for request, key in case.setup_requests:
-        plane.admit_participant_action(
-            case.behavior,
-            request,
-            identity=case.identity,
-            crossing_evidence=case.crossing_evidence,
-            idempotency_key=key,
-        )
-    if counter is not None:
-        # Setup admissions are not the obligation, so they must not count as
-        # the case's own backend invocations.
-        counter.calls = 0
-        counter.called_methods.clear()
+    try:
+        plane.initialize_participant_episode(case.participant_address, episode_id=case.episode_id)
+        for request, key in case.setup_requests:
+            plane.admit_participant_action(
+                case.behavior,
+                request,
+                identity=case.identity,
+                crossing_evidence=case.crossing_evidence,
+                idempotency_key=key,
+            )
+        if counter is not None:
+            # Setup admissions are not the obligation, so they must not count as
+            # the case's own backend invocations.
+            counter.calls = 0
+            counter.called_methods.clear()
+    except BaseException:
+        plane.close()
+        raise
     return plane, counter
 
 
@@ -250,36 +256,38 @@ def _run_case(case: ParticipantPolicyProbeCase, target: RuntimeTarget) -> _Outco
 
     declared = _declared_level(target, case.feature)
     if declared is None:
-        raise ValueError("participant-policy probe names a feature the target does not declare")
+        raise InvalidInputError("participant-policy probe names a feature the target does not declare")
 
     plane, counter = _prepared_plane(case, target)
-    before = _ledger(plane)
-    try:
-        released, refused = _drive(case, plane)
-    except (PermissionError, ValueError):
-        # Both are the runtime's fail-closed signals: PermissionError for an
-        # identity/audience refusal, ValueError for a structural one such as a
-        # replay after the state cut advanced. Either way nothing was released,
-        # and the side-effect boundary below still has to hold.
-        released, refused = False, True
-    after = _ledger(plane)
+    with plane:
+        before = _ledger(plane)
+        try:
+            released, refused = _drive(case, plane)
+        except AuthorizationError, ConflictError, EvidenceIntegrityError, InvalidInputError:
+            # These are the fail-closed refusal categories of the runtime. AuthorizationError refuses
+            # an identity or an audience. ConflictError refuses a state, for example a replay after the
+            # state cut advanced. EvidenceIntegrityError refuses a history that does not replay.
+            # InvalidInputError refuses request content. Nothing was released, and the side-effect
+            # boundary below still has to hold.
+            released, refused = False, True
+        after = _ledger(plane)
 
-    appended_count = len(after.crossing_records) - len(before.crossing_records)
-    dispositions, invalid_reason = _validate_records(plane)
-    evidence_refs, effective = _committed_facts(plane)
-    return _Outcome(
-        released=released,
-        refused=refused,
-        backend_calls=counter.calls if counter is not None else 0,
-        appended_dispositions=dispositions[-appended_count:] if appended_count > 0 else (),
-        invalid_reason=invalid_reason,
-        mutated_existing=after.crossing_records[: len(before.crossing_records)] != before.crossing_records,
-        audited=after.audit_events > before.audit_events,
-        declared_support_level=declared,
-        effective_support_level=effective if effective is not None else declared,
-        evidence_refs=evidence_refs,
-        counterexample_ref=f"crossing-disposition:{dispositions[-1]}" if dispositions else None,
-    )
+        appended_count = len(after.crossing_records) - len(before.crossing_records)
+        dispositions, invalid_reason = _validate_records(plane)
+        evidence_refs, effective = _committed_facts(plane)
+        return _Outcome(
+            released=released,
+            refused=refused,
+            backend_calls=counter.calls if counter is not None else 0,
+            appended_dispositions=dispositions[-appended_count:] if appended_count > 0 else (),
+            invalid_reason=invalid_reason,
+            mutated_existing=after.crossing_records[: len(before.crossing_records)] != before.crossing_records,
+            audited=after.audit_events > before.audit_events,
+            declared_support_level=declared,
+            effective_support_level=effective if effective is not None else declared,
+            evidence_refs=evidence_refs,
+            counterexample_ref=f"crossing-disposition:{dispositions[-1]}" if dispositions else None,
+        )
 
 
 __all__ = ("_Outcome", "_run_case")

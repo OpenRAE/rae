@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import pytest
 from raes_backend_protocols.capabilities import EvaluatorCapabilities
-from raes_reference_backend.manifest import create_reference_backend_manifest
 
 
 def test_evaluator_declares_finite_truth_and_predicate_capabilities() -> None:
@@ -49,13 +48,3 @@ def test_evaluator_cannot_claim_observed_truth_without_provenance() -> None:
             supported_time_domains=frozenset({"scenario_time"}),
             preserves_binding_provenance=False,
         )
-
-
-def test_reference_backend_discloses_truth_realization_surface() -> None:
-    evaluator = create_reference_backend_manifest().evaluator
-
-    assert evaluator is not None
-    assert {"propositions", "assertions", "objectives"} <= evaluator.supported_sections
-    assert evaluator.supported_predicate_families == frozenset({"presence", "boolean", "string", "number"})
-    assert evaluator.supported_truth_outcomes == frozenset({"true", "false", "unknown", "unsupported"})
-    assert evaluator.preserves_binding_provenance is True

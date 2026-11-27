@@ -1,0 +1,120 @@
+name: smtp-imap-mail-service
+version: 2.0.0
+description: Reusable static infrastructure for SMTP/IMAP mail service. Configures
+  mail_domain through the kit parameter contract.
+module:
+  id: infrastructure/smtp-imap-mail-service
+  version: 2.0.0
+  parameters:
+  - deployment_profile
+  - service_label
+  - mail_domain
+  exports:
+    nodes:
+    - mail
+    content:
+    - seed_inventory
+    accounts:
+    - mail_operator
+  description: Composable SMTP/IMAP mail service infrastructure module.
+variables:
+  deployment_profile:
+    type: string
+    default: standard
+    allowed_values:
+    - compact
+    - standard
+  service_label:
+    type: string
+    default: smtp-imap-mail-service
+  mail_domain:
+    type: string
+    default: environment.test
+    allowed_values:
+    - alternate.test
+    - environment.test
+nodes:
+  mail:
+    type: compute
+    description: '${deployment_profile} profile for ${service_label} (SMTP/IMAP mail
+      service). Configuration: ${mail_domain}.'
+    source:
+      name: mail-server
+      version: stable
+    resources:
+      cpu: 2
+      ram: 2 GiB
+    services:
+    - port: 25
+      protocol: tcp
+      name: smtp
+      description: Declared smtp service surface.
+    - port: 143
+      protocol: tcp
+      name: imap
+      description: Declared imap service surface.
+    runtime:
+      mail_services:
+      - mail_service_id: environment_mail
+        service: smtp
+        engine: postfix-dovecot
+        listeners:
+        - listener_id: smtp_listener
+          service: smtp
+          protocol: smtp
+          tls_mode: starttls-available
+        - listener_id: imap_listener
+          service: imap
+          protocol: imap
+          tls_mode: starttls-available
+        domains:
+        - domain_id: primary_domain
+          name: ${mail_domain}
+        mailboxes:
+        - mailbox_id: operator_mailbox
+          address: operator@environment.test
+          domain_ref: primary_domain
+        - mailbox_id: service_mailbox
+          address: service@environment.test
+          domain_ref: primary_domain
+content:
+  seed_inventory:
+    type: dataset
+    target: mail
+    description: Benign infrastructure seed inventory for ${mail_domain}.
+    items:
+    - name: mail_domain
+      display_name: Mail Domain
+      tags:
+      - infrastructure
+      - seed
+      description: Declared mail domain for this reusable service.
+    - name: mailboxes
+      display_name: Mailboxes
+      tags:
+      - infrastructure
+      - seed
+      description: Declared mailboxes for this reusable service.
+    - name: aliases
+      display_name: Aliases
+      tags:
+      - infrastructure
+      - seed
+      description: Declared aliases for this reusable service.
+    - name: seed_messages
+      display_name: Seed Messages
+      tags:
+      - infrastructure
+      - seed
+      description: Declared seed messages for this reusable service.
+accounts:
+  mail_operator:
+    username: mail-operator
+    node: mail
+    password_strength: strong
+    description: Declared environment account; credential delivery remains backend-owned.
+realization:
+  constraints:
+  - field_pointer: /nodes/mail
+    concern: compute-substrate
+    posture: open

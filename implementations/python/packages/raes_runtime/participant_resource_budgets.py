@@ -13,10 +13,12 @@ from raes_contracts.contracts.participant_resource_budgets import (
     participant_resource_budget_state_ref,
 )
 from raes_contracts.diagnostics import Diagnostic
+from raes_contracts.errors import ConflictError
 from raes_contracts.resource_measure_profiles import resource_measure_supported
 from raes_contracts.runtime_state import ApplyResult, RuntimeSnapshot
 
 from .participant_resource_pool_ledger import (
+    POOL_ALLOCATION_CONFLICT,
     ensure_allocation,
     new_pool_state,
     pool_state_ref,
@@ -215,12 +217,12 @@ def _initialize_new_budget(
             budget_state,
             fairness=policy.resource_fairness,
         )
-    except ValueError as exc:
+    except ConflictError:
         failure = _initialization_failure(
             mutation,
             policy,
             "runtime.participant-resource-pool-conflict",
-            str(exc),
+            POOL_ALLOCATION_CONFLICT,
         )
     if failure is None:
         mutation.states[state_ref] = _payload(budget_state)

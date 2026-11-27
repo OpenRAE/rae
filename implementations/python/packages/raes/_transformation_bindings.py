@@ -7,7 +7,7 @@ from raes_contracts.contracts import (
     ExternalConceptSubjectModel,
 )
 
-from ._transformation_types import SDLAuthoringArtifact
+from ._transformation_types import SDLAuthoringArtifact, _TransformationRefusal
 from .external_concept_subjects import external_concept_subjects
 
 
@@ -44,15 +44,15 @@ def _retarget_binding_subject(
     supplied_digest = str(subject.get("artifact_digest", ""))
     source_digest_matches = supplied_digest.casefold() == source_digest.casefold()
     if same_source_coordinate and not source_digest_matches:
-        raise ValueError("external concept subject is stale for the source artifact")
+        raise _TransformationRefusal("external concept subject is stale for the source artifact")
     if not source_digest_matches:
         return
     if not same_source_coordinate or source_subject is None:
-        raise ValueError("external concept subject does not resolve in the source artifact")
+        raise _TransformationRefusal("external concept subject does not resolve in the source artifact")
     rewritten_ref = after if canonical_ref == before else canonical_ref
     target_subject = target_subjects.get(rewritten_ref)
     if target_subject is None or target_subject.subject_kind != source_subject.subject_kind:
-        raise ValueError("external concept subject does not resolve in the target artifact")
+        raise _TransformationRefusal("external concept subject does not resolve in the target artifact")
     subject["canonical_ref"] = rewritten_ref
     subject["artifact_digest"] = target_digest
 

@@ -1,11 +1,10 @@
-Processor Layer
+Processor layer
 ===============
 
-The ``raes_processor`` package provides SDL processing: instantiation-aware
-compilation, reconciliation planning, support determination, manifest
-authority, and compiled processor runtime models. Per ADR-036, live runtime
-control lives in ``raes_runtime`` and cross-package runtime/backend DTOs live
-in ``raes_contracts``.
+The ``raes_processor`` package compiles SDL, including instantiated scenarios.
+It plans state changes, checks backend support and manifests, and owns the
+compiled runtime models. Live runtime control belongs to ``raes_runtime``.
+Shared runtime and backend data types belong to ``raes_contracts`` (ADR-036).
 
 .. currentmodule:: raes_processor
 
@@ -22,12 +21,12 @@ Compiler
 .. automodule:: raes_processor.compiler
    :members:
 
-Processor Models
+Processor models
 ----------------
 
-The runtime data models live in the ``raes_processor.models`` package; its
-``__init__`` re-exports the full public surface, and the classes and functions
-are documented here from the subdomain modules that define them.
+The ``raes_processor.models`` package owns the runtime data models. Its
+``__init__`` exports the public types and functions. The sections below show
+them from the modules that define them.
 
 .. automodule:: raes_processor.models.resources
    :members:
@@ -59,7 +58,7 @@ are documented here from the subdomain modules that define them.
 .. automodule:: raes_processor.models.runtime_model
    :members:
 
-Manifest Authority
+Manifest authority
 ------------------
 
 .. automodule:: raes_processor.manifest
@@ -77,7 +76,7 @@ Capabilities
 .. automodule:: raes_processor.capabilities
    :members:
 
-Exploit-Path Analysis
+Exploit-path analysis
 ---------------------
 
 .. automodule:: raes_processor.exploit_path

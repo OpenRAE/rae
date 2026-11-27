@@ -134,6 +134,8 @@ def selected_profile_authority(
                 posture="closed", universe="profile-value", profile="authored-profile-selection/v1"
             ),
         ).document
+        if document is None:
+            raise ValueError("authored profile selection value cannot be normalized")
         constraints.append(
             ProfileBindingConstraint(
                 binding_path=path,

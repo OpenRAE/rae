@@ -5,10 +5,19 @@ from __future__ import annotations
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 
+from pydantic import ValidationError
 from raes_contracts.addressing import require_compiled_address
 from raes_contracts.domain_profiles import DomainProfileBindingModel, DomainProfileCoordinateModel
 
 DOMAIN_NODE_ROLES = frozenset({"controller", "member"})
+
+
+def _profile_binding(value: object) -> DomainProfileBindingModel:
+    try:
+        return DomainProfileBindingModel.model_validate(value)
+    except ValidationError as exc:
+        # The validation error text repeats the rejected profile values; keep them out of the message (E7).
+        raise ValueError("DomainTopologyBinding.profile must be a valid domain profile binding") from exc
 
 
 def domain_topology_profile(payload: Mapping[str, object]) -> str | DomainProfileCoordinateModel:
@@ -90,7 +99,7 @@ class DomainTopologyBinding:
             raise ValueError("DomainTopologyBinding.controller_addresses must be a sequence")
         return cls(
             domain_id=required_string("domain_id"),
-            profile=DomainProfileBindingModel.model_validate(payload["profile"])
+            profile=_profile_binding(payload["profile"])
             if isinstance(payload.get("profile"), (Mapping, DomainProfileBindingModel))
             else required_string("profile"),
             dns_name=required_string("dns_name"),

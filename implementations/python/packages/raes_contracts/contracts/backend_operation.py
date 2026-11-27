@@ -9,12 +9,14 @@ from pydantic import ConfigDict, Field, model_validator
 from ..addressing import CompiledAddress
 from ..execution_policy import ExecutionPolicyCapabilities
 from ..operation_lifecycle import OperationAdmissionContext, OperationKind
+from ..timestamps import parse_rfc3339_datetime
 from ..versions import (
     BACKEND_OPERATION_CAPABILITIES_SCHEMA_VERSION,
     BACKEND_OPERATION_CONTROL_SCHEMA_VERSION,
     BACKEND_OPERATION_REQUEST_SCHEMA_VERSION,
 )
-from .base import ContractModel, Rfc3339DateTimeString, _parse_rfc3339_datetime
+from .base import ContractModel, Rfc3339DateTimeString
+from .workflow_dispatch import WorkflowStepDispatch
 
 OperationIdentifier = Annotated[str, Field(min_length=1, max_length=256)]
 OperationDigest = Annotated[str, Field(pattern=r"^sha256:[a-f0-9]{64}$")]
@@ -57,7 +59,7 @@ class OperationBudgetModel(OperationContractModel):
 
     @model_validator(mode="after")
     def _budget_bounds(self) -> Self:
-        _parse_rfc3339_datetime("started_at", self.started_at)
+        parse_rfc3339_datetime("started_at", self.started_at)
         if self.remaining_ms > self.limit_ms:
             raise ValueError("remaining budget cannot exceed its original limit")
         return self
@@ -104,6 +106,22 @@ class BackendOperationRequestModel(OperationContractModel):
     requirement_refs: tuple[OperationArtifactReferenceModel, ...] = Field(default=(), max_length=64)
     required_guarantees: tuple[OperationGuarantee, ...] = Field(default=(), max_length=5)
     budget: OperationBudgetModel
+    workflow_step: WorkflowStepDispatch | None = Field(default=None, exclude_if=lambda value: value is None)
+
+    @model_validator(mode="after")
+    def _workflow_step_binding(self) -> Self:
+        if self.command.contract_id == "workflow-step-dispatch-v1":
+            step = self.workflow_step
+            if (
+                step is None
+                or self.command.artifact_id != step.dispatch_id
+                or self.binding.context.operation_kind.value != "orchestration"
+                or self.binding.context.parent_operation_id != step.root_operation_id
+            ):
+                raise ValueError("workflow step command does not match its operation binding")
+        elif self.workflow_step is not None:
+            raise ValueError("workflow step inputs require their exact command contract")
+        return self
 
 
 class BackendOperationCapabilitiesModel(OperationContractModel):

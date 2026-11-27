@@ -4,18 +4,27 @@ from __future__ import annotations
 
 from collections.abc import Iterable
 from enum import Enum
-from typing import TypeVar
-
-EnumT = TypeVar("EnumT", bound=Enum)
 
 
-def enum_value(enum_type: type[EnumT], raw: object) -> EnumT:
+def enum_value[EnumT: Enum](enum_type: type[EnumT], raw: object) -> EnumT:
     if isinstance(raw, enum_type):
         return raw
-    return enum_type(str(raw))
+    try:
+        return enum_type(str(raw))
+    except ValueError as exc:
+        # Enum and str() errors carry the rejected value or interpreter text; callers report this message (E7).
+        raise ValueError(f"value is not a valid {enum_type.__name__}") from exc
 
 
-def optional_enum_value(enum_type: type[EnumT], raw: object) -> EnumT | None:
+def text_value(raw: object, field_name: str) -> str:
+    try:
+        return str(raw)
+    except ValueError as exc:
+        # str() refuses an integer beyond the interpreter digit limit; callers report this message (E7).
+        raise ValueError(f"{field_name} cannot be represented as text") from exc
+
+
+def optional_enum_value[EnumT: Enum](enum_type: type[EnumT], raw: object) -> EnumT | None:
     if raw is None:
         return None
     return enum_value(enum_type, raw)

@@ -2,9 +2,21 @@
 
 from __future__ import annotations
 
-from collections.abc import Iterator
+from collections.abc import Iterator, Mapping
 
-from raes_contracts.contracts import ParticipantCrossingOccurrenceModel
+from raes_contracts.contracts.participant_crossing import ParticipantCrossingOccurrenceModel
+
+from .immutable_history import EventHistory, HistoryFieldPolicy, HistoryIdentity, HistoryMap
+
+
+def _crossing_identity(participant: str, payload: Mapping[str, object], position: int) -> HistoryIdentity:
+    record = ParticipantCrossingOccurrenceModel.model_validate(payload)
+    if record.participant_address != participant:
+        raise ValueError("participant crossing history map key must equal the embedded participant address")
+    return (participant, record.event_id)
+
+
+CROSSING_HISTORY_POLICY = HistoryFieldPolicy(record_identity=_crossing_identity, retains_invalid_records=True)
 
 
 def iter_participant_crossing_history_snapshot_violations(
@@ -12,11 +24,14 @@ def iter_participant_crossing_history_snapshot_violations(
 ) -> Iterator[tuple[str, str]]:
     """Yield closed-shape and participant-key violations."""
 
-    if not isinstance(history, dict):
-        yield ("runtime.participant-crossing-history", "participant crossing history must be a mapping")
+    if type(history) is HistoryMap and history.policy is CROSSING_HISTORY_POLICY and history.shape_valid:
         return
-    for participant_address, events in history.items():
-        yield from _snapshot_entry_violations(participant_address, events)
+
+    if not isinstance(history, (dict, HistoryMap)):
+        yield ("runtime.participant-crossing-history", "participant crossing history must be a mapping")
+    else:
+        for participant_address, events in history.items():
+            yield from _snapshot_entry_violations(participant_address, events)
 
 
 def _snapshot_entry_violations(
@@ -26,7 +41,7 @@ def _snapshot_entry_violations(
     address = f"runtime.participant-crossing-history.{participant_address}"
     if not isinstance(participant_address, str) or not participant_address:
         yield (address, "participant crossing history map keys must be non-empty strings")
-    elif not isinstance(events, list):
+    elif not isinstance(events, (list, EventHistory)):
         yield (address, "participant crossing history values must be event lists")
     else:
         yield from _event_violations(participant_address, address, events)
@@ -41,7 +56,7 @@ def _event_violations(
     for event in events:
         try:
             parsed = ParticipantCrossingOccurrenceModel.model_validate(event)
-        except (TypeError, ValueError):
+        except TypeError, ValueError:
             yield (address, "participant crossing history must contain closed API-423 occurrences")
             continue
         if parsed.participant_address != participant_address:
@@ -60,24 +75,33 @@ def iter_participant_crossing_history_transition_violations(
 ) -> Iterator[tuple[str, str]]:
     """Yield violations when a crossing stream does not retain its exact prefix."""
 
-    if not isinstance(previous, dict) or not isinstance(current, dict):
+    if not isinstance(previous, (dict, HistoryMap)) or not isinstance(current, (dict, HistoryMap)):
         yield ("runtime.participant-crossing-history", "participant crossing history must remain append-only")
         return
     for participant_address, previous_events in previous.items():
         current_events = current.get(participant_address)
-        if (
-            not isinstance(previous_events, list)
-            or not isinstance(current_events, list)
-            or len(current_events) < len(previous_events)
-            or current_events[: len(previous_events)] != previous_events
-        ):
+        if not _preserves_prefix(previous_events, current_events):
             yield (
                 f"runtime.participant-crossing-history.{participant_address}",
                 "participant crossing history must remain append-only and preserve its exact prefix",
             )
 
 
+def _preserves_prefix(previous: object, current: object) -> bool:
+    if isinstance(previous, EventHistory) and isinstance(current, EventHistory):
+        return len(current) >= len(previous) and current.prefix_digest(len(previous)) == previous.prefix_digest(
+            len(previous)
+        )
+    return (
+        isinstance(previous, (list, EventHistory))
+        and isinstance(current, (list, EventHistory))
+        and len(current) >= len(previous)
+        and current[: len(previous)] == previous
+    )
+
+
 __all__ = (
+    "CROSSING_HISTORY_POLICY",
     "iter_participant_crossing_history_snapshot_violations",
     "iter_participant_crossing_history_transition_violations",
 )

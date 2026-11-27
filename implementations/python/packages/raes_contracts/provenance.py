@@ -10,7 +10,8 @@ from typing import Annotated, Literal
 
 from pydantic import Field, model_validator
 
-from .contracts import ContractModel, NonEmptyString
+from raes_contracts._base import ContractModel, NonEmptyString
+
 from .corpus import PROVENANCE, corpus_family_root
 from .versions import SDL_LINEAGE_LEDGER_SCHEMA_VERSION
 

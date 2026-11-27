@@ -13,22 +13,29 @@ Delivery-level concerns (Docker, Terraform, cloud APIs) are outside the SDL.
 from collections.abc import Mapping
 from typing import ClassVar, Literal
 
-from pydantic import ConfigDict, Field, PrivateAttr, model_validator
+from pydantic import ConfigDict, Field, PrivateAttr, field_validator, model_validator
 from raes_contracts.augmentation_scope import OptionalAugmentationScope
+from raes_contracts.contracts.participant_control_context import ParticipantControlContextAssetModel
+from raes_contracts.evidence_requirements import EvidenceRequirement
 from raes_contracts.execution_policy import OptionalExecutionPolicy
+from raes_contracts.identifiers import PortableIdentifier, QualifiedName, require_portable_identifier
+from raes_contracts.json_pointer import unescape_token
+from raes_contracts.participant_outcome_semantics import OutcomeInterpretationRule
+from raes_contracts.propositions import Assertion, Proposition
+from raes_contracts.safe_state import SafeStateDocument
+from raes_contracts.trial_parallelism import TrialParallelismModel
 
-from ._base import SDLModel
-from ._capability_binding_normalization import normalize_capability_binding
 from ._classification_guard import LegacyClassificationGuard
+from ._declaration_sources import DeclarationSource
 from ._errors import SDLParseDiagnostic
-from ._identifiers import (
-    PortableIdentifier,
-    QualifiedName,
-    require_module_identifier,
-    require_portable_identifier,
-)
 from ._mapping_scopes import HASHMAP_SECTIONS
-from ._scenario_instantiation import collect_variable_tokens, resolve_json_pointer
+from ._module_declarations import ImportDecl as ImportDecl
+from ._module_declarations import ModuleDescriptor as ModuleDescriptor
+from ._scenario_instantiation import (
+    collect_variable_tokens,
+    validate_capability_constraint_outputs,
+    validate_parameter_derivation_outputs,
+)
 from .accounts import Account
 from .agents import Agent
 from .conditions import Condition
@@ -36,7 +43,6 @@ from .content import Content
 from .deployment_tenancy import DeploymentCell, DeploymentTenant
 from .enterprise_identity import IdentityFacade, IdentityForest
 from .entities import Entity
-from .evidence_requirements import EvidenceRequirement
 from .explicitness import ExplicitnessRecord
 from .features import Feature
 from .identity_domains import IdentityDomain
@@ -49,14 +55,11 @@ from .participant_behavior import (
     ParticipantObservationBoundary,
 )
 from .participant_behavior_specification import ParticipantBehaviorSpecification
-from .participant_outcome_semantics import OutcomeInterpretationRule
 from .phase_contracts import (
     CapabilityConstraint,
     ExpansionProvenance,
     InstantiationProvenance,
-    _json_value_equal,
 )
-from .propositions import Assertion, Proposition
 from .realization_designation import RealizationDesignation
 from .relationships import Relationship
 from .runtime_forwarding_agent import RuntimeForwardingAgent
@@ -109,7 +112,7 @@ def _constraint_node_refs(
             ("infrastructure", "count"),
         }:
             continue
-        node_name = parts[2].replace("~1", "/").replace("~0", "~")
+        node_name = unescape_token(parts[2])
         # ``architecture`` is populated only when present so nodes without an
         # architecture constraint keep a byte-identical canonical projection.
         refs.setdefault(node_name, {"os": None, "count": None})[field_name] = _legacy_constraint_name(
@@ -198,54 +201,6 @@ def _validate_runtime_forwarding_agent_identifiers(value: Mapping[object, object
         )
 
 
-class ModuleDescriptor(SDLModel):
-    """Published module metadata for SDL composition."""
-
-    id: str
-    version: str
-    parameters: list[PortableIdentifier] = Field(default_factory=list)
-    exports: dict[str, list[str]] = Field(default_factory=dict)
-    description: str = ""
-
-    @model_validator(mode="after")
-    def validate_descriptor(self) -> "ModuleDescriptor":
-        require_module_identifier(self.id)
-        if len(self.parameters) != len(set(self.parameters)):
-            raise ValueError("module.parameters must be unique")
-        for section, names in self.exports.items():
-            if len(names) != len(set(names)):
-                raise ValueError(f"module.exports.{section} entries must be unique")
-        return self
-
-
-class ImportDecl(SDLModel):
-    """A module import expanded before full semantic validation."""
-
-    source: str = ""
-    path: str = ""
-    namespace: str = ""
-    version: str = "*"
-    parameters: dict[PortableIdentifier, object] = Field(default_factory=dict)
-    digest: str = ""
-
-    @model_validator(mode="after")
-    def validate_source_fields(self) -> "ImportDecl":
-        if not self.source and not self.path:
-            raise ValueError("Import requires either 'source' or deprecated 'path'")
-        if self.source and self.path:
-            raise ValueError("Import may specify only one of 'source' or 'path'")
-        if not self.namespace:
-            raise ValueError("Import requires an explicit namespace")
-        require_portable_identifier(self.namespace, field_name="namespace")
-        return self
-
-    @property
-    def normalized_source(self) -> str:
-        if self.source:
-            return self.source
-        return f"local:{self.path}"
-
-
 class ScenarioContent(LegacyClassificationGuard):
     """Executable SDL content shared by the closed document-phase types."""
 
@@ -257,6 +212,12 @@ class ScenarioContent(LegacyClassificationGuard):
     name: PortableIdentifier
     version: str = "*"
     description: str = ""
+    trial_parallelism: TrialParallelismModel | None = Field(
+        default=None,
+        repr=False,
+        exclude_if=lambda value: value is None,
+        json_schema_extra={"x-raes-realization-dimension": False},
+    )
     semantic_revision: Literal["raes-progressive-semantics/v1"] | None = Field(
         default=None,
         exclude_if=lambda value: value is None,
@@ -288,12 +249,21 @@ class ScenarioContent(LegacyClassificationGuard):
     deployment_cells: dict[str, DeploymentCell] = Field(default_factory=dict)
     relationships: dict[str, Relationship] = Field(default_factory=dict)
     forwarding_agents: list[RuntimeForwardingAgent] = Field(default_factory=list)
+    control_context_assets: dict[str, ParticipantControlContextAssetModel] = Field(
+        default_factory=dict, exclude_if=lambda value: not value, max_length=256
+    )
     agents: dict[str, Agent] = Field(default_factory=dict)
     action_contracts: dict[str, ParticipantActionContract] = Field(default_factory=dict)
     observation_boundaries: dict[str, ParticipantObservationBoundary] = Field(default_factory=dict)
     outcome_interpretation_rules: dict[str, OutcomeInterpretationRule] = Field(default_factory=dict)
     behavior_specifications: dict[str, ParticipantBehaviorSpecification] = Field(default_factory=dict)
     evidence_requirements: dict[str, EvidenceRequirement] = Field(default_factory=dict)
+    safe_state: SafeStateDocument | None = Field(
+        default=None,
+        repr=False,
+        exclude_if=lambda value: value is None,
+        json_schema_extra={"x-raes-realization-dimension": False},
+    )
     execution_policy: OptionalExecutionPolicy = None
     augmentation_scope: OptionalAugmentationScope = None
     time_domains: dict[str, TimeDomain] = Field(default_factory=dict)
@@ -307,6 +277,33 @@ class ScenarioContent(LegacyClassificationGuard):
     _source_diagnostics: tuple[SDLParseDiagnostic, ...] = PrivateAttr(default=())
     _semantic_validated: bool = PrivateAttr(default=False)
     _explicitness: dict[str, ExplicitnessRecord] = PrivateAttr(default_factory=dict)
+    _declaration_sources: dict[str, DeclarationSource] = PrivateAttr(default_factory=dict)
+
+    @field_validator("control_context_assets")
+    @classmethod
+    def _immutable_control_context_descriptors(
+        cls, assets: dict[str, ParticipantControlContextAssetModel]
+    ) -> dict[str, ParticipantControlContextAssetModel]:
+        if any(collect_variable_tokens(asset.model_dump(mode="json")) for asset in assets.values()):
+            raise ValueError("control-context.immutable-descriptor-token")
+        return assets
+
+    @property
+    def declaration_sources(self) -> dict[str, DeclarationSource]:
+        """Original authored locations, never serialized as scenario authority."""
+        return dict(self._declaration_sources)
+
+    def _set_declaration_sources(self, sources: Mapping[str, DeclarationSource]) -> None:
+        self._declaration_sources = dict(sources)
+
+    def __eq__(self, other: object) -> bool:
+        """Authored locations do not change the scenario's semantic equality."""
+        if not isinstance(other, ScenarioContent):
+            return super().__eq__(other)
+        left, right = self.model_copy(), other.model_copy()
+        for model in (left, right):
+            model.__pydantic_private__.pop("_declaration_sources", None)
+        return super(ScenarioContent, left).__eq__(right)
 
     @model_validator(mode="before")
     @classmethod
@@ -385,6 +382,15 @@ class Scenario(ScenarioContent):
         json_schema_extra={"additionalProperties": False},
     )
     variation_points: dict[str, VariationPoint] = Field(default_factory=dict)
+
+    @model_validator(mode="before")
+    @classmethod
+    def _reject_private_behavior_references(cls, value: object) -> object:
+        from ._behavior_authoring import validate_authored_behavior_references
+
+        if isinstance(value, Mapping):
+            validate_authored_behavior_references(value)
+        return value
 
     @property
     def module_variable_specs(self) -> dict[str, dict[str, object]]:
@@ -472,7 +478,7 @@ class InstantiatedScenario(ScenarioContent):
         }
 
     @model_validator(mode="after")
-    def _reject_unresolved_variable_references(self) -> "InstantiatedScenario":
+    def _reject_unresolved_variable_references(self) -> InstantiatedScenario:
         payload = self.model_dump(mode="json", by_alias=True)
         tokens = sorted(set(collect_variable_tokens(payload)))
         if tokens:
@@ -482,18 +488,10 @@ class InstantiatedScenario(ScenarioContent):
         for imported in self.instantiation_provenance.imports:
             for binding in imported.bindings:
                 binding_values[(*imported.namespace, *binding.parameter)] = binding.value
-        for constraint in self.instantiation_provenance.capability_constraints:
-            try:
-                concrete_value = resolve_json_pointer(payload, constraint.field_pointer)
-            except (KeyError, IndexError, TypeError, ValueError) as exc:
-                raise ValueError(
-                    f"Capability constraint field_pointer does not resolve: {constraint.field_pointer}"
-                ) from exc
-            if constraint.parameter not in binding_values:
-                raise ValueError("Capability constraint references an unresolved parameter identity")
-            binding = binding_values[constraint.parameter]
-            if not _json_value_equal(concrete_value, binding):
-                binding = normalize_capability_binding(self, constraint.field_pointer, binding)
-                if not _json_value_equal(concrete_value, binding):
-                    raise ValueError("Capability constraint binding does not match the concrete field value")
+        validate_capability_constraint_outputs(
+            self, payload, self.instantiation_provenance.capability_constraints, binding_values
+        )
+        validate_parameter_derivation_outputs(
+            self, payload, self.instantiation_provenance.parameter_derivations, binding_values
+        )
         return self

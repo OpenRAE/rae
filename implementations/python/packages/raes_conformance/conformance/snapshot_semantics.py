@@ -10,13 +10,14 @@ from raes_contracts.contracts import (
     RuntimeSnapshotEnvelopeModel,
 )
 from raes_contracts.diagnostics import Diagnostic
+from raes_contracts.immutable_history import EventHistory
 from raes_contracts.participant_autonomous_state import (
     iter_participant_autonomous_runtime_snapshot_violations,
     iter_participant_autonomous_state_snapshot_violations,
 )
 from raes_contracts.participant_concurrency import iter_participant_concurrency_snapshot_violations
-from raes_contracts.participant_episode import iter_participant_episode_snapshot_violations
 from raes_contracts.participant_episode_closure import iter_participant_episode_closure_violations
+from raes_contracts.participant_episode_snapshot import iter_participant_episode_snapshot_violations
 from raes_contracts.participant_information_state_history import (
     iter_participant_information_state_snapshot_violations,
 )
@@ -36,7 +37,7 @@ from raes_runtime.result_contracts import (
     workflow_result_contract_diagnostics,
 )
 
-from raes_conformance.conformance.diagnostics import _SEMANTIC_INVALID_DIAGNOSTIC_CODE, _diagnostic
+from raes_conformance.conformance.diagnostics import _SEMANTIC_INVALID_DIAGNOSTIC_CODE, conformance_diagnostic
 
 
 def _snapshot_entries(validated: RuntimeSnapshotEnvelopeModel) -> dict[str, SnapshotEntry]:
@@ -122,7 +123,7 @@ def _participant_episode_snapshot_diagnostics(
     """
 
     return [
-        _diagnostic(_SEMANTIC_INVALID_DIAGNOSTIC_CODE, address, message)
+        conformance_diagnostic(_SEMANTIC_INVALID_DIAGNOSTIC_CODE, address, message)
         for address, message in iter_participant_episode_snapshot_violations(
             snapshot.participant_episode_results,
             snapshot.participant_episode_history,
@@ -134,7 +135,7 @@ def _participant_episode_closure_snapshot_diagnostics(
     snapshot: RuntimeSnapshot,
 ) -> list[Diagnostic]:
     return [
-        _diagnostic(_SEMANTIC_INVALID_DIAGNOSTIC_CODE, address, message)
+        conformance_diagnostic(_SEMANTIC_INVALID_DIAGNOSTIC_CODE, address, message)
         for address, message in iter_participant_episode_closure_violations(
             snapshot.participant_episode_closure_records,
             snapshot.participant_episode_history,
@@ -230,7 +231,7 @@ def _participant_behavior_snapshot_references(
 
 
 def _participant_history_observation_boundary_addresses(history: object) -> set[str]:
-    if not isinstance(history, list):
+    if not isinstance(history, (list, EventHistory)):
         return set()
     addresses: set[str] = set()
     for event in history:
@@ -271,7 +272,7 @@ def _participant_behavior_history_diagnostics(
             diagnostic_address = root_address + address.removeprefix(history_key)
         else:
             diagnostic_address = f"{root_address}.{address}"
-        diagnostics.append(_diagnostic(_SEMANTIC_INVALID_DIAGNOSTIC_CODE, diagnostic_address, message))
+        diagnostics.append(conformance_diagnostic(_SEMANTIC_INVALID_DIAGNOSTIC_CODE, diagnostic_address, message))
     return diagnostics
 
 
@@ -282,12 +283,12 @@ def _participant_behavior_binding_diagnostics(
     has_participant_action_binding: bool,
     has_participant_boundary_binding: bool,
 ) -> list[Diagnostic]:
-    if not isinstance(history, list) or not history:
+    if not isinstance(history, (list, EventHistory)) or not history:
         return []
     if has_participant_action_binding and has_participant_boundary_binding:
         return []
     return [
-        _diagnostic(
+        conformance_diagnostic(
             _SEMANTIC_INVALID_DIAGNOSTIC_CODE,
             f"runtime.snapshot.participant-behavior-history.{participant_address}",
             (
@@ -352,7 +353,7 @@ def _participant_behavior_snapshot_diagnostics(
         )
     for address, message in iter_participant_behavior_joint_action_violations(snapshot.participant_behavior_history):
         diagnostics.append(
-            _diagnostic(
+            conformance_diagnostic(
                 _SEMANTIC_INVALID_DIAGNOSTIC_CODE,
                 f"runtime.snapshot.participant-behavior-history.{address}",
                 message,
@@ -363,7 +364,7 @@ def _participant_behavior_snapshot_diagnostics(
 
 def _shared_state_snapshot_diagnostics(snapshot: RuntimeSnapshot) -> list[Diagnostic]:
     return [
-        _diagnostic(_SEMANTIC_INVALID_DIAGNOSTIC_CODE, address, message)
+        conformance_diagnostic(_SEMANTIC_INVALID_DIAGNOSTIC_CODE, address, message)
         for address, message in iter_participant_shared_state_snapshot_violations(
             snapshot.shared_state_records,
             snapshot.shared_state_history,
@@ -375,7 +376,7 @@ def _shared_state_snapshot_diagnostics(snapshot: RuntimeSnapshot) -> list[Diagno
 
 def _participant_concurrency_snapshot_diagnostics(snapshot: RuntimeSnapshot) -> list[Diagnostic]:
     return [
-        _diagnostic(_SEMANTIC_INVALID_DIAGNOSTIC_CODE, address, message)
+        conformance_diagnostic(_SEMANTIC_INVALID_DIAGNOSTIC_CODE, address, message)
         for address, message in iter_participant_concurrency_snapshot_violations(
             snapshot.joint_action_records,
             snapshot.time_management_contexts,
@@ -391,7 +392,7 @@ def _participant_information_state_snapshot_diagnostics(
     information_state_context_resolver: ParticipantInformationStateContextResolver | None,
 ) -> list[Diagnostic]:
     return [
-        _diagnostic(_SEMANTIC_INVALID_DIAGNOSTIC_CODE, address, message)
+        conformance_diagnostic(_SEMANTIC_INVALID_DIAGNOSTIC_CODE, address, message)
         for address, message in iter_participant_information_state_snapshot_violations(
             snapshot.information_state_history,
             information_state_context_resolver=information_state_context_resolver,
@@ -404,7 +405,7 @@ def _participant_autonomous_state_snapshot_diagnostics(
     states: object,
 ) -> list[Diagnostic]:
     return [
-        _diagnostic(_SEMANTIC_INVALID_DIAGNOSTIC_CODE, address, message)
+        conformance_diagnostic(_SEMANTIC_INVALID_DIAGNOSTIC_CODE, address, message)
         for address, message in iter_participant_autonomous_state_snapshot_violations(states)
     ]
 
@@ -424,7 +425,7 @@ def _runtime_snapshot_semantic_diagnostics(
         return autonomous_diagnostics
     snapshot = _snapshot_from_envelope(validated.model_dump(mode="json"))
     autonomous_diagnostics = [
-        _diagnostic(_SEMANTIC_INVALID_DIAGNOSTIC_CODE, address, message)
+        conformance_diagnostic(_SEMANTIC_INVALID_DIAGNOSTIC_CODE, address, message)
         for address, message in iter_participant_autonomous_runtime_snapshot_violations(snapshot)
     ]
     if autonomous_diagnostics:

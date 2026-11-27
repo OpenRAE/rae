@@ -3,16 +3,16 @@
 from collections.abc import Sequence
 
 from pydantic import Field, field_validator, model_validator
+from raes_contracts.identifiers import PortableIdentifier
 from raes_contracts.realization_structure import RealizationPresence
+from raes_contracts.runtime_values import require_symbol
+from raes_contracts.sdl_model import SDLModel
 
-from ._base import SDLModel
-from ._identifiers import PortableIdentifier
 from .runtime_software_profiles import (
     RuntimeSoftwareRefinement,
     RuntimeSoftwareRepositoryRefinement,
     RuntimeSoftwareTrustRefinement,
 )
-from .runtime_values import require_symbol
 
 
 class RuntimeSoftwareTrustBinding(SDLModel):
@@ -28,7 +28,7 @@ class RuntimeSoftwareTrustBinding(SDLModel):
         return require_symbol(value, field_name="trust_id")
 
     @model_validator(mode="after")
-    def validate_refinements(self) -> "RuntimeSoftwareTrustBinding":
+    def validate_refinements(self) -> RuntimeSoftwareTrustBinding:
         validate_repository_refinements(self.refinements, "repository-trust")
         return self
 
@@ -47,7 +47,7 @@ class RuntimeSoftwareRepository(SDLModel):
         return require_symbol(value, field_name="repository identity") if value is not None else None
 
     @model_validator(mode="after")
-    def validate_refinements(self) -> "RuntimeSoftwareRepository":
+    def validate_refinements(self) -> RuntimeSoftwareRepository:
         validate_repository_refinements(self.refinements, "repository-state")
         return self
 
@@ -77,7 +77,7 @@ class RuntimeSoftwareRepositoryState(SDLModel):
     trust_bindings: list[RuntimeSoftwareTrustBinding] = Field(default_factory=list, max_length=256)
 
     @model_validator(mode="after")
-    def validate_references(self) -> "RuntimeSoftwareRepositoryState":
+    def validate_references(self) -> RuntimeSoftwareRepositoryState:
         repositories = {item.repository_id: item for item in self.repositories}
         trusts = {item.trust_id: item for item in self.trust_bindings}
         if len(repositories) != len(self.repositories) or len(trusts) != len(self.trust_bindings):

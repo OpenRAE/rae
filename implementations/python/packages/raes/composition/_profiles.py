@@ -4,8 +4,11 @@ from collections.abc import Mapping
 from typing import Any
 
 from raes_contracts.canonical import canonical_json_digest
+from raes_contracts.json_pointer import escape_token, unescape_token
 from raes_contracts.profile_selections import profile_selection_binding
 
+from .._errors import SDLParseError
+from ..descriptor_profiles import descriptor_profile_fields
 from ._references import _maybe_rename
 
 _RESOURCE_PREFIX = "#/resources/"
@@ -18,20 +21,11 @@ def rewrite_profile_selections(payload: dict[str, Any], symbols: dict[str, dict[
         ("generated_artifacts", "generator"),
         ("content", "service_materialization"),
         ("identity_domains", "profile"),
-        ("identity_facades", "protocol"),
     ):
         for declaration in payload.get(section, {}).values():
             _rewrite_binding(declaration.get(field), symbols)
-    for relationship in payload.get("relationships", {}).values():
-        for detail, fields in (
-            ("forest_trust", ("trust_type",)),
-            ("identity_federation", ("protocol", "mapping_intent")),
-        ):
-            for field in fields:
-                _rewrite_binding((relationship.get(detail) or {}).get(field), symbols)
-    for agent in payload.get("agents", {}).values():
-        for access in agent.get("interactive_access", {}).values():
-            _rewrite_binding(access.get("channel"), symbols)
+    for descriptor in descriptor_profile_fields(payload):
+        _rewrite_binding(descriptor.value, symbols)
 
 
 def _rewrite_binding(binding: object, symbols: dict[str, dict[str, str]]) -> None:
@@ -65,7 +59,7 @@ def _rewrite_controller_owner(compiled: str, symbols: dict[str, dict[str, str]])
         if suffix.startswith(domain + ".") and suffix[len(domain) + 1 :] in symbols["nodes"]
     ]
     if len(matches) > 1:
-        raise ValueError("Ambiguous composed profile owner")
+        raise SDLParseError("Ambiguous composed profile owner")
     if matches:
         domain, node = matches[0]
         return prefix + symbols["identity_domains"][domain] + "." + symbols["nodes"][node]
@@ -91,9 +85,9 @@ def _rewrite_owner(address: str, symbols: dict[str, dict[str, str]]) -> str:
         return _RESOURCE_PREFIX + _rewrite_compiled_owner(address.removeprefix(_RESOURCE_PREFIX), symbols)
     parts = address.split("/")
     if len(parts) >= 3:
-        section = parts[1].replace("~1", "/").replace("~0", "~")
+        section = unescape_token(parts[1])
         names = symbols.get(section)
         if isinstance(names, Mapping):
-            name = parts[2].replace("~1", "/").replace("~0", "~")
-            parts[2] = _maybe_rename(name, names).replace("~", "~0").replace("/", "~1")
+            name = unescape_token(parts[2])
+            parts[2] = escape_token(_maybe_rename(name, names))
     return "/".join(parts)

@@ -175,6 +175,127 @@
       "title": "ControlCausalBoundsModel",
       "type": "object"
     },
+    "ControlEffectiveSupportModel": {
+      "additionalProperties": false,
+      "properties": {
+        "constraints": {
+          "items": {
+            "$ref": "#/$defs/ControlArtifactReferenceModel"
+          },
+          "maxItems": 256,
+          "title": "Constraints",
+          "type": "array"
+        },
+        "context_digest": {
+          "minLength": 1,
+          "pattern": "^(?:sha256:[A-Fa-f0-9]{64}|sha384:[A-Fa-f0-9]{96}|sha512:[A-Fa-f0-9]{128}|blake3:[A-Fa-f0-9]{64})$",
+          "title": "Context Digest",
+          "type": "string"
+        },
+        "declaration_ref": {
+          "$ref": "#/$defs/ControlArtifactReferenceModel"
+        },
+        "declared_level": {
+          "enum": [
+            "exact",
+            "bounded",
+            "disclosed_weak",
+            "unsupported"
+          ],
+          "title": "Declared Level",
+          "type": "string"
+        },
+        "downgrade_authority": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ControlArtifactReferenceModel"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "effective_level": {
+          "enum": [
+            "exact",
+            "bounded",
+            "disclosed_weak",
+            "unsupported"
+          ],
+          "title": "Effective Level",
+          "type": "string"
+        },
+        "evidence": {
+          "items": {
+            "$ref": "#/$defs/ControlArtifactReferenceModel"
+          },
+          "maxItems": 256,
+          "minItems": 1,
+          "title": "Evidence",
+          "type": "array"
+        },
+        "feature": {
+          "const": "participant_modular_control",
+          "title": "Feature",
+          "type": "string"
+        },
+        "installation": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ControlArtifactReferenceModel"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "instance_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+          "title": "Instance Id",
+          "type": "string"
+        },
+        "limitations": {
+          "items": {
+            "$ref": "#/$defs/ControlArtifactReferenceModel"
+          },
+          "maxItems": 256,
+          "minItems": 1,
+          "title": "Limitations",
+          "type": "array"
+        },
+        "status": {
+          "enum": [
+            "resolved",
+            "missing",
+            "unknown",
+            "unsupported",
+            "stale",
+            "failed",
+            "weakened"
+          ],
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "instance_id",
+        "feature",
+        "declaration_ref",
+        "declared_level",
+        "effective_level",
+        "status",
+        "context_digest",
+        "installation",
+        "constraints",
+        "limitations",
+        "evidence",
+        "downgrade_authority"
+      ],
+      "title": "ControlEffectiveSupportModel",
+      "type": "object"
+    },
     "ControlMechanismBindingV2Model": {
       "additionalProperties": false,
       "properties": {
@@ -269,6 +390,15 @@
       "additionalProperties": false,
       "description": "Profile-owned obligation declared before any provider result exists.",
       "properties": {
+        "admitted_support": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/ControlEffectiveSupportModel"
+          },
+          "maxItems": 64,
+          "title": "Admitted Support",
+          "type": "array"
+        },
         "constraints": {
           "items": {
             "$ref": "#/$defs/ControlArtifactReferenceModel"

@@ -4,6 +4,7 @@ import json
 
 import pytest
 from raes import instantiate_scenario, parse_sdl
+from raes_contracts.errors import InvalidInputError
 from test_issue_1241_materialized_sdl import materialization_provenance
 
 
@@ -106,7 +107,7 @@ def test_origin_claims_must_exactly_account_for_actual_differences(change):
         }
     ]
     described = parse_sdl(json.dumps(payload))
-    with pytest.raises(ValueError, match="origins"):
+    with pytest.raises(InvalidInputError, match="origins"):
         validate_materialization_origins(source, described)
 
 

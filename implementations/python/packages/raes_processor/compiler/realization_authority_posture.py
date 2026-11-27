@@ -4,10 +4,11 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from raes.explicitness import ExplicitnessClass, ExplicitnessProvenance, ExplicitnessRecord
-from raes.identifiers import QualifiedName
+from raes.explicitness import ExplicitnessRecord
 from raes.realization_designation import resolve_realization_designation
 from raes.scenario import InstantiatedScenario
+from raes_contracts.explicitness import ExplicitnessClass, ExplicitnessProvenance
+from raes_contracts.identifiers import QualifiedName
 from raes_contracts.planning import RealizationAuthorityMode, RealizationResolutionSource
 
 

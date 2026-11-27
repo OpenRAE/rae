@@ -8,17 +8,31 @@ from .associated_artifacts import AssociatedArtifactManifestModel
 from .backend_operation_schema import backend_operation_schema_bundle
 from .execution_state import EvaluationHistoryEventModel
 from .experiment_bindings import ParticipantConfigurationResultModel
+from .inject_occurrence_schema import inject_occurrence_schema_bundle
+from .mixed_backend_schema import mixed_backend_schema_bundle
 from .operation_carriers import OperationReceiptModel, OperationStatusModel
 from .participant_context import ParticipantContextViewModel
 from .participant_control import ParticipantControlOccurrenceModel
 from .participant_control_applicability import ParticipantControlSelectionV2Model
 from .participant_control_composition import ParticipantControlEvaluationModel
+from .participant_control_context import (
+    ParticipantControlContextAssetModel,
+    ParticipantControlContextChangeModel,
+    ParticipantControlContextRecordModel,
+)
 from .participant_control_evaluation_v2 import ParticipantControlEvaluationV2Model
+from .participant_control_occurrence_v2 import ParticipantControlOccurrenceV2Model
 from .participant_control_profiles import ParticipantControlTeachingProfileModel
 from .participant_control_selection import ParticipantControlSelectionModel
 from .participant_crossing import ParticipantCrossingOccurrenceModel
+from .participant_crossing_evidence import ParticipantCrossingEvidence
 from .participant_decision_surface import ParticipantDecisionSurfaceModel
 from .participant_decision_surface_v2 import ParticipantDecisionSurfaceV2Model
+from .participant_delivery_invocation import (
+    ParticipantDeliveryInvocationContextModel,
+    ParticipantDeliveryInvocationOutcomeModel,
+    ParticipantDeliveryInvocationRequestModel,
+)
 from .participant_envelopes import (
     ParticipantJointActionRecordModel,
     ParticipantLifecycleEventModel,
@@ -52,10 +66,10 @@ from .participant_views import (
 )
 from .reusable_assets import (
     ReusableAssetTrustPolicyModel,
-    _event_stream_schema,
+    event_stream_schema,
 )
 from .runtime_facts import RuntimeFactBindingPlaneModel
-from .schema_invariants import _add_raes_invariant, _add_raes_plane
+from .schema_invariants import _add_raes_plane, add_raes_invariant
 
 
 def _participant_control_schema_bundle() -> dict[str, dict[str, Any]]:
@@ -77,7 +91,7 @@ def _participant_control_schema_bundle() -> dict[str, dict[str, Any]]:
             validator = "raes_contracts.contracts.ParticipantControlSelectionV2Model.model_validate"
         else:
             validator = "raes_contracts.contracts.ParticipantControlSelectionModel.model_validate"
-        _add_raes_invariant(
+        add_raes_invariant(
             schema,
             "participant-control-resolved-context"
             if "evaluation" in contract_id
@@ -92,20 +106,48 @@ def _participant_control_schema_bundle() -> dict[str, dict[str, Any]]:
     return schemas
 
 
-def _runtime_schema_bundle() -> dict[str, dict[str, Any]]:
+def _delivery_invocation_schema_bundle() -> dict[str, dict[str, Any]]:
+    models = {
+        "participant-crossing-evidence-v1": ParticipantCrossingEvidence,
+        "participant-delivery-invocation-request-v1": ParticipantDeliveryInvocationRequestModel,
+        "participant-delivery-invocation-context-v1": ParticipantDeliveryInvocationContextModel,
+        "participant-delivery-invocation-outcome-v1": ParticipantDeliveryInvocationOutcomeModel,
+    }
+    schemas = {}
+    for contract_id, model in models.items():
+        schema = model.model_json_schema()
+        add_raes_invariant(
+            schema,
+            contract_id.removesuffix("-v1") + "-local-consistency",
+            "Validate exact local delivery invocation coordinates and implementation selection; "
+            "structural validity grants no execution authority.",
+            validator=f"raes_contracts.contracts.{model.__name__}.model_validate",
+            inputs=[{"contract_id": contract_id, "instance_path": "#"}],
+        )
+        schemas[contract_id] = schema
+    return schemas
+
+
+def runtime_schema_bundle() -> dict[str, dict[str, Any]]:
     return {
+        **_delivery_invocation_schema_bundle(),
+        "participant-control-context-asset-v1": ParticipantControlContextAssetModel.model_json_schema(),
+        "participant-control-context-change-v1": ParticipantControlContextChangeModel.model_json_schema(),
+        "participant-control-context-record-v1": ParticipantControlContextRecordModel.model_json_schema(),
         **backend_operation_schema_bundle(),
+        **inject_occurrence_schema_bundle(),
         **_participant_control_schema_bundle(),
-        "evaluation-history-event-stream-v1": _event_stream_schema(
+        **mixed_backend_schema_bundle(),
+        "evaluation-history-event-stream-v1": event_stream_schema(
             "EvaluationHistoryEventStream",
             EvaluationHistoryEventModel.model_json_schema(),
         ),
         "participant-episode-state-envelope-v1": ParticipantEpisodeStateModel.model_json_schema(),
-        "participant-episode-history-event-stream-v1": _event_stream_schema(
+        "participant-episode-history-event-stream-v1": event_stream_schema(
             "ParticipantEpisodeHistoryEventStream",
             ParticipantEpisodeHistoryEventModel.model_json_schema(),
         ),
-        "participant-behavior-history-event-stream-v1": _event_stream_schema(
+        "participant-behavior-history-event-stream-v1": event_stream_schema(
             "ParticipantBehaviorHistoryEventStream",
             ParticipantBehaviorHistoryEventModel.model_json_schema(),
         ),
@@ -123,6 +165,7 @@ def _runtime_schema_bundle() -> dict[str, dict[str, Any]]:
         "participant-joint-action-record-v1": ParticipantJointActionRecordModel.model_json_schema(),
         "participant-time-management-context-v1": ParticipantTimeManagementContextModel.model_json_schema(),
         "participant-control-occurrence-v1": ParticipantControlOccurrenceModel.model_json_schema(),
+        "participant-control-occurrence-v2": ParticipantControlOccurrenceV2Model.model_json_schema(),
         "participant-crossing-occurrence-v1": ParticipantCrossingOccurrenceModel.model_json_schema(),
         "participant-flow-control-relation-v1": ParticipantFlowControlRelationModel.model_json_schema(),
         "participant-outcome-report-v1": ParticipantOutcomeReportModel.model_json_schema(),

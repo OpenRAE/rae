@@ -21,9 +21,18 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import sys
 from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
 from pathlib import Path
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
+RAES_PACKAGES_ROOT = REPO_ROOT / "implementations" / "python" / "packages"
+for _source_root in (REPO_ROOT, RAES_PACKAGES_ROOT):
+    if str(_source_root) not in sys.path:
+        sys.path.insert(0, str(_source_root))
+
+from raes_contracts.errors import EvidenceIntegrityError, InvalidInputError  # noqa: E402
 
 # Bumping the algorithm changes ownership for every node id, so it is versioned
 # and recorded in each manifest; the reducer refuses to combine mixed versions.
@@ -31,13 +40,14 @@ SHARD_ALGORITHM_VERSION = "sha256-nodeid-v1"
 
 MIN_SHARD_COUNT = 1
 MAX_SHARD_COUNT = 64
+_MANIFEST_FIELDS = ("algorithm_version", "source_sha", "suite_expression", "shard_count", "shard_index", "node_ids")
 
 
-class ShardConfigurationError(ValueError):
+class ShardConfigurationError(InvalidInputError):
     """Raised when ``shard_count`` / ``shard_index`` are outside admitted bounds."""
 
 
-class ShardManifestError(ValueError):
+class ShardManifestError(EvidenceIntegrityError):
     """Raised when shard manifests do not form a complete, disjoint partition."""
 
 
@@ -104,24 +114,24 @@ class ShardManifest:
     def from_dict(cls, data: object) -> ShardManifest:
         if not isinstance(data, dict):
             raise ShardManifestError("shard manifest must be a JSON object")
-        try:
-            node_ids = data["node_ids"]
-            manifest = cls(
-                algorithm_version=str(data["algorithm_version"]),
-                source_sha=str(data["source_sha"]),
-                suite_expression=str(data["suite_expression"]),
-                shard_count=data["shard_count"],
-                shard_index=data["shard_index"],
-                node_ids=tuple(str(nodeid) for nodeid in node_ids),
-            )
-        except (KeyError, TypeError) as exc:
-            raise ShardManifestError(f"shard manifest is missing required fields: {exc}") from exc
+        missing = [name for name in _MANIFEST_FIELDS if name not in data]
+        if missing:
+            raise ShardManifestError(f"shard manifest is missing required fields: {', '.join(missing)}")
+        node_ids = data["node_ids"]
+        if not isinstance(node_ids, list):
+            raise ShardManifestError("shard manifest node_ids must be a JSON array")
+        manifest = cls(
+            algorithm_version=str(data["algorithm_version"]),
+            source_sha=str(data["source_sha"]),
+            suite_expression=str(data["suite_expression"]),
+            shard_count=data["shard_count"],
+            shard_index=data["shard_index"],
+            node_ids=tuple(str(nodeid) for nodeid in node_ids),
+        )
         if not isinstance(manifest.shard_count, int) or isinstance(manifest.shard_count, bool):
             raise ShardManifestError("shard manifest shard_count must be an integer")
         if not isinstance(manifest.shard_index, int) or isinstance(manifest.shard_index, bool):
             raise ShardManifestError("shard manifest shard_index must be an integer")
-        if not isinstance(node_ids, list):
-            raise ShardManifestError("shard manifest node_ids must be a JSON array")
         return manifest
 
 
@@ -145,8 +155,10 @@ def read_manifest(path: Path) -> ShardManifest:
 
     try:
         data = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, UnicodeError, json.JSONDecodeError) as exc:
-        raise ShardManifestError(f"could not read shard manifest {path}: {exc}") from exc
+    # The try holds only the read and the decoder. ValueError covers text that is not UTF-8, malformed
+    # JSON and an integer beyond the interpreter digit limit; RecursionError covers excessive nesting.
+    except (OSError, ValueError, RecursionError) as exc:
+        raise ShardManifestError(f"could not read shard manifest {path}") from exc
     return ShardManifest.from_dict(data)
 
 

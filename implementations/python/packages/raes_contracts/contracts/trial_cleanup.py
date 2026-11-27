@@ -1,4 +1,4 @@
-"""Portable clean-state, cleanup, and scheduler-isolation contracts (SCE-007)."""
+"""Portable clean-state and cleanup contracts (SCE-007)."""
 
 from __future__ import annotations
 
@@ -11,13 +11,12 @@ from pydantic_core import CoreSchema
 
 from ..execution_retry import ExecutionRetryPolicyModel as ExecutionRetryPolicyModel
 from ..versions import (
-    SCHEDULER_ISOLATION_PROOF_SCHEMA_VERSION,
     TRIAL_CLEANUP_PLAN_SCHEMA_VERSION,
     TRIAL_CLEANUP_RECEIPT_SCHEMA_VERSION,
 )
-from ._trial_cleanup_validation import validate_reset_retry_obligations
+from ._trial_cleanup_validation import validate_cleanup_receipt_results, validate_reset_retry_obligations
 from .base import ContractModel, NonEmptyString, PositiveInteger
-from .schema_invariants import _add_raes_invariant
+from .schema_invariants import add_raes_invariant
 
 CleanupTrigger = Literal["success", "failure", "cancellation", "timeout", "retry", "abort"]
 CleanupRequirement = Literal["required", "best-effort"]
@@ -25,27 +24,6 @@ CleanupActionKind = Literal["destroy", "reset", "restore", "compensate", "verify
 CleanupIdempotency = Literal["idempotent", "requires-reset", "requires-compensation", "not-repeatable"]
 CleanupOutcome = Literal["succeeded", "failed", "partial", "unsupported", "unverified", "not-required"]
 TrialOutcome = Literal["succeeded", "failed", "cancelled", "timed-out", "aborted"]
-IsolationDimension = Literal[
-    "range-instance",
-    "host-capacity",
-    "ports",
-    "storage",
-    "control-plane-locks",
-    "secret-scope",
-    "cleanup",
-]
-
-REQUIRED_PARALLEL_ISOLATION_DIMENSIONS = frozenset(
-    {
-        "range-instance",
-        "host-capacity",
-        "ports",
-        "storage",
-        "control-plane-locks",
-        "secret-scope",
-        "cleanup",
-    }
-)
 
 
 def _require_unique(field_name: str, values: Iterable[str]) -> None:
@@ -205,7 +183,7 @@ class TrialCleanupPlanModel(ContractModel):
     @classmethod
     def __get_pydantic_json_schema__(cls, core_schema: CoreSchema, handler: GetJsonSchemaHandler) -> JsonSchemaValue:
         json_schema = handler.resolve_ref_schema(handler(core_schema))
-        _add_raes_invariant(
+        add_raes_invariant(
             json_schema,
             "trial-cleanup-plan-references-and-retry-safe",
             "Cleanup boundary and dependency references resolve, ordering is acyclic, required cleanup is "
@@ -295,11 +273,13 @@ class TrialCleanupReceiptModel(ContractModel):
                 "then": {"properties": {"clean_state_claim": {"type": "null"}}},
             }
         )
-        _add_raes_invariant(
+        add_raes_invariant(
             json_schema,
             "trial-cleanup-receipt-binds-plan-and-required-outcomes",
             "A cleanup receipt keeps attempt identity distinct, reports cleanup independently from trial outcome, "
-            "covers every triggered required obligation, and permits clean-state claims only after verified success.",
+            "reports an attempted result for every required obligation owed by the terminal trigger, keeps results "
+            "consistent with obligation triggers, requires successful required results when cleanup succeeded, and "
+            "permits clean-state claims only after verified success.",
             validator="raes_contracts.contracts.validate_trial_cleanup_receipt",
             inputs=[
                 {"contract_id": "trial-cleanup-plan-v1", "instance_path": "#"},
@@ -307,15 +287,6 @@ class TrialCleanupReceiptModel(ContractModel):
             ],
         )
         return json_schema
-
-
-_OUTCOME_TRIGGER: dict[TrialOutcome, CleanupTrigger] = {
-    "succeeded": "success",
-    "failed": "failure",
-    "cancelled": "cancellation",
-    "timed-out": "timeout",
-    "aborted": "abort",
-}
 
 
 def validate_trial_cleanup_receipt(plan: TrialCleanupPlanModel, receipt: TrialCleanupReceiptModel) -> None:
@@ -328,21 +299,8 @@ def validate_trial_cleanup_receipt(plan: TrialCleanupPlanModel, receipt: TrialCl
     unknown_results = sorted(set(receipt.obligation_results) - set(plan.cleanup_obligations))
     if unknown_results:
         raise ValueError(f"cleanup receipt references unknown obligations: {', '.join(unknown_results)}")
-    _validate_triggered_cleanup_results(plan, receipt)
+    validate_cleanup_receipt_results(plan.cleanup_obligations, receipt)
     _validate_clean_state_claim_boundaries(plan, receipt)
-
-
-def _validate_triggered_cleanup_results(plan: TrialCleanupPlanModel, receipt: TrialCleanupReceiptModel) -> None:
-    trigger = _OUTCOME_TRIGGER[receipt.trial_outcome]
-    triggered_required = {
-        obligation_id
-        for obligation_id, obligation in plan.cleanup_obligations.items()
-        if obligation.requirement == "required" and trigger in obligation.triggers
-    }
-    for obligation_id in sorted(triggered_required):
-        result = receipt.obligation_results.get(obligation_id)
-        if result is None or result.status != "succeeded":
-            raise ValueError(f"required cleanup obligation '{obligation_id}' must succeed for trigger '{trigger}'")
 
 
 def _validate_clean_state_claim_boundaries(plan: TrialCleanupPlanModel, receipt: TrialCleanupReceiptModel) -> None:
@@ -352,93 +310,6 @@ def _validate_clean_state_claim_boundaries(plan: TrialCleanupPlanModel, receipt:
             raise ValueError(
                 f"clean state claim references unknown resource boundaries: {', '.join(unknown_boundaries)}"
             )
-
-
-class IsolationDimensionEvidenceModel(ContractModel):
-    """Evidence for one bounded-parallelism isolation dimension."""
-
-    dimension: IsolationDimension
-    independent: bool
-    evidence_refs: list[NonEmptyString] = Field(min_length=1, json_schema_extra={"uniqueItems": True})
-
-    @model_validator(mode="after")
-    def _validate_evidence(self) -> IsolationDimensionEvidenceModel:
-        _require_unique("isolation evidence_refs", self.evidence_refs)
-        return self
-
-
-class SchedulerIsolationProofModel(ContractModel):
-    """Schedule-independent proof permitting a bounded parallelism request."""
-
-    schema_version: Literal[SCHEDULER_ISOLATION_PROOF_SCHEMA_VERSION] = SCHEDULER_ISOLATION_PROOF_SCHEMA_VERSION
-    proof_id: NonEmptyString
-    plan_entry_ids: list[NonEmptyString] = Field(min_length=1, json_schema_extra={"uniqueItems": True})
-    requested_parallelism: PositiveInteger = 1
-    dimensions: list[IsolationDimensionEvidenceModel] = Field(default_factory=list)
-
-    @model_validator(mode="after")
-    def _validate_isolation(self) -> SchedulerIsolationProofModel:
-        _require_unique("plan_entry_ids", self.plan_entry_ids)
-        dimension_ids = [dimension.dimension for dimension in self.dimensions]
-        _require_unique("isolation dimensions", dimension_ids)
-        if self.requested_parallelism > 1:
-            provided = set(dimension_ids)
-            missing = sorted(REQUIRED_PARALLEL_ISOLATION_DIMENSIONS - provided)
-            if missing:
-                raise ValueError(f"parallel isolation proof requires dimensions: {', '.join(missing)}")
-            non_independent = sorted(dimension.dimension for dimension in self.dimensions if not dimension.independent)
-            if non_independent:
-                raise ValueError(
-                    "parallel isolation proof requires independent dimensions: " + ", ".join(non_independent)
-                )
-            if len(self.plan_entry_ids) < self.requested_parallelism:
-                raise ValueError("requested_parallelism cannot exceed the number of plan entries")
-        elif self.dimensions:
-            raise ValueError("serial scheduling does not require a parallel isolation proof")
-        return self
-
-    @classmethod
-    def __get_pydantic_json_schema__(cls, core_schema: CoreSchema, handler: GetJsonSchemaHandler) -> JsonSchemaValue:
-        json_schema = handler.resolve_ref_schema(handler(core_schema))
-        parallel_then: dict[str, object] = {
-            "properties": {
-                "dimensions": {
-                    "minItems": len(REQUIRED_PARALLEL_ISOLATION_DIMENSIONS),
-                    "allOf": [
-                        {
-                            "contains": {
-                                "type": "object",
-                                "required": ["dimension", "independent", "evidence_refs"],
-                                "properties": {
-                                    "dimension": {"const": dimension},
-                                    "independent": {"const": True},
-                                    "evidence_refs": {"minItems": 1},
-                                },
-                            }
-                        }
-                        for dimension in sorted(REQUIRED_PARALLEL_ISOLATION_DIMENSIONS)
-                    ],
-                }
-            }
-        }
-        json_schema.setdefault("allOf", []).append(
-            {
-                "if": {
-                    "properties": {"requested_parallelism": {"minimum": 2}},
-                    "required": ["requested_parallelism"],
-                },
-                "then": parallel_then,
-            }
-        )
-        _add_raes_invariant(
-            json_schema,
-            "scheduler-isolation-serial-default-and-complete-parallel-proof",
-            "Scheduling defaults to serial; bounded parallelism requires independent evidence for range, capacity, "
-            "ports, storage, control-plane locks, secret scope, and cleanup.",
-            validator="raes_contracts.contracts.SchedulerIsolationProofModel._validate_isolation",
-            inputs=[{"contract_id": "scheduler-isolation-proof-v1", "instance_path": "#"}],
-        )
-        return json_schema
 
 
 __all__ = [
@@ -453,10 +324,6 @@ __all__ = [
     "CleanStateClaimModel",
     "CleanStateRequirementModel",
     "ExecutionRetryPolicyModel",
-    "IsolationDimension",
-    "IsolationDimensionEvidenceModel",
-    "REQUIRED_PARALLEL_ISOLATION_DIMENSIONS",
-    "SchedulerIsolationProofModel",
     "TrialCleanupPlanModel",
     "TrialCleanupReceiptModel",
     "TrialOutcome",

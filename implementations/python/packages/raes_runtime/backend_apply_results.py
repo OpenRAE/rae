@@ -8,11 +8,17 @@ from typing import cast
 
 from raes_contracts.contracts import ParticipantInformationStateContextResolver
 from raes_contracts.diagnostics import Diagnostic
+from raes_contracts.errors import InvalidInputError
+from raes_contracts.planning import ChangeAction, ProvisioningPlan
 from raes_contracts.runtime_state import ApplyResult, RealizationProvenanceEntry, RuntimeSnapshot
 from raes_processor.models import CompiledRealizationRequirement
 from raes_processor.planner import (
+    portable_realization_plan,
+    portable_realization_value,
     prepared_delivery_violation,
+    prepared_node_disclosure,
     realization_authority_disclosure,
+    realization_cleanup_diagnostics,
     realization_disclosure,
     sanitize_plan_realization_snapshot,
     sanitize_prepared_node_snapshot,
@@ -31,7 +37,7 @@ from .backend_result_diagnostics import (
     _snapshot_contract_diagnostics,
     _snapshot_transition_contract_diagnostics,
 )
-from .backend_snapshot_contracts import snapshot_address_contract_diagnostics
+from .backend_snapshot_contracts import snapshot_address_contract_diagnostics, snapshot_values_equal
 
 __all__ = ["_finalize_backend_apply"]
 
@@ -99,9 +105,37 @@ def _gated_backend_result(
         information_state_context_resolver=information_state_context_resolver,
     )
     if final_diagnostics:
-        return ApplyResult(False, baseline_snapshot, diagnostics=final_diagnostics)
-    attach = realization_provenance and finalized.success
-    return _with_realization_provenance(finalized, realization_provenance) if attach else finalized
+        finalized = ApplyResult(False, baseline_snapshot, diagnostics=final_diagnostics)
+    elif finalized.success:
+        finalized = _with_retained_realization_provenance(
+            finalized, baseline_snapshot, realization, realization_provenance
+        )
+    return finalized
+
+
+def _with_retained_realization_provenance(
+    result: ApplyResult,
+    baseline_snapshot: RuntimeSnapshot,
+    realization: _RealizationApplyContext,
+    provenance: tuple[RealizationProvenanceEntry, ...],
+) -> ApplyResult:
+    """Retain unaffected live-resource rows alongside newly disclosed rows."""
+
+    affected = (
+        {
+            operation.address
+            for operation in (realization.completion_plan or realization.operation_plan).operations
+            if operation.action is not ChangeAction.UNCHANGED
+        }
+        if realization.operation_plan is not None
+        else set()
+    )
+    retained = tuple(
+        entry
+        for entry in baseline_snapshot.realization_provenance
+        if entry.address in result.snapshot.entries and entry.address not in affected
+    )
+    return _with_realization_provenance(result, (*retained, *provenance))
 
 
 def _finalize_backend_apply(
@@ -168,7 +202,8 @@ def _post_apply_contract_result(
         information_state_context_resolver=information_state_context_resolver,
     )
     if not diagnostics and result.success and realization.completion_plan is not None:
-        violation = prepared_delivery_violation(realization.completion_plan, result.snapshot)
+        selected, returned = _portable_payloads(realization.completion_plan, result.snapshot)
+        violation = prepared_delivery_violation(selected, returned)
         if violation:
             diagnostics = [_backend_contract_invalid("runtime.preparation", violation)]
     if diagnostics or realization.plan is None:
@@ -176,33 +211,64 @@ def _post_apply_contract_result(
     return _realization_disclosure_result(result, realization)
 
 
+def _portable_payloads(plan: ProvisioningPlan, snapshot: RuntimeSnapshot) -> tuple[ProvisioningPlan, RuntimeSnapshot]:
+    """Present declared and returned payloads as portable JSON to disclosure and sanitization.
+
+    Admission accepts tuple, enum, dataclass and model carriers that the portable
+    codec serializes. The disclosure readers and the safe-persistence sanitizer
+    traverse JSON objects and arrays, so a carrier would otherwise hide the
+    realization concern it encloses.
+    """
+
+    entries = {
+        address: replace(entry, payload=portable_realization_value(entry.payload))
+        for address, entry in snapshot.entries.items()
+    }
+    return portable_realization_plan(plan), snapshot.with_entries(entries)
+
+
 def _realization_disclosure_result(
     result: ApplyResult, realization: _RealizationApplyContext
 ) -> tuple[list[Diagnostic], tuple[RealizationProvenanceEntry, ...]]:
     """Disclose plan and supplemental realization authority over one result."""
 
-    # Failed apply results are cleanup inventory, not observation-success claims.
-    # Still check materialization authority and sanitize the snapshot; requiring
-    # the failed readback here would erase recoverable resources.
     plan = realization.plan
-    validation_plan = plan if result.success else replace(plan, observation_demands=())
+    validation_plan, returned = _portable_payloads(plan, result.snapshot)
+    supplemental = _supplemental_realization_requirements(realization)
+    if not result.success:
+        return realization_cleanup_diagnostics(
+            validation_plan,
+            returned,
+            manifest=realization.manifest,
+            requirements=supplemental,
+            artifact_availability=realization.artifact_availability,
+        ), ()
     diagnostics, provenance = realization_authority_disclosure(
         validation_plan,
-        result.snapshot,
+        returned,
         manifest=realization.manifest,
     )
-    supplemental = _supplemental_realization_requirements(realization)
-    if diagnostics or not supplemental:
+    if diagnostics:
         return diagnostics, provenance
     supplemental_diagnostics, supplemental_provenance = realization_disclosure(
         supplemental,
         validation_plan,
-        result.snapshot,
+        returned,
         manifest=realization.manifest,
         artifact_availability=realization.artifact_availability,
     )
     diagnostics.extend(supplemental_diagnostics)
-    return diagnostics, (*provenance, *supplemental_provenance)
+    prepared_provenance = ()
+    if not diagnostics and realization.completion_plan is not None:
+        selected = portable_realization_plan(realization.completion_plan)
+        prepared_diagnostics, prepared_provenance = prepared_node_disclosure(
+            selected,
+            returned,
+            manifest=realization.manifest,
+            artifact_availability=realization.artifact_availability,
+        )
+        diagnostics.extend(prepared_diagnostics)
+    return diagnostics, (*provenance, *supplemental_provenance, *prepared_provenance)
 
 
 def _backend_snapshot_contract_diagnostics(
@@ -242,9 +308,12 @@ def _sanitize_backend_realization(
     if realization_plan is not None:
         try:
             sanitized = sanitize_account_credential_result(
-                sanitized, realization.completion_plan or realization_plan, baseline_snapshot
+                sanitized,
+                realization.completion_plan or realization_plan,
+                baseline_snapshot,
+                requirements=_supplemental_realization_requirements(realization),
             )
-        except ValueError:
+        except InvalidInputError:
             return _failed_apply_result(
                 baseline_snapshot,
                 _backend_contract_invalid(
@@ -253,12 +322,8 @@ def _sanitize_backend_realization(
             )
     if realization_plan is not None and (realization_plan.realization_authority or realization_requirements):
         try:
-            safe_snapshot = (
-                sanitize_plan_realization_snapshot(realization_plan, sanitized.snapshot)
-                if realization_plan.realization_authority
-                else sanitize_realization_snapshot(realization_requirements, sanitized.snapshot)
-            )
-        except (TypeError, ValueError):
+            safe_snapshot = _safe_realization_snapshot(realization_plan, realization_requirements, sanitized.snapshot)
+        except TypeError, ValueError:
             return _failed_apply_result(
                 baseline_snapshot,
                 _backend_contract_invalid(
@@ -276,6 +341,45 @@ def _sanitize_backend_realization(
             ),
         )
     return cast("ApplyResult", replace(sanitized, operational_realization_observations=()))
+
+
+def _sanitized_realization(
+    plan: ProvisioningPlan,
+    requirements: tuple[CompiledRealizationRequirement, ...],
+    snapshot: RuntimeSnapshot,
+) -> RuntimeSnapshot:
+    if plan.realization_authority:
+        return sanitize_plan_realization_snapshot(plan, snapshot)
+    return sanitize_realization_snapshot(requirements, snapshot)
+
+
+def _safe_realization_snapshot(
+    plan: ProvisioningPlan,
+    requirements: tuple[CompiledRealizationRequirement, ...],
+    snapshot: RuntimeSnapshot,
+) -> RuntimeSnapshot:
+    """Sanitize the portable view that the disclosure readers judged.
+
+    An entry keeps the backend's own representation, sanitized in place, when
+    that serializes to its sanitized view. Otherwise, as when an admitted carrier
+    encloses a registered concern, the sanitized view is committed in its place.
+    """
+
+    view_plan, view = _portable_payloads(plan, snapshot)
+    safe_view = _sanitized_realization(view_plan, requirements, view)
+    try:
+        kept = _sanitized_realization(plan, requirements, snapshot)
+    except TypeError, ValueError:
+        # The sanitized view is authoritative; an entry the sanitizer cannot
+        # rewrite in place is replaced by its view below.
+        kept = snapshot
+    entries = {
+        address: entry
+        if snapshot_values_equal(entry.payload, safe_view.entries[address].payload)
+        else safe_view.entries[address]
+        for address, entry in kept.entries.items()
+    }
+    return kept.with_entries(entries)
 
 
 def _supplemental_realization_requirements(
@@ -317,7 +421,12 @@ def _with_realization_provenance(
             result,
             snapshot=result.snapshot.with_entries(
                 dict(result.snapshot.entries),
-                realization_provenance=provenance,
+                realization_provenance=tuple(
+                    {
+                        (entry.address, entry.field_path, entry.domain, entry.requirement_kind): entry
+                        for entry in provenance
+                    }.values()
+                ),
             ),
         ),
     )

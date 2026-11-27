@@ -22,19 +22,28 @@ anything; a *claim*, by contrast, is only ever folded from an admitted intent.
 from __future__ import annotations
 
 from collections.abc import Iterable, Mapping, Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from typing import TYPE_CHECKING
 
 from raes_contracts.contracts.participant_control_composition import (
     ParticipantControlEvaluationModel,
     admitted_effect_requests,
     control_digest,
 )
+from raes_contracts.contracts.participant_control_composition_v2 import admitted_control_effect_ids_v2
 from raes_contracts.contracts.participant_control_coordinates import (
     ControlLogicalEffectKeyModel,
     ControlPriorEffectClaimModel,
     ParticipantControlContextModel,
 )
 from raes_contracts.contracts.participant_control_effects import ControlEffectRequestModel
+from raes_contracts.contracts.participant_control_evaluation_v2 import ParticipantControlEvaluationV2Model
+from raes_contracts.participant_control_evaluation_history import participant_control_evaluation_from_payload
+
+if TYPE_CHECKING:
+    from raes_contracts.contracts.participant_control_evaluation_v2 import ParticipantControlEvaluationV2Model
+
+    from .control_plane import RuntimeControlPlane
 
 
 @dataclass(frozen=True)
@@ -53,6 +62,22 @@ class ParticipantControlCausalState:
         return self.attempts + 1
 
 
+def root_has_shared_consumption(
+    history: Sequence[Mapping[str, object]],
+    *,
+    run_ref: str,
+    trigger_root: str,
+) -> bool:
+    """A root's explicit v2 sharing survives later binding/participant changes."""
+    for payload in history:
+        if payload.get("schema_version") != "participant-control-evaluation/v2":
+            continue
+        context = participant_control_evaluation_from_payload(payload).request.context
+        if (context.run.ref, context.trigger_root) == (run_ref, trigger_root):
+            return True
+    return False
+
+
 def causal_state_from_history(
     history: Sequence[Mapping[str, object]],
     *,
@@ -61,44 +86,75 @@ def causal_state_from_history(
 ) -> ParticipantControlCausalState:
     """Fold every retained claim this run and causal root already consumed."""
 
-    claims: dict[ControlLogicalEffectKeyModel, ControlPriorEffectClaimModel] = {}
-    firings: dict[tuple[str, str], set[str]] = {}
-    attempts = 0
-    consumed = 0
+    accumulator = CausalAccumulator()
     for record in history:
-        evaluation = ParticipantControlEvaluationModel.model_validate(record)
+        evaluation = participant_control_evaluation_from_payload(record)
         context = evaluation.request.context
-        if (context.run.ref, context.trigger_root) != (run_ref, trigger_root):
-            continue
-        # API-424 lets a context's consumption exceed its retained claims, so
-        # the count is a watermark of its own, not the number of claims: what
-        # the context declared already spent, plus the keys it newly admitted.
-        # A maximum rather than a sum, so a replayed key and a realization
-        # transition — which repeats its evaluation's context — add nothing.
-        declared = {claim.key for claim in context.prior_effect_claims}
-        admitted = {effect.key for effect in _admitted_effects(evaluation)} - declared
-        consumed = max(consumed, context.effects_consumed + len(admitted))
+        if (context.run.ref, context.trigger_root) == (run_ref, trigger_root):
+            accumulator.apply(evaluation)
+    return accumulator.state()
+
+
+@dataclass
+class CausalAccumulator:
+    """The incumbent causal fold, retained between confirmed append batches."""
+
+    claims: dict[ControlLogicalEffectKeyModel, ControlPriorEffectClaimModel] = field(default_factory=dict)
+    firings: dict[tuple[str, str], set[str]] = field(default_factory=dict)
+    attempts: int = 0
+    watermarks: dict[frozenset[ControlLogicalEffectKeyModel], int] = field(default_factory=dict)
+    admitted_keys: set[ControlLogicalEffectKeyModel] = field(default_factory=set)
+    claim_sources: dict[ControlLogicalEffectKeyModel, tuple[int, ...]] = field(default_factory=dict)
+    records_seen: int = 0
+
+    def apply(
+        self,
+        evaluation: ParticipantControlEvaluationModel | ParticipantControlEvaluationV2Model,
+        *,
+        priority: tuple[int, int] | None = None,
+    ) -> None:
+        context = evaluation.request.context
+        priority = (0, self.records_seen) if priority is None else priority
+        self.records_seen += 1
+        # Each watermark already covers its declared claims. Add every unique
+        # admission outside that set, including interleaved continuations.
+        # Shared participant histories need not be globally ordered.
+        declared = frozenset(claim.key for claim in context.prior_effect_claims)
+        self.watermarks[declared] = max(self.watermarks.get(declared, 0), context.effects_consumed)
+        self.admitted_keys.update({effect.key for effect in _admitted_effects(evaluation)} - declared)
         # A realization transition records the outcome of an evaluation that
         # already spent its attempt; counting it again would double-charge.
-        if not evaluation.realizations:
-            attempts = max(attempts, context.attempt)
-        _fold_retained(context, claims, firings)
-        for effect in _admitted_effects(evaluation):
-            claims.setdefault(
-                effect.key,
+        if isinstance(evaluation, ParticipantControlEvaluationV2Model) or not evaluation.realizations:
+            self.attempts = max(self.attempts, context.attempt)
+        _fold_retained(context, self.claims, self.firings)
+        for index, claim in enumerate(context.prior_effect_claims):
+            self._retain(claim, (*priority, 0, index))
+        for index, effect in enumerate(_admitted_effects(evaluation)):
+            self._retain(
                 ControlPriorEffectClaimModel(
                     effect_id=effect.effect_id,
                     key=effect.key,
                     content_digest=control_digest(effect),
                 ),
+                (*priority, 1, index),
             )
-            firings.setdefault((effect.key.rule_id, effect.key.rule_revision), set()).add(effect.key.firing_epoch)
-    return ParticipantControlCausalState(
-        claims=claims,
-        firings={rule: frozenset(epochs) for rule, epochs in firings.items()},
-        attempts=attempts,
-        effects_consumed=max(consumed, len(claims)),
-    )
+            self.firings.setdefault((effect.key.rule_id, effect.key.rule_revision), set()).add(effect.key.firing_epoch)
+
+    def _retain(self, claim: ControlPriorEffectClaimModel, source: tuple[int, ...]) -> None:
+        if claim.key not in self.claim_sources or source < self.claim_sources[claim.key]:
+            self.claims[claim.key] = claim
+            self.claim_sources[claim.key] = source
+
+    def state(self) -> ParticipantControlCausalState:
+        consumed = max(
+            (count + len(self.admitted_keys - declared) for declared, count in self.watermarks.items()), default=0
+        )
+        return ParticipantControlCausalState(
+            claims=dict(self.claims),
+            firings={rule: frozenset(epochs) for rule, epochs in self.firings.items()},
+            attempts=self.attempts,
+            effects_consumed=max(consumed, len(self.claims)),
+        )
 
 
 def _fold_retained(
@@ -121,6 +177,9 @@ def _admitted_effects(evaluation: ParticipantControlEvaluationModel) -> Iterable
     and a proposal nobody admitted would spend the root's effect budget.
     """
 
+    if isinstance(evaluation, ParticipantControlEvaluationV2Model):
+        admitted = admitted_control_effect_ids_v2(evaluation.composition, evaluation.effect_plan)
+        return tuple(item for item in evaluation.effect_plan.effects if item.effect_id in admitted)
     return admitted_effect_requests(evaluation)
 
 
@@ -145,6 +204,32 @@ def declares_retained_consumption(
         and context.effects_consumed >= state.effects_consumed
         and context.attempt >= state.next_attempt
     )
+
+
+def validate_incremental_effect_admission(
+    plane: RuntimeControlPlane, evaluation: ParticipantControlEvaluationV2Model
+) -> None:
+    """Check a continuation against all work this shared root already admitted."""
+    from raes_contracts.contracts.participant_control_continuation import (
+        validate_participant_control_incremental_admission_v2,
+    )
+
+    context = evaluation.request.context
+    from .participant_control_projection import control_projection
+
+    state = control_projection(plane).causal_state(context.run.ref, context.trigger_root)
+    current = ParticipantControlContextModel.model_validate(
+        {
+            **context.model_dump(mode="json"),
+            "effects_consumed": state.effects_consumed,
+            "prior_effect_claims": [claim.model_dump(mode="json") for claim in state.claims.values()],
+            "rule_firings": [
+                {"rule_id": key[0], "rule_revision": key[1], "firing_epochs": sorted(epochs)}
+                for key, epochs in state.firings.items()
+            ],
+        }
+    )
+    validate_participant_control_incremental_admission_v2(evaluation, current)
 
 
 def _declares_retained_claims(context: ParticipantControlContextModel, state: ParticipantControlCausalState) -> bool:

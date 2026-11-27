@@ -1,0 +1,23 @@
+{
+  "schema_version": "trial-cleanup-receipt/v1",
+  "receipt_id": "receipt-cancelled-unverified",
+  "cleanup_plan_ref": "cleanup-plan-a",
+  "plan_entry_id": "trial-entry-a",
+  "run_id": "run-a",
+  "execution_attempt_id": "attempt-cancelled-unverified",
+  "trial_outcome": "cancelled",
+  "cleanup_status": "unverified",
+  "obligation_results": {
+    "destroy-range": {
+      "obligation_id": "destroy-range",
+      "status": "unverified",
+      "evidence_refs": [
+        "evidence:destroy-interrupted"
+      ],
+      "residual_state_refs": [
+        "residual:node.vm-a"
+      ]
+    }
+  },
+  "clean_state_claim": null
+}

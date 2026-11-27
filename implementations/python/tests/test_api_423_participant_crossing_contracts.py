@@ -11,7 +11,6 @@ from pydantic import ValidationError
 from raes_conformance.conformance.validators import validate_contract_payload
 from raes_contracts.contracts import (
     ParticipantCrossingOccurrenceModel,
-    schema_bundle,
     validate_participant_crossing_occurrence_context,
 )
 from raes_contracts.contracts.participant_crossing import (
@@ -27,6 +26,7 @@ from raes_contracts.contracts.participant_crossing import (
     ParticipantCrossingSubjectReferenceModel,
 )
 from raes_contracts.controlled_vocabularies import load_controlled_vocabulary_catalog
+from raes_schemas import schema_bundle
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 CONTRACT_ID = "participant-crossing-occurrence-v1"

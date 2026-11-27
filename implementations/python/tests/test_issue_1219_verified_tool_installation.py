@@ -138,7 +138,7 @@ def test_archive_admission_rejects_traversal_before_selected_member_read(
     selection = _selection()
     archive = _tar([(member, b"")])
 
-    with pytest.raises(RuntimeError, match="unsafe-archive-member"):
+    with pytest.raises(installation.ToolInstallationError, match="unsafe-archive-member"):
         installation.materialize_tar_gz(archive, selection)
 
 
@@ -150,7 +150,7 @@ def test_archive_admission_rejects_links_and_special_members(member_type: bytes)
     selection = _selection()
     archive = _tar([(member, None)])
 
-    with pytest.raises(RuntimeError, match="unsafe-archive-member"):
+    with pytest.raises(installation.ToolInstallationError, match="unsafe-archive-member"):
         installation.materialize_tar_gz(archive, selection)
 
 
@@ -162,7 +162,7 @@ def test_archive_admission_rejects_duplicate_members() -> None:
     selection = _selection()
     archive = _tar([(first, b"reviewed tool"), (duplicate, b"reviewed tool")])
 
-    with pytest.raises(RuntimeError, match="duplicate-archive-member"):
+    with pytest.raises(installation.ToolInstallationError, match="duplicate-archive-member"):
         installation.materialize_tar_gz(archive, selection)
 
 
@@ -174,7 +174,7 @@ def test_archive_admission_rejects_parent_after_descendant() -> None:
     selection = _selection()
     archive = _tar([(descendant, b"reviewed tool"), (conflicting_parent, b"xx")])
 
-    with pytest.raises(RuntimeError, match="conflicting-archive-member"):
+    with pytest.raises(installation.ToolInstallationError, match="conflicting-archive-member"):
         installation.materialize_tar_gz(archive, selection)
 
 
@@ -187,7 +187,7 @@ def test_archive_admission_rejects_declared_expansion_bomb(monkeypatch: pytest.M
     archive = _tar([(selected, b"reviewed tool"), (extra, b"xx")])
     monkeypatch.setattr(installation, "MAX_ARCHIVE_EXPANDED_BYTES", 1)
 
-    with pytest.raises(RuntimeError, match="archive-size-limit"):
+    with pytest.raises(installation.ToolInstallationError, match="archive-size-limit"):
         installation.materialize_tar_gz(archive, selection)
 
 
@@ -200,10 +200,10 @@ def test_materialized_content_that_differs_from_the_installed_manifest_is_reject
         member = tarfile.TarInfo("bin/tool")
         member.size = len(substituted)
         carrier_bytes = _tar([(member, substituted)])
-        with pytest.raises(RuntimeError, match="installed-manifest-mismatch"):
+        with pytest.raises(installation.ToolInstallationError, match="installed-manifest-mismatch"):
             installation.materialize_tar_gz(carrier_bytes, selection)
     else:
-        with pytest.raises(RuntimeError, match="installed-manifest-mismatch"):
+        with pytest.raises(installation.ToolInstallationError, match="installed-manifest-mismatch"):
             installation.materialize_direct(substituted, selection)
 
 
@@ -215,7 +215,7 @@ def test_installation_revalidates_materialized_content_before_publication(
     selection = _selection(payload)
     monkeypatch.setattr(installation, "_portable_lock", _unlocked)
 
-    with pytest.raises(RuntimeError, match="installed-manifest-mismatch"):
+    with pytest.raises(installation.ToolInstallationError, match="installed-manifest-mismatch"):
         installation.ensure_verified_installation(
             tmp_path,
             selection,
@@ -318,8 +318,28 @@ def test_apfs_publication_interrupted_before_its_seal_is_completed_under_the_loc
 
     target.chmod(0o700)
     monkeypatch.setattr(installation, "_directory_rename_requires_writable_source", lambda: False)
-    with pytest.raises(RuntimeError, match="cache-integrity-failure"):
+    with pytest.raises(installation.ToolInstallationError, match="cache-integrity-failure"):
         _direct_install(monkeypatch, tmp_path, selection, payload)
+
+
+def test_a_validation_defect_does_not_quarantine_the_installed_tree(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    selection = _selection()
+    payload = b"reviewed tool"
+    installed = _direct_install(monkeypatch, tmp_path, selection, payload)
+
+    def defective_validation(*_args: object, **_kwargs: object) -> dict[str, bytes]:
+        raise RuntimeError("validator defect")
+
+    monkeypatch.setattr(installation, "_validate_tree", defective_validation)
+    with pytest.raises(RuntimeError, match="validator defect"):
+        _direct_install(monkeypatch, tmp_path, selection, payload)
+
+    quarantine = installation.default_installation_root(tmp_path) / "conftest" / ".quarantine"
+    assert not list(quarantine.iterdir())
+    assert installed.read_bytes() == payload
 
 
 def test_acquired_raw_bytes_are_reverified_before_materialization(
@@ -328,7 +348,7 @@ def test_acquired_raw_bytes_are_reverified_before_materialization(
 ) -> None:
     selection = _selection()
 
-    with pytest.raises(RuntimeError, match="raw-manifest-mismatch"):
+    with pytest.raises(installation.ToolInstallationError, match="raw-manifest-mismatch"):
         _direct_install(
             monkeypatch,
             tmp_path,
@@ -347,7 +367,7 @@ def test_cross_user_writable_installation_root_is_rejected(
     install_root.chmod(0o777)
     selection = _selection()
 
-    with pytest.raises(RuntimeError, match="unsafe-private-root"):
+    with pytest.raises(installation.ToolInstallationError, match="unsafe-private-root"):
         _direct_install(monkeypatch, tmp_path, selection, b"reviewed tool")
 
 
@@ -362,7 +382,7 @@ def test_cross_user_writable_repository_ancestor_is_rejected(
     outer.chmod(0o777)
     selection = _selection()
 
-    with pytest.raises(RuntimeError, match="unsafe-private-root"):
+    with pytest.raises(installation.ToolInstallationError, match="unsafe-private-root"):
         _direct_install(monkeypatch, repo_root, selection, b"reviewed tool")
 
 
@@ -385,7 +405,7 @@ def test_group_writable_repository_root_rejects_another_principal(
     )
     selection = _selection()
 
-    with pytest.raises(RuntimeError, match="unsafe-private-root"):
+    with pytest.raises(installation.ToolInstallationError, match="unsafe-private-root"):
         _direct_install(monkeypatch, tmp_path, selection, b"reviewed tool")
 
 
@@ -441,7 +461,7 @@ def test_group_membership_lookup_failure_rejects_group_writable_root(
         monkeypatch.setattr(installation.pwd, "getpwall", fail_lookup)
     selection = _selection()
 
-    with pytest.raises(RuntimeError, match="unsafe-private-root"):
+    with pytest.raises(installation.ToolInstallationError, match="unsafe-private-root"):
         _direct_install(monkeypatch, tmp_path, selection, b"reviewed tool")
 
 
@@ -459,7 +479,7 @@ def test_tampered_cache_is_quarantined_and_terminal_without_acquisition(
     _make_private_cache_chain(binary.parent, tmp_path)
     tree.chmod(0o500)
 
-    with pytest.raises(RuntimeError, match="cache-integrity-failure"):
+    with pytest.raises(installation.ToolInstallationError, match="cache-integrity-failure"):
         _direct_install(
             monkeypatch,
             tmp_path,
@@ -511,13 +531,15 @@ def test_invalid_observer_revalidates_a_concurrent_repair_under_the_lock(
     def observe() -> None:
         try:
             observer_result.append(ensure())
-        except BaseException as exc:  # noqa: BLE001 - the assertion must retain the thread failure.
+        # BLE001 is a false positive here: nothing is swallowed. The worker thread
+        # hands its exception to the parent thread, which asserts on it below.
+        except BaseException as exc:  # noqa: BLE001
             observer_result.append(exc)
 
     observer = threading.Thread(target=observe, name="invalid-observer")
     observer.start()
     assert observer_waiting.wait(10)
-    with pytest.raises(RuntimeError, match="cache-integrity-failure"):
+    with pytest.raises(installation.ToolInstallationError, match="cache-integrity-failure"):
         ensure()
     repaired = ensure()
     repair_published.set()
@@ -554,7 +576,7 @@ def test_legacy_version_cache_moves_to_quarantine_before_reverification(
         )
         assert installed.read_bytes() == payload
     else:
-        with pytest.raises(RuntimeError, match="legacy-integrity-failure"):
+        with pytest.raises(installation.ToolInstallationError, match="legacy-integrity-failure"):
             _direct_install(
                 monkeypatch,
                 tmp_path,
@@ -600,7 +622,7 @@ def test_group_writable_legacy_cache_is_rejected_only_when_another_principal_can
     if admitted:
         assert install().read_bytes() == payload
     else:
-        with pytest.raises(RuntimeError, match="legacy-integrity-failure"):
+        with pytest.raises(installation.ToolInstallationError, match="legacy-integrity-failure"):
             install()
     assert not legacy.exists()
 
@@ -615,7 +637,7 @@ def test_world_writable_legacy_cache_is_never_admitted(monkeypatch: pytest.Monke
     monkeypatch.setattr(installation, "_group_has_other_principal", lambda _group_id: False)
     selection = _selection(payload)
 
-    with pytest.raises(RuntimeError, match="legacy-integrity-failure"):
+    with pytest.raises(installation.ToolInstallationError, match="legacy-integrity-failure"):
         _direct_install(
             monkeypatch,
             tmp_path,
@@ -680,7 +702,7 @@ def test_hardlinked_installed_leaf_is_quarantined_and_terminal(
     os.link(binary, alias)
     tree.chmod(0o500)
 
-    with pytest.raises(RuntimeError, match="cache-integrity-failure"):
+    with pytest.raises(installation.ToolInstallationError, match="cache-integrity-failure"):
         _direct_install(monkeypatch, tmp_path, selection, b"reviewed tool")
 
     assert alias.read_bytes() == b"reviewed tool"

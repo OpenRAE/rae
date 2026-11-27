@@ -23,13 +23,15 @@ on:
       - CHANGELOG.md
       - .release-please-manifest.json
       - implementations/python/packages/raes/_version.py
+  merge_group:
+    types: [checks_requested]
 
 permissions:
   contents: read
   pull-requests: read
 
 concurrency:
-  group: pr-title-lint-${{ github.event.pull_request.number }}
+  group: pr-title-lint-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -44,10 +46,29 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
-          ref: ${{ github.event.pull_request.base.sha }}
-      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+          ref: ${{ github.event.merge_group.base_sha || github.event.pull_request.base.sha }}
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
-          python-version: "3.12.14"
+          python-version: "3.14.7"
+      - name: Resolve the queued pull request
+        # A merge group event carries no pull request. Read the queued pull
+        # request from the API so this check validates its current title and
+        # body, then write it in the pull_request event shape (#2026).
+        if: github.event_name == 'merge_group'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          QUEUE_REF: ${{ github.event.merge_group.head_ref }}
+        run: |
+          set -euo pipefail
+          pattern='^refs/heads/gh-readonly-queue/dev/pr-([0-9]+)-[0-9a-f]{40}$'
+          if [[ ! "${QUEUE_REF}" =~ ${pattern} ]]; then
+            echo "Unexpected merge group ref '${QUEUE_REF}'" >&2
+            exit 1
+          fi
+          gh api "repos/${GITHUB_REPOSITORY}/pulls/${BASH_REMATCH[1]}" \
+            | jq --arg repository "${GITHUB_REPOSITORY}" \
+              'if .base.ref == "dev" then {repository: {full_name: $repository}, pull_request: .} else error("not a dev pull request") end' \
+            > "${RUNNER_TEMP}/pull-request-event.json"
       - name: Collect PR commit messages
         # This repo squashes with squash_merge_commit_message=COMMIT_MESSAGES,
         # so these messages -- not the PR body -- become the squash commit body
@@ -56,13 +77,16 @@ jobs:
         # must never be shell-interpolated.
         env:
           GH_TOKEN: ${{ github.token }}
-          PR_NUMBER: ${{ github.event.pull_request.number }}
+          EVENT_PATH: ${{ github.event_name == 'merge_group' && format('{0}/pull-request-event.json', runner.temp) || github.event_path }}
         run: |
+          PR_NUMBER="$(jq -er '.pull_request.number' "${EVENT_PATH}")"
           gh api --paginate \
             "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}/commits" \
             --jq '.[].commit.message' > "${RUNNER_TEMP}/pr-commit-messages.txt"
 
       - name: Validate PR title
+        env:
+          EVENT_PATH: ${{ github.event_name == 'merge_group' && format('{0}/pull-request-event.json', runner.temp) || github.event_path }}
         # The checker reads the title and body from $GITHUB_EVENT_PATH (set
         # automatically by the runner). It is stdlib-only, so no dependency
         # install is needed. Body and commit messages are read only for
@@ -85,4 +109,4 @@ jobs:
           else
             echo "::notice::base-ref tools/check_pr_title.py predates --commit-messages-file; title-only enforcement for this PR."
           fi
-          python tools/check_pr_title.py "${guard_args[@]}"
+          python tools/check_pr_title.py --event-path "${EVENT_PATH}" "${guard_args[@]}"

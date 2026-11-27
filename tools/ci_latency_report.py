@@ -24,6 +24,12 @@ cohort from stdin means the tool invokes no subprocess and opens no caller-named
 path, so it adds no command-execution or path-traversal surface. Queue time is
 reported separately from execution time and successful runs are never imputed as
 failures. The metric functions are pure and unit-tested.
+
+Queue time runs from a run's ``created_at`` to its ``run_started_at``. GitHub
+keeps ``created_at`` from the first attempt but resets ``run_started_at`` on each
+re-run, so only a first attempt (``run_attempt`` 1, or no ``run_attempt``)
+reports queue time. A re-run attempt keeps its other metrics, measured from its
+own ``run_started_at``, and the summary counts it in ``rerun_attempts``.
 """
 
 from __future__ import annotations
@@ -34,7 +40,17 @@ import sys
 from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass
 from datetime import datetime
+from pathlib import Path
 from typing import TextIO
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
+RAES_PACKAGES_ROOT = REPO_ROOT / "implementations" / "python" / "packages"
+for _source_root in (REPO_ROOT, RAES_PACKAGES_ROOT):
+    if str(_source_root) not in sys.path:
+        sys.path.insert(0, str(_source_root))
+
+from raes_contracts.errors import InvalidInputError  # noqa: E402
+from raes_contracts.operational_logging import run_application  # noqa: E402
 
 DEFAULT_REQUIRED_CHECKS = ("verify", "sonar")
 FAST_FEEDBACK_CHECK = "fast-feedback"
@@ -52,6 +68,9 @@ def _parse_timestamp(value: object) -> datetime | None:
 def _seconds(start: datetime | None, end: datetime | None) -> float | None:
     if start is None or end is None:
         return None
+    if (start.utcoffset() is None) != (end.utcoffset() is None):
+        # A timestamp with a UTC offset has no defined order against one without an offset.
+        raise InvalidInputError("cohort timestamps must all have a UTC offset or all have no UTC offset")
     delta = (end - start).total_seconds()
     return delta if delta >= 0 else None
 
@@ -67,6 +86,7 @@ class RunTiming:
     execution_s: float | None
     time_to_first_failure_s: float | None
     final_required_completion_s: float | None
+    run_attempt: int = 1
 
 
 def _job_elapsed(job: Mapping[str, object], started: datetime | None) -> tuple[str, str, float] | None:
@@ -89,6 +109,14 @@ def _optional_max(values: Sequence[float]) -> float | None:
 
 def _coerce_run_id(value: object) -> int:
     return value if isinstance(value, int) and not isinstance(value, bool) else 0
+
+
+def _coerce_run_attempt(value: object) -> int:
+    """Return GitHub's ``run_attempt``: 1 when absent, 0 when not a positive integer."""
+
+    if value is None:
+        return 1
+    return value if isinstance(value, int) and not isinstance(value, bool) and value > 0 else 0
 
 
 @dataclass(frozen=True)
@@ -126,7 +154,9 @@ def parse_run(
     """Derive the latency metrics for a single run from its native timestamps."""
 
     required = set(required_checks)
-    created = _parse_timestamp(run.get("created_at"))
+    attempt = _coerce_run_attempt(run.get("run_attempt"))
+    # GitHub keeps ``created_at`` from the first attempt, so it anchors only a first attempt.
+    created = _parse_timestamp(run.get("created_at")) if attempt == 1 else None
     started = _parse_timestamp(run.get("run_started_at")) or created
     jobs_timing = _aggregate_jobs(jobs, started, required, required | {FAST_FEEDBACK_CHECK})
 
@@ -138,6 +168,7 @@ def parse_run(
         execution_s=_optional_max(jobs_timing.completions),
         time_to_first_failure_s=_optional_min(jobs_timing.failures),
         final_required_completion_s=_optional_max(jobs_timing.required_completions),
+        run_attempt=attempt,
     )
 
 
@@ -171,6 +202,7 @@ def summarize(timings: Sequence[RunTiming]) -> dict[str, object]:
 
     return {
         "runs": len(timings),
+        "rerun_attempts": sum(1 for item in timings if item.run_attempt > 1),
         "queue_seconds": _summary(collect("queue_s")),
         "execution_seconds": _summary(collect("execution_s")),
         "time_to_first_failure_seconds": _summary(collect("time_to_first_failure_s")),
@@ -183,16 +215,18 @@ def load_cohort(payload: object, required_checks: Iterable[str]) -> list[RunTimi
 
     checks = tuple(required_checks)
     if not isinstance(payload, list):
-        raise ValueError("cohort payload must be a JSON array of {run, jobs} entries")
+        raise InvalidInputError("cohort payload must be a JSON array of {run, jobs} entries")
     timings: list[RunTiming] = []
     for entry in payload:
         if not isinstance(entry, Mapping) or not isinstance(entry.get("run"), Mapping):
-            raise ValueError("each cohort entry must be an object with a 'run' object")
+            raise InvalidInputError("each cohort entry must be an object with a 'run' object")
         jobs = entry.get("jobs")
         if jobs is None:
             jobs = []
         if not isinstance(jobs, list):
-            raise ValueError("cohort entry 'jobs' must be a JSON array")
+            raise InvalidInputError("cohort entry 'jobs' must be a JSON array")
+        if not all(isinstance(job, Mapping) for job in jobs):
+            raise InvalidInputError("cohort entry 'jobs' must contain only objects")
         timings.append(parse_run(entry["run"], jobs, checks))
     return timings
 
@@ -203,11 +237,21 @@ def main(argv: Sequence[str] | None = None, *, stdin: TextIO | None = None) -> i
     args = parser.parse_args(list(argv) if argv is not None else None)
     required_checks = tuple(args.required_checks or DEFAULT_REQUIRED_CHECKS)
 
-    payload = json.load(stdin if stdin is not None else sys.stdin)
-    timings = load_cohort(payload, required_checks)
+    try:
+        payload = json.load(stdin if stdin is not None else sys.stdin)
+    except ValueError, RecursionError:
+        # The try holds only the decoder. ValueError covers text that is not UTF-8, malformed JSON
+        # and an integer beyond the interpreter digit limit; RecursionError covers excessive nesting.
+        print("ci-latency-report: cohort payload on stdin is not valid JSON", file=sys.stderr)
+        return 1
+    try:
+        timings = load_cohort(payload, required_checks)
+    except InvalidInputError as exc:
+        print(f"ci-latency-report: {exc}", file=sys.stderr)
+        return 1
     print(json.dumps(summarize(timings), indent=2, sort_keys=True))
     return 0
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(run_application(main))

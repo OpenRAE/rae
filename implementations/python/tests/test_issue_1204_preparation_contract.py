@@ -7,10 +7,10 @@ import pytest
 
 def test_preparation_response_schema_and_codec_roundtrip():
     from jsonschema import Draft202012Validator
-    from raes_contracts.contracts import schema_bundle
     from raes_contracts.contracts.backend_preparation import preparation_response_model
-    from raes_contracts.realization_preparation import BACKEND_PREPARATION_CONTRACT
+    from raes_contracts.planning import BACKEND_PREPARATION_CONTRACT
     from raes_contracts.runtime_state import RuntimeSnapshot
+    from raes_schemas import schema_bundle
     from test_issue_1204_backend_preparation import _PreparingBackend, _request
 
     request, _ = _request()
@@ -39,8 +39,8 @@ def test_preparation_response_schema_and_codec_roundtrip():
 @pytest.mark.parametrize("value_count, admitted", [(200, True), (400, False)])
 def test_response_aggregate_is_bounded_before_portable_serialization(monkeypatch, value_count, admitted):
     from raes_contracts.contracts import backend_preparation
+    from raes_contracts.contracts.realization_preparation import RealizationPreparation
     from raes_contracts.planning import ChangeAction, ProvisionOp
-    from raes_contracts.realization_preparation import RealizationPreparation
 
     calls = []
     serialize = backend_preparation.to_jsonable_python

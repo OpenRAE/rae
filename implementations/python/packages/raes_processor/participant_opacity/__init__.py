@@ -2,6 +2,7 @@
 
 from ._errors import (
     ParticipantOpacityEvidenceError,
+    ParticipantOpacityInputError,
     ParticipantOpacityOperationalError,
 )
 from ._model_check import (
@@ -19,6 +20,7 @@ from ._service import (
 __all__ = [
     "ANALYSIS_PROFILE",
     "ParticipantOpacityEvidenceError",
+    "ParticipantOpacityInputError",
     "ParticipantOpacityOperationalError",
     "analyze_participant_opacity_file",
     "analyze_participant_opacity_input",

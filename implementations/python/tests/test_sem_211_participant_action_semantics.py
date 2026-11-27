@@ -7,7 +7,7 @@ import textwrap
 import pytest
 from raes._errors import SDLParseError
 from raes.parser import parse_sdl
-from raes.participant_behavior import (
+from raes_contracts.participant_action_semantics import (
     ParticipantEffectClass,
     ParticipantFailureClass,
     ParticipantPreconditionClass,

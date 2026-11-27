@@ -6,9 +6,14 @@ from typing import Annotated, Literal
 
 from pydantic import AwareDatetime, Field, field_validator, model_validator
 from raes_contracts.addressing import CompiledAddress
+from raes_contracts.explicitness import ExplicitnessProvenance
+from raes_contracts.identifiers import (
+    QUALIFIED_IDENTIFIER_MAX_LENGTH,
+    PortableIdentifier,
+    require_qualified_identifier,
+)
+from raes_contracts.materialization_inventory import RuntimeInventoryReport
 
-from ._identifiers import QUALIFIED_IDENTIFIER_MAX_LENGTH, PortableIdentifier, require_qualified_identifier
-from .explicitness import ExplicitnessProvenance
 from .phase_contracts import FrozenPhaseModel, SemanticDigest
 
 MaterializationDigest = Annotated[str, Field(pattern=r"^sha256:[a-f0-9]{64}$")]
@@ -83,6 +88,7 @@ class MaterializationProvenance(FrozenPhaseModel):
     coverage_profile: Literal["raes-materialization-effects/v1"]
     origins: tuple[MaterializationOrigin, ...] = Field(max_length=4096)
     resource_bindings: tuple[MaterializedResourceBinding, ...] = Field(max_length=4096)
+    inventory: RuntimeInventoryReport | None = Field(default=None, exclude_if=lambda value: value is None)
 
     @model_validator(mode="after")
     def _validate_identities(self) -> MaterializationProvenance:

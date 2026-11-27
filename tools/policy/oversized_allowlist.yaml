@@ -1,9 +1,9 @@
-# Files over the 500-line cap (tools/policy/adr_policy.yaml :: oversized_source_files).
+# Files over the 1,000-line cap (tools/policy/adr_policy.yaml :: oversized_source_files).
 # Each entry is a path relative to the repository root and must be one of the
 # files in _ADR015_INITIAL_OVERSIZED_FILES (tools/policy/repo_policy.py) — the
 # fixed reference set. The allowlist may only shrink: each split PR removes its
 # file once it's been split below the cap. The modularity tracker closes when
 # this list is empty. Do NOT add new entries — split the file instead. This set
-# was re-baselined to the 500-line cap on 2026-07-12 (#561); see ADR-015 §2 and
-# its Amendments section.
+# was re-baselined to the 1,000-line cap on 2026-10-30 (#1734); no file was
+# over that cap, so the list is empty. See ADR-015 §2 and its Amendments.
 files: []

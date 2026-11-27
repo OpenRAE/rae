@@ -106,3 +106,17 @@ def test_duplicate_entry_ids_are_flagged(tmp_path: Path) -> None:
     body = _GOOD_GUIDANCE.replace("id: invariant", "id: scope", 1)
     failures = evaluate_agent_guidance(_seed_repo(tmp_path, body))
     assert _flagged(failures, "agent-guidance-entry-duplicate")
+
+
+def test_main_reports_a_malformed_waiver_date_as_a_message(tmp_path: Path, capsys) -> None:
+    from tools.check_agent_guidance import main
+
+    repo_root = _seed_repo(tmp_path, _GOOD_GUIDANCE.replace("id: invariant", "id: scope", 1))
+    waivers = repo_root / "tools" / "policy" / "exceptions.yaml"
+    waivers.parent.mkdir(parents=True)
+    waivers.write_text(
+        "exceptions:\n  - rule_id: agent-guidance-entry-duplicate\n    expires_at: not-a-date\n", encoding="utf-8"
+    )
+
+    assert main(["--repo-root", str(repo_root)]) == 1
+    assert "agent-guidance: policy exception expires_at must be an ISO date" in capsys.readouterr().err

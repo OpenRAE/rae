@@ -5,6 +5,7 @@ from __future__ import annotations
 from importlib.metadata import version
 from itertools import product
 
+from pydantic import ValidationError
 from raes_contracts.behavioral_relation_profiles import (
     ActiveOpacityStrategyModel,
     BehavioralRelationProfileModel,
@@ -59,7 +60,7 @@ def checker_configuration() -> ParticipantOpacityModelCheckConfigurationModel:
             max_states=4096,
             max_transitions=65536,
         )
-    except ValueError as exc:
+    except ValidationError as exc:
         raise ParticipantOpacityOperationalError(
             "the installed participant-opacity model checker does not match its governed profile"
         ) from exc

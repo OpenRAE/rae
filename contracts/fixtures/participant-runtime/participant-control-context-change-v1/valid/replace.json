@@ -1,0 +1,35 @@
+{
+  "actor_ref": "actors.director",
+  "asset_ref": {
+    "asset_digest": "sha256:d89efeab66a7e76a100a2ba95b93f735942aad5753b4440257275b2523bf91b4",
+    "asset_id": "privacy-instruction",
+    "asset_version": "one"
+  },
+  "authority_ref": "authorities.change",
+  "change_id": "changes.1",
+  "effective_cut": {
+    "anchor_event_ref": "events.0",
+    "anchor_order": 0,
+    "cut_kind": "sequence_prefix",
+    "cut_ref": "cuts.0",
+    "history_domain": "participant_episode_lifecycle",
+    "history_prefix_length": 1,
+    "order_model": "control_plane_order",
+    "predecessor_event_refs": []
+  },
+  "evidence_refs": [
+    "evidence.change"
+  ],
+  "operation": "replace",
+  "provenance_refs": [
+    "provenance.change"
+  ],
+  "reason_ref": "reasons.reviewed",
+  "schema_version": "participant-control-context-change/v1",
+  "scope_ref": "catalog.training",
+  "successor_ref": {
+    "asset_digest": "sha256:3937c6a70b759eecf2c320ba20d75535fe5bb439ef0810a6e43862f5b84794eb",
+    "asset_id": "privacy-instruction",
+    "asset_version": "two"
+  }
+}

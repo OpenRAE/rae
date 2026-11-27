@@ -4,7 +4,7 @@ import math
 import re
 from decimal import ROUND_CEILING, Decimal
 
-from .._base import is_variable_ref
+from raes_contracts.variable_references import is_variable_ref
 
 # OCR uses duration-str's fixed calendar conversions: 30d/month, 365d/year.
 _DURATION_UNITS = {

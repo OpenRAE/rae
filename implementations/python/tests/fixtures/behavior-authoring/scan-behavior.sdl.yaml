@@ -1,0 +1,81 @@
+# Reusable participant behavior unit (issue #297, DSL-116). It is a valid
+# standalone scenario, and twice-imported.sdl.yaml imports it under two namespaces.
+name: scan-behavior
+module:
+  id: acme/scan-behavior
+  version: 1.2.0
+  exports:
+    nodes: [web]
+    entities: [red-team]
+    agents: [red-agent]
+    action_contracts: [scan]
+    observation_boundaries: [red-view]
+    outcome_interpretation_rules: [scan-outcome]
+    behavior_specifications: [red-scan-behavior]
+nodes:
+  web:
+    type: compute
+    resources: {ram: 1 GiB, cpu: 1}
+    services: [{port: 80, name: http}]
+entities:
+  red-team:
+    role: red
+agents:
+  red-agent:
+    affiliations: [red-team]
+    actions: [scan]
+    observation_boundaries: [red-view]
+action_contracts:
+  scan:
+    semantic_version: 1.0.0
+    lifecycle_state: active
+    behavioral_granularity: atomic
+    procedure_basis: service discovery against the web node
+    realization_profile: backend-declared
+    fidelity_claim: records participant discovery intent
+    preconditions:
+      - precondition_id: authority-in-scope
+        precondition_class: authority
+        description: the participant is authorized to scan the web service
+    effects:
+      - effect_id: no-effect
+        effect_class: no_effect
+        description: the fixture declares no environment effect
+    failure_classes: [unknown]
+observation_boundaries:
+  red-view:
+    projection_basis: participant-local view of scan results
+    observable_refs: []
+    evidence_refs: [evidence.scan-output]
+    redaction_policy: no hidden refs are disclosed
+    latency_profile: immediate
+outcome_interpretation_rules:
+  scan-outcome:
+    semantic_version: 1.0.0
+    participant_scope: participant_local
+    observation_point_basis: terminal participant observation event
+    interpretation_basis: local scan status is participant-local evidence only
+    evidence_refs: [evidence.scan-output]
+    limitations: [local scan status is not objective success]
+    source_bindings:
+      - source_id: local-action
+        source_layer: participant_action_outcome
+        ref: scan
+        interpretation_role: local action status input
+        evidence_refs: [evidence.scan-output]
+    target_bindings:
+      - target_id: scan-evidence
+        target_layer: evidence_claim
+        ref: evidence.scan-output
+        relation: local scan status supports an evidence claim only
+        evidence_refs: [evidence.scan-output]
+behavior_specifications:
+  red-scan-behavior:
+    semantic_version: 1.0.0
+    lifecycle_state: active
+    participant_refs: [red-agent]
+    action_contract_refs: [scan]
+    observation_boundary_refs: [red-view]
+    outcome_interpretation_rule_refs: [scan-outcome]
+    authority_scope_refs: [nodes.web.services.http]
+    behavior_mode: policy-directed

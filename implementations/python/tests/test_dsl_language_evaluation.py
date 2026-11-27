@@ -6,6 +6,7 @@ from copy import deepcopy
 from pathlib import Path
 
 import tools.check_dsl_language_evaluation as evaluation_gate
+from raes_contracts.errors import InvalidInputError
 from tools.check_dsl_language_evaluation import (
     REQUIRED_DIMENSION_IDS,
     REQUIRED_PERSONA_IDS,
@@ -305,7 +306,7 @@ def test_manifest_rejects_malformed_supplemental_bundle_entries(tmp_path: Path) 
 
     try:
         evaluation_gate.load_bundles(tmp_path)
-    except ValueError as exc:
+    except InvalidInputError as exc:
         assert "supplemental_bundles[0] must be an object" in str(exc)
     else:
         raise AssertionError("malformed supplemental bundle entries must fail closed")
@@ -1046,7 +1047,7 @@ def test_shared_json_loader_rejects_duplicate_keys(tmp_path: Path) -> None:
 
     try:
         load_bounded_json_object(tmp_path, "duplicate.json", max_bytes=1024)
-    except ValueError as exc:
+    except InvalidInputError as exc:
         assert "duplicate JSON key 'revision'" in str(exc)
     else:
         raise AssertionError("duplicate JSON keys must fail closed")
@@ -1090,3 +1091,41 @@ def test_dimension_thresholds_are_recomputed_from_measure_results() -> None:
     failing = recompute_dimension_results(protocol, measure_results)
     assert failing["usability-comprehension"]["threshold_result"] == "fail"
     assert failing["effectiveness-productivity"]["threshold_result"] == "fail"
+
+
+def test_measure_recomputation_refusal_is_an_observation_failure(monkeypatch) -> None:
+    from tools.dsl_language_evaluation import _analysis
+
+    _, protocol, snapshot, analysis = _bundle()
+
+    def refuse(*_args, **_kwargs):
+        raise InvalidInputError("seeded observation refusal")
+
+    monkeypatch.setattr(_analysis, "recompute_measure_results", refuse)
+    failures = []
+    _analysis._measure_result_failures(protocol, snapshot, analysis, {"measure_ids": set()}, failures, "analysis.json")
+
+    assert ("dsl-evaluation-observation-value", "seeded observation refusal") in {
+        (failure.rule_id, failure.message) for failure in failures
+    }
+
+
+def test_measure_recomputation_defect_is_not_reported_as_an_observation_failure(monkeypatch) -> None:
+    from tools.dsl_language_evaluation import _analysis
+
+    _, protocol, snapshot, analysis = _bundle()
+
+    def defect(*_args, **_kwargs):
+        raise ValueError("seeded defect")
+
+    monkeypatch.setattr(_analysis, "recompute_measure_results", defect)
+    failures = []
+    try:
+        _analysis._measure_result_failures(
+            protocol, snapshot, analysis, {"measure_ids": set()}, failures, "analysis.json"
+        )
+    except ValueError as exc:
+        assert str(exc) == "seeded defect"
+    else:
+        raise AssertionError("a defect must propagate instead of becoming an evidence failure")
+    assert "dsl-evaluation-observation-value" not in _rule_ids(failures)

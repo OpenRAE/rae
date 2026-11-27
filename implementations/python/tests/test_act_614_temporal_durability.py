@@ -38,6 +38,7 @@ def test_history_view_returns_completed_temporal_assessments() -> None:
     result = manager.apply(manager.plan(scenario))
     assert result.success
     participant, history = next(iter(result.snapshot.participant_behavior_history.items()))
+    manager.close()
     control = RuntimeControlPlane(target, initial_snapshot=result.snapshot)
     try:
         view = control.get_participant_history_view(participant, history[-1]["episode_id"])

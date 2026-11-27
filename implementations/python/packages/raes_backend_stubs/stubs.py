@@ -1,9 +1,8 @@
 """Stub runtime backends for compiler/planner testing."""
 
-from datetime import UTC, datetime
-
 from raes_backend_protocols.capabilities import BackendManifest
 from raes_backend_protocols.participant_runtime_base import BaseParticipantRuntime
+from raes_contracts.contracts.workflow_dispatch import WorkflowStepDispatch
 from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.planning import ChangeAction, EvaluationPlan, OrchestrationPlan, ProvisioningPlan, RuntimeDomain
 from raes_contracts.realization_envelope import (
@@ -11,13 +10,14 @@ from raes_contracts.realization_envelope import (
     ObservationStrength,
     RealizationConcern,
 )
-from raes_contracts.realization_observation import (
-    RealizationObservation,
+from raes_contracts.realization_observation import RealizationObservation
+from raes_contracts.realization_observation_demand import compute_substrate_collection_addresses
+from raes_contracts.realization_operational_observation import (
     bind_compute_substrate_observations,
     compute_substrate_readback_addresses,
 )
-from raes_contracts.realization_observation_demand import compute_substrate_collection_addresses
 from raes_contracts.runtime_state import ApplyResult, RuntimeSnapshot, SnapshotEntry
+from raes_contracts.timestamps import WallClock, isoformat_z, utc_now
 from raes_runtime.registry import (
     ReferenceTimeRuntime,
     RuntimeTarget,
@@ -161,11 +161,43 @@ class StubProvisioner:
 class StubOrchestrator:
     """In-memory orchestrator."""
 
-    def __init__(self) -> None:
+    def __init__(self, *, wall_clock: WallClock = utc_now) -> None:
+        self._wall_clock = wall_clock
         self._running = False
         self._startup_order: list[str] = []
         self._results: dict[str, dict[str, object]] = {}
         self._history: dict[str, list[dict[str, object]]] = {}
+
+    @staticmethod
+    def dispatch_step(request: WorkflowStepDispatch) -> dict[str, object]:
+        """Simulate this dispatch only; the runtime owns all control transitions."""
+        executable = request.step_type in {"objective", "retry"}
+        governed = executable and request.execution_mode != "scripted"
+        provenance = (
+            None
+            if not governed
+            else {
+                "step_name": request.step_name,
+                "execution_mode": request.execution_mode,
+                "attempt_id": request.dispatch_id,
+                "objective_address": request.objective_address,
+                "procedure_ref": request.procedure_ref,
+                "exposed_scaffold_refs": list(request.scaffold_refs),
+                "allowed_action_families": list(request.allowed_action_families),
+                "outcome": "failed",
+            }
+        )
+        outcome = None
+        if executable:
+            outcome = "failed" if governed else "succeeded"
+        return {
+            "schema_version": "workflow-step-response/v1",
+            "dispatch_id": request.dispatch_id,
+            "dispatch_digest": request.digest,
+            "outcome": outcome,
+            "observations": dict(request.observation_digests),
+            "attempt_provenance": provenance,
+        }
 
     def start(
         self,
@@ -178,7 +210,8 @@ class StubOrchestrator:
             workflow_address: list(events) for workflow_address, events in snapshot.orchestration_history.items()
         }
         changed_addresses: list[str] = []
-        now = datetime.now(UTC).isoformat().replace("+00:00", "Z")
+        if any(op.resource_type == "workflow" for op in plan.operations):
+            raise ValueError("workflow steps require runtime dispatch")
         for op in plan.operations:
             if op.action == ChangeAction.UNCHANGED:
                 continue
@@ -198,45 +231,6 @@ class StubOrchestrator:
                 refresh_dependencies=op.refresh_dependencies,
                 status=status,
             )
-            if op.resource_type == "workflow":
-                result_contract = op.payload.get("result_contract", {})
-                observable_steps = result_contract.get("observable_steps", {})
-                observable_steps = {
-                    step_name: {
-                        "lifecycle": "pending",
-                        "outcome": None,
-                        "attempts": 0,
-                    }
-                    for step_name, step_payload in observable_steps.items()
-                    if isinstance(step_payload, dict)
-                }
-                results[op.address] = {
-                    "state_schema_version": result_contract.get(
-                        "state_schema_version",
-                        op.payload.get("state_schema_version", "workflow-step-state/v1"),
-                    ),
-                    "workflow_status": "running",
-                    "run_id": f"{op.address}-run",
-                    "started_at": now,
-                    "updated_at": now,
-                    "terminal_reason": None,
-                    "compensation_status": "not_required",
-                    "compensation_started_at": None,
-                    "compensation_updated_at": None,
-                    "compensation_failures": [],
-                    "steps": observable_steps,
-                }
-                history[op.address] = [
-                    {
-                        "event_type": "workflow_started",
-                        "timestamp": now,
-                        "step_name": op.payload.get("execution_contract", {}).get("start_step"),
-                        "branch_name": None,
-                        "join_step": None,
-                        "outcome": None,
-                        "details": {},
-                    }
-                ]
             if op.action != ChangeAction.UNCHANGED:
                 changed_addresses.append(op.address)
         self._running = bool(plan.resources)
@@ -291,7 +285,8 @@ class StubOrchestrator:
 class StubEvaluator:
     """In-memory evaluator."""
 
-    def __init__(self) -> None:
+    def __init__(self, *, wall_clock: WallClock = utc_now) -> None:
+        self._wall_clock = wall_clock
         self._running = False
         self._startup_order: list[str] = []
         self._results: dict[str, dict[str, object]] = {}
@@ -306,7 +301,7 @@ class StubEvaluator:
         changed_addresses: list[str] = []
         results = dict(snapshot.evaluation_results)
         history = {address: list(events) for address, events in snapshot.evaluation_history.items()}
-        now = datetime.now(UTC).isoformat().replace("+00:00", "Z")
+        now = isoformat_z(self._wall_clock())
         for op in plan.operations:
             apply_evaluation_operation(op, entries, results, history, changed_addresses, now)
         self._running = bool(plan.resources)
@@ -367,6 +362,7 @@ class StubParticipantRuntime(BaseParticipantRuntime):
 def create_stub_components(
     *,
     manifest: BackendManifest,
+    wall_clock: WallClock = utc_now,
     **config,
 ) -> RuntimeTargetComponents:
     """Factory for stub runtime components."""
@@ -374,11 +370,13 @@ def create_stub_components(
     del config
     return RuntimeTargetComponents(
         provisioner=StubProvisioner(manifest.realization_envelope),
-        orchestrator=StubOrchestrator(),
-        evaluator=StubEvaluator(),
-        participant_runtime=StubParticipantRuntime() if manifest.has_participant_runtime else None,
+        orchestrator=StubOrchestrator(wall_clock=wall_clock) if manifest.orchestrator is not None else None,
+        evaluator=StubEvaluator(wall_clock=wall_clock) if manifest.evaluator is not None else None,
+        participant_runtime=StubParticipantRuntime(wall_clock=wall_clock) if manifest.has_participant_runtime else None,
         time_runtime=ReferenceTimeRuntime() if manifest.has_time else None,
-        observation_runtime=backend_selection_observation_runtime(manifest),
+        observation_runtime=backend_selection_observation_runtime(manifest)
+        if manifest.observation is not None
+        else None,
     )
 
 

@@ -9,6 +9,8 @@ from dataclasses import dataclass
 from pathlib import Path, PurePosixPath
 from types import MappingProxyType
 
+from raes_contracts.errors import InvalidInputError
+
 from tools.policy.common import (
     PolicyFailure,
     apply_exceptions,
@@ -35,7 +37,7 @@ _FIELDS = frozenset(
 _MAX_SCOPE_BYTES = 256 * 1024
 
 
-class RequirementScopeError(ValueError):
+class RequirementScopeError(InvalidInputError):
     """Scope authority is malformed or conflicts with the delivery context."""
 
 
@@ -109,7 +111,11 @@ def load_requirement_scope(repo_root: Path, branch: str | None) -> RequirementSc
     match = _ISSUE_BRANCH.fullmatch(branch or "")
     if match is None:
         return None
-    issue_number = int(match[1])
+    try:
+        issue_number = int(match[1])
+    except ValueError as exc:
+        # The pattern admits only decimal digits, so int() fails only beyond the interpreter digit limit.
+        raise RequirementScopeError("Requirement scope cannot be read and validated.") from exc
     relative = f"docs/governance/requirement-scopes/{issue_number}.json"
     path = repo_root.resolve() / relative
     try:
@@ -124,7 +130,8 @@ def load_requirement_scope(repo_root: Path, branch: str | None) -> RequirementSc
             raise RequirementScopeError("Scope authority must be a regular canonical repository file.")
         document = load_bounded_json_object(repo_root, relative, max_bytes=_MAX_SCOPE_BYTES)
         return parse_requirement_scope(document, issue_number=issue_number)
-    except (OSError, ValueError, RecursionError) as exc:
+    except (OSError, InvalidInputError, RecursionError) as exc:
+        # Every refusal, including a RequirementScopeError raised above, reports one stable message.
         raise RequirementScopeError("Requirement scope cannot be read and validated.") from exc
 
 

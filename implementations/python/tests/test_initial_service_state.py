@@ -13,7 +13,6 @@ from raes import SDLParseError, SDLValidationError, parse_sdl, parse_sdl_file
 from raes_backend_protocols.backend_manifest import BackendManifest
 from raes_backend_stubs.stubs import create_stub_manifest, create_stub_target
 from raes_contracts.canonical import canonical_json_digest
-from raes_contracts.contracts import schema_bundle
 from raes_contracts.planning import ChangeAction, ProvisioningPlan, ProvisionOp, RuntimeDomain
 from raes_contracts.runtime_state import RuntimeSnapshot, SnapshotEntry
 from raes_processor.compiler import compile_scenario_runtime_model
@@ -22,6 +21,7 @@ from raes_processor.planner import plan
 from raes_processor.semantics.realization import realization_disclosure
 from raes_runtime.control_plane import RuntimeControlPlane
 from raes_runtime.registry import RuntimeTarget
+from raes_schemas import schema_bundle
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 
@@ -563,9 +563,8 @@ def test_direct_plan_submission_repeats_profile_and_readback_admission() -> None
         },
     )
     base_target = create_stub_target()
-    unsupported = RuntimeControlPlane(base_target).submit_provisioning(
-        _direct_provisioning_plan(model, base_target.manifest, operation)
-    )
+    with RuntimeControlPlane(base_target) as owner:
+        unsupported = owner.submit_provisioning(_direct_provisioning_plan(model, base_target.manifest, operation))
     assert [diagnostic.code for diagnostic in unsupported.diagnostics] == [
         "provisioner.unsupported-service-materialization-profile"
     ]
@@ -579,9 +578,8 @@ def test_direct_plan_submission_repeats_profile_and_readback_admission() -> None
         evaluator=base_target.evaluator,
         participant_runtime=base_target.participant_runtime,
     )
-    missing_readback = RuntimeControlPlane(target).submit_provisioning(
-        _direct_provisioning_plan(model, manifest, operation)
-    )
+    with RuntimeControlPlane(target) as owner:
+        missing_readback = owner.submit_provisioning(_direct_provisioning_plan(model, manifest, operation))
     assert [diagnostic.code for diagnostic in missing_readback.diagnostics] == [
         "provisioner.service-materialization-readback-unsupported"
     ]

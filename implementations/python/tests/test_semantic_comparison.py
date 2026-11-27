@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
-import json
 from pathlib import Path
 
 import pytest
+from contract_fixtures import load_contract_fixture
 from jsonschema import Draft202012Validator
 from pydantic import ValidationError
 from raes.phase_contracts import ResolvedImportProvenance
@@ -24,8 +24,8 @@ from raes_contracts.contracts import (
     ExternalConceptBindingDocumentModel,
     PreservationOutcome,
     TransformationCheckOutcome,
-    schema_bundle,
 )
+from raes_contracts.errors import InvalidInputError
 from raes_contracts.json_ingress import StrictJsonIngressError
 from raes_contracts.semantic_comparison import (
     ArtifactKind,
@@ -49,13 +49,14 @@ from raes_processor.semantic_comparison import (
     build_impact_scope,
     coordinate_for_artifact,
 )
+from raes_schemas import schema_bundle
 
 _ROOT = Path(__file__).resolve().parents[3]
 _PROFILE_PATH = _ROOT / "contracts/profiles/semantic-comparison/reference-v2.json"
 
 
 def _fixture(relative: str, model: type):
-    payload = json.loads((_ROOT / relative).read_text(encoding="utf-8"))
+    payload = load_contract_fixture(_ROOT / relative)
     return model.model_validate(payload)
 
 
@@ -357,7 +358,7 @@ def test_profile_digest_mismatch_is_rejected_before_analysis(
         update={"comparison_profile_digest": "sha256:" + "0" * 64}
     )
 
-    with pytest.raises(ValueError, match="comparison profile digest"):
+    with pytest.raises(InvalidInputError, match="comparison profile digest"):
         analyze_semantic_comparison(profile, request, scenario, scenario)
 
 
@@ -370,11 +371,11 @@ def test_published_schemas_and_fixtures_validate() -> None:
 
     fixture_root = _ROOT / "contracts/fixtures/semantic-comparison"
     for fixture in sorted((fixture_root / "semantic-comparison-request-v1/valid").glob("*.json")):
-        payload = json.loads(fixture.read_text(encoding="utf-8"))
+        payload = load_contract_fixture(fixture)
         Draft202012Validator(request_schema).validate(payload)
         SemanticComparisonRequestModel.model_validate(payload)
     for fixture in sorted((fixture_root / "semantic-comparison-result-v1/valid").glob("*.json")):
-        payload = json.loads(fixture.read_text(encoding="utf-8"))
+        payload = load_contract_fixture(fixture)
         Draft202012Validator(result_schema).validate(payload)
         result = SemanticComparisonResultModel.model_validate(payload)
         assert canonical_semantic_comparison_result_digest(result).startswith("sha256:")
@@ -397,7 +398,7 @@ def test_published_schemas_and_fixtures_validate() -> None:
     }
     for fixture_dir, schema, model in invalid_families:
         for fixture in sorted(fixture_dir.glob("*.json")):
-            payload = json.loads(fixture.read_text(encoding="utf-8"))
+            payload = load_contract_fixture(fixture)
             assert Draft202012Validator(schema).is_valid(payload) is False
             with pytest.raises(ValidationError) as exc_info:
                 model.model_validate(payload)

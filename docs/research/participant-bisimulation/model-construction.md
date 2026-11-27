@@ -17,9 +17,8 @@ ordering and crossing-completion ambiguities. The user approved this scope.
 | SEM-230 abstract, rev2 | 88 | 107 | 1 |
 | API-423/RUN-319 concrete kernel, rev2 | 178 | 197 | 1 |
 
-Both are complete reachable fixed points, not depth-limited samples. The
-[manifest](../../../specs/formal/participant-semantics/crossing-models/rev2/manifest.json)
-records domain counts, initial coordinates, source/profile/catalog identities
+Both are complete reachable fixed points, not depth-limited samples. The manifest that
+`python -m implementations.formal.participant_crossing` builds from the current sources records domain counts, initial coordinates, source/profile/catalog identities
 and artifact digests. Each model has an AUT graph and a canonical JSON state
 map retaining the original hidden label classes. The only checker tau name is
 `internal`; no native tau encoding is accepted.

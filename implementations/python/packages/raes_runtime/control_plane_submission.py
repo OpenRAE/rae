@@ -18,6 +18,7 @@ from raes_contracts.apparatus import (
     RUNTIME_REALIZATION_DOMAIN,
 )
 from raes_contracts.diagnostics import Diagnostic
+from raes_contracts.materialization_inventory import RUNTIME_DESCENDANTS_CONTRACT
 from raes_contracts.planning import (
     ChangeAction,
     EvaluationPlan,
@@ -35,6 +36,18 @@ from raes_processor.planner import (
 )
 
 from .observation_execution import ObservationRuntime, observation_submission_diagnostic
+
+
+def unavailable_backend_diagnostics(domain: RuntimeDomain, component: str) -> list[Diagnostic]:
+    return [
+        Diagnostic(
+            code="runtime.control-plane.rejected",
+            domain="runtime",
+            address=f"runtime.control-plane.{domain.value}",
+            message=f"Target does not provide {component}.",
+        )
+    ]
+
 
 _STATEFUL_ADMISSION_BY_RESOURCE_TYPE = {
     "generated-artifact": (
@@ -59,6 +72,8 @@ def _submitted_plan_diagnostics(
     *,
     durable_lifecycle_available: bool = True,
 ) -> list[Diagnostic]:
+    if isinstance(plan, ProvisioningPlan) and plan.inventory_refresh:
+        return _inventory_refresh_submission_diagnostics(plan, snapshot, manifest)
     admitted = set(snapshot.entries) | {operation.address for operation in plan.operations}
     demand_diagnostic = observation_submission_diagnostic(
         plan,
@@ -82,12 +97,46 @@ def _submitted_plan_diagnostics(
     return diagnostics
 
 
+def _inventory_refresh_submission_diagnostics(
+    plan: ProvisioningPlan, snapshot: RuntimeSnapshot, manifest: BackendManifest | None
+) -> list[Diagnostic]:
+    source = plan.materialization_source
+    supported = manifest is not None and RUNTIME_DESCENDANTS_CONTRACT in manifest.supported_contract_versions
+    retained = source is not None and any(
+        record.inventory is not None
+        and record.run_id == source.run_id
+        and record.inventory.source_digest == source.instantiated_digest
+        for record in snapshot.materialization_attestations
+    )
+    if not supported or not retained:
+        return [
+            Diagnostic(
+                code="runtime.inventory-refresh-unsupported",
+                domain="runtime",
+                address="runtime.inventory-refresh",
+                message="Inventory refresh requires negotiated support and its accepted source inventory.",
+            )
+        ]
+    return _provisioning_submission_diagnostics(plan, snapshot, manifest)
+
+
 def control_plane_plan_diagnostics(
     control_plane: object,
     plan: ProvisioningPlan | OrchestrationPlan | EvaluationPlan,
     domain: RuntimeDomain,
 ) -> list[Diagnostic]:
     """Evaluate repeatable admission checks against the control plane's current cut."""
+
+    source = plan.materialization_source
+    if source is not None and source.target_scope is not None and source.target_scope != control_plane._target_scope:
+        return [
+            Diagnostic(
+                code="runtime.plan-target-mismatch",
+                domain="runtime",
+                address="runtime.control-plane.plan",
+                message="Inventory source context belongs to another runtime target.",
+            )
+        ]
 
     diagnostics = _submitted_plan_diagnostics(
         plan,
@@ -289,7 +338,7 @@ def _submitted_operation_diagnostic(
         )
 
     dependencies = {*operation.ordering_dependencies, *operation.refresh_dependencies}
-    if diagnostic is None and dependencies - admitted:
+    if diagnostic is None and operation.action is not ChangeAction.DELETE and dependencies - admitted:
         diagnostic = Diagnostic(
             code="runtime.plan-dependency-unresolved",
             domain="runtime",

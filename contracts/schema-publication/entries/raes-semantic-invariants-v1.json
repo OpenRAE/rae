@@ -2,11 +2,6 @@
   "contract_id": "raes-semantic-invariants-v1",
   "schema_path": "contracts/schemas/profiles/raes-semantic-invariants-v1.json",
   "stability": "draft",
-  "content_hash": "ca5215479a7e87ad3218d96c06f8a3ebb5cac1b520c1df27d3f68f86dca4c91d",
-  "last_change": {
-    "summary": "Rebound the published schema namespace to the renamed OpenRAE GitHub organization for issue #963.",
-    "content_hash": "ca5215479a7e87ad3218d96c06f8a3ebb5cac1b520c1df27d3f68f86dca4c91d"
-  },
   "coverage": {
     "rationale": "This profile is realized as the x-raes-invariants entries and x-raes-semantic-profile references embedded in other published schemas, so it has no standalone document to route.",
     "sources": [

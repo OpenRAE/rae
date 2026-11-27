@@ -10,6 +10,7 @@ from pydantic import Field, GetJsonSchemaHandler, model_validator
 from pydantic.json_schema import JsonSchemaValue
 from pydantic_core import CoreSchema
 
+from .._sealing import sealing_active
 from ..canonical import canonical_json_digest
 from ..diagnostics import DiagnosticModel
 from ..versions import SEMANTIC_PROJECTION_REPORT_SCHEMA_VERSION
@@ -18,7 +19,7 @@ from .external_concept_bindings import (
     ExternalConceptLifecyclePhase,
     ExternalConceptSubjectModel,
 )
-from .schema_invariants import _add_raes_invariant
+from .schema_invariants import add_raes_invariant
 from .semantic_projection_profile_registry import (
     PROFILE_ADAPTERS,
     PROFILE_AXES,
@@ -97,14 +98,11 @@ class SemanticProjectionPredicateProfileModel(ContractModel):
             raise ValueError("predicate profile must select the fixed trusted owner adapter")
         if self.producer_contract_id != PROFILE_PRODUCERS[self.predicate_id]:
             raise ValueError("predicate profile must select the native predicate's owning contract")
-        expected_adapter_digest = canonical_json_digest(
-            {"adapter_id": self.adapter_id, "adapter_version": self.adapter_version}
-        )
-        if self.adapter_digest != expected_adapter_digest:
+        if not sealing_active() and self.adapter_digest != semantic_projection_adapter_digest(self):
             raise ValueError("predicate profile adapter digest must identify the fixed trusted implementation")
         if (self.configuration_axis, self.state_axis, self.transformations_axis) != PROFILE_AXES[self.predicate_id]:
             raise ValueError("predicate profile context axes must match the governed native authority")
-        if self.profile_digest != canonical_semantic_projection_predicate_profile_digest(self):
+        if not sealing_active() and self.profile_digest != canonical_semantic_projection_predicate_profile_digest(self):
             raise ValueError("predicate profile digest does not match the complete profile")
         return self
 
@@ -356,7 +354,9 @@ class SemanticProjectionReportModel(ContractModel):
     diagnostics: tuple[DiagnosticModel, ...] = Field(default=(), max_length=64)
 
     @model_validator(mode="after")
-    def _validate_report(self) -> SemanticProjectionReportModel:
+    def _validate_frame_binding(self) -> SemanticProjectionReportModel:
+        if sealing_active():
+            return self
         expected_digest = canonical_semantic_projection_frame_digest(self.frame)
         if self.frame_digest != expected_digest or self.summary.frame_digest != expected_digest:
             raise ValueError("semantic projection frame digest does not match the complete embedded frame")
@@ -367,6 +367,10 @@ class SemanticProjectionReportModel(ContractModel):
         )
         if actual_profile != expected_profile:
             raise ValueError("projection summary predicate and profile must match the exact frame")
+        return self
+
+    @model_validator(mode="after")
+    def _validate_report(self) -> SemanticProjectionReportModel:
         _require_sorted_unique(tuple(row.concept_id for row in self.rows), "projection rows", non_empty=True)
         counts, included = _validate_report_rows(self.frame, self.rows)
         included_total = sum(
@@ -392,11 +396,7 @@ class SemanticProjectionReportModel(ContractModel):
         )
         if expected != actual or included_total != len(included):
             raise ValueError("projection summary counts must exactly reconcile with the row partition")
-        fraction = (
-            f"{self.summary.predicate_id}:{self.summary.witness_count}/"
-            f"{self.summary.included_denominator}@{expected_digest}"
-        )
-        if self.summary.qualified_fraction != fraction:
+        if not sealing_active() and self.summary.qualified_fraction != semantic_projection_qualified_fraction(self):
             raise ValueError("qualified fraction must name the exact predicate, denominator, and frame digest")
         return self
 
@@ -407,7 +407,7 @@ class SemanticProjectionReportModel(ContractModel):
         handler: GetJsonSchemaHandler,
     ) -> JsonSchemaValue:
         schema = handler.resolve_ref_schema(handler(core_schema))
-        _add_raes_invariant(
+        add_raes_invariant(
             schema,
             "semantic-projection-exact-frame-partition",
             "The complete digest-bound frame selects one native predicate and every explicitly included "
@@ -415,7 +415,7 @@ class SemanticProjectionReportModel(ContractModel):
             validator=_REPORT_VALIDATOR,
             inputs=[{"contract_id": "semantic-projection-report-v1", "instance_path": "#"}],
         )
-        _add_raes_invariant(
+        add_raes_invariant(
             schema,
             "semantic-projection-evidence-bounded-witnesses",
             "Only witness rows carry digest-stable native results whose subject, producer, and profile join "
@@ -489,3 +489,15 @@ __all__ = [
     "canonical_semantic_projection_predicate_profile_digest",
     "governed_semantic_projection_predicate_profile",
 ]
+
+
+def semantic_projection_adapter_digest(profile: SemanticProjectionPredicateProfileModel) -> str:
+    """Return the digest that identifies the fixed trusted adapter implementation."""
+    return canonical_json_digest({"adapter_id": profile.adapter_id, "adapter_version": profile.adapter_version})
+
+
+def semantic_projection_qualified_fraction(report: SemanticProjectionReportModel) -> str:
+    """Return the qualified fraction that names the predicate, the witness denominator, and the frame digest."""
+    summary = report.summary
+    frame_digest = canonical_semantic_projection_frame_digest(report.frame)
+    return f"{summary.predicate_id}:{summary.witness_count}/{summary.included_denominator}@{frame_digest}"

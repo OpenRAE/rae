@@ -897,10 +897,24 @@ which dynamic queue/log/config details remain evidence or bounded settings.
   LTS. It hides only finite validation, cut-resolution, effective-capability,
   record-preparation, and atomic-commit classes under a closed
   participant/audience projection and preserves explicit divergence. Issue
-  #811 defines the target but does not run it. Issues #971 through #976 own
-  model construction, live-runtime mapping, counterexamples, finite mCRL2
-  checking, independent reproduction, and reproduction-gated scientific
+  #811 defines the target but does not run it. Issues #971 through #976
+  deliver model construction, live-runtime mapping, counterexamples, finite
+  mCRL2 checking, independent reproduction, and reproduction-gated scientific
   documentation.
+- SEM-232 delivery status is finite-model-checked and independently
+  reproduced for `participant-crossing-dpbb-finite-v1@rev2` only. The pinned
+  mCRL2 `202607.0` `dpbranching-bisim` decision relates the declared initial
+  states of the complete abstract (88 states) and concrete (178 states)
+  carriers. Every mandatory mutation fails the relation. A separate
+  implementation-agent reviewer accepted a fresh qualified reproduction; no
+  human review or cryptographic authenticity is claimed. Evidence is
+  `specs/formal/participant-semantics/participant-crossing-machine-check.md`,
+  `specs/formal/participant-semantics/participant-crossing-reproduction.md`,
+  their pinned captures, catalog revision `rev14`, and
+  `implementations/python/tests/test_issue_976_crossing_publication.py`.
+  Issue #976 also separates each retained record's subject identity from its
+  execution provenance, following the SLSA provenance split. The result is not
+  an unbounded proof and does not cover the multi-operation profile.
 - RAES does not derive whole-runtime or backend equivalence, policy
   noninterference, or opacity from this design. Runtime realization and
   backend conformance remain separate axes; noninterference and opacity
@@ -1065,6 +1079,16 @@ which dynamic queue/log/config details remain evidence or bounded settings.
   or evidence merely from authored presence. The lineage ledger and source
   audit remain unchanged because this implementation adds no normative
   external derivation or compatibility claim.
+- ACT-619's reusable participant tool profiles (#301) also adopt no new
+  external syntax. A profile is one behavior specification's bindings, and
+  the optional binding `participant_refs` and `participant_role_refs` reuse
+  the PI-03 selector shape and resolver. The design takes two ideas from cited
+  precedents without importing their syntax: role-based access control
+  (Sandhu et al., IEEE Computer 1996) and Kubernetes RBAC give additive
+  bindings with no negative grants, and traits (Schärli et al., ECOOP 2003)
+  give order-free composition in which conflicts are errors. The lineage
+  ledger and source audit remain unchanged because the selectors add no
+  normative external derivation or compatibility claim.
 - SEM-220's executable participant decision surface adopts the existing
   action/observation-interface lineage above without importing a UI, prompt,
   command, or backend-native parameter language. Published v1 retains its
@@ -1296,7 +1320,9 @@ which dynamic queue/log/config details remain evidence or bounded settings.
   capability, and adversarial overclaim. A declared API-407 participant-policy
   feature that no harness executed is now recorded as unsupported instead of
   conforming.
-- ASR-535 explicitly makes no model-check and no proof claim. The relation
+- The issue #800 ASR-535 delivery makes no model-check and no proof claim.
+  Later lanes add the separately bounded opacity model check and proof and the
+  finite participant-crossing model check. The relation
   `policy-noninterference` keeps its deliberately unproved status, and its
   evidence boundary is the finite enumerated domain, the named probe cases, and
   the named target, profile, and execution environment. Exhausting a declared
@@ -1734,3 +1760,28 @@ product nor claim that every mechanism is IFC. The
 [finite witnesses](../../research/modular-participant-control/semantic-verification.md)
 are bounded semantic falsification, not an installed provider, runtime,
 conformance result, universal noninterference theorem or backend-integrity proof.
+
+## Backend-neutral intentional-subversion evaluation
+
+Issue #1007 adapts the AI Control and ControlArena evaluation discipline through
+RAE's existing modular-control runner and deterministic provider fixtures.
+Issue #1008 publishes the exact finite harness results and reproduction guidance
+in the [evaluation evidence guide](../reference/adversarial-control-evaluation.md).
+The protocol keeps honest and attack populations, main and side objectives,
+knowledge, feedback, collusion, monitor correlation, audit, intervention, memory,
+and replay coordinates explicit.
+The result distinguishes these declarations from exercised behavior.
+
+The harness executes permitted injection, an unrelated-admission negative control,
+exfiltration denial, adaptive denial with ledger replay, handoff denial, and
+apparatus invalidation alongside an honest baseline.
+Permitted injection can achieve its side objective without violating the selected policy.
+A malformed provider invalidates evidence rather than demonstrating control robustness.
+Safety, usefulness, audit cost, intervention cost, and uncertainty remain separate.
+Usefulness and costs are bounded proxies.
+
+These results concern RAE contract and runtime behavior only.
+They do not depend on a concrete backend implementation.
+They establish no native realization, universal robustness, monitor honesty,
+opacity, bisimulation, mechanism parity, or backend equivalence.
+The publication does not promote the separate ASR-535 mathematical assurance axes.

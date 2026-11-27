@@ -6,9 +6,6 @@ import json
 from dataclasses import replace
 
 import pytest
-from raes_backend_libvirt.envelopes import LibvirtDriverMode, load_libvirt_realization_envelope
-from raes_backend_libvirt.manifest import create_libvirt_manifest
-from raes_backend_libvirt.target import create_libvirt_target
 from raes_backend_protocols.capabilities import BackendManifest
 from raes_backend_stubs.stubs import StubProvisioner
 from raes_conformance.conformance import (
@@ -36,8 +33,13 @@ from raes_contracts.realization_envelope import (
     realization_envelope_digest,
 )
 from raes_contracts.realization_observation import RealizationObservation
-from raes_operations.realization_conformance import write_backend_conformance_report
 from raes_runtime.registry import RuntimeTarget
+from t2_envelope_manifests import VIRTUAL_MACHINE_ENVELOPE, provisioning_only_manifest, published_envelope
+
+# Published virtual-machine envelope fixtures for two realizer configurations.
+_GENERIC_ENVELOPE = VIRTUAL_MACHINE_ENVELOPE
+_APPLIANCE_ENVELOPE = "libvirt-qemu/techvault-appliance-v1.json"
+_TARGET_NAME = "honesty-target"
 
 _SCENARIO = """\
 name: honesty
@@ -69,12 +71,12 @@ def _constructive_expression() -> RealizationEnvelopeModel:
 
 
 def _constructive_envelope(
-    mode: LibvirtDriverMode = LibvirtDriverMode.GENERIC,
+    fixture: str = _GENERIC_ENVELOPE,
     strength: ObservationStrength = ObservationStrength.DRIVER_REPORTED,
 ) -> BackendRealizationEnvelopeModel:
-    base = load_libvirt_realization_envelope(mode)
+    base = published_envelope(fixture)
     payload = base.model_dump(mode="json")
-    payload["id"] = f"libvirt-qemu.{mode.value}.honesty-test.v1"
+    payload["id"] = f"{base.id}.honesty-test"
     payload["expression"] = _constructive_expression().model_dump(mode="json")
     for disclosure in payload["concerns"]:
         if disclosure["concern"] == RealizationConcern.TOPOLOGY.value:
@@ -103,32 +105,22 @@ def _constructive_envelope(
 
 
 def _manifest_with_envelope(envelope: BackendRealizationEnvelopeModel) -> BackendManifest:
-    base = create_libvirt_manifest(driver_mode=envelope.configuration.mode)
-    return BackendManifest(
-        identity=base.identity,
-        supported_contract_versions=base.supported_contract_versions,
-        compatibility=base.compatibility,
-        realization_support=base.realization_support,
-        concept_bindings=base.concept_bindings,
-        constraints=base.constraints,
-        capabilities=base.capabilities,
-        realization_envelope=envelope,
-    )
+    return provisioning_only_manifest(envelope)
 
 
 def _target(envelope: BackendRealizationEnvelopeModel | None = None) -> RuntimeTarget:
     selected = envelope or _constructive_envelope()
     return RuntimeTarget(
-        name="libvirt-qemu",
+        name=_TARGET_NAME,
         manifest=_manifest_with_envelope(selected),
         provisioner=StubProvisioner(realization_envelope=selected),
     )
 
 
-def _mode_target(mode: LibvirtDriverMode) -> RuntimeTarget:
+def _fixture_target(fixture: str) -> RuntimeTarget:
     return RuntimeTarget(
-        name="libvirt-qemu",
-        manifest=create_libvirt_manifest(driver_mode=mode.value),
+        name=_TARGET_NAME,
+        manifest=provisioning_only_manifest(published_envelope(fixture)),
         provisioner=StubProvisioner(),
     )
 
@@ -284,7 +276,7 @@ def test_constructive_envelope_runs_positive_and_negative_honesty_probes() -> No
     assert all(case.envelope_digest == _constructive_envelope().digest for case in honesty)
     assert all(case.probe_set_digest for case in honesty)
     assert report.native_conformance is False
-    assert report.claim.left_carrier_ref != "backend-target:libvirt-qemu"
+    assert report.claim.left_carrier_ref != f"backend-target:{_TARGET_NAME}"
     assert _constructive_envelope().configuration.mode in report.claim.left_carrier_ref
 
 
@@ -367,10 +359,10 @@ def test_negative_probe_requires_rejection_without_mutation(fault: str, code: st
     assert code in {diag.code for case in report.cases for diag in case.diagnostics}
 
 
-def test_current_open_libvirt_envelope_fails_as_non_constructive_without_fallback() -> None:
+def test_open_published_envelope_fails_as_non_constructive_without_fallback() -> None:
     harness = _ScriptedHarness()
     report = run_target_conformance(
-        create_libvirt_target(driver_mode="generic"),
+        _fixture_target(_GENERIC_ENVELOPE),
         reference_scenario=_SCENARIO,
         realization_harness=harness,
         execution_basis=ExecutionBasis.HERMETIC_LIVE,
@@ -383,21 +375,21 @@ def test_current_open_libvirt_envelope_fails_as_non_constructive_without_fallbac
 
 
 @pytest.mark.parametrize(
-    ("target_mode", "wrong_mode"),
+    ("target_fixture", "wrong_fixture"),
     [
-        (LibvirtDriverMode.GENERIC, LibvirtDriverMode.TECHVAULT_APPLIANCE),
-        (LibvirtDriverMode.TECHVAULT_APPLIANCE, LibvirtDriverMode.GENERIC),
+        (_GENERIC_ENVELOPE, _APPLIANCE_ENVELOPE),
+        (_APPLIANCE_ENVELOPE, _GENERIC_ENVELOPE),
     ],
 )
-def test_libvirt_modes_refuse_wrong_configuration_envelope_before_execution(
-    target_mode: LibvirtDriverMode,
-    wrong_mode: LibvirtDriverMode,
+def test_configuration_modes_refuse_wrong_configuration_envelope_before_execution(
+    target_fixture: str,
+    wrong_fixture: str,
 ) -> None:
     harness = _ScriptedHarness()
     report = run_target_conformance(
-        _mode_target(target_mode),
+        _fixture_target(target_fixture),
         realization_harness=harness,
-        realization_envelope=load_libvirt_realization_envelope(wrong_mode),
+        realization_envelope=published_envelope(wrong_fixture),
         execution_basis=ExecutionBasis.HERMETIC_LIVE,
     )
 
@@ -450,25 +442,3 @@ def test_report_payload_enumerates_probe_evidence_without_raw_values() -> None:
     assert all("expected_operations" in case for case in honesty)
     assert all("cleanup_verified" in case for case in honesty)
     assert "honesty" not in json.dumps(honesty)
-
-
-def test_machine_readable_report_write_is_redaction_gated(tmp_path) -> None:
-    report = _run(_ScriptedHarness())
-
-    path = write_backend_conformance_report(
-        backend_conformance_report_payload(report), output_dir=tmp_path, run_id="honesty-native-1"
-    )
-
-    assert json.loads(path.read_text(encoding="utf-8")) == backend_conformance_report_payload(report)
-
-    cases = list(report.cases)
-    index = next(index for index, case in enumerate(cases) if case.probe_kind == "positive")
-    cases[index] = replace(cases[index], residual_state=("/home/operator/private",))
-    leaking = replace(report, cases=tuple(cases))
-    leaking_payload = backend_conformance_report_payload(leaking)
-    with pytest.raises(ValueError, match="redaction"):
-        write_backend_conformance_report(
-            leaking_payload,
-            output_dir=tmp_path,
-            run_id="honesty-native-2",
-        )

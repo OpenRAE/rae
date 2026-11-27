@@ -4,6 +4,7 @@ import pytest
 from raes_backend_protocols.capabilities import BackendManifest, ProvisionerCapabilities
 from raes_backend_stubs.stubs import create_stub_components, create_stub_manifest
 from raes_contracts.apparatus import ConceptBinding, RealizationSupportDeclaration
+from raes_contracts.errors import NotFoundError
 from raes_contracts.vocabulary import RealizationSupportMode
 from raes_runtime.registry import (
     BackendRegistry,
@@ -342,7 +343,7 @@ class TestBackendRegistry:
     def test_unknown_backend_raises(self):
         registry = BackendRegistry()
 
-        with pytest.raises(KeyError, match="Unknown backend"):
+        with pytest.raises(NotFoundError, match="Unknown backend"):
             registry.manifest("missing")
 
     def test_list_and_registration(self):

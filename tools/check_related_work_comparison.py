@@ -12,8 +12,13 @@ from pathlib import Path
 from urllib.parse import parse_qsl, urlsplit
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-if str(REPO_ROOT) not in sys.path:
-    sys.path.insert(0, str(REPO_ROOT))
+RAES_PACKAGES_ROOT = REPO_ROOT / "implementations" / "python" / "packages"
+for _source_root in (REPO_ROOT, RAES_PACKAGES_ROOT):
+    if str(_source_root) not in sys.path:
+        sys.path.insert(0, str(_source_root))
+
+from raes_contracts.errors import InvalidInputError  # noqa: E402
+from raes_contracts.operational_logging import run_application  # noqa: E402
 
 from tools.policy.common import (  # noqa: E402
     PolicyFailure,
@@ -341,8 +346,12 @@ def _validate_locator(locator: object, failures: list[PolicyFailure], source_id:
             )
         )
         return
-    parsed = urlsplit(locator)
-    if parsed.scheme != "https" or not parsed.netloc:
+    try:
+        parsed = urlsplit(locator)
+    except ValueError:
+        # urlsplit refuses a malformed authority, such as an unclosed IPv6 bracket.
+        parsed = None
+    if parsed is None or parsed.scheme != "https" or not parsed.netloc:
         failures.append(
             _failure(
                 "related-work-source-locator",
@@ -350,6 +359,8 @@ def _validate_locator(locator: object, failures: list[PolicyFailure], source_id:
                 SNAPSHOT_PATH,
             )
         )
+    if parsed is None:
+        return
     if parsed.username is not None or parsed.password is not None:
         failures.append(
             _failure(
@@ -1744,7 +1755,7 @@ def validate_bundle(
 def evaluate(repo_root: Path = REPO_ROOT) -> list[PolicyFailure]:
     try:
         protocol, snapshot, analysis = load_bundle(repo_root)
-    except (OSError, ValueError, json.JSONDecodeError) as exc:
+    except (OSError, InvalidInputError) as exc:
         return [_failure("related-work-bundle-invalid", str(exc))]
     return validate_bundle(repo_root, protocol, snapshot, analysis)
 
@@ -1760,7 +1771,7 @@ def main() -> int:
     args = parser.parse_args()
     try:
         protocol, snapshot, analysis = load_bundle(REPO_ROOT)
-    except (OSError, ValueError, json.JSONDecodeError) as exc:
+    except (OSError, InvalidInputError) as exc:
         failures = [_failure("related-work-bundle-invalid", str(exc))]
     else:
         if args.render_publication:
@@ -1776,4 +1787,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(run_application(main))

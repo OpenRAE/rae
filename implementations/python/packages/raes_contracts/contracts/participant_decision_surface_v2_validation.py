@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from raes_contracts.canonical import canonical_contract_digest
+
 if TYPE_CHECKING:
     from .participant_decision_surface_exposure_v2 import ParticipantDecisionSurfaceExposureBindingV2Model
     from .participant_decision_surface_v2 import (
@@ -37,7 +39,6 @@ def _validate_participant_view_digest(
     view: ParticipantDecisionSurfaceViewV2Model,
     assurance: ParticipantDecisionSurfaceAssuranceV2Model,
 ) -> None:
-    from ..satisfiability import canonical_contract_digest
 
     if assurance.participant_view_digest != canonical_contract_digest(view):
         raise ValueError("assurance participant_view_digest must match the canonical participant view")

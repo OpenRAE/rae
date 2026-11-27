@@ -14,8 +14,13 @@ from pathlib import Path
 from typing import Any
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-if str(REPO_ROOT) not in sys.path:
-    sys.path.insert(0, str(REPO_ROOT))
+RAES_PACKAGES_ROOT = REPO_ROOT / "implementations" / "python" / "packages"
+for _source_root in (REPO_ROOT, RAES_PACKAGES_ROOT):
+    if str(_source_root) not in sys.path:
+        sys.path.insert(0, str(_source_root))
+
+from raes_contracts.errors import InvalidInputError
+from raes_contracts.operational_logging import run_application
 
 from tools.policy.common import (
     PolicyFailure,
@@ -177,7 +182,7 @@ def select_tooling_artifact(
         profile_id=profile_id,
     )
     if len(matches) != 1:
-        raise ValueError(
+        raise InvalidInputError(
             "requested artifact version, platform, and profile must resolve to exactly one reviewed lock entry"
         )
     artifact, platform = matches[0]
@@ -203,7 +208,7 @@ def select_tooling_host_profile(  # NOSONAR -- selection checks mirror the close
         if isinstance(item, Mapping) and item.get("host_profile_id") == host_profile_id
     ]
     if len(hosts) != 1:
-        raise ValueError("requested host profile must resolve to exactly one reviewed entry")
+        raise InvalidInputError("requested host profile must resolve to exactly one reviewed entry")
     host = hosts[0]
     validate_tooling_record(repo_root, host, PROFILES_PATH, definition="hostProfile")
     documents = selected_artifact_documents(
@@ -234,7 +239,7 @@ def select_tooling_host_profile(  # NOSONAR -- selection checks mirror the close
             )
         ]
         if len(platform_matches) != 1:
-            raise ValueError(f"host profile must resolve exactly one reviewed {artifact_id} payload")
+            raise InvalidInputError(f"host profile must resolve exactly one reviewed {artifact_id} payload")
         artifact, platform = platform_matches[0]
         artifacts.append(
             {
@@ -288,7 +293,7 @@ def _run_selection(args: argparse.Namespace) -> int:
             platform_id=args.platform_id,
             profile_id=args.profile_id,
         )
-    except ValueError as exc:
+    except InvalidInputError as exc:
         print(str(exc), file=sys.stderr)
         return 1
     print(json.dumps(selection, sort_keys=True, separators=(",", ":")))
@@ -310,7 +315,7 @@ def _run_validation(args: argparse.Namespace) -> int:
 def _run_host_selection(args: argparse.Namespace) -> int:
     try:
         selection = select_tooling_host_profile(args.repo_root, host_profile_id=args.select_host_profile)
-    except ValueError as exc:
+    except InvalidInputError as exc:
         print(str(exc), file=sys.stderr)
         return 1
     print(json.dumps(selection, sort_keys=True, separators=(",", ":")))
@@ -328,4 +333,4 @@ def main(argv: Iterable[str] | None = None) -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(run_application(main))

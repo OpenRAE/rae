@@ -103,6 +103,39 @@
       "title": "AdmittedExecutionControlModel",
       "type": "object"
     },
+    "AdmittedExperimentAllocationModel": {
+      "additionalProperties": false,
+      "properties": {
+        "draws": {
+          "items": {
+            "$ref": "#/$defs/AllocationDrawModel"
+          },
+          "maxItems": 9999,
+          "title": "Draws",
+          "type": "array"
+        },
+        "entry_order": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 10000,
+          "minItems": 1,
+          "title": "Entry Order",
+          "type": "array"
+        },
+        "policy": {
+          "$ref": "#/$defs/ExperimentAllocationPolicyModel"
+        }
+      },
+      "required": [
+        "policy",
+        "entry_order",
+        "draws"
+      ],
+      "title": "AdmittedExperimentAllocationModel",
+      "type": "object"
+    },
     "AdmittedInstantiationProvenanceModel": {
       "additionalProperties": false,
       "description": "Plan/run/family linkage that becomes instantiated-snapshot identity (SVR-025).",
@@ -271,6 +304,17 @@
           ],
           "title": "Outcome"
         },
+        "treatment": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ExperimentScenarioSelectionDescriptorModel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
         "variation_point_id": {
           "maxLength": 64,
           "minLength": 1,
@@ -328,6 +372,14 @@
         "instantiation_provenance": {
           "$ref": "#/$defs/AdmittedInstantiationProvenanceModel"
         },
+        "participant_configurations": {
+          "items": {
+            "$ref": "#/$defs/ParticipantConfigurationResultModel"
+          },
+          "maxItems": 256,
+          "title": "Participant Configurations",
+          "type": "array"
+        },
         "plan_entry_id": {
           "minLength": 1,
           "title": "Plan Entry Id",
@@ -337,6 +389,15 @@
           "minLength": 1,
           "title": "Run Id",
           "type": "string"
+        },
+        "safe_states": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/ResolvedSafeState"
+          },
+          "maxItems": 4096,
+          "title": "Safe States",
+          "type": "array"
         },
         "selections": {
           "items": {
@@ -498,6 +559,15 @@
       "additionalProperties": false,
       "description": "Exact versioned profile set fixing the plan's compatibility surface.\n\nADR-084 extensibility seam: a new coordinate dimension, identity algorithm,\nrandom transform, cleanup action, or execution-control policy adds one\ngoverned profile version, never a generic parameter bag. Each field is a\nclosed literal of the versions this contract implements, so the *published*\nJSON Schema \u2014 not just the Python validator \u2014 encodes the supported set as a\n``const``/``enum`` and every implementation fails closed on an unknown\ncanonicalization, integrity, isolation, cleanup, or execution-control\nprofile. A new profile version adds a literal alternative here together with\nthe semantics that implement it.",
       "properties": {
+        "allocation_profile": {
+          "default": "none",
+          "enum": [
+            "none",
+            "fisher-yates-allocation-v1"
+          ],
+          "title": "Allocation Profile",
+          "type": "string"
+        },
         "canonicalization_profile": {
           "const": "jcs-sha256-v1",
           "title": "Canonicalization Profile",
@@ -511,7 +581,13 @@
         "compiler_profile": {
           "enum": [
             "trial-compiler-v1",
-            "trial-compiler-mixed-composition-v1"
+            "trial-compiler-mixed-composition-v1",
+            "trial-compiler-replacement-v1",
+            "trial-compiler-replacement-mixed-composition-v1",
+            "trial-compiler-designed-v1",
+            "trial-compiler-designed-mixed-composition-v1",
+            "trial-compiler-replacement-designed-v1",
+            "trial-compiler-replacement-designed-mixed-composition-v1"
           ],
           "title": "Compiler Profile",
           "type": "string"
@@ -539,11 +615,6 @@
           "title": "Integrity Profile",
           "type": "string"
         },
-        "isolation_profile": {
-          "const": "scheduler-isolation-v1",
-          "title": "Isolation Profile",
-          "type": "string"
-        },
         "random_stream_profile": {
           "const": "blake3-xof-v1",
           "title": "Random Stream Profile",
@@ -561,6 +632,19 @@
           "const": "experiment-selection-v1",
           "title": "Selection Policy Profile",
           "type": "string"
+        },
+        "treatment_profile": {
+          "anyOf": [
+            {
+              "const": "factorial-treatments-v1",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Treatment Profile"
         }
       },
       "required": [
@@ -573,8 +657,7 @@
         "selection_policy_profile",
         "random_stream_profile",
         "execution_control_profile",
-        "cleanup_profile",
-        "isolation_profile"
+        "cleanup_profile"
       ],
       "title": "AdmittedTrialPlanProfilesModel",
       "type": "object"
@@ -619,6 +702,90 @@
         "run_id"
       ],
       "title": "AdmittedTrialSourceReferenceModel",
+      "type": "object"
+    },
+    "AllocationDrawModel": {
+      "additionalProperties": false,
+      "properties": {
+        "address": {
+          "$ref": "#/$defs/AllocationStreamAddressModel"
+        },
+        "rejection_attempts": {
+          "exclusiveMaximum": 32,
+          "minimum": 0,
+          "title": "Rejection Attempts",
+          "type": "integer"
+        },
+        "value": {
+          "maximum": 999999,
+          "minimum": 0,
+          "title": "Value",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "address",
+        "value",
+        "rejection_attempts"
+      ],
+      "title": "AllocationDrawModel",
+      "type": "object"
+    },
+    "AllocationStreamAddressModel": {
+      "additionalProperties": false,
+      "description": "A plan-scope slot, never an SDL point or a selected trial coordinate.",
+      "properties": {
+        "address_profile": {
+          "const": "allocation-address-v1",
+          "default": "allocation-address-v1",
+          "title": "Address Profile",
+          "type": "string"
+        },
+        "allocation_policy_id": {
+          "maxLength": 64,
+          "minLength": 1,
+          "not": {
+            "pattern": "[^a-z0-9_-]"
+          },
+          "pattern": "^[a-z0-9]",
+          "title": "Allocation Policy Id",
+          "type": "string"
+        },
+        "draw_purpose": {
+          "const": "condition-assignment",
+          "default": "condition-assignment",
+          "title": "Draw Purpose",
+          "type": "string"
+        },
+        "local_coordinate": {
+          "const": 0,
+          "default": 0,
+          "title": "Local Coordinate",
+          "type": "integer"
+        },
+        "namespace": {
+          "maxLength": 64,
+          "minLength": 1,
+          "not": {
+            "pattern": "[^a-z0-9_-]"
+          },
+          "pattern": "^[a-z0-9]",
+          "title": "Namespace",
+          "type": "string"
+        },
+        "slot": {
+          "maximum": 999999,
+          "minimum": 0,
+          "title": "Slot",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "namespace",
+        "allocation_policy_id",
+        "slot"
+      ],
+      "title": "AllocationStreamAddressModel",
       "type": "object"
     },
     "ApparatusBindingTargetModel": {
@@ -672,6 +839,74 @@
       "title": "ApparatusBindingTargetModel",
       "type": "object"
     },
+    "ApparatusIdentityModel": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "version": {
+          "minLength": 1,
+          "title": "Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "version"
+      ],
+      "title": "ApparatusIdentityModel",
+      "type": "object"
+    },
+    "Assertion": {
+      "additionalProperties": false,
+      "description": "A typed use of one proposition at a governed semantic boundary.",
+      "properties": {
+        "description": {
+          "default": "",
+          "title": "Description",
+          "type": "string"
+        },
+        "polarity": {
+          "$ref": "#/$defs/AssertionPolarity",
+          "default": "positive"
+        },
+        "proposition": {
+          "title": "Proposition",
+          "type": "string"
+        },
+        "role": {
+          "$ref": "#/$defs/AssertionRole"
+        }
+      },
+      "required": [
+        "proposition",
+        "role"
+      ],
+      "title": "Assertion",
+      "type": "object"
+    },
+    "AssertionPolarity": {
+      "description": "Expected polarity of the referenced proposition.",
+      "enum": [
+        "positive",
+        "negative"
+      ],
+      "title": "AssertionPolarity",
+      "type": "string"
+    },
+    "AssertionRole": {
+      "description": "Boundary at which an assertion constrains its owning construct.",
+      "enum": [
+        "precondition",
+        "invariant",
+        "postcondition"
+      ],
+      "title": "AssertionRole",
+      "type": "string"
+    },
     "BindingOwnerModel": {
       "additionalProperties": false,
       "description": "Governed contract and validator profile that owns one binding.",
@@ -717,6 +952,52 @@
       ],
       "title": "BindingScalarType",
       "type": "string"
+    },
+    "BooleanPredicate": {
+      "additionalProperties": false,
+      "description": "Compare a governed Boolean property with an expected Boolean.",
+      "properties": {
+        "expected": {
+          "title": "Expected",
+          "type": "boolean"
+        },
+        "kind": {
+          "const": "boolean",
+          "default": "boolean",
+          "title": "Kind",
+          "type": "string"
+        },
+        "operator": {
+          "default": "equals",
+          "enum": [
+            "equals",
+            "not_equals"
+          ],
+          "title": "Operator",
+          "type": "string"
+        },
+        "property": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "^[a-z0-9][a-z0-9_-]{0,63}(?:\\.[a-z0-9][a-z0-9_-]{0,63})*$",
+          "title": "Property",
+          "type": "string"
+        },
+        "semantic_ref": {
+          "maxLength": 2048,
+          "minLength": 1,
+          "pattern": "^(?:https://[^\\s]+|urn:[A-Za-z0-9][A-Za-z0-9:._~-]*)$",
+          "title": "Semantic Ref",
+          "type": "string"
+        }
+      },
+      "required": [
+        "property",
+        "semantic_ref",
+        "expected"
+      ],
+      "title": "BooleanPredicate",
+      "type": "object"
     },
     "CleanStateRequirementModel": {
       "additionalProperties": false,
@@ -935,6 +1216,72 @@
       "title": "CleanupResourceBoundaryModel",
       "type": "object"
     },
+    "ConstrainedTrialParallelismModel": {
+      "additionalProperties": false,
+      "anyOf": [
+        {
+          "properties": {
+            "minimum": {
+              "type": "integer"
+            }
+          },
+          "required": [
+            "minimum"
+          ]
+        },
+        {
+          "properties": {
+            "maximum": {
+              "type": "integer"
+            }
+          },
+          "required": [
+            "maximum"
+          ]
+        }
+      ],
+      "description": "Require an inclusive lower bound, upper bound, or both.",
+      "properties": {
+        "maximum": {
+          "anyOf": [
+            {
+              "maximum": 4096,
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Maximum"
+        },
+        "minimum": {
+          "anyOf": [
+            {
+              "maximum": 4096,
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Minimum"
+        },
+        "posture": {
+          "const": "constrained",
+          "title": "Posture",
+          "type": "string"
+        }
+      },
+      "required": [
+        "posture"
+      ],
+      "title": "ConstrainedTrialParallelismModel",
+      "type": "object"
+    },
     "DiagnosticModel": {
       "additionalProperties": false,
       "description": "Closed portable diagnostic shape for published contracts.",
@@ -975,6 +1322,315 @@
         "message"
       ],
       "title": "DiagnosticModel",
+      "type": "object"
+    },
+    "EvidenceIntegrityExpectation": {
+      "description": "Expected integrity or chain-of-custody treatment.",
+      "enum": [
+        "none",
+        "checksum",
+        "signature",
+        "chain_of_custody",
+        "timestamped",
+        "other"
+      ],
+      "title": "EvidenceIntegrityExpectation",
+      "type": "string"
+    },
+    "EvidenceLossDisclosureExpectation": {
+      "description": "Expected disclosure when capture is incomplete or lossy.",
+      "enum": [
+        "not_expected",
+        "best_effort",
+        "required",
+        "other"
+      ],
+      "title": "EvidenceLossDisclosureExpectation",
+      "type": "string"
+    },
+    "EvidenceRedactionExpectation": {
+      "description": "Expected redaction treatment for captured output.",
+      "enum": [
+        "none",
+        "redact_sensitive",
+        "redact_secrets",
+        "aggregate_only",
+        "derived_only",
+        "other"
+      ],
+      "title": "EvidenceRedactionExpectation",
+      "type": "string"
+    },
+    "EvidenceRequirement": {
+      "additionalProperties": false,
+      "description": "One authored data, evidence, or output capture requirement.\n\nThe model records capture intent only. Executable capture contracts may map\nthis to ``experiment-capture-spec-v1`` later, but captured payloads and\nproof of capture belong to experiment evidence records.",
+      "properties": {
+        "artifact_role": {
+          "default": "",
+          "title": "Artifact Role",
+          "type": "string"
+        },
+        "boundary_kind": {
+          "default": "",
+          "title": "Boundary Kind",
+          "type": "string"
+        },
+        "boundary_ref": {
+          "default": "",
+          "title": "Boundary Ref",
+          "type": "string"
+        },
+        "capture_requirement_ref": {
+          "default": "",
+          "title": "Capture Requirement Ref",
+          "type": "string"
+        },
+        "capture_spec_ref": {
+          "default": "",
+          "title": "Capture Spec Ref",
+          "type": "string"
+        },
+        "channel": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/EvidenceRequirementChannel"
+            },
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Channel"
+        },
+        "channel_refs": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Channel Refs",
+          "type": "array"
+        },
+        "description": {
+          "default": "",
+          "title": "Description",
+          "type": "string"
+        },
+        "field_selectors": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Field Selectors",
+          "type": "array"
+        },
+        "integrity": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/EvidenceIntegrityExpectation"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "title": "Integrity"
+        },
+        "loss_disclosure": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/EvidenceLossDisclosureExpectation"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "title": "Loss Disclosure"
+        },
+        "media_types": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Media Types",
+          "type": "array"
+        },
+        "notes": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Notes",
+          "type": "array"
+        },
+        "observation_demand": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ObservationDemandRule"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "output_contract": {
+          "default": "",
+          "title": "Output Contract",
+          "type": "string"
+        },
+        "redaction": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/EvidenceRedactionExpectation"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "title": "Redaction"
+        },
+        "retention": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/EvidenceRetentionExpectation"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "title": "Retention"
+        },
+        "scope": {
+          "default": "",
+          "title": "Scope",
+          "type": "string"
+        },
+        "scope_refs": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Scope Refs",
+          "type": "array"
+        },
+        "sensitivity": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RuntimeSensitivityClassification"
+            },
+            {
+              "pattern": "^(?:[pP][lL][aA][iI][nN]|[rR][eE][dD][aA][cC][tT][eE][dD]|[sS][eE][cC][rR][eE][tT][-_][fF][iI][xX][tT][uU][rR][eE]|[oO][pP][eE][rR][aA][tT][oO][rR][-_][sS][eE][cC][rR][eE][tT]|[uU][nN][kK][nN][oO][wW][nN]|[oO][tT][hH][eE][rR]|\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\})$(?![\\s\\S])",
+              "type": "string"
+            }
+          ],
+          "title": "Sensitivity"
+        },
+        "source_class": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/EvidenceRequirementSourceClass"
+            },
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source Class"
+        },
+        "source_refs": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Source Refs",
+          "type": "array"
+        },
+        "trigger_ref": {
+          "default": "",
+          "title": "Trigger Ref",
+          "type": "string"
+        },
+        "window": {
+          "default": "",
+          "title": "Window",
+          "type": "string"
+        }
+      },
+      "required": [
+        "sensitivity",
+        "redaction",
+        "integrity",
+        "retention",
+        "loss_disclosure"
+      ],
+      "title": "EvidenceRequirement",
+      "type": "object"
+    },
+    "EvidenceRequirementChannel": {
+      "description": "Capture channel or modality for an authored requirement.",
+      "enum": [
+        "packet_capture",
+        "log",
+        "trace",
+        "metric",
+        "file_artifact",
+        "screen_capture",
+        "api_response",
+        "database_record",
+        "participant_output",
+        "other"
+      ],
+      "title": "EvidenceRequirementChannel",
+      "type": "string"
+    },
+    "EvidenceRequirementSourceClass": {
+      "description": "Closed source classes for requirements without a concrete source ref.",
+      "enum": [
+        "scenario_native_observability",
+        "participant_action",
+        "participant_observation",
+        "scenario_state",
+        "processor_backend",
+        "apparatus",
+        "external",
+        "other"
+      ],
+      "title": "EvidenceRequirementSourceClass",
+      "type": "string"
+    },
+    "EvidenceRetentionExpectation": {
+      "description": "Expected retention boundary for captured output.",
+      "enum": [
+        "not_retained",
+        "run_lifetime",
+        "study_lifetime",
+        "archival",
+        "policy_defined",
+        "other"
+      ],
+      "title": "EvidenceRetentionExpectation",
+      "type": "string"
+    },
+    "ExactTrialParallelismModel": {
+      "additionalProperties": false,
+      "description": "Require one exact effective capacity.",
+      "properties": {
+        "count": {
+          "maximum": 4096,
+          "minimum": 1,
+          "title": "Count",
+          "type": "integer"
+        },
+        "posture": {
+          "const": "exact",
+          "title": "Posture",
+          "type": "string"
+        }
+      },
+      "required": [
+        "posture",
+        "count"
+      ],
+      "title": "ExactTrialParallelismModel",
       "type": "object"
     },
     "ExecutionRetryPolicyModel": {
@@ -1020,6 +1676,45 @@
         "after_effect_policy"
       ],
       "title": "ExecutionRetryPolicyModel",
+      "type": "object"
+    },
+    "ExperimentAllocationPolicyModel": {
+      "additionalProperties": false,
+      "description": "One accepted procedure, separate from descriptive allocation_method.",
+      "properties": {
+        "algorithm_profile": {
+          "const": "fisher-yates-allocation-v1",
+          "title": "Algorithm Profile",
+          "type": "string"
+        },
+        "kind": {
+          "const": "randomized",
+          "title": "Kind",
+          "type": "string"
+        },
+        "policy_id": {
+          "maxLength": 64,
+          "minLength": 1,
+          "not": {
+            "pattern": "[^a-z0-9_-]"
+          },
+          "pattern": "^[a-z0-9]",
+          "title": "Policy Id",
+          "type": "string"
+        },
+        "stochastic_control_ref": {
+          "minLength": 1,
+          "title": "Stochastic Control Ref",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "policy_id",
+        "algorithm_profile",
+        "stochastic_control_ref"
+      ],
+      "title": "ExperimentAllocationPolicyModel",
       "type": "object"
     },
     "ExperimentBindingDescriptorModel": {
@@ -1450,6 +2145,111 @@
       "title": "ExperimentScenarioFamilyReferenceModel",
       "type": "object"
     },
+    "ExperimentScenarioSelectionDescriptorModel": {
+      "additionalProperties": false,
+      "description": "An exact typed selection with its complete treatment source joins.",
+      "properties": {
+        "outcome": {
+          "discriminator": {
+            "mapping": {
+              "literal": "#/$defs/LiteralBindingValueModel",
+              "member": "#/$defs/ExperimentSelectionMemberOutcomeModel",
+              "order": "#/$defs/ExperimentSelectionOrderOutcomeModel",
+              "reference": "#/$defs/ExperimentSelectionReferenceOutcomeModel",
+              "subset": "#/$defs/ExperimentSelectionSubsetOutcomeModel"
+            },
+            "propertyName": "kind"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/LiteralBindingValueModel"
+            },
+            {
+              "$ref": "#/$defs/ExperimentSelectionReferenceOutcomeModel"
+            },
+            {
+              "$ref": "#/$defs/ExperimentSelectionMemberOutcomeModel"
+            },
+            {
+              "$ref": "#/$defs/ExperimentSelectionSubsetOutcomeModel"
+            },
+            {
+              "$ref": "#/$defs/ExperimentSelectionOrderOutcomeModel"
+            }
+          ],
+          "title": "Outcome"
+        },
+        "owner": {
+          "$ref": "#/$defs/BindingOwnerModel"
+        },
+        "scenario_family_digest": {
+          "pattern": "^sha256:[a-f0-9]{64}$",
+          "title": "Scenario Family Digest",
+          "type": "string"
+        },
+        "selection_id": {
+          "minLength": 1,
+          "title": "Selection Id",
+          "type": "string"
+        },
+        "source_condition_id": {
+          "minLength": 1,
+          "title": "Source Condition Id",
+          "type": "string"
+        },
+        "source_factor_id": {
+          "minLength": 1,
+          "title": "Source Factor Id",
+          "type": "string"
+        },
+        "source_factor_level_id": {
+          "minLength": 1,
+          "title": "Source Factor Level Id",
+          "type": "string"
+        },
+        "target": {
+          "$ref": "#/$defs/ScenarioBindingTargetModel"
+        }
+      },
+      "required": [
+        "target",
+        "scenario_family_digest",
+        "owner",
+        "outcome",
+        "selection_id",
+        "source_factor_id",
+        "source_factor_level_id",
+        "source_condition_id"
+      ],
+      "title": "ExperimentScenarioSelectionDescriptorModel",
+      "type": "object",
+      "x-raes-invariants": [
+        {
+          "description": "Typed selection identity binds the exact source condition, factor and canonical scenario target. Parent condition, plan and archive validation also checks source levels, family pins and owner joins.",
+          "id": "experiment-selection-treatment-identity-valid",
+          "inputs": [
+            {
+              "contract_id": "experiment-authoring-input-v1",
+              "instance_path": "#/run_plan/allocation/condition_assignments"
+            },
+            {
+              "contract_id": "experiment-study-v1",
+              "instance_path": "#/run_allocation/condition_assignments"
+            },
+            {
+              "contract_id": "admitted-trial-plan-v1",
+              "instance_path": "#/entries"
+            },
+            {
+              "contract_id": "experiment-run-v1",
+              "instance_path": "#/realized_selections"
+            }
+          ],
+          "level": "error",
+          "validator": "raes_contracts.contracts.experiment_treatments.ExperimentScenarioSelectionDescriptorModel._validate_identity"
+        }
+      ]
+    },
     "ExperimentSelectionMemberOutcomeModel": {
       "additionalProperties": false,
       "description": "One named alternative/member outcome.",
@@ -1665,6 +2465,33 @@
       "title": "ExperimentTaskReferenceModel",
       "type": "object"
     },
+    "GeneratedArtifactValueSource": {
+      "additionalProperties": false,
+      "description": "Value-free reference to a generated-artifact output consumed as a runtime value.\n\nNames the producing ``generated_artifacts.<id>`` (bare id or namespaced\nform) and one of its outputs. It carries no generated bytes: the raw value\nis realized at provisioning time from the referenced output, never authored\ninto the SDL. Cross-resource resolution (artifact exists, output exists and\nis not ``producer_private``) is enforced by semantic admission.",
+      "properties": {
+        "generated_artifact": {
+          "minLength": 1,
+          "title": "Generated Artifact",
+          "type": "string"
+        },
+        "output": {
+          "maxLength": 64,
+          "minLength": 1,
+          "not": {
+            "pattern": "[^a-z0-9_-]"
+          },
+          "pattern": "^[a-z0-9]",
+          "title": "Output",
+          "type": "string"
+        }
+      },
+      "required": [
+        "generated_artifact",
+        "output"
+      ],
+      "title": "GeneratedArtifactValueSource",
+      "type": "object"
+    },
     "GovernedEntropyRefModel": {
       "additionalProperties": false,
       "description": "Governed reference to sensitive root entropy; never carries raw bytes.\n\nRaw entropy is resolved only at an authorized in-process boundary (out of\nscope here) and is never serialized back into this model, a diagnostic, a\nfixture, argv, or telemetry (SVR-028).",
@@ -1721,46 +2548,6 @@
       "title": "GovernedRandomOutcomeRefModel",
       "type": "object"
     },
-    "IsolationDimensionEvidenceModel": {
-      "additionalProperties": false,
-      "description": "Evidence for one bounded-parallelism isolation dimension.",
-      "properties": {
-        "dimension": {
-          "enum": [
-            "range-instance",
-            "host-capacity",
-            "ports",
-            "storage",
-            "control-plane-locks",
-            "secret-scope",
-            "cleanup"
-          ],
-          "title": "Dimension",
-          "type": "string"
-        },
-        "evidence_refs": {
-          "items": {
-            "minLength": 1,
-            "type": "string"
-          },
-          "minItems": 1,
-          "title": "Evidence Refs",
-          "type": "array",
-          "uniqueItems": true
-        },
-        "independent": {
-          "title": "Independent",
-          "type": "boolean"
-        }
-      },
-      "required": [
-        "dimension",
-        "independent",
-        "evidence_refs"
-      ],
-      "title": "IsolationDimensionEvidenceModel",
-      "type": "object"
-    },
     "LiteralBindingValueModel": {
       "additionalProperties": false,
       "description": "Portable literal value; strict type validation occurs at its descriptor.",
@@ -1796,6 +2583,805 @@
         "value"
       ],
       "title": "LiteralBindingValueModel",
+      "type": "object"
+    },
+    "NumericPredicate": {
+      "additionalProperties": false,
+      "description": "Compare a governed numeric property using an explicit unit.",
+      "properties": {
+        "expected": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "number"
+            }
+          ],
+          "title": "Expected"
+        },
+        "kind": {
+          "const": "number",
+          "default": "number",
+          "title": "Kind",
+          "type": "string"
+        },
+        "operator": {
+          "default": "equals",
+          "enum": [
+            "equals",
+            "not_equals",
+            "less_than",
+            "less_than_or_equal",
+            "greater_than",
+            "greater_than_or_equal"
+          ],
+          "title": "Operator",
+          "type": "string"
+        },
+        "property": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "^[a-z0-9][a-z0-9_-]{0,63}(?:\\.[a-z0-9][a-z0-9_-]{0,63})*$",
+          "title": "Property",
+          "type": "string"
+        },
+        "semantic_ref": {
+          "maxLength": 2048,
+          "minLength": 1,
+          "pattern": "^(?:https://[^\\s]+|urn:[A-Za-z0-9][A-Za-z0-9:._~-]*)$",
+          "title": "Semantic Ref",
+          "type": "string"
+        },
+        "unit": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "^[a-z0-9][a-z0-9_-]{0,63}(?:\\.[a-z0-9][a-z0-9_-]{0,63})*$",
+          "title": "Unit",
+          "type": "string"
+        },
+        "unit_semantic_ref": {
+          "maxLength": 2048,
+          "minLength": 1,
+          "pattern": "^(?:https://[^\\s]+|urn:[A-Za-z0-9][A-Za-z0-9:._~-]*)$",
+          "title": "Unit Semantic Ref",
+          "type": "string"
+        }
+      },
+      "required": [
+        "property",
+        "semantic_ref",
+        "expected",
+        "unit",
+        "unit_semantic_ref"
+      ],
+      "title": "NumericPredicate",
+      "type": "object"
+    },
+    "ObservationBasis": {
+      "description": "Truthful basis requested for a reportable value.",
+      "enum": [
+        "backend-selected",
+        "observed",
+        "independently-verified",
+        "operational"
+      ],
+      "title": "ObservationBasis",
+      "type": "string"
+    },
+    "ObservationDemandMode": {
+      "description": "Selection posture at a named semantic scope.",
+      "enum": [
+        "inherit",
+        "none",
+        "operational-only",
+        "selected",
+        "exhaustive"
+      ],
+      "title": "ObservationDemandMode",
+      "type": "string"
+    },
+    "ObservationDemandRule": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "anyOf": [
+            {
+              "properties": {
+                "mode": {
+                  "not": {
+                    "type": "null"
+                  }
+                }
+              },
+              "required": [
+                "mode"
+              ]
+            },
+            {
+              "properties": {
+                "selector": {
+                  "not": {
+                    "type": "null"
+                  }
+                }
+              },
+              "required": [
+                "selector"
+              ]
+            },
+            {
+              "properties": {
+                "collection": {
+                  "not": {
+                    "type": "null"
+                  }
+                }
+              },
+              "required": [
+                "collection"
+              ]
+            },
+            {
+              "properties": {
+                "retention": {
+                  "not": {
+                    "type": "null"
+                  }
+                }
+              },
+              "required": [
+                "retention"
+              ]
+            },
+            {
+              "properties": {
+                "export": {
+                  "not": {
+                    "type": "null"
+                  }
+                }
+              },
+              "required": [
+                "export"
+              ]
+            },
+            {
+              "properties": {
+                "basis": {
+                  "not": {
+                    "type": "null"
+                  }
+                }
+              },
+              "required": [
+                "basis"
+              ]
+            },
+            {
+              "properties": {
+                "redaction": {
+                  "not": {
+                    "type": "null"
+                  }
+                }
+              },
+              "required": [
+                "redaction"
+              ]
+            },
+            {
+              "properties": {
+                "integrity": {
+                  "not": {
+                    "type": "null"
+                  }
+                }
+              },
+              "required": [
+                "integrity"
+              ]
+            },
+            {
+              "properties": {
+                "prohibited_stages": {
+                  "minItems": 1
+                }
+              },
+              "required": [
+                "prohibited_stages"
+              ]
+            }
+          ]
+        },
+        {
+          "if": {
+            "properties": {
+              "mode": {
+                "enum": [
+                  "selected",
+                  "exhaustive"
+                ]
+              }
+            },
+            "required": [
+              "mode"
+            ]
+          },
+          "then": {
+            "properties": {
+              "selector": {
+                "not": {
+                  "type": "null"
+                }
+              }
+            },
+            "required": [
+              "selector"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "mode": {
+                "const": "exhaustive"
+              }
+            },
+            "required": [
+              "mode"
+            ]
+          },
+          "then": {
+            "properties": {
+              "selector": {
+                "properties": {
+                  "coverage_profile": {
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "max_items": {
+                    "minimum": 1,
+                    "type": "integer"
+                  }
+                },
+                "required": [
+                  "coverage_profile",
+                  "max_items"
+                ]
+              }
+            },
+            "required": [
+              "selector"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "mode": {
+                "enum": [
+                  "selected",
+                  "exhaustive"
+                ]
+              },
+              "purpose": {
+                "const": "experimental"
+              }
+            },
+            "required": [
+              "purpose",
+              "mode"
+            ]
+          },
+          "then": {
+            "properties": {
+              "integrity": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "redaction": {
+                "minLength": 1,
+                "type": "string"
+              }
+            },
+            "required": [
+              "redaction",
+              "integrity"
+            ]
+          }
+        }
+      ],
+      "description": "One local scoped preference or independent mandatory requirement.",
+      "properties": {
+        "authority_ref": {
+          "default": "author",
+          "minLength": 1,
+          "title": "Authority Ref",
+          "type": "string"
+        },
+        "basis": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ObservationBasis"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "collection": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ObservationLifecycleDecision"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "export": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ObservationLifecycleDecision"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "integrity": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Integrity"
+        },
+        "mode": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ObservationDemandMode"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "prohibited_stages": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/ObservationLifecycleStage"
+          },
+          "maxItems": 3,
+          "title": "Prohibited Stages",
+          "type": "array"
+        },
+        "purpose": {
+          "$ref": "#/$defs/ObservationPurpose"
+        },
+        "redaction": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Redaction"
+        },
+        "required": {
+          "default": false,
+          "title": "Required",
+          "type": "boolean"
+        },
+        "retention": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ObservationLifecycleDecision"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "rule_id": {
+          "minLength": 1,
+          "title": "Rule Id",
+          "type": "string"
+        },
+        "scope": {
+          "maxLength": 4096,
+          "pattern": "^(?:/(?:[^~/]|~[01])*)*$",
+          "title": "Scope",
+          "type": "string"
+        },
+        "selector": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ObservationSelector"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "rule_id",
+        "scope",
+        "purpose"
+      ],
+      "title": "ObservationDemandRule",
+      "type": "object"
+    },
+    "ObservationLifecycleDecision": {
+      "description": "One local lifecycle preference or monotone prohibition.",
+      "enum": [
+        "inherit",
+        "forbid",
+        "disable",
+        "require"
+      ],
+      "title": "ObservationLifecycleDecision",
+      "type": "string"
+    },
+    "ObservationLifecycleStage": {
+      "description": "Independently governed data-lifecycle stages.",
+      "enum": [
+        "collection",
+        "retention",
+        "export"
+      ],
+      "title": "ObservationLifecycleStage",
+      "type": "string"
+    },
+    "ObservationPurpose": {
+      "description": "Authority plane for requested data use.",
+      "enum": [
+        "experimental",
+        "realization-description",
+        "operational"
+      ],
+      "title": "ObservationPurpose",
+      "type": "string"
+    },
+    "ObservationSelector": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "coverage_profile": {
+                "not": {
+                  "type": "null"
+                }
+              }
+            },
+            "required": [
+              "coverage_profile"
+            ]
+          },
+          "then": {
+            "properties": {
+              "max_items": {
+                "not": {
+                  "type": "null"
+                }
+              }
+            },
+            "required": [
+              "max_items"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "max_items": {
+                "not": {
+                  "type": "null"
+                }
+              }
+            },
+            "required": [
+              "max_items"
+            ]
+          },
+          "then": {
+            "properties": {
+              "coverage_profile": {
+                "not": {
+                  "type": "null"
+                }
+              }
+            },
+            "required": [
+              "coverage_profile"
+            ]
+          }
+        }
+      ],
+      "description": "Bounded selector over a semantic scope and one data surface.",
+      "properties": {
+        "component_refs": {
+          "default": [],
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 256,
+          "title": "Component Refs",
+          "type": "array"
+        },
+        "coverage_profile": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Coverage Profile"
+        },
+        "data_kind": {
+          "enum": [
+            "field",
+            "stream",
+            "artifact"
+          ],
+          "title": "Data Kind",
+          "type": "string"
+        },
+        "excluded_scopes": {
+          "default": [],
+          "items": {
+            "maxLength": 4096,
+            "pattern": "^(?:/(?:[^~/]|~[01])*)*$",
+            "type": "string"
+          },
+          "maxItems": 256,
+          "title": "Excluded Scopes",
+          "type": "array"
+        },
+        "max_items": {
+          "anyOf": [
+            {
+              "maximum": 1000000,
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Max Items"
+        },
+        "names": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 256,
+          "minItems": 1,
+          "title": "Names",
+          "type": "array"
+        },
+        "semantic_scope": {
+          "maxLength": 4096,
+          "pattern": "^(?:/(?:[^~/]|~[01])*)*$",
+          "title": "Semantic Scope",
+          "type": "string"
+        },
+        "window_refs": {
+          "default": [],
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 256,
+          "title": "Window Refs",
+          "type": "array"
+        }
+      },
+      "required": [
+        "semantic_scope",
+        "data_kind",
+        "names"
+      ],
+      "title": "ObservationSelector",
+      "type": "object"
+    },
+    "OpenTrialParallelismModel": {
+      "additionalProperties": false,
+      "description": "Leave effective capacity to the allocator.",
+      "properties": {
+        "posture": {
+          "const": "open",
+          "title": "Posture",
+          "type": "string"
+        }
+      },
+      "required": [
+        "posture"
+      ],
+      "title": "OpenTrialParallelismModel",
+      "type": "object"
+    },
+    "ParticipantConfigurationModel": {
+      "additionalProperties": false,
+      "description": "Canonical digest payload for one complete participant configuration.",
+      "properties": {
+        "implementation_identity": {
+          "$ref": "#/$defs/ApparatusIdentityModel"
+        },
+        "manifest_version": {
+          "minLength": 1,
+          "title": "Manifest Version",
+          "type": "string"
+        },
+        "owner": {
+          "$ref": "#/$defs/BindingOwnerModel"
+        },
+        "values": {
+          "items": {
+            "$ref": "#/$defs/RealizedConfigurationValueModel"
+          },
+          "minItems": 1,
+          "title": "Values",
+          "type": "array"
+        }
+      },
+      "required": [
+        "implementation_identity",
+        "manifest_version",
+        "owner",
+        "values"
+      ],
+      "title": "ParticipantConfigurationModel",
+      "type": "object"
+    },
+    "ParticipantConfigurationResultModel": {
+      "additionalProperties": false,
+      "description": "Portable result of one complete, atomic participant configuration validation.",
+      "properties": {
+        "configuration": {
+          "$ref": "#/$defs/ParticipantConfigurationModel"
+        },
+        "configuration_digest": {
+          "minLength": 1,
+          "pattern": "^(?:sha256:[A-Fa-f0-9]{64}|sha384:[A-Fa-f0-9]{96}|sha512:[A-Fa-f0-9]{128}|blake3:[A-Fa-f0-9]{64})$",
+          "title": "Configuration Digest",
+          "type": "string"
+        },
+        "manifest_digest": {
+          "minLength": 1,
+          "pattern": "^(?:sha256:[A-Fa-f0-9]{64}|sha384:[A-Fa-f0-9]{96}|sha512:[A-Fa-f0-9]{128}|blake3:[A-Fa-f0-9]{64})$",
+          "title": "Manifest Digest",
+          "type": "string"
+        },
+        "manifest_ref": {
+          "minLength": 1,
+          "title": "Manifest Ref",
+          "type": "string"
+        },
+        "participant_address": {
+          "minLength": 1,
+          "title": "Participant Address",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "participant-configuration-result/v1",
+          "default": "participant-configuration-result/v1",
+          "title": "Schema Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "participant_address",
+        "manifest_ref",
+        "manifest_digest",
+        "configuration",
+        "configuration_digest"
+      ],
+      "title": "ParticipantConfigurationResultModel",
+      "type": "object",
+      "x-raes-invariants": [
+        {
+          "description": "The configuration digest must be the RFC 8785/JCS digest of the complete normalized configuration.",
+          "id": "participant-configuration-digest-valid",
+          "inputs": [
+            {
+              "contract_id": "participant-configuration-result-v1",
+              "instance_path": "#"
+            }
+          ],
+          "level": "error",
+          "validator": "raes_contracts.contracts.ParticipantConfigurationResultModel._validate_configuration_digest"
+        }
+      ]
+    },
+    "ParticipantControlContextAssetReferenceModel": {
+      "additionalProperties": false,
+      "properties": {
+        "asset_digest": {
+          "pattern": "^sha256:[a-f0-9]{64}$",
+          "title": "Asset Digest",
+          "type": "string"
+        },
+        "asset_id": {
+          "maxLength": 1024,
+          "minLength": 1,
+          "title": "Asset Id",
+          "type": "string"
+        },
+        "asset_version": {
+          "maxLength": 1024,
+          "minLength": 1,
+          "title": "Asset Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "asset_id",
+        "asset_version",
+        "asset_digest"
+      ],
+      "title": "ParticipantControlContextAssetReferenceModel",
+      "type": "object"
+    },
+    "ParticipantControlContextConfigurationSelectionModel": {
+      "additionalProperties": false,
+      "description": "Pin retained in the sealed configuration, independently of current catalogs.",
+      "properties": {
+        "asset_ref": {
+          "$ref": "#/$defs/ParticipantControlContextAssetReferenceModel"
+        },
+        "declaration_ref": {
+          "maxLength": 1024,
+          "minLength": 1,
+          "not": {
+            "pattern": "[^a-z0-9_.-]"
+          },
+          "pattern": "^control_context_assets\\.[a-z0-9][a-z0-9_-]*(?:\\.[a-z0-9][a-z0-9_-]*)*$",
+          "title": "Declaration Ref",
+          "type": "string"
+        },
+        "slot_id": {
+          "maxLength": 64,
+          "minLength": 1,
+          "not": {
+            "pattern": "[^a-z0-9_-]"
+          },
+          "pattern": "^[a-z0-9][a-z0-9_-]*$",
+          "title": "Slot Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "slot_id",
+        "declaration_ref",
+        "asset_ref"
+      ],
+      "title": "ParticipantControlContextConfigurationSelectionModel",
       "type": "object"
     },
     "ParticipantImplementationBindingTargetModel": {
@@ -1843,6 +3429,133 @@
       ],
       "title": "ParticipantImplementationBindingTargetModel",
       "type": "object"
+    },
+    "PresencePredicate": {
+      "additionalProperties": false,
+      "description": "Test whether a governed property is present on a subject.",
+      "properties": {
+        "kind": {
+          "const": "presence",
+          "default": "presence",
+          "title": "Kind",
+          "type": "string"
+        },
+        "operator": {
+          "const": "exists",
+          "default": "exists",
+          "title": "Operator",
+          "type": "string"
+        },
+        "property": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "^[a-z0-9][a-z0-9_-]{0,63}(?:\\.[a-z0-9][a-z0-9_-]{0,63})*$",
+          "title": "Property",
+          "type": "string"
+        },
+        "semantic_ref": {
+          "maxLength": 2048,
+          "minLength": 1,
+          "pattern": "^(?:https://[^\\s]+|urn:[A-Za-z0-9][A-Za-z0-9:._~-]*)$",
+          "title": "Semantic Ref",
+          "type": "string"
+        }
+      },
+      "required": [
+        "property",
+        "semantic_ref"
+      ],
+      "title": "PresencePredicate",
+      "type": "object"
+    },
+    "Proposition": {
+      "additionalProperties": false,
+      "description": "A side-effect-free claim over a finite set of stable SDL subjects.",
+      "properties": {
+        "basis": {
+          "$ref": "#/$defs/PropositionBasis"
+        },
+        "description": {
+          "minLength": 1,
+          "title": "Description",
+          "type": "string"
+        },
+        "evidence_requirements": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Evidence Requirements",
+          "type": "array"
+        },
+        "predicate": {
+          "discriminator": {
+            "mapping": {
+              "boolean": "#/$defs/BooleanPredicate",
+              "number": "#/$defs/NumericPredicate",
+              "presence": "#/$defs/PresencePredicate",
+              "string": "#/$defs/StringPredicate"
+            },
+            "propertyName": "kind"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/PresencePredicate"
+            },
+            {
+              "$ref": "#/$defs/BooleanPredicate"
+            },
+            {
+              "$ref": "#/$defs/StringPredicate"
+            },
+            {
+              "$ref": "#/$defs/NumericPredicate"
+            }
+          ],
+          "title": "Predicate"
+        },
+        "quantifier": {
+          "$ref": "#/$defs/SubjectQuantifier",
+          "default": "all"
+        },
+        "subjects": {
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Subjects",
+          "type": "array"
+        },
+        "threshold": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Threshold"
+        }
+      },
+      "required": [
+        "description",
+        "subjects",
+        "basis",
+        "predicate"
+      ],
+      "title": "Proposition",
+      "type": "object"
+    },
+    "PropositionBasis": {
+      "description": "Source of facts that may decide a proposition.",
+      "enum": [
+        "declared_state",
+        "observed_state"
+      ],
+      "title": "PropositionBasis",
+      "type": "string"
     },
     "PublicRandomOutcomeModel": {
       "additionalProperties": false,
@@ -2142,6 +3855,308 @@
       "title": "RealizationEnvelopeIdentityModel",
       "type": "object"
     },
+    "RealizedConfigurationValueModel": {
+      "additionalProperties": false,
+      "description": "One normalized value in a complete participant configuration.",
+      "properties": {
+        "control_context_selection": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ParticipantControlContextConfigurationSelectionModel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "origin": {
+          "enum": [
+            "default",
+            "override"
+          ],
+          "title": "Origin",
+          "type": "string"
+        },
+        "target_id": {
+          "minLength": 1,
+          "title": "Target Id",
+          "type": "string"
+        },
+        "value": {
+          "discriminator": {
+            "mapping": {
+              "literal": "#/$defs/LiteralBindingValueModel",
+              "secret-reference": "#/$defs/SecretReferenceBindingValueModel"
+            },
+            "propertyName": "kind"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/LiteralBindingValueModel"
+            },
+            {
+              "$ref": "#/$defs/SecretReferenceBindingValueModel"
+            }
+          ],
+          "title": "Value"
+        },
+        "value_type": {
+          "$ref": "#/$defs/BindingScalarType"
+        }
+      },
+      "required": [
+        "target_id",
+        "value_type",
+        "origin",
+        "value"
+      ],
+      "title": "RealizedConfigurationValueModel",
+      "type": "object"
+    },
+    "ResolvedSafeState": {
+      "additionalProperties": false,
+      "properties": {
+        "governing_scope": {
+          "maxLength": 8192,
+          "minLength": 1,
+          "title": "Governing Scope",
+          "type": "string"
+        },
+        "namespace": {
+          "default": [],
+          "items": {
+            "maxLength": 64,
+            "pattern": "^(?:[a-z0-9][a-z0-9_-]{0,63}|__private)$",
+            "type": "string"
+          },
+          "maxItems": 31,
+          "title": "Namespace",
+          "type": "array"
+        },
+        "proofs": {
+          "additionalProperties": false,
+          "maxProperties": 64,
+          "minProperties": 1,
+          "patternProperties": {
+            "^\\S+$": {
+              "$ref": "#/$defs/SafeStateProof"
+            }
+          },
+          "propertyNames": {
+            "maxLength": 2048,
+            "minLength": 1,
+            "not": {
+              "pattern": "\\s"
+            }
+          },
+          "title": "Proofs",
+          "type": "object"
+        },
+        "scope": {
+          "maxLength": 4096,
+          "pattern": "^(?:/(?:[^~/]|~[01])*)*$",
+          "title": "Scope",
+          "type": "string"
+        },
+        "state": {
+          "$ref": "#/$defs/SafeState"
+        },
+        "target_ref": {
+          "maxLength": 2048,
+          "minLength": 1,
+          "pattern": "^\\S+$",
+          "title": "Target Ref",
+          "type": "string"
+        }
+      },
+      "required": [
+        "target_ref",
+        "scope",
+        "governing_scope",
+        "state",
+        "proofs"
+      ],
+      "title": "ResolvedSafeState",
+      "type": "object",
+      "x-raes-invariants": [
+        {
+          "description": "Safe states are complete lexical values with unique scopes and assertions. Resolved values bind exact observed postconditions and target-specific evidence. Resolved collections obey aggregate PLAN_VALUE_LIMITS before proof copying. See specs/sdl/safe-state.md.",
+          "id": "safe-state-resolvedsafestate",
+          "inputs": [
+            {
+              "contract_id": "provisioning-plan-v1",
+              "instance_path": "#/safe_states"
+            }
+          ],
+          "level": "error",
+          "validator": "raes_contracts.safe_state.ResolvedSafeState.model_validate"
+        }
+      ]
+    },
+    "RuntimeSensitivityClassification": {
+      "description": "Sensitivity/redaction class for observed runtime facts.",
+      "enum": [
+        "plain",
+        "redacted",
+        "secret_fixture",
+        "operator_secret",
+        "unknown",
+        "other"
+      ],
+      "title": "RuntimeSensitivityClassification",
+      "type": "string"
+    },
+    "SafeState": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "else": {
+            "properties": {
+              "continuing_mode": {
+                "type": "null"
+              }
+            }
+          },
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "continue"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "continuing_mode": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "continuing_mode"
+            ]
+          }
+        }
+      ],
+      "properties": {
+        "assertion_refs": {
+          "items": {
+            "maxLength": 2048,
+            "minLength": 1,
+            "pattern": "^\\S+$",
+            "type": "string"
+          },
+          "maxItems": 64,
+          "minItems": 1,
+          "title": "Assertion Refs",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "continuing_mode": {
+          "anyOf": [
+            {
+              "maxLength": 2048,
+              "minLength": 1,
+              "pattern": "^\\S+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Continuing Mode"
+        },
+        "kind": {
+          "enum": [
+            "safe-hold",
+            "controlled-stop",
+            "continue"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "safe-state/v1",
+          "default": "safe-state/v1",
+          "title": "Schema Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "assertion_refs"
+      ],
+      "title": "SafeState",
+      "type": "object",
+      "x-raes-invariants": [
+        {
+          "description": "Safe states are complete lexical values with unique scopes and assertions. Resolved values bind exact observed postconditions and target-specific evidence. Resolved collections obey aggregate PLAN_VALUE_LIMITS before proof copying. See specs/sdl/safe-state.md.",
+          "id": "safe-state-safestate",
+          "inputs": [
+            {
+              "contract_id": "sdl-authoring-input-v1",
+              "instance_path": "#/safe_state"
+            }
+          ],
+          "level": "error",
+          "validator": "raes_contracts.safe_state.SafeState.model_validate"
+        }
+      ]
+    },
+    "SafeStateProof": {
+      "additionalProperties": false,
+      "properties": {
+        "assertion": {
+          "$ref": "#/$defs/Assertion"
+        },
+        "evidence_requirements": {
+          "additionalProperties": false,
+          "maxProperties": 64,
+          "minProperties": 1,
+          "patternProperties": {
+            "^\\S+$": {
+              "$ref": "#/$defs/EvidenceRequirement"
+            }
+          },
+          "propertyNames": {
+            "maxLength": 2048,
+            "minLength": 1,
+            "not": {
+              "pattern": "\\s"
+            }
+          },
+          "title": "Evidence Requirements",
+          "type": "object"
+        },
+        "proposition": {
+          "$ref": "#/$defs/Proposition"
+        }
+      },
+      "required": [
+        "assertion",
+        "proposition",
+        "evidence_requirements"
+      ],
+      "title": "SafeStateProof",
+      "type": "object",
+      "x-raes-invariants": [
+        {
+          "description": "Safe states are complete lexical values with unique scopes and assertions. Resolved values bind exact observed postconditions and target-specific evidence. Resolved collections obey aggregate PLAN_VALUE_LIMITS before proof copying. See specs/sdl/safe-state.md.",
+          "id": "safe-state-safestateproof",
+          "inputs": [
+            {
+              "contract_id": "provisioning-plan-v1",
+              "instance_path": "#/safe_states"
+            }
+          ],
+          "level": "error",
+          "validator": "raes_contracts.safe_state.SafeStateProof.model_validate"
+        }
+      ]
+    },
     "ScenarioBindingTargetModel": {
       "additionalProperties": false,
       "description": "Canonical target owned by a composed SDL scenario family.",
@@ -2175,236 +4190,6 @@
       ],
       "title": "ScenarioBindingTargetModel",
       "type": "object"
-    },
-    "SchedulerIsolationProofModel": {
-      "additionalProperties": false,
-      "allOf": [
-        {
-          "if": {
-            "properties": {
-              "requested_parallelism": {
-                "minimum": 2
-              }
-            },
-            "required": [
-              "requested_parallelism"
-            ]
-          },
-          "then": {
-            "properties": {
-              "dimensions": {
-                "allOf": [
-                  {
-                    "contains": {
-                      "properties": {
-                        "dimension": {
-                          "const": "cleanup"
-                        },
-                        "evidence_refs": {
-                          "minItems": 1
-                        },
-                        "independent": {
-                          "const": true
-                        }
-                      },
-                      "required": [
-                        "dimension",
-                        "independent",
-                        "evidence_refs"
-                      ],
-                      "type": "object"
-                    }
-                  },
-                  {
-                    "contains": {
-                      "properties": {
-                        "dimension": {
-                          "const": "control-plane-locks"
-                        },
-                        "evidence_refs": {
-                          "minItems": 1
-                        },
-                        "independent": {
-                          "const": true
-                        }
-                      },
-                      "required": [
-                        "dimension",
-                        "independent",
-                        "evidence_refs"
-                      ],
-                      "type": "object"
-                    }
-                  },
-                  {
-                    "contains": {
-                      "properties": {
-                        "dimension": {
-                          "const": "host-capacity"
-                        },
-                        "evidence_refs": {
-                          "minItems": 1
-                        },
-                        "independent": {
-                          "const": true
-                        }
-                      },
-                      "required": [
-                        "dimension",
-                        "independent",
-                        "evidence_refs"
-                      ],
-                      "type": "object"
-                    }
-                  },
-                  {
-                    "contains": {
-                      "properties": {
-                        "dimension": {
-                          "const": "ports"
-                        },
-                        "evidence_refs": {
-                          "minItems": 1
-                        },
-                        "independent": {
-                          "const": true
-                        }
-                      },
-                      "required": [
-                        "dimension",
-                        "independent",
-                        "evidence_refs"
-                      ],
-                      "type": "object"
-                    }
-                  },
-                  {
-                    "contains": {
-                      "properties": {
-                        "dimension": {
-                          "const": "range-instance"
-                        },
-                        "evidence_refs": {
-                          "minItems": 1
-                        },
-                        "independent": {
-                          "const": true
-                        }
-                      },
-                      "required": [
-                        "dimension",
-                        "independent",
-                        "evidence_refs"
-                      ],
-                      "type": "object"
-                    }
-                  },
-                  {
-                    "contains": {
-                      "properties": {
-                        "dimension": {
-                          "const": "secret-scope"
-                        },
-                        "evidence_refs": {
-                          "minItems": 1
-                        },
-                        "independent": {
-                          "const": true
-                        }
-                      },
-                      "required": [
-                        "dimension",
-                        "independent",
-                        "evidence_refs"
-                      ],
-                      "type": "object"
-                    }
-                  },
-                  {
-                    "contains": {
-                      "properties": {
-                        "dimension": {
-                          "const": "storage"
-                        },
-                        "evidence_refs": {
-                          "minItems": 1
-                        },
-                        "independent": {
-                          "const": true
-                        }
-                      },
-                      "required": [
-                        "dimension",
-                        "independent",
-                        "evidence_refs"
-                      ],
-                      "type": "object"
-                    }
-                  }
-                ],
-                "minItems": 7
-              }
-            }
-          }
-        }
-      ],
-      "description": "Schedule-independent proof permitting a bounded parallelism request.",
-      "properties": {
-        "dimensions": {
-          "items": {
-            "$ref": "#/$defs/IsolationDimensionEvidenceModel"
-          },
-          "title": "Dimensions",
-          "type": "array"
-        },
-        "plan_entry_ids": {
-          "items": {
-            "minLength": 1,
-            "type": "string"
-          },
-          "minItems": 1,
-          "title": "Plan Entry Ids",
-          "type": "array",
-          "uniqueItems": true
-        },
-        "proof_id": {
-          "minLength": 1,
-          "title": "Proof Id",
-          "type": "string"
-        },
-        "requested_parallelism": {
-          "default": 1,
-          "minimum": 1,
-          "title": "Requested Parallelism",
-          "type": "integer"
-        },
-        "schema_version": {
-          "const": "scheduler-isolation-proof/v1",
-          "default": "scheduler-isolation-proof/v1",
-          "title": "Schema Version",
-          "type": "string"
-        }
-      },
-      "required": [
-        "proof_id",
-        "plan_entry_ids"
-      ],
-      "title": "SchedulerIsolationProofModel",
-      "type": "object",
-      "x-raes-invariants": [
-        {
-          "description": "Scheduling defaults to serial; bounded parallelism requires independent evidence for range, capacity, ports, storage, control-plane locks, secret scope, and cleanup.",
-          "id": "scheduler-isolation-serial-default-and-complete-parallel-proof",
-          "inputs": [
-            {
-              "contract_id": "scheduler-isolation-proof-v1",
-              "instance_path": "#"
-            }
-          ],
-          "level": "error",
-          "validator": "raes_contracts.contracts.SchedulerIsolationProofModel._validate_isolation"
-        }
-      ]
     },
     "SecretReferenceBindingValueModel": {
       "additionalProperties": false,
@@ -2517,6 +4302,148 @@
           "validator": "raes_contracts.contracts.random_stream.StreamAddressModel._validate_draw_purpose"
         }
       ]
+    },
+    "StringPredicate": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "anyOf": [
+            {
+              "properties": {
+                "expected": {
+                  "not": {
+                    "type": "null"
+                  }
+                }
+              },
+              "required": [
+                "expected"
+              ]
+            },
+            {
+              "properties": {
+                "expected_from": {
+                  "not": {
+                    "type": "null"
+                  }
+                }
+              },
+              "required": [
+                "expected_from"
+              ]
+            }
+          ]
+        },
+        {
+          "not": {
+            "allOf": [
+              {
+                "properties": {
+                  "expected": {
+                    "not": {
+                      "type": "null"
+                    }
+                  }
+                },
+                "required": [
+                  "expected"
+                ]
+              },
+              {
+                "properties": {
+                  "expected_from": {
+                    "not": {
+                      "type": "null"
+                    }
+                  }
+                },
+                "required": [
+                  "expected_from"
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "description": "Compare a governed string property with typed string operands.",
+      "properties": {
+        "expected": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected"
+        },
+        "expected_from": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/GeneratedArtifactValueSource"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "kind": {
+          "const": "string",
+          "default": "string",
+          "title": "Kind",
+          "type": "string"
+        },
+        "operator": {
+          "default": "equals",
+          "enum": [
+            "equals",
+            "not_equals",
+            "in",
+            "not_in"
+          ],
+          "title": "Operator",
+          "type": "string"
+        },
+        "property": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "^[a-z0-9][a-z0-9_-]{0,63}(?:\\.[a-z0-9][a-z0-9_-]{0,63})*$",
+          "title": "Property",
+          "type": "string"
+        },
+        "semantic_ref": {
+          "maxLength": 2048,
+          "minLength": 1,
+          "pattern": "^(?:https://[^\\s]+|urn:[A-Za-z0-9][A-Za-z0-9:._~-]*)$",
+          "title": "Semantic Ref",
+          "type": "string"
+        }
+      },
+      "required": [
+        "property",
+        "semantic_ref"
+      ],
+      "title": "StringPredicate",
+      "type": "object"
+    },
+    "SubjectQuantifier": {
+      "description": "Quantification over a proposition's finite, resolved subject set.",
+      "enum": [
+        "all",
+        "any",
+        "at_least"
+      ],
+      "title": "SubjectQuantifier",
+      "type": "string"
     },
     "TrialCleanupPlanModel": {
       "additionalProperties": false,
@@ -2659,6 +4586,169 @@
       },
       "title": "TrialCoordinateModel",
       "type": "object"
+    },
+    "TrialReplacementOriginModel": {
+      "additionalProperties": false,
+      "description": "Acyclic child-to-parent linkage; original sealed plans are never edited.",
+      "properties": {
+        "cleanup_receipt_ref": {
+          "minLength": 1,
+          "title": "Cleanup Receipt Ref",
+          "type": "string"
+        },
+        "ordinal": {
+          "maximum": 1000,
+          "minimum": 1,
+          "title": "Ordinal",
+          "type": "integer"
+        },
+        "parent_entry_id": {
+          "minLength": 1,
+          "title": "Parent Entry Id",
+          "type": "string"
+        },
+        "parent_plan_digest": {
+          "minLength": 1,
+          "pattern": "^(?:sha256:[A-Fa-f0-9]{64}|sha384:[A-Fa-f0-9]{96}|sha512:[A-Fa-f0-9]{128}|blake3:[A-Fa-f0-9]{64})$",
+          "title": "Parent Plan Digest",
+          "type": "string"
+        },
+        "parent_plan_id": {
+          "minLength": 1,
+          "title": "Parent Plan Id",
+          "type": "string"
+        },
+        "parent_run_digest": {
+          "minLength": 1,
+          "pattern": "^(?:sha256:[A-Fa-f0-9]{64}|sha384:[A-Fa-f0-9]{96}|sha512:[A-Fa-f0-9]{128}|blake3:[A-Fa-f0-9]{64})$",
+          "title": "Parent Run Digest",
+          "type": "string"
+        },
+        "parent_run_id": {
+          "minLength": 1,
+          "title": "Parent Run Id",
+          "type": "string"
+        },
+        "parent_run_version": {
+          "minLength": 1,
+          "title": "Parent Run Version",
+          "type": "string"
+        },
+        "root_entry_id": {
+          "minLength": 1,
+          "title": "Root Entry Id",
+          "type": "string"
+        },
+        "root_plan_digest": {
+          "minLength": 1,
+          "pattern": "^(?:sha256:[A-Fa-f0-9]{64}|sha384:[A-Fa-f0-9]{96}|sha512:[A-Fa-f0-9]{128}|blake3:[A-Fa-f0-9]{64})$",
+          "title": "Root Plan Digest",
+          "type": "string"
+        },
+        "root_plan_id": {
+          "minLength": 1,
+          "title": "Root Plan Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "root_plan_id",
+        "root_plan_digest",
+        "root_entry_id",
+        "ordinal",
+        "parent_plan_id",
+        "parent_plan_digest",
+        "parent_entry_id",
+        "parent_run_id",
+        "parent_run_version",
+        "parent_run_digest",
+        "cleanup_receipt_ref"
+      ],
+      "title": "TrialReplacementOriginModel",
+      "type": "object"
+    },
+    "TrialReplacementPolicyModel": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "else": {
+            "properties": {
+              "replace_on": {
+                "minItems": 1
+              }
+            }
+          },
+          "if": {
+            "properties": {
+              "max_replacements": {
+                "const": 0
+              }
+            },
+            "required": [
+              "max_replacements"
+            ]
+          },
+          "then": {
+            "properties": {
+              "replace_on": {
+                "maxItems": 0
+              }
+            }
+          }
+        }
+      ],
+      "description": "Additional trials per original allocation slot, never an attempt budget.",
+      "properties": {
+        "max_replacements": {
+          "maximum": 1000,
+          "minimum": 0,
+          "title": "Max Replacements",
+          "type": "integer"
+        },
+        "replace_on": {
+          "items": {
+            "enum": [
+              "failed",
+              "invalidated"
+            ],
+            "type": "string"
+          },
+          "maxItems": 2,
+          "title": "Replace On",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "schema_version": {
+          "const": "trial-replacement-policy/v1",
+          "default": "trial-replacement-policy/v1",
+          "title": "Schema Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "max_replacements",
+        "replace_on"
+      ],
+      "title": "TrialReplacementPolicyModel",
+      "type": "object",
+      "x-raes-invariants": [
+        {
+          "description": "Replacement triggers are unique; a positive additional-trial bound requires selected triggers, and zero requires none. Omission supplies no allocation permission.",
+          "id": "trial-replacement-policy-explicit-and-bounded",
+          "inputs": [
+            {
+              "contract_id": "experiment-authoring-input-v1",
+              "instance_path": "#/run_plan/replacement_policy"
+            },
+            {
+              "contract_id": "admitted-trial-plan-v1",
+              "instance_path": "#/replacement_policy"
+            }
+          ],
+          "level": "error",
+          "validator": "raes_contracts.contracts.trial_replacement.TrialReplacementPolicyModel._validate_policy"
+        }
+      ]
     }
   },
   "$id": "https://openrae.github.io/rae/schemas/admitted-trial-plan-v1.json",
@@ -2668,6 +4758,17 @@
   "properties": {
     "admission": {
       "$ref": "#/$defs/AdmittedTrialPlanAdmissionModel"
+    },
+    "allocation": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/AdmittedExperimentAllocationModel"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
     },
     "cleanup_plans": {
       "additionalProperties": {
@@ -2694,17 +4795,6 @@
     "input_refs": {
       "$ref": "#/$defs/AdmittedTrialPlanInputRefsModel"
     },
-    "isolation_proof": {
-      "anyOf": [
-        {
-          "$ref": "#/$defs/SchedulerIsolationProofModel"
-        },
-        {
-          "type": "null"
-        }
-      ],
-      "default": null
-    },
     "plan_digest": {
       "minLength": 1,
       "pattern": "^(?:sha256:[A-Fa-f0-9]{64}|sha384:[A-Fa-f0-9]{96}|sha512:[A-Fa-f0-9]{128}|blake3:[A-Fa-f0-9]{64})$",
@@ -2718,6 +4808,28 @@
     },
     "profiles": {
       "$ref": "#/$defs/AdmittedTrialPlanProfilesModel"
+    },
+    "replacement_origin": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/TrialReplacementOriginModel"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "replacement_policy": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/TrialReplacementPolicyModel"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
     },
     "schema_version": {
       "const": "admitted-trial-plan/v1",
@@ -2734,6 +4846,36 @@
       },
       "title": "Stochastic Controls",
       "type": "object"
+    },
+    "trial_parallelism": {
+      "anyOf": [
+        {
+          "discriminator": {
+            "mapping": {
+              "constrained": "#/$defs/ConstrainedTrialParallelismModel",
+              "exact": "#/$defs/ExactTrialParallelismModel",
+              "open": "#/$defs/OpenTrialParallelismModel"
+            },
+            "propertyName": "posture"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/OpenTrialParallelismModel"
+            },
+            {
+              "$ref": "#/$defs/ExactTrialParallelismModel"
+            },
+            {
+              "$ref": "#/$defs/ConstrainedTrialParallelismModel"
+            }
+          ]
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Trial Parallelism"
     }
   },
   "required": [
@@ -2749,7 +4891,7 @@
   "type": "object",
   "x-raes-invariants": [
     {
-      "description": "An admitted trial plan keeps map keys equal to embedded ids, keeps plan/entry/run identities distinct, gives every entry a unique logical coordinate and archival run_id, resolves cleanup and stochastic-control joins (with each draw addressed to its entry coordinate), exact mixed-composition profile inputs, and isolation-proof entries within the sealed plan, requires values duplicated from incumbent authorities (random-stream profile, binding condition/family) to agree, forbids bounded-parallel entries from sharing resources, matches admission cardinality, and binds the complete plan with a recomputed plan_digest over the entry set.",
+      "description": "An admitted trial plan keeps map keys equal to embedded ids, keeps plan/entry/run identities distinct, gives every entry a unique logical coordinate and archival run_id, resolves cleanup and stochastic-control joins (with each draw addressed to its entry coordinate), exact mixed-composition profile inputs within the sealed plan, requires values duplicated from incumbent authorities (random-stream profile, binding condition/family) to agree, matches admission cardinality, binds a replacement profile to a distinct single-entry child within the original replacement budget, and binds the complete plan with a recomputed plan_digest over the entry set.",
       "id": "admitted-trial-plan-identity-joins-and-integrity",
       "inputs": [
         {

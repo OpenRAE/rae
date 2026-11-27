@@ -9,8 +9,10 @@ from contextlib import contextmanager
 from dataclasses import asdict
 from pathlib import Path
 
+from raes_contracts.errors import ConflictError, EvidenceIntegrityError, OperationalError
 from raes_contracts.participant_autonomous_state import require_participant_autonomous_runtime_snapshot
 from raes_contracts.runtime_state import RuntimeSnapshot
+from raes_contracts.timestamps import WallClock, utc_now
 
 from .control_plane_profiles import ControlPlaneCapability, ControlPlaneStoreCapabilities
 from .control_plane_store import (
@@ -26,19 +28,29 @@ from .control_plane_store import (
     _require_terminal_operation_audit,
     _require_terminal_operation_transition,
     _require_terminal_retry_mode,
-    require_operation_record_scopes,
     terminal_operation_audit,
 )
 from .control_plane_store_lease import RuntimeOwnerLease, require_single_worker_configuration
+from .control_plane_store_local_cache import SnapshotCache, SnapshotConnection
+from .control_plane_store_local_codec import (
+    decode_contract as _decode_contract,
+)
 from .control_plane_store_local_codec import (
     decode_payload as _decode_payload,
+)
+from .control_plane_store_local_codec import (
+    durable_text as _durable_text,
 )
 from .control_plane_store_local_codec import (
     encode_payload as _encode_payload,
 )
 from .control_plane_store_local_codec import (
+    refuse_invalid_database as _refuse_invalid_database,
+)
+from .control_plane_store_local_codec import (
     transaction as _transaction,
 )
+from .control_plane_store_local_invocations import LocalInvocationStoreMixin
 from .control_plane_store_local_records import LocalOperationRecordStoreMixin
 from .control_plane_store_local_scope import LocalStoreScopeMigrationMixin
 from .control_plane_store_local_snapshot import LocalSnapshotRevisionStoreMixin
@@ -54,7 +66,8 @@ from .control_plane_store_paths import (
 )
 from .control_plane_store_record_migration import LOCAL_OPERATION_SCHEMA_VERSION, migrate_sqlite_schema
 from .control_plane_store_records import _audit_event_from_payload
-from .control_plane_store_snapshots import _snapshot_from_payload, _snapshot_payload
+from .control_plane_store_snapshots import _canonical_snapshot
+from .runtime_decision_store import SQLRuntimeDecisionStoreMixin, initialize_runtime_decisions
 
 _DATABASE_NAME = "control-plane.sqlite3"
 _SCHEMA_VERSION = LOCAL_OPERATION_SCHEMA_VERSION
@@ -70,6 +83,8 @@ def _participant_transition_count(snapshot: RuntimeSnapshot) -> int:
 
 
 class LocalControlPlaneStore(
+    SQLRuntimeDecisionStoreMixin,
+    LocalInvocationStoreMixin,
     LocalOperationRecordStoreMixin,
     LocalStoreScopeMigrationMixin,
     LocalSnapshotRevisionStoreMixin,
@@ -95,8 +110,9 @@ class LocalControlPlaneStore(
         )
     )
 
-    def __init__(self, base_dir: Path) -> None:
+    def __init__(self, base_dir: Path, *, wall_clock: WallClock = utc_now) -> None:
         self._base_dir = base_dir
+        self._wall_clock = wall_clock
         self._database_path = self._base_dir / _DATABASE_NAME
         self._runtime_owner_path = self._base_dir / _RUNTIME_OWNER_LOCK_NAME
         self._active_runtime_lease: RuntimeOwnerLease | None = None
@@ -107,6 +123,7 @@ class LocalControlPlaneStore(
         self._database_identity: os.stat_result | None = None
         self._provider_closed = False
         self._admitted_scope: tuple[str, str] | None = None
+        self._snapshot_cache = SnapshotCache()
 
     def admit_runtime(self, *, target_scope: str, run_scope: str) -> RuntimeOwnerLease:
         """Acquire sole ownership, bind scope, and only then inspect SQLite."""
@@ -129,7 +146,7 @@ class LocalControlPlaneStore(
         require_single_worker_configuration()
         active = self._active_runtime_lease
         if active is not None and not active.closed:
-            raise RuntimeError(
+            raise ConflictError(
                 "local control-plane store already has a runtime owner; use exactly one worker with reload disabled"
             )
         _secure_store_directory(self._base_dir, reject_insecure_existing=require_existing)
@@ -138,7 +155,7 @@ class LocalControlPlaneStore(
         try:
             current_directory_identity = self._base_dir.lstat()
             if not os.path.samestat(directory_identity, current_directory_identity):
-                raise RuntimeError("local control-plane store directory changed during runtime admission")
+                raise OperationalError("local control-plane store directory changed during runtime admission")
             self._active_runtime_lease = lease
             self._provider_closed = False
             self._admitted_scope = (target_scope, run_scope)
@@ -153,7 +170,7 @@ class LocalControlPlaneStore(
             if require_existing:
                 with self._connection() as connection:
                     if connection.execute("PRAGMA journal_mode").fetchone() != ("wal",):
-                        raise RuntimeError("local control-plane maintenance requires WAL journal mode")
+                        raise OperationalError("local control-plane maintenance requires WAL journal mode")
                     self._validate_persisted_state(
                         connection,
                         target_scope=target_scope,
@@ -168,12 +185,13 @@ class LocalControlPlaneStore(
             database_identity = _secure_database_file(self._database_path, allow_missing=False)
             assert database_identity is not None
             self._database_identity = database_identity
-            return lease
         except BaseException:
+            self._snapshot_cache.close()
             self._active_runtime_lease = None
             self._admitted_scope = None
             lease.close()
             raise
+        return lease
 
     def acquire_runtime_lease(self) -> RuntimeOwnerLease:
         """Legacy entry point retained only to fail closed without scope."""
@@ -183,12 +201,13 @@ class LocalControlPlaneStore(
     def _assert_runtime_admitted(self) -> None:
         lease = self._active_runtime_lease
         if lease is None or lease.closed or self._provider_closed:
-            raise RuntimeError("local control-plane store requires live runtime admission")
+            raise OperationalError("local control-plane store requires live runtime admission")
         lease.assert_owner()
 
     def close(self) -> None:
         """Close provider resources without releasing the runtime-owner lease."""
 
+        self._snapshot_cache.close()
         self._provider_closed = True
 
     def commit_terminal_operation(
@@ -210,7 +229,7 @@ class LocalControlPlaneStore(
             existing = self._load_record(connection, record.receipt.operation_id)
             changed = _require_terminal_operation_transition(existing, record)
             if not changed:
-                canonical_snapshot = _snapshot_from_payload(_snapshot_payload(snapshot))
+                canonical_snapshot = _canonical_snapshot(snapshot)
                 current = self._load_snapshot_state(connection)
                 _require_terminal_retry_mode(
                     current_revision=current.revision,
@@ -229,7 +248,7 @@ class LocalControlPlaneStore(
                 return current
             current = self._require_expected_revision(connection, expected_revision)
             if mode is TerminalCommitMode.OPERATION_ONLY:
-                canonical_snapshot = _snapshot_from_payload(_snapshot_payload(snapshot))
+                canonical_snapshot = _canonical_snapshot(snapshot)
                 if current.snapshot != canonical_snapshot:
                     raise ValueError("operation-only terminal commit cannot change the durable snapshot")
                 committed = current
@@ -283,7 +302,7 @@ class LocalControlPlaneStore(
             existing = self._load_record(connection, record.receipt.operation_id)
             if existing == record:
                 _require_operation_audit_binding(record, audit_event)
-                canonical_snapshot = _snapshot_from_payload(_snapshot_payload(snapshot))
+                canonical_snapshot = _canonical_snapshot(snapshot)
                 current = self._load_snapshot_state(connection)
                 _require_terminal_retry_mode(
                     current_revision=current.revision,
@@ -321,7 +340,8 @@ class LocalControlPlaneStore(
     def _load_audits(connection: sqlite3.Connection) -> list[AuditEvent]:
         rows = connection.execute("SELECT payload, digest FROM audit_events ORDER BY sequence").fetchall()
         return [
-            _audit_event_from_payload(_decode_payload(payload, digest, kind="audit event")) for payload, digest in rows
+            _decode_contract(payload, digest, kind="audit event", rebuild=_audit_event_from_payload)
+            for payload, digest in rows
         ]
 
     def _connect(self, *, allow_create: bool = False) -> tuple[sqlite3.Connection, os.stat_result]:
@@ -338,6 +358,8 @@ class LocalControlPlaneStore(
             timeout=_BUSY_TIMEOUT_MILLISECONDS / 1000,
             isolation_level=None,
             uri=True,
+            factory=SnapshotConnection,
+            check_same_thread=False,
         )
         try:
             after = _secure_database_file(self._database_path, allow_missing=False)
@@ -346,9 +368,13 @@ class LocalControlPlaneStore(
                 _require_same_file(before, after, self._database_path, "SQLite opened it")
             if expected_identity is not None:
                 _require_same_file(expected_identity, after, self._database_path, "SQLite opened it")
-            connection.execute(f"PRAGMA busy_timeout={_BUSY_TIMEOUT_MILLISECONDS}")
-            connection.execute("PRAGMA foreign_keys=ON")
-            connection.execute("PRAGMA synchronous=FULL")
+            # Damaged stored text reaches the codec as bytes, which it refuses as damaged state.
+            connection.text_factory = _durable_text
+            # The first statements read the database header: a file that is not a database fails here.
+            with _refuse_invalid_database():
+                connection.execute(f"PRAGMA busy_timeout={_BUSY_TIMEOUT_MILLISECONDS}")
+                connection.execute("PRAGMA foreign_keys=ON")
+                connection.execute("PRAGMA synchronous=FULL")
         except BaseException:
             connection.close()
             raise
@@ -357,8 +383,11 @@ class LocalControlPlaneStore(
     @contextmanager
     def _connection(self, *, allow_create: bool = False) -> Iterator[sqlite3.Connection]:
         connection, connected_metadata = self._connect(allow_create=allow_create)
+        connection.snapshot_cache = self._snapshot_cache
         try:
-            yield connection
+            # A damaged page fails the first later statement that reads it, so the refusal covers every use.
+            with _refuse_invalid_database():
+                yield connection
         finally:
             connection.close()
             closed_metadata = _secure_database_file(self._database_path, allow_missing=False)
@@ -378,7 +407,7 @@ class LocalControlPlaneStore(
             if database_existed:
                 self._require_compatible_scope(connection, target_scope=target_scope, run_scope=run_scope)
             if connection.execute("PRAGMA journal_mode=WAL").fetchone() != ("wal",):
-                raise RuntimeError("local control-plane database did not enter required SQLite WAL journal mode")
+                raise OperationalError("local control-plane database did not enter required SQLite WAL journal mode")
             _validate_sqlite_sidecars(self._database_path)
             connection.executescript(
                 """
@@ -414,6 +443,12 @@ class LocalControlPlaneStore(
             )
             with _transaction(connection):
                 self._bind_runtime_scope(connection, target_scope=target_scope, run_scope=run_scope)
+                initialize_runtime_decisions(connection)
+                from .control_plane_store_history_rows import initialize_history_rows
+                from .control_plane_store_sql_changes import initialize_operation_changes
+
+                initialize_operation_changes(connection)
+                initialize_history_rows(connection)
                 connection.execute(
                     "INSERT OR IGNORE INTO metadata(key, value) VALUES ('schema-version', ?)",
                     (_SCHEMA_VERSION,),
@@ -437,33 +472,9 @@ class LocalControlPlaneStore(
                 )
             quick_check = connection.execute("PRAGMA quick_check").fetchone()
             if quick_check is None or quick_check[0] != "ok":
-                raise ValueError("local control-plane database failed its integrity check")
+                raise EvidenceIntegrityError("local control-plane database failed its integrity check")
         if not database_existed:
             _fsync_directory(self._base_dir)
-
-    @classmethod
-    def _validate_persisted_state(
-        cls,
-        connection: sqlite3.Connection,
-        *,
-        target_scope: str,
-        run_scope: str,
-    ) -> None:
-        """Run strict startup/maintenance validation over one SQLite cut."""
-
-        stored_target, stored_run = cls._scope_metadata(connection)
-        if (stored_target, stored_run) != (target_scope, run_scope):
-            raise RuntimeError("local control-plane store scope does not match runtime admission")
-        schema = connection.execute("SELECT value FROM metadata WHERE key='schema-version'").fetchone()
-        if schema != (_SCHEMA_VERSION,):
-            raise ValueError("unsupported local control-plane database schema")
-        cls._load_snapshot_state(connection)
-        records = cls._load_records(connection)
-        require_operation_record_scopes(records, target_scope=target_scope, run_scope=run_scope)
-        cls._load_audits(connection)
-        quick_check = connection.execute("PRAGMA quick_check").fetchone()
-        if quick_check is None or quick_check[0] != "ok":
-            raise ValueError("local control-plane database failed its integrity check")
 
 
 __all__ = ("LocalControlPlaneStore",)

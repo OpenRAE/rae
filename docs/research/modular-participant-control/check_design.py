@@ -22,7 +22,9 @@ class Slot:
 
 def blockers(slots: tuple[Slot, ...], incumbent_permit: bool) -> frozenset[str]:
     """PC-05/06 projection: mandatory facts/decisions and the incumbent gate."""
-    reasons = {s.name for s in slots if s.mandatory and s.outcome not in {"permit", "fact"}}
+    reasons = {
+        s.name for s in slots if s.mandatory and s.outcome not in {"permit", "fact"}
+    }
     if not incumbent_permit:
         reasons.add("incumbent")
     return frozenset(reasons)
@@ -43,13 +45,26 @@ def step(state: Effect, event: str) -> Effect:
     """PC-10/11 finite abstraction; failed admission/commit never invokes."""
     phase = state.phase
     if event == "claim" and phase == "absent" and state.budget:
-        return replace(state, phase="committed", budget=0, content="inject-A", history=(*state.history, "claim"))
+        return replace(
+            state,
+            phase="committed",
+            budget=0,
+            content="inject-A",
+            history=(*state.history, "claim"),
+        )
     if event == "dispatch" and phase == "committed":
-        return replace(state, phase="dispatching", calls=state.calls + 1, history=(*state.history, "dispatch"))
+        return replace(
+            state,
+            phase="dispatching",
+            calls=state.calls + 1,
+            history=(*state.history, "dispatch"),
+        )
     if event == "observed" and phase in {"dispatching", "indeterminate"}:
         return replace(state, phase="applied", history=(*state.history, "observed"))
     if event == "crash" and phase == "dispatching":
-        return replace(state, phase="indeterminate", history=(*state.history, "unknown"))
+        return replace(
+            state, phase="indeterminate", history=(*state.history, "unknown")
+        )
     # Deny, stale cut, failed commit and same-key replay have no effect.
     # Changed content under the existing key conflicts without replacing it.
     return state
@@ -77,7 +92,9 @@ class DesignChecks(unittest.TestCase):
                 for order in permutations(slots):
                     self.assertEqual(blockers(order, True), expected)
                 self.assertIn("incumbent", blockers(slots, False))
-                if any(s.mandatory and s.outcome not in {"permit", "fact"} for s in slots):
+                if any(
+                    s.mandatory and s.outcome not in {"permit", "fact"} for s in slots
+                ):
                     self.assertTrue(expected)
                 # Adding a mandatory denial cannot make the parent releasable.
                 self.assertTrue(blockers((*slots, Slot("veto", True, "deny")), True))
@@ -91,7 +108,11 @@ class DesignChecks(unittest.TestCase):
 
     def test_finite_ifc_join_laws_and_opaque_memory(self) -> None:
         domain = tuple(
-            frozenset(x for x, selected in zip(("hint", "example"), bits, strict=True) if selected)
+            frozenset(
+                x
+                for x, selected in zip(("hint", "example"), bits, strict=True)
+                if selected
+            )
             for bits in product((False, True), repeat=2)
         )
         for a, b, c in product(domain, repeat=3):
@@ -139,7 +160,10 @@ class DesignChecks(unittest.TestCase):
                 successors.add(new)
             frontier = successors - seen
             seen |= successors
-        self.assertEqual({s.phase for s in seen}, {"absent", "committed", "dispatching", "indeterminate", "applied"})
+        self.assertEqual(
+            {s.phase for s in seen},
+            {"absent", "committed", "dispatching", "indeterminate", "applied"},
+        )
         self.assertFalse(any(step(Effect(), e).calls for e in events))
 
     def test_trigger_cycle_is_finite_and_retry_cannot_reset_root(self) -> None:
@@ -157,9 +181,14 @@ class DesignChecks(unittest.TestCase):
                         next_states.add((used + 1, depth + 1, keys | {key}))
                 states = next_states
             self.assertTrue(
-                all(used == len(keys) and used <= root_limit and depth <= depth_limit for used, depth, keys in states)
+                all(
+                    used == len(keys) and used <= root_limit and depth <= depth_limit
+                    for used, depth, keys in states
+                )
             )
-            self.assertEqual(max(used for used, _, _ in states), min(root_limit, depth_limit))
+            self.assertEqual(
+                max(used for used, _, _ in states), min(root_limit, depth_limit)
+            )
 
     def test_delivery_dependencies_and_independent_backend_selection(self) -> None:
         graph = json.loads(Path(__file__).with_name("delivery.json").read_text())
@@ -175,7 +204,9 @@ class DesignChecks(unittest.TestCase):
             visiting.add(key)
             node = nodes[key]
             dependencies = (
-                node["requires_all"] + sum(node["requires_any"], []) + node.get("requires_for_adversarial_claims", [])
+                node["requires_all"]
+                + sum(node["requires_any"], [])
+                + node.get("requires_for_adversarial_claims", [])
             )
             for dependency in dependencies:
                 self.assertIn(dependency, nodes)
@@ -185,13 +216,16 @@ class DesignChecks(unittest.TestCase):
 
         for key in nodes:
             visit(key)
-        evaluation = nodes["OpenRAE/rae#1007"]
-        alternatives = set(evaluation["requires_any"][0])
-        self.assertEqual(alternatives, {"OpenRAE/lilrae#22", "Brad-Edwards/shifter#1969"})
-        for backend in alternatives:
-            completed = set(evaluation["requires_all"]) | {backend}
-            self.assertTrue(all(completed.intersection(group) for group in evaluation["requires_any"]))
-        self.assertFalse(set(evaluation["requires_all"]).intersection(alternatives))
+        for key in ("OpenRAE/rae#1007", "OpenRAE/rae#1008"):
+            node = nodes[key]
+            self.assertFalse(node["requires_any"])
+            self.assertTrue(
+                all(dep.startswith("OpenRAE/rae#") for dep in node["requires_all"])
+            )
+        guidance = nodes["OpenRAE/hub#37"]
+        self.assertTrue(
+            guidance["requires_any"]
+        )  # Concrete executable guidance retains its own evidence gate.
         # Cross-repo UIDs explicitly reference RAES records, all of which must exist.
         repo = Path(__file__).resolve().parents[3]
         for node in nodes.values():

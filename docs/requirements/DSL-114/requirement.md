@@ -34,3 +34,6 @@ Requirement inventory expansion. The author-facing language needs an explicit su
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/external_concept_bindings.py` (Portable external concept binding contract)
 - IMPLEMENTS → SPEC `contracts/schemas/concept-authority/external-concept-bindings-v1.json` (Published external concept bindings schema)
 - DOCUMENTS → GITHUB_ISSUE `OpenRAE/rae#104` (External knowledge reference surface (DSL-114))
+- IMPLEMENTS → SPEC `contracts/schemas/candidate-synthesis/sdl-candidate-synthesis-input-v1.json` (sdl-candidate-synthesis-input-v1 published schema)
+- IMPLEMENTS → SPEC `contracts/schemas/candidate-synthesis/sdl-candidate-synthesis-profile-v1.json` (sdl-candidate-synthesis-profile-v1 published schema)
+- IMPLEMENTS → SPEC `contracts/schemas/candidate-synthesis/sdl-candidate-synthesis-record-v1.json` (sdl-candidate-synthesis-record-v1 published schema)

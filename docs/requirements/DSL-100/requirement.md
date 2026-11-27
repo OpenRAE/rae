@@ -21,6 +21,9 @@ Current state: partially implemented. A usable ecosystem needs a clear language 
 
 ## Traceability
 
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/parameter_derivations.py` (Portable configurable parameter derivation contract)
+- TESTS → TEST `implementations/python/tests/test_issue_1481_parameter_authority.py` (Composed module strings and serialized phase evidence)
+
 - DOCUMENTS → DOCUMENTATION `docs/explain/sdl/parser.md`
 - DOCUMENTS → DOCUMENTATION `docs/explain/sdl/validation.md`
 - DOCUMENTS → DOCUMENTATION `docs/explain/sdl/testing.md`

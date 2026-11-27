@@ -24,6 +24,8 @@ from tools.specification_coverage._primitives import (
     _bounded_text,
     _exact_keys,
     _failure,
+    _hashable,
+    _member,
     _record_ids,
     _sha256,
     _valid_id,
@@ -135,7 +137,7 @@ def _source_entry_failures(
     failures: list[PolicyFailure],
     path: str,
 ) -> None:
-    if source.get("stratum_id") not in stratum_ids:
+    if not _member(source.get("stratum_id"), stratum_ids):
         failures.append(_failure("specification-coverage-sources", "source has unknown stratum", path))
     if not _validate_https_locator(source.get("locator")):
         failures.append(
@@ -221,12 +223,18 @@ def _stratum_floor_failures(
     failures: list[PolicyFailure],
     path: str,
 ) -> None:
-    counts = Counter(source.get("stratum_id") for source in sources if isinstance(source, dict))
+    counts = Counter(
+        source.get("stratum_id")
+        for source in sources
+        if isinstance(source, dict) and _hashable(source.get("stratum_id"))
+    )
     for stratum in strata:
         if not isinstance(stratum, dict):
             continue
         minimum = stratum.get("minimum_sources")
-        if not isinstance(minimum, int) or minimum < 1 or counts[stratum.get("stratum_id")] < minimum:
+        stratum_id = stratum.get("stratum_id")
+        count = counts[stratum_id] if _hashable(stratum_id) else 0
+        if not isinstance(minimum, int) or minimum < 1 or count < minimum:
             failures.append(
                 _failure(
                     "specification-coverage-strata",
@@ -245,7 +253,7 @@ def _request_entry_failures(
     path: str,
 ) -> None:
     refs = request.get("source_refs")
-    if not isinstance(refs, list) or not refs or not all(ref in source_ids for ref in refs):
+    if not isinstance(refs, list) or not refs or not all(_member(ref, source_ids) for ref in refs):
         failures.append(
             _failure(
                 "specification-coverage-requests",
@@ -253,7 +261,7 @@ def _request_entry_failures(
                 path,
             )
         )
-    if request.get("stratum_id") not in stratum_ids:
+    if not _member(request.get("stratum_id"), stratum_ids):
         failures.append(
             _failure(
                 "specification-coverage-requests",

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from enum import Enum, auto
-from typing import Literal, TypeVar
+from typing import Literal
 
 from pydantic import Field, StrictBool, StrictFloat, StrictInt, StrictStr, field_validator, model_validator
 
@@ -72,7 +72,6 @@ class RuntimeFactBindingDisposition(_LowercaseNameEnum):
 
 
 RuntimeFactScalar = StrictBool | StrictInt | StrictFloat | StrictStr
-_ModelT = TypeVar("_ModelT")
 
 
 def _unique(values: list[str], field_name: str) -> list[str]:
@@ -468,8 +467,8 @@ def _validate_projection_version_metadata(
         raise ValueError("projection metadata must match its immutable fact version")
 
 
-def _unique_index(items: list[_ModelT], field_name: str, kind: str) -> dict[str, _ModelT]:
-    indexed: dict[str, _ModelT] = {}
+def _unique_index[ModelT](items: list[ModelT], field_name: str, kind: str) -> dict[str, ModelT]:
+    indexed: dict[str, ModelT] = {}
     for item in items:
         key = getattr(item, field_name)
         if key in indexed:

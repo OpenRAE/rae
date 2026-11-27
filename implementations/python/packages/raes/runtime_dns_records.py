@@ -3,12 +3,17 @@
 import ipaddress
 
 from pydantic import Field, ValidationInfo, field_validator, model_validator
+from raes_contracts.governed_vocabulary import GovernedVocabulary
+from raes_contracts.runtime_values import (
+    coerce_string_list,
+    parse_runtime_enum_or_var,
+    require_non_empty,
+    require_symbol,
+)
+from raes_contracts.sdl_model import SDLModel
+from raes_contracts.variable_references import is_variable_ref, parse_int_or_var
 
-from raes.runtime_vocabulary import GovernedVocabulary
-
-from ._base import SDLModel, is_variable_ref, parse_int_or_var
 from .runtime_dns_vocab import DnsRecordClass, DnsRecordProvenance, DnsRecordType
-from .runtime_values import coerce_string_list, parse_runtime_enum_or_var, require_non_empty, require_symbol
 
 __all__ = [
     "DnsMxRdata",
@@ -145,7 +150,7 @@ class DnsResourceRecord(SDLModel):
         return v
 
     @model_validator(mode="after")
-    def validate_payload_present(self) -> "DnsResourceRecord":
+    def validate_payload_present(self) -> DnsResourceRecord:
         if any((self.rdata, self.address, self.target, self.text, self.soa, self.mx, self.srv)):
             return self
         raise ValueError("DNS record must carry rdata or a typed payload")
@@ -205,7 +210,7 @@ class DnsResourceRecordSet(SDLModel):
         return parse_runtime_enum_or_var(v, DnsRecordProvenance, field_name="provenance")
 
     @model_validator(mode="after")
-    def validate_rrset(self) -> "DnsResourceRecordSet":
+    def validate_rrset(self) -> DnsResourceRecordSet:
         if not self.records:
             raise ValueError("DNS RRset records must not be empty")
         record_type_is_variable = _is_unresolved_variable(self.record_type)

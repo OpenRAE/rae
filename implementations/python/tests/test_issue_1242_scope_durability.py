@@ -33,7 +33,7 @@ def test_durable_retry_never_replays_a_denied_or_completed_augmentation(tmp_path
         receipt = control.submit_provisioning(execution.provisioning, idempotency_key="scope-once")
         assert receipt.accepted, receipt.diagnostics
         operation = control.get_operation(receipt.operation_id)
-        assert operation.state is (OperationState.FAILED if permission == "closed" else OperationState.SUCCEEDED)
+        assert operation.state is (OperationState.INDETERMINATE if permission == "closed" else OperationState.SUCCEEDED)
         assert backend.calls == (0 if permission == "closed" else 1)
         assert bool(control.snapshot.materialization_attestations) is (permission == "open")
         if permission == "closed":

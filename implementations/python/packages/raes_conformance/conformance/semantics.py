@@ -16,7 +16,7 @@ from raes_processor.models import ParticipantBehaviorHistoryEvent
 
 from raes_conformance.conformance.diagnostics import (
     _SEMANTIC_INVALID_DIAGNOSTIC_CODE,
-    _diagnostic,
+    conformance_diagnostic,
     sanitized_failure_message,
 )
 from raes_conformance.conformance.observability import observability_evidence_conformance_diagnostics
@@ -27,6 +27,15 @@ from raes_conformance.conformance.snapshot_semantics import (
 from raes_conformance.conformance.validators import _SEMANTIC_CONTEXT_REQUIRED_CONTRACTS, _validate_payload
 
 _SEMANTIC_CONTEXT_REQUIRED_MESSAGES = {
+    **dict.fromkeys(
+        (
+            "participant-control-context-asset-v1",
+            "participant-control-context-change-v1",
+            "participant-control-context-record-v1",
+        ),
+        "Full control-context conformance requires trusted version, lifecycle, authority, recipient, cut "
+        "and content inputs; fixture validation is structural only",
+    ),
     "associated-artifact-manifest-v1": (
         "full associated-artifact conformance requires a concrete parent and bounded byte readers; "
         "the generic fixture runner establishes structural validity only"
@@ -52,7 +61,7 @@ def _state_semantic_diagnostics(
         state_model.from_payload(payload)
     except (TypeError, ValueError) as exc:
         return [
-            _diagnostic(
+            conformance_diagnostic(
                 _SEMANTIC_INVALID_DIAGNOSTIC_CODE,
                 contract_name,
                 f"{invalid_message}: {sanitized_failure_message(exc)}",
@@ -70,7 +79,7 @@ def _event_stream_semantic_diagnostics(
 ) -> list[Diagnostic]:
     if not isinstance(payload, list):
         return [
-            _diagnostic(
+            conformance_diagnostic(
                 _SEMANTIC_INVALID_DIAGNOSTIC_CODE,
                 contract_name,
                 payload_type_message,
@@ -83,7 +92,7 @@ def _event_stream_semantic_diagnostics(
             event_model.from_payload(event)
         except (TypeError, ValueError) as exc:
             diagnostics.append(
-                _diagnostic(
+                conformance_diagnostic(
                     _SEMANTIC_INVALID_DIAGNOSTIC_CODE,
                     f"{contract_name}[{index}]",
                     f"{invalid_message}: {sanitized_failure_message(exc)}",
@@ -100,7 +109,7 @@ def _participant_behavior_stream_diagnostics(contract_name: str, payload: object
                 ParticipantBehaviorHistoryEvent.from_payload(event)
             except (TypeError, ValueError) as exc:
                 diagnostics.append(
-                    _diagnostic(
+                    conformance_diagnostic(
                         _SEMANTIC_INVALID_DIAGNOSTIC_CODE,
                         f"{contract_name}[{index}]",
                         f"participant behavior history event semantics are invalid: {sanitized_failure_message(exc)}",
@@ -168,7 +177,10 @@ def _fixture_case_diagnostics(contract_name: str, payload: object) -> list[Diagn
                 code="conformance.semantic-context-required",
                 domain="conformance",
                 address="#",
-                message=_SEMANTIC_CONTEXT_REQUIRED_MESSAGES[contract_name],
+                message=_SEMANTIC_CONTEXT_REQUIRED_MESSAGES.get(
+                    contract_name,
+                    "Full conformance requires trusted semantic context; fixture validation is structural only",
+                ),
                 severity=Severity.ERROR,
             )
         ]

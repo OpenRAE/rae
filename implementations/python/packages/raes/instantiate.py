@@ -13,11 +13,11 @@ from dataclasses import dataclass
 from typing import Any, ClassVar
 
 from pydantic import ConfigDict, Field, ValidationError
+from raes_contracts.identifiers import QualifiedName
+from raes_contracts.variable_references import VARIABLE_TOKEN_RE, extract_variable_name
 
-from ._base import VARIABLE_TOKEN_RE, extract_variable_name
-from ._capability_constraints import capture_capability_constraints
+from ._capability_constraints import capture_bound_parameter_provenance
 from ._errors import SDLInstantiationError, SDLValidationError
-from ._identifiers import QualifiedName
 from ._mapping_scopes import HASHMAP_SECTIONS
 from .canonical import canonical_sdl_digest
 from .explicitness import ExplicitnessRecord, derive_instantiated_explicitness
@@ -27,6 +27,7 @@ from .phase_contracts import (
     ExplicitnessProvenanceRecord,
     InstantiationProvenance,
     ParameterBinding,
+    ParameterDerivation,
     SemanticDigest,
     TrialInstantiationProvenance,
 )
@@ -59,6 +60,7 @@ class _BoundScenarioResult:
     content: _BoundScenarioContent
     bindings: tuple[ParameterBinding, ...]
     capability_constraints: tuple[CapabilityConstraint, ...]
+    parameter_derivations: tuple[ParameterDerivation, ...]
     explicitness: tuple[ExplicitnessProvenanceRecord, ...]
     realization_designations: tuple[RealizationDesignationRecord, ...]
     realization_constraints: tuple[RealizationConstraintRecord, ...]
@@ -158,7 +160,7 @@ def _substitute_value(
             )
             for key, nested_value in value.items()
         }
-    if isinstance(value, list):
+    if isinstance(value, (list, tuple)):
         return [
             _substitute_value(
                 nested_value,
@@ -313,20 +315,19 @@ def _bind_scenario_content(
     if errors:
         raise SDLInstantiationError(errors)
 
-    local_constraints = tuple(
-        constraint
-        for constraint in capture_capability_constraints(raw_scenario)
-        if not constraint.parameter or constraint.parameter[0] not in preserved
-    )
+    local_constraints, derivations = capture_bound_parameter_provenance(raw_scenario, preserved)
     raw_payload = raw_scenario.model_dump(mode="python", by_alias=True)
     _preserve_listener_protocol_presence(raw_payload, raw_scenario)
     unresolved_refs: set[str] = set()
+    pinned_assets = raw_payload.pop("control_context_assets", None)
     substituted_payload = _substitute_value(
         raw_payload,
         variable_values=variable_values,
         unresolved_refs=unresolved_refs,
         preserved=preserved,
     )
+    if pinned_assets is not None:
+        substituted_payload["control_context_assets"] = pinned_assets
     if unresolved_refs:
         unresolved_list = ", ".join(sorted(unresolved_refs))
         raise SDLInstantiationError(
@@ -340,6 +341,12 @@ def _bind_scenario_content(
     for authoring_field in ("imports", "module", "realization", "expansion_provenance"):
         substituted_payload.pop(authoring_field, None)
     try:
+        from ._behavior_authoring import validate_authored_behavior_references
+
+        validate_authored_behavior_references(
+            substituted_payload,
+            generated_from=raw_payload if isinstance(raw_scenario, ExpandedScenario) else None,
+        )
         content = _BoundScenarioContent.model_validate(substituted_payload)
     except ValidationError as exc:
         raise SDLInstantiationError(_safe_model_validation_errors(exc)) from exc
@@ -364,6 +371,7 @@ def _bind_scenario_content(
         else ()
     )
     if isinstance(raw_scenario, ExpandedScenario):
+        derivations = (*raw_scenario.expansion_provenance.parameter_derivations, *derivations)
         constraints, realization_designations, realization_constraints = _merge_expanded_provenance(
             raw_scenario,
             local_constraints,
@@ -381,6 +389,7 @@ def _bind_scenario_content(
             for name, value in variable_values.items()
         ),
         capability_constraints=constraints,
+        parameter_derivations=derivations,
         explicitness=tuple(explicitness_by_path.values()),
         realization_designations=realization_designations,
         realization_constraints=realization_constraints,
@@ -451,6 +460,7 @@ def instantiate_scenario(
         bindings=bound.bindings,
         imports=expansion.imports if expansion is not None else (),
         capability_constraints=bound.capability_constraints,
+        parameter_derivations=bound.parameter_derivations,
         explicitness=bound.explicitness,
         realization_designations=bound.realization_designations,
         realization_constraints=bound.realization_constraints,
@@ -466,6 +476,7 @@ def instantiate_scenario(
         instantiated = InstantiatedScenario.model_validate(payload)
     except ValidationError as exc:
         raise SDLInstantiationError(_safe_model_validation_errors(exc)) from exc
+    instantiated._set_declaration_sources(raw_scenario.declaration_sources)
     try:
         return admit_instantiated_scenario(instantiated)
     except SDLValidationError as exc:

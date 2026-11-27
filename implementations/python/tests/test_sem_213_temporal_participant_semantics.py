@@ -7,13 +7,13 @@ import textwrap
 import pytest
 from raes._errors import SDLParseError
 from raes.parser import parse_sdl
-from raes.participant_behavior import ParticipantEffectClass, ParticipantPreconditionClass
-from raes.participant_temporal_semantics import (
-    ParticipantTemporalContractKind,
+from raes.participant_temporal_semantics import ParticipantTemporalContractKind
+from raes_contracts.contracts import ParticipantBehaviorHistoryEventModel
+from raes_contracts.participant_action_semantics import ParticipantEffectClass, ParticipantPreconditionClass
+from raes_contracts.participant_temporal_vocabulary import (
     ParticipantTemporalEventPoint,
     ParticipantTimeDomain,
 )
-from raes_contracts.contracts import ParticipantBehaviorHistoryEventModel
 from raes_processor.compiler import compile_runtime_model
 from raes_processor.models import (
     ParticipantActionEffectResult,
@@ -561,3 +561,18 @@ def test_contract_schema_publishes_temporal_context_payload() -> None:
     assert "temporal_contexts" in schema["properties"]
     temporal_ref = schema["properties"]["temporal_contexts"]["items"]["$ref"]
     assert temporal_ref.endswith("/ParticipantTemporalRuntimeContextModel")
+
+
+def test_temporal_transition_violation_omits_the_parser_exception_text(monkeypatch) -> None:
+    marker = "temporal-value-marker-1678"
+
+    def refuse(cls, payload):
+        raise ValueError(marker)
+
+    monkeypatch.setattr(ParticipantTemporalStateTransition, "from_payload", classmethod(refuse))
+    violations = list(iter_participant_temporal_state_machine_violations([{"transition_id": "t1"}]))
+
+    assert violations == [
+        ("participant temporal state transition[0]", "participant temporal state transition is invalid")
+    ]
+    assert all(marker not in message for _, message in violations)

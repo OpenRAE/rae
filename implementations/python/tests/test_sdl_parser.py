@@ -1108,6 +1108,50 @@ class TestErrorHandling:
         with pytest.raises(SDLParseError, match="name"):
             parse_sdl("description: no name or metadata")
 
+    def test_unresolved_namespaced_forwarding_agent_scope_is_a_validation_error(self):
+        """Authored input never escapes the parser as a built-in exception (ADR-116 rule E1)."""
+        source = """
+name: unresolved-scope
+nodes:
+  host: {type: compute, os: linux}
+execution_policy:
+  default: {policy_id: once, response: terminate}
+  scopes:
+    - scope: /forwarding_agents/9
+      namespace: [shared]
+      policy: {policy_id: scoped, response: terminate}
+"""
+        with pytest.raises(SDLValidationError, match="does not resolve to an authored location"):
+            parse_sdl(source)
+
+    def test_imported_forwarding_agent_scope_without_identity_is_a_parse_error(self, tmp_path: Path):
+        """Composition refusals are SDL parse errors, not built-in exceptions (ADR-116 rule E1)."""
+        (tmp_path / "module.yaml").write_text(
+            """
+name: module
+module:
+  id: acme/module
+  version: 1.0.0
+  exports:
+    nodes: [host]
+nodes:
+  host: {type: compute, os: linux}
+augmentation_scope:
+  default: open
+  scopes:
+    - scope: /forwarding_agents/7
+      permission: closed
+""",
+            encoding="utf-8",
+        )
+        root = tmp_path / "root.yaml"
+        root.write_text(
+            "name: root\nimports:\n  - source: local:module.yaml\n    namespace: shared\n",
+            encoding="utf-8",
+        )
+        with pytest.raises(SDLParseError, match="no stable forwarding-agent identity"):
+            parse_sdl_file(root)
+
 
 class TestSkipSemanticValidation:
     def test_structural_only(self):

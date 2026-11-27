@@ -5,6 +5,8 @@ Part of the SemanticValidator mixin composition; see __init__.py.
 
 from collections import defaultdict
 
+from .._reference_targetability import ReferencePurpose
+
 
 class _RuntimePlatformMixin:
     def _verify_runtime_security_monitoring_managers(self) -> None:
@@ -22,12 +24,13 @@ class _RuntimePlatformMixin:
             service_names = self._node_service_names(node)
             observed_paths = self._node_observed_paths(node)
             for manager in runtime.security_monitoring_managers:
-                self._verify_security_monitoring_manager(
-                    node_name=node_name,
-                    manager=manager,
-                    service_names=service_names,
-                    observed_paths=observed_paths,
-                )
+                with self._owner(("nodes", node_name)):
+                    self._verify_security_monitoring_manager(
+                        node_name=node_name,
+                        manager=manager,
+                        service_names=service_names,
+                        observed_paths=observed_paths,
+                    )
 
     def _verify_security_monitoring_manager(
         self,
@@ -194,7 +197,7 @@ class _RuntimePlatformMixin:
                 target_ref,
                 owner_label=definition_label,
                 ref_label="target_ref",
-                targetable=True,
+                purpose=ReferencePurpose.TARGETABLE,
             )
 
     def _verify_sm_settings(
@@ -250,17 +253,18 @@ class _RuntimePlatformMixin:
             authorization_ids = self._node_app_authorization_ids(runtime)
             for datastore in runtime.datastore_services:
                 owner_label = f"Node '{node_name}' runtime datastore service '{datastore.datastore_service_id}'"
-                self._verify_owned_service_ref(
-                    node_name,
-                    getattr(datastore, "service", ""),
-                    service_names,
-                    owner_label=owner_label,
-                )
-                self._verify_runtime_authorization_ref(
-                    getattr(datastore, "authorization_ref", ""),
-                    authorization_ids,
-                    owner_label=owner_label,
-                )
+                with self._owner(("nodes", node_name)):
+                    self._verify_owned_service_ref(
+                        node_name,
+                        getattr(datastore, "service", ""),
+                        service_names,
+                        owner_label=owner_label,
+                    )
+                    self._verify_runtime_authorization_ref(
+                        getattr(datastore, "authorization_ref", ""),
+                        authorization_ids,
+                        owner_label=owner_label,
+                    )
 
     def _verify_runtime_platform_applications(self) -> None:
         """Validate observed platform-application inventories against the scenario.
@@ -279,12 +283,13 @@ class _RuntimePlatformMixin:
             service_names = self._node_service_names(node)
             authorization_ids = self._node_app_authorization_ids(runtime)
             for application in runtime.platform_applications:
-                self._verify_platform_application(
-                    node_name=node_name,
-                    application=application,
-                    service_names=service_names,
-                    authorization_ids=authorization_ids,
-                )
+                with self._owner(("nodes", node_name)):
+                    self._verify_platform_application(
+                        node_name=node_name,
+                        application=application,
+                        service_names=service_names,
+                        authorization_ids=authorization_ids,
+                    )
 
     def _verify_platform_application(
         self,
@@ -371,10 +376,11 @@ class _RuntimePlatformMixin:
         for agent in self._s.forwarding_agents:
             owner_label = f"Scenario forwarding agent '{agent.forwarding_agent_id}'"
             for target in agent.ship_targets:
-                self._verify_scenario_forwarding_ship_target(
-                    target=target,
-                    owner_label=f"{owner_label} ship_target '{target.target_id}'",
-                )
+                with self._owner(("forwarding_agents", agent.forwarding_agent_id)):
+                    self._verify_scenario_forwarding_ship_target(
+                        target=target,
+                        owner_label=f"{owner_label} ship_target '{target.target_id}'",
+                    )
         for node_name, node in self._s.nodes.items():
             runtime = getattr(node, "runtime", None)
             if runtime is None or not runtime.forwarding_agents:
@@ -383,12 +389,13 @@ class _RuntimePlatformMixin:
             for agent in runtime.forwarding_agents:
                 owner_label = f"Node '{node_name}' runtime forwarding agent '{agent.forwarding_agent_id}'"
                 for target in agent.ship_targets:
-                    self._verify_forwarding_ship_target(
-                        node_name=node_name,
-                        local_service_names=local_service_names,
-                        target=target,
-                        owner_label=f"{owner_label} ship_target '{target.target_id}'",
-                    )
+                    with self._owner(("nodes", node_name)):
+                        self._verify_forwarding_ship_target(
+                            node_name=node_name,
+                            local_service_names=local_service_names,
+                            target=target,
+                            owner_label=f"{owner_label} ship_target '{target.target_id}'",
+                        )
 
     def _verify_forwarding_agent_id_uniqueness(self) -> None:
         locations: dict[str, list[str]] = defaultdict(list)

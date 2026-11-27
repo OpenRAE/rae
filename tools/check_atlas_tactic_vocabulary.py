@@ -13,15 +13,20 @@ from pathlib import Path
 from typing import Any
 
 import yaml
+from pydantic import ValidationError
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-if str(REPO_ROOT) not in sys.path:
-    sys.path.insert(0, str(REPO_ROOT))
+RAES_PACKAGES_ROOT = REPO_ROOT / "implementations" / "python" / "packages"
+for _source_root in (REPO_ROOT, RAES_PACKAGES_ROOT):
+    if str(_source_root) not in sys.path:
+        sys.path.insert(0, str(_source_root))
 
 from raes_contracts.contracts import (  # noqa: E402
     AtlasTacticsSourceModel,
     ControlledVocabularyCatalogModel,
 )
+from raes_contracts.errors import InvalidInputError, OperationalError  # noqa: E402
+from raes_contracts.operational_logging import run_application  # noqa: E402
 
 VOCABULARY_ID = "participant-ai-offensive-behavior-activities"
 CATALOG_RELATIVE_PATH = "contracts/concept-authority/controlled-vocabularies-v1.json"
@@ -43,7 +48,18 @@ MATRIX_ID = "ATLAS-matrix"
 
 
 def _load_json(path: Path) -> Any:
-    return json.loads(path.read_text(encoding="utf-8"))
+    def bounded_integer(literal: str) -> int:
+        # The decoder passes only JSON integer literals, so int() fails only beyond the interpreter digit limit.
+        try:
+            return int(literal)
+        except ValueError as exc:
+            raise InvalidInputError(f"{path.name} contains an integer beyond the digit limit") from exc
+
+    try:
+        return json.loads(path.read_text(encoding="utf-8"), parse_int=bounded_integer)
+    except RecursionError as exc:
+        # Without a depth limit, the recursive decoder stops at the interpreter recursion limit.
+        raise InvalidInputError(f"{path.name} nests beyond the JSON decoder depth") from exc
 
 
 def _sha256_digest(data: bytes) -> str:
@@ -60,29 +76,29 @@ def _tactic_url(tactic_id: str) -> str:
 
 def _extract_atlas_tactics(atlas_payload: dict[str, Any]) -> list[dict[str, Any]]:
     if atlas_payload.get("format-version") != SOURCE_FORMAT_VERSION:
-        raise ValueError(
+        raise InvalidInputError(
             f"ATLAS payload format-version is {atlas_payload.get('format-version')!r}; "
             f"expected {SOURCE_FORMAT_VERSION!r}"
         )
     collection = atlas_payload.get("collection", {})
     if collection.get("id") != COLLECTION_ID or collection.get("version") != SOURCE_VERSION:
-        raise ValueError("ATLAS payload collection id/version does not match the pinned source metadata")
+        raise InvalidInputError("ATLAS payload collection id/version does not match the pinned source metadata")
     matrix = atlas_payload.get("matrix", {})
     if matrix.get("id") != MATRIX_ID:
-        raise ValueError(f"ATLAS payload matrix id is {matrix.get('id')!r}; expected {MATRIX_ID!r}")
+        raise InvalidInputError(f"ATLAS payload matrix id is {matrix.get('id')!r}; expected {MATRIX_ID!r}")
 
     tactics = atlas_payload.get("tactics", {})
     sequences = atlas_payload.get("relationships", {}).get(MATRIX_ID, {}).get("sequences", [])
     extracted: list[dict[str, Any]] = []
     for sequence in sorted(sequences, key=lambda item: item["position"]):
         if sequence.get("source") != MATRIX_ID or sequence.get("relationship-type") != "sequences":
-            raise ValueError(f"ATLAS matrix sequence has unexpected shape: {sequence!r}")
+            raise InvalidInputError(f"ATLAS matrix sequence has unexpected shape: {sequence!r}")
         tactic_id = str(sequence["target"])
         tactic = tactics.get(tactic_id)
         if tactic is None:
-            raise ValueError(f"ATLAS matrix references missing tactic {tactic_id!r}")
+            raise InvalidInputError(f"ATLAS matrix references missing tactic {tactic_id!r}")
         if tactic.get("object-type") != "tactic" or tactic.get("id") != tactic_id:
-            raise ValueError(f"ATLAS tactic {tactic_id!r} has unexpected object-type/id")
+            raise InvalidInputError(f"ATLAS tactic {tactic_id!r} has unexpected object-type/id")
         attack_reference = tactic.get("attack-reference") or {}
         extracted.append(
             {
@@ -238,8 +254,12 @@ def _remote_url_failure(source: AtlasTacticsSourceModel, selected_url: str) -> s
     if source.source_url != selected_url:
         failure = f"{SOURCE_RELATIVE_PATH}: source URL differs from the reviewed lock selection"
     else:
-        parsed = urllib.parse.urlparse(selected_url)
-        if parsed.scheme != "https" or parsed.netloc != "github.com" or parsed.path != expected_path:
+        try:
+            parsed = urllib.parse.urlparse(selected_url)
+        except ValueError:
+            # urlparse refuses a malformed authority, such as an unclosed IPv6 bracket.
+            parsed = None
+        if parsed is None or parsed.scheme != "https" or parsed.netloc != "github.com" or parsed.path != expected_path:
             failure = (
                 f"{SOURCE_RELATIVE_PATH}: remote verification URL must stay pinned to the v2026.06 GitHub release asset"
             )
@@ -251,8 +271,8 @@ def _check_remote(
     *,
     local_input: Path | None = None,
 ) -> list[str]:
-    from tools.maintained_client_acquisition import acquire_locked_bytes
-    from tools.tooling_policy_gate import load_tooling_artifact_selection
+    from tools.maintained_client_acquisition import ArtifactAcquisitionError, acquire_locked_bytes
+    from tools.tooling_policy_gate import ArtifactPolicyError, load_tooling_artifact_selection
 
     selection = load_tooling_artifact_selection(
         artifact_id="atlas-tactics-snapshot",
@@ -261,7 +281,7 @@ def _check_remote(
         profile_id="source-snapshot",
     )
     if len(selection.source_urls) != 1 or len(selection.raw_manifest) != 1:
-        raise RuntimeError("ATLAS lock selection must contain one source and raw snapshot")
+        raise ArtifactPolicyError("ATLAS lock selection must contain one source and raw snapshot")
     url_failure = _remote_url_failure(source, selection.source_urls[0])
     if url_failure is not None:
         return [url_failure]
@@ -272,7 +292,7 @@ def _check_remote(
             expected=selection.raw_manifest[0],
             local_input=local_input,
         )
-    except RuntimeError as error:
+    except ArtifactAcquisitionError as error:
         return [f"{SOURCE_RELATIVE_PATH}: {error}"]
     failures: list[str] = []
     if _sha256_digest(data) != source.source_digest:
@@ -302,8 +322,7 @@ def parse_args() -> argparse.Namespace:
     return args
 
 
-def main() -> int:
-    args = parse_args()
+def _failures(args: argparse.Namespace) -> list[str]:
     source = AtlasTacticsSourceModel.model_validate(_load_json(REPO_ROOT / SOURCE_RELATIVE_PATH))
     catalog = ControlledVocabularyCatalogModel.model_validate(_load_json(REPO_ROOT / CATALOG_RELATIVE_PATH))
 
@@ -311,6 +330,24 @@ def main() -> int:
     failures.extend(_check_catalog(catalog, source))
     if args.verify_remote:
         failures.extend(_check_remote(source, local_input=args.local_input))
+    return failures
+
+
+def main() -> int:
+    args = parse_args()
+    try:
+        failures = _failures(args)
+    except (
+        OSError,
+        UnicodeDecodeError,
+        json.JSONDecodeError,
+        yaml.YAMLError,
+        ValidationError,
+        InvalidInputError,
+        OperationalError,
+    ) as exc:
+        print(f"[atlas-tactic-vocabulary] {exc}", file=sys.stderr)
+        return 1
 
     for failure in failures:
         print(f"[atlas-tactic-vocabulary] {failure}", file=sys.stderr)
@@ -318,4 +355,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(run_application(main))

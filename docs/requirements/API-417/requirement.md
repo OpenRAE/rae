@@ -17,3 +17,8 @@ The ecosystem shall define plain-data contracts for participant episode initiali
 ## Rationale
 
 Primary-source refresh shows that episode lifecycle handling needs portable external contracts rather than backend-local conventions.
+
+## Traceability
+
+- IMPLEMENTS → SPEC `contracts/schemas/control-plane/participant-episode-history-event-stream-v1.json` (participant-episode-history-event-stream-v1 published schema)
+- IMPLEMENTS → SPEC `contracts/schemas/control-plane/participant-episode-state-envelope-v1.json` (participant-episode-state-envelope-v1 published schema)

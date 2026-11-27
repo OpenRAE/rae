@@ -1,0 +1,825 @@
+{
+  "$defs": {
+    "BackendOperationBindingModel": {
+      "additionalProperties": false,
+      "description": "Original context and invocation identity, including state-publication fences.",
+      "properties": {
+        "attempt_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Attempt Id",
+          "type": "string"
+        },
+        "backend_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Backend Id",
+          "type": "string"
+        },
+        "baseline_revision": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Baseline Revision",
+          "type": "string"
+        },
+        "context": {
+          "$ref": "#/$defs/OperationAdmissionContext"
+        },
+        "deployment_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Deployment Id",
+          "type": "string"
+        },
+        "effect_scope": {
+          "$ref": "#/$defs/OperationEffectScopeModel"
+        },
+        "execution_generation": {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "title": "Execution Generation",
+          "type": "integer"
+        },
+        "invocation_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Invocation Id",
+          "type": "string"
+        },
+        "operation_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Operation Id",
+          "type": "string"
+        },
+        "owner_generation": {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "title": "Owner Generation",
+          "type": "integer"
+        },
+        "worker_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Worker Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "operation_id",
+        "invocation_id",
+        "attempt_id",
+        "worker_id",
+        "deployment_id",
+        "owner_generation",
+        "execution_generation",
+        "backend_id",
+        "baseline_revision",
+        "context"
+      ],
+      "title": "BackendOperationBindingModel",
+      "type": "object"
+    },
+    "MixedBackendDeliveryStageModel": {
+      "additionalProperties": false,
+      "description": "Destination receipt read back by the pinned delivery reader, not the bridge.",
+      "properties": {
+        "destination_component_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Destination Component Id",
+          "type": "string"
+        },
+        "evidence_refs": {
+          "items": {
+            "maxLength": 256,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 64,
+          "minItems": 1,
+          "title": "Evidence Refs",
+          "type": "array"
+        },
+        "producer": {
+          "$ref": "#/$defs/MixedBackendServiceModel"
+        },
+        "receipt_ref": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Receipt Ref",
+          "type": "string"
+        },
+        "stage": {
+          "const": "delivery",
+          "title": "Stage",
+          "type": "string"
+        }
+      },
+      "required": [
+        "stage",
+        "producer",
+        "destination_component_id",
+        "receipt_ref",
+        "evidence_refs"
+      ],
+      "title": "MixedBackendDeliveryStageModel",
+      "type": "object"
+    },
+    "MixedBackendExecutionStageModel": {
+      "additionalProperties": false,
+      "description": "Bridge execution readback; it establishes no delivery or participant observation.",
+      "properties": {
+        "cessation_evidence_refs": {
+          "default": [],
+          "items": {
+            "maxLength": 256,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 64,
+          "title": "Cessation Evidence Refs",
+          "type": "array"
+        },
+        "destination_action_address": {
+          "maxLength": 2048,
+          "minLength": 3,
+          "not": {
+            "pattern": "[^a-z0-9_.-]"
+          },
+          "pattern": "^(?:[a-z0-9][a-z0-9_-]{0,63}|__private)(?:\\.(?:[a-z0-9][a-z0-9_-]{0,63}|__private))+$",
+          "title": "Destination Action Address",
+          "type": "string"
+        },
+        "evidence_refs": {
+          "default": [],
+          "items": {
+            "maxLength": 256,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 64,
+          "title": "Evidence Refs",
+          "type": "array"
+        },
+        "mapping_loss_refs": {
+          "default": [],
+          "items": {
+            "maxLength": 256,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 64,
+          "title": "Mapping Loss Refs",
+          "type": "array"
+        },
+        "producer": {
+          "$ref": "#/$defs/MixedBackendServiceModel"
+        },
+        "source_action_address": {
+          "maxLength": 2048,
+          "minLength": 3,
+          "not": {
+            "pattern": "[^a-z0-9_.-]"
+          },
+          "pattern": "^(?:[a-z0-9][a-z0-9_-]{0,63}|__private)(?:\\.(?:[a-z0-9][a-z0-9_-]{0,63}|__private))+$",
+          "title": "Source Action Address",
+          "type": "string"
+        },
+        "stage": {
+          "const": "execution",
+          "title": "Stage",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "succeeded",
+            "failed",
+            "partial",
+            "unknown"
+          ],
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "stage",
+        "producer",
+        "source_action_address",
+        "destination_action_address",
+        "status"
+      ],
+      "title": "MixedBackendExecutionStageModel",
+      "type": "object"
+    },
+    "MixedBackendHandoffStageModel": {
+      "additionalProperties": false,
+      "description": "Native transfer disposition at the exact predecessor history head and phase revision.",
+      "properties": {
+        "evidence_refs": {
+          "default": [],
+          "items": {
+            "maxLength": 256,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 64,
+          "title": "Evidence Refs",
+          "type": "array"
+        },
+        "order_ref": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Order Ref",
+          "type": "string"
+        },
+        "phase_revision": {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "title": "Phase Revision",
+          "type": "integer"
+        },
+        "predecessor_history_head": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Predecessor History Head",
+          "type": "string"
+        },
+        "producer": {
+          "$ref": "#/$defs/MixedBackendServiceModel"
+        },
+        "stage": {
+          "const": "handoff",
+          "title": "Stage",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "committed",
+            "failed",
+            "pending",
+            "stale",
+            "unknown"
+          ],
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "stage",
+        "producer",
+        "status",
+        "predecessor_history_head",
+        "phase_revision",
+        "order_ref"
+      ],
+      "title": "MixedBackendHandoffStageModel",
+      "type": "object"
+    },
+    "MixedBackendObservationStageModel": {
+      "additionalProperties": false,
+      "description": "Participant and audience readback after delivery; delivery alone is not observation.",
+      "properties": {
+        "audience_scope_ref": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Audience Scope Ref",
+          "type": "string"
+        },
+        "evidence_refs": {
+          "items": {
+            "maxLength": 256,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 64,
+          "minItems": 1,
+          "title": "Evidence Refs",
+          "type": "array"
+        },
+        "observation_ref": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Observation Ref",
+          "type": "string"
+        },
+        "participant_address": {
+          "maxLength": 2048,
+          "minLength": 3,
+          "not": {
+            "pattern": "[^a-z0-9_.-]"
+          },
+          "pattern": "^(?:[a-z0-9][a-z0-9_-]{0,63}|__private)(?:\\.(?:[a-z0-9][a-z0-9_-]{0,63}|__private))+$",
+          "title": "Participant Address",
+          "type": "string"
+        },
+        "producer": {
+          "$ref": "#/$defs/MixedBackendServiceModel"
+        },
+        "stage": {
+          "const": "observation",
+          "title": "Stage",
+          "type": "string"
+        }
+      },
+      "required": [
+        "stage",
+        "producer",
+        "participant_address",
+        "audience_scope_ref",
+        "observation_ref",
+        "evidence_refs"
+      ],
+      "title": "MixedBackendObservationStageModel",
+      "type": "object"
+    },
+    "MixedBackendOwnerReadbackStageModel": {
+      "additionalProperties": false,
+      "description": "Native responsibility owner read back by the pinned owner reader after a transfer attempt.",
+      "properties": {
+        "evidence_refs": {
+          "items": {
+            "maxLength": 256,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 64,
+          "minItems": 1,
+          "title": "Evidence Refs",
+          "type": "array"
+        },
+        "owner_component_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Owner Component Id",
+          "type": "string"
+        },
+        "owner_ref": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Owner Ref",
+          "type": "string"
+        },
+        "phase_revision": {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "title": "Phase Revision",
+          "type": "integer"
+        },
+        "producer": {
+          "$ref": "#/$defs/MixedBackendServiceModel"
+        },
+        "stage": {
+          "const": "owner-readback",
+          "title": "Stage",
+          "type": "string"
+        }
+      },
+      "required": [
+        "stage",
+        "producer",
+        "owner_component_id",
+        "owner_ref",
+        "phase_revision",
+        "evidence_refs"
+      ],
+      "title": "MixedBackendOwnerReadbackStageModel",
+      "type": "object"
+    },
+    "MixedBackendServiceModel": {
+      "additionalProperties": false,
+      "description": "Pinned installed implementation identity; never a module, path, URL or command.",
+      "properties": {
+        "digest": {
+          "pattern": "^sha256:[a-f0-9]{64}$",
+          "title": "Digest",
+          "type": "string"
+        },
+        "service_ref": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Service Ref",
+          "type": "string"
+        },
+        "version": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "service_ref",
+        "version",
+        "digest"
+      ],
+      "title": "MixedBackendServiceModel",
+      "type": "object"
+    },
+    "MixedBackendTimeGrantStageModel": {
+      "additionalProperties": false,
+      "description": "Coordinator grant at the committed clock coordinates; incomparable grants permit no invocation.",
+      "properties": {
+        "comparison": {
+          "enum": [
+            "ordered",
+            "incomparable"
+          ],
+          "title": "Comparison",
+          "type": "string"
+        },
+        "destination_coordinate": {
+          "$ref": "#/$defs/TimeCoordinateModel"
+        },
+        "mapping_evidence_refs": {
+          "items": {
+            "maxLength": 256,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 64,
+          "minItems": 1,
+          "title": "Mapping Evidence Refs",
+          "type": "array"
+        },
+        "mapping_ref": {
+          "maxLength": 2048,
+          "minLength": 3,
+          "not": {
+            "pattern": "[^a-z0-9_.-]"
+          },
+          "pattern": "^(?:[a-z0-9][a-z0-9_-]{0,63}|__private)(?:\\.(?:[a-z0-9][a-z0-9_-]{0,63}|__private))+$",
+          "title": "Mapping Ref",
+          "type": "string"
+        },
+        "order_ref": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Order Ref",
+          "type": "string"
+        },
+        "ordering_basis": {
+          "enum": [
+            "total_order",
+            "partial_order",
+            "simultaneous",
+            "serialized_backend_order",
+            "simulation_tick",
+            "control_plane_order",
+            "logical_clock",
+            "vector_clock"
+          ],
+          "title": "Ordering Basis",
+          "type": "string"
+        },
+        "producer": {
+          "$ref": "#/$defs/MixedBackendServiceModel"
+        },
+        "source_coordinate": {
+          "$ref": "#/$defs/TimeCoordinateModel"
+        },
+        "stage": {
+          "const": "time-grant",
+          "title": "Stage",
+          "type": "string"
+        },
+        "timing_evidence_refs": {
+          "items": {
+            "maxLength": 256,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 64,
+          "minItems": 1,
+          "title": "Timing Evidence Refs",
+          "type": "array"
+        }
+      },
+      "required": [
+        "stage",
+        "producer",
+        "mapping_ref",
+        "ordering_basis",
+        "order_ref",
+        "comparison",
+        "source_coordinate",
+        "destination_coordinate",
+        "mapping_evidence_refs",
+        "timing_evidence_refs"
+      ],
+      "title": "MixedBackendTimeGrantStageModel",
+      "type": "object"
+    },
+    "OperationAdmissionContext": {
+      "additionalProperties": false,
+      "description": "Immutable, value-free authority and request context fixed at admission.",
+      "properties": {
+        "actor_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Actor Id",
+          "type": "string"
+        },
+        "authorization_scope": {
+          "items": {
+            "maxLength": 256,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 64,
+          "minItems": 1,
+          "title": "Authorization Scope",
+          "type": "array"
+        },
+        "operation_kind": {
+          "$ref": "#/$defs/OperationKind"
+        },
+        "parent_operation_id": {
+          "anyOf": [
+            {
+              "maxLength": 256,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Parent Operation Id"
+        },
+        "request_commitment": {
+          "pattern": "^sha256:[a-f0-9]{64}$",
+          "title": "Request Commitment",
+          "type": "string"
+        },
+        "run_scope": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Run Scope",
+          "type": "string"
+        },
+        "target_scope": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Target Scope",
+          "type": "string"
+        }
+      },
+      "required": [
+        "actor_id",
+        "authorization_scope",
+        "target_scope",
+        "run_scope",
+        "operation_kind",
+        "request_commitment"
+      ],
+      "title": "OperationAdmissionContext",
+      "type": "object"
+    },
+    "OperationArtifactReferenceModel": {
+      "additionalProperties": false,
+      "description": "Content-bound reference resolved through the owning admitted artifact authority.",
+      "properties": {
+        "artifact_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Artifact Id",
+          "type": "string"
+        },
+        "contract_id": {
+          "maxLength": 128,
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*-v[0-9]+$",
+          "title": "Contract Id",
+          "type": "string"
+        },
+        "digest": {
+          "pattern": "^sha256:[a-f0-9]{64}$",
+          "title": "Digest",
+          "type": "string"
+        }
+      },
+      "required": [
+        "contract_id",
+        "artifact_id",
+        "digest"
+      ],
+      "title": "OperationArtifactReferenceModel",
+      "type": "object"
+    },
+    "OperationEffectScopeModel": {
+      "additionalProperties": false,
+      "description": "Target/run exclusion is the default; narrowing needs admitted independence.",
+      "properties": {
+        "addresses": {
+          "default": [],
+          "items": {
+            "maxLength": 2048,
+            "minLength": 3,
+            "not": {
+              "pattern": "[^a-z0-9_.-]"
+            },
+            "pattern": "^(?:[a-z0-9][a-z0-9_-]{0,63}|__private)(?:\\.(?:[a-z0-9][a-z0-9_-]{0,63}|__private))+$",
+            "type": "string"
+          },
+          "maxItems": 256,
+          "title": "Addresses",
+          "type": "array"
+        },
+        "independence": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/OperationArtifactReferenceModel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "kind": {
+          "default": "target-run",
+          "enum": [
+            "target-run",
+            "resources"
+          ],
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "title": "OperationEffectScopeModel",
+      "type": "object"
+    },
+    "OperationKind": {
+      "description": "Closed kinds of work admitted by the runtime control plane.",
+      "enum": [
+        "provisioning",
+        "orchestration",
+        "evaluation",
+        "workflow-cancellation",
+        "workflow-timeout-reconciliation",
+        "participant-action",
+        "participant-control",
+        "participant-crossing",
+        "composition-phase",
+        "indeterminate-resolution"
+      ],
+      "title": "OperationKind",
+      "type": "string"
+    },
+    "TimeCoordinateModel": {
+      "additionalProperties": false,
+      "description": "Exact superdense coordinate within one discontinuity segment.",
+      "properties": {
+        "microstep": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Microstep",
+          "type": "integer"
+        },
+        "segment": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Segment",
+          "type": "integer"
+        },
+        "tick": {
+          "title": "Tick",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "tick"
+      ],
+      "title": "TimeCoordinateModel",
+      "type": "object"
+    }
+  },
+  "$id": "https://openrae.github.io/rae/schemas/mixed-backend-stage-report-v1.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "One stage fact bound to the exact shared operation invocation and request commitment.\n\nThe sequence is the stage's fixed position in its chain: time grant 1,\nexecution or handoff 2, delivery or owner readback 3, observation 4. Each\nproducer numbers its own report without seeing the others, and a reader\naccepts the reports in ascending sequence.",
+  "properties": {
+    "binding": {
+      "$ref": "#/$defs/BackendOperationBindingModel"
+    },
+    "request_digest": {
+      "pattern": "^sha256:[a-f0-9]{64}$",
+      "title": "Request Digest",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "mixed-backend-stage-report/v1",
+      "default": "mixed-backend-stage-report/v1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "sequence": {
+      "maximum": 9007199254740991,
+      "minimum": 1,
+      "title": "Sequence",
+      "type": "integer"
+    },
+    "stage": {
+      "discriminator": {
+        "mapping": {
+          "delivery": "#/$defs/MixedBackendDeliveryStageModel",
+          "execution": "#/$defs/MixedBackendExecutionStageModel",
+          "handoff": "#/$defs/MixedBackendHandoffStageModel",
+          "observation": "#/$defs/MixedBackendObservationStageModel",
+          "owner-readback": "#/$defs/MixedBackendOwnerReadbackStageModel",
+          "time-grant": "#/$defs/MixedBackendTimeGrantStageModel"
+        },
+        "propertyName": "stage"
+      },
+      "oneOf": [
+        {
+          "$ref": "#/$defs/MixedBackendTimeGrantStageModel"
+        },
+        {
+          "$ref": "#/$defs/MixedBackendExecutionStageModel"
+        },
+        {
+          "$ref": "#/$defs/MixedBackendDeliveryStageModel"
+        },
+        {
+          "$ref": "#/$defs/MixedBackendObservationStageModel"
+        },
+        {
+          "$ref": "#/$defs/MixedBackendHandoffStageModel"
+        },
+        {
+          "$ref": "#/$defs/MixedBackendOwnerReadbackStageModel"
+        }
+      ],
+      "title": "Stage"
+    }
+  },
+  "required": [
+    "binding",
+    "request_digest",
+    "sequence",
+    "stage"
+  ],
+  "title": "MixedBackendStageReportModel",
+  "type": "object",
+  "x-raes-invariants": [
+    {
+      "description": "Validate closed bounded fields, unique collections and honest stage evidence; structural validity does not prove backend truth, installation or runtime authority.",
+      "id": "mixed-backend-local-consistency",
+      "inputs": [
+        {
+          "contract_id": "mixed-backend-stage-report-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error",
+      "validator": "raes_contracts.contracts.MixedBackendStageReportModel.model_validate"
+    },
+    {
+      "description": "Require exact invocation binding and commitment, a trusted time model resolved under the binding's time-model reference and digest, each report's sequence equal to its stage's fixed chain position (time grant 1, execution or handoff 2, delivery or owner readback 3, observation 4) with reports accepted in ascending sequence, prerequisite stage order, the pinned producer for each stage, grant coordinates equal to the committed time readback, a committed composition state that still activates the edge or holds the handoff's source component without its destination, a handoff fenced on that state's head and phase revision, an ordered grant and accepted start before invocation stages, success or failure outcomes equal to the state the stages and trusted readbacks establish, and shared evidence that cites only supplied stage reports.",
+      "id": "mixed-backend-stage-transcript",
+      "inputs": [
+        {
+          "contract_id": "mixed-backend-execution-binding-v1",
+          "instance_path": "#"
+        },
+        {
+          "contract_id": "backend-operation-request-v1",
+          "instance_path": "#"
+        },
+        {
+          "contract_id": "backend-operation-response-v1",
+          "instance_path": "#"
+        },
+        {
+          "contract_id": "mixed-backend-stage-report-v1",
+          "instance_path": "#"
+        },
+        {
+          "contract_id": "time-model-v1",
+          "instance_path": "#"
+        },
+        {
+          "contract_id": "time-runtime-state-v1",
+          "instance_path": "#"
+        },
+        {
+          "contract_id": "runtime-snapshot-v1",
+          "instance_path": "#/mixed_composition_states"
+        }
+      ],
+      "level": "error",
+      "validator": "raes_contracts.contracts.validate_mixed_backend_stage_reports"
+    }
+  ],
+  "x-raes-semantic-profile": {
+    "contract_id": "mixed-backend-stage-report-v1",
+    "entry_schema_contract_id": "raes-semantic-invariants-v1",
+    "entry_schema_pointer": "#/$defs/RaesSemanticInvariantEntryModel",
+    "id": "raes-semantic-invariants-v1",
+    "keyword": "x-raes-invariants",
+    "required": true,
+    "uri": "https://openrae.github.io/rae/schemas/semantic-invariants/v1"
+  }
+}

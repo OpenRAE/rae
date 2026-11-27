@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from collections import defaultdict, deque
 from collections.abc import Callable, Collection, Mapping
 
 from ..assessment import AssessmentResourceKind
@@ -34,27 +33,6 @@ def _ordered_unique(items: list[str]) -> tuple[str, ...]:
 
 def _never_unresolved(_value: object) -> bool:
     return False
-
-
-def _has_cycle(graph: Mapping[str, list[str]]) -> bool:
-    """Return True if the directed ``graph`` (node -> deps) contains a cycle."""
-
-    in_degree: dict[str, int] = defaultdict(int)
-    for node in graph:
-        in_degree.setdefault(node, 0)
-    for deps in graph.values():
-        for dep in deps:
-            in_degree[dep] += 1
-    queue = deque(node for node, degree in in_degree.items() if degree == 0)
-    visited = 0
-    while queue:
-        node = queue.popleft()
-        visited += 1
-        for dep in graph.get(node, []):
-            in_degree[dep] -= 1
-            if in_degree[dep] == 0:
-                queue.append(dep)
-    return visited != len(in_degree)
 
 
 _SUCCESS_REFERENCE_SECTIONS: tuple[tuple[str, AssessmentResourceKind, str], ...] = (

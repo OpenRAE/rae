@@ -18,7 +18,7 @@ from raes_contracts.contracts import (
     ParticipantImplementationSelectionModel,
     ParticipantStatusViewModel,
 )
-from raes_contracts.participant_binding import ParticipantActionAdmissionRequest
+from raes_contracts.contracts.participant_action_admission import ParticipantActionAdmissionRequest
 from raes_contracts.planning import (
     ChangeAction,
     PlanScope,
@@ -663,7 +663,7 @@ workflows:
     assert status is not None
     assert status.state == OperationState.SUCCEEDED
     workflow_result = next(iter(snapshot.snapshot.orchestration_results.values()))
-    assert workflow_result["workflow_status"] == "running"
+    assert workflow_result["workflow_status"] == "succeeded"
     assert "run_id" in workflow_result
     assert snapshot.snapshot.orchestration_history
 
@@ -809,7 +809,9 @@ class TestParticipantEpisodeControlPlane:
 
         assert receipt.accepted is False
         assert status is None
-        assert any("withheld_refs" in diag.message for diag in receipt.diagnostics)
+        assert any(diag.code == "runtime.participant-binding.rejected" for diag in receipt.diagnostics)
+        # The refusal names no withheld reference (ADR-116 rule E7).
+        assert all("scenario.hidden.answer-key" not in diag.message for diag in receipt.diagnostics)
 
     def test_initialize_twice_rejects_duplicate(self):
         control_plane = RuntimeControlPlane(create_stub_target())

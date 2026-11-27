@@ -2,7 +2,15 @@
 
 from collections.abc import Mapping
 
-from tools.formal_semantic_validation._shape import _closed_object, _failure, _is_sequence, _stable_ids, _string_list
+from tools.formal_semantic_validation._shape import (
+    _closed_object,
+    _failure,
+    _hashable,
+    _is_sequence,
+    _members,
+    _stable_ids,
+    _string_list,
+)
 from tools.formal_semantic_validation._types import _PARTICIPANT_OBSERVATION_KEYS
 from tools.policy.common import PolicyFailure
 
@@ -26,8 +34,8 @@ def _validate_retest_participant_observations(
 ) -> None:
     obligations = {
         item.get("obligation_id"): item
-        for item in protocol.get("participant_obligations", [])
-        if isinstance(item, Mapping)
+        for item in _members(protocol.get("participant_obligations", []))
+        if isinstance(item, Mapping) and _hashable(item.get("obligation_id"))
     }
     observations = snapshot.get("participant_observations")
     observation_ids, unique = _stable_ids(observations, "obligation_id")

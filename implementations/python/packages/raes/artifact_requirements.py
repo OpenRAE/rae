@@ -3,10 +3,8 @@
 from ._source import (
     ArtifactCandidate,
     ArtifactConstraint,
-    ArtifactIdentity,
     ArtifactLockedInput,
     ArtifactMaterializationSpecification,
-    ArtifactMechanismProfile,
     ArtifactRequirement,
     ArtifactSatisfactionRoute,
     Source,
@@ -15,10 +13,8 @@ from ._source import (
 __all__ = [
     "ArtifactCandidate",
     "ArtifactConstraint",
-    "ArtifactIdentity",
     "ArtifactLockedInput",
     "ArtifactMaterializationSpecification",
-    "ArtifactMechanismProfile",
     "ArtifactRequirement",
     "ArtifactSatisfactionRoute",
     "Source",

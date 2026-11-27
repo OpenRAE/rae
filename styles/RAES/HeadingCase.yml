@@ -5,6 +5,8 @@ scope: heading
 match: $sentence
 exceptions:
   - API
+  # The vocabulary lists lowercase 'backend', so a heading's first word needs this exception.
+  - Backend
   - CLI
   - Conformance
   - GitHub

@@ -10,13 +10,21 @@ digest-checked declaration the planner needs.
 
 from __future__ import annotations
 
+from functools import partial
+
 import pytest
 from raes_backend_protocols.manifest import (
+    BackendManifestEnvelopeUnsupportedError,
+    BackendManifestInvalidError,
     backend_manifest_from_v2_model,
+    backend_manifest_from_v2_model_with_envelope,
     backend_manifest_v2_model,
 )
 from raes_backend_stubs.manifest import create_stub_manifest
 from raes_contracts.contracts import BackendManifestV2Model
+from raes_contracts.errors import InvalidInputError
+
+_SECRET = "manifest-secret-sentinel-4b1d"
 
 
 def test_round_trips_the_full_stub_manifest() -> None:
@@ -69,5 +77,34 @@ def test_envelope_bearing_manifest_fails_closed() -> None:
     }
     envelope_model = BackendManifestV2Model.model_validate(stub_payload)
 
-    with pytest.raises(ValueError, match="realization envelope"):
+    with pytest.raises(BackendManifestEnvelopeUnsupportedError, match="realization envelope") as caught:
         backend_manifest_from_v2_model(envelope_model)
+    assert isinstance(caught.value, InvalidInputError)
+
+
+def _with_rejected_evaluator_section(model: BackendManifestV2Model) -> BackendManifestV2Model:
+    """Return a contract model whose evaluator section only the internal validators reject."""
+
+    evaluator = model.capabilities.evaluator.model_copy(update={"supported_sections": [_SECRET]})
+    return model.model_copy(update={"capabilities": model.capabilities.model_copy(update={"evaluator": evaluator})})
+
+
+@pytest.mark.parametrize("with_envelope", [False, True], ids=["plain", "with-envelope"])
+def test_capability_rejection_is_value_free_invalid_input(with_envelope: bool) -> None:
+    original = create_stub_manifest(with_realization_envelope=with_envelope)
+    tampered = _with_rejected_evaluator_section(backend_manifest_v2_model(original))
+
+    if with_envelope:
+        convert = partial(backend_manifest_from_v2_model_with_envelope, tampered, original.realization_envelope)
+    else:
+        convert = partial(backend_manifest_from_v2_model, tampered)
+
+    with pytest.raises(BackendManifestInvalidError) as caught:
+        convert()
+
+    assert isinstance(caught.value, InvalidInputError)
+    assert str(caught.value) == "backend manifest was rejected by backend capability validation"
+    # The cause keeps the validator detail for diagnosis; the message itself names no manifest value.
+    assert isinstance(caught.value.__cause__, ValueError)
+    assert _SECRET in str(caught.value.__cause__)
+    assert _SECRET not in str(caught.value)

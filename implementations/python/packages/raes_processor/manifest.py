@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Collection
 from importlib.metadata import PackageNotFoundError
 from importlib.metadata import version as distribution_version
 from typing import Any
@@ -14,6 +15,7 @@ from raes_contracts.contracts import (
     ProcessorCompatibilityModel,
     ProcessorManifestV2Model,
 )
+from raes_contracts.contracts.participant_tool_support import ProcessorParticipantToolsModel
 from raes_contracts.vocabulary import ProcessorFeature
 
 from raes_processor.capabilities import ProcessorCapabilitySet, ProcessorManifest
@@ -45,6 +47,7 @@ def _current_processor_version() -> str:
 def create_reference_processor_manifest(
     *,
     version: str | None = None,
+    compatible_backends: Collection[str] = ("stub",),
 ) -> ProcessorManifest:
     """Return the current repo-owned reference processor manifest."""
 
@@ -55,8 +58,15 @@ def create_reference_processor_manifest(
         capabilities=ProcessorCapabilitySet(
             supported_sdl_versions=frozenset({"sdl-authoring-input-v1"}),
             supported_features=frozenset(ProcessorFeature),
+            participant_tools=ProcessorParticipantToolsModel(
+                semantic_versions=["participant-tool-profile/v1"],
+                feature_support=[
+                    {"feature": feature, "support_level": "exact", "evidence_refs": ["tests:ACT-619", "tests:API-414"]}
+                    for feature in ("tool_affordances", "scoped_tool_affordances")
+                ],
+            ),
         ),
-        compatible_backends=frozenset({"stub"}),
+        compatible_backends=frozenset(compatible_backends),
         concept_bindings=REFERENCE_CONCEPT_BINDINGS,
         constraints={},
     )
@@ -65,10 +75,14 @@ def create_reference_processor_manifest(
 def reference_processor_manifest_v2_model(
     *,
     version: str | None = None,
+    compatible_backends: Collection[str] = ("stub",),
 ) -> ProcessorManifestV2Model:
     """Return the reference processor manifest as the authoritative v2 model."""
 
-    manifest = create_reference_processor_manifest(version=version)
+    manifest = create_reference_processor_manifest(
+        version=version,
+        compatible_backends=compatible_backends,
+    )
     return ProcessorManifestV2Model(
         identity=ApparatusIdentityModel(name=manifest.identity.name, version=manifest.identity.version),
         supported_contract_versions=list(REFERENCE_SUPPORTED_CONTRACT_VERSIONS_V2),
@@ -83,6 +97,7 @@ def reference_processor_manifest_v2_model(
         capabilities=ProcessorCapabilitiesV2Model(
             supported_sdl_versions=sorted(manifest.supported_sdl_versions),
             supported_features=[feature for feature in ProcessorFeature if feature in manifest.supported_features],
+            participant_tools=manifest.capabilities.participant_tools,
         ),
     )
 
@@ -90,16 +105,24 @@ def reference_processor_manifest_v2_model(
 def reference_processor_manifest_model(
     *,
     version: str | None = None,
+    compatible_backends: Collection[str] = ("stub",),
 ) -> ProcessorManifestV2Model:
     """Return the reference processor manifest as the authoritative v2 contract model."""
 
-    return reference_processor_manifest_v2_model(version=version)
+    return reference_processor_manifest_v2_model(
+        version=version,
+        compatible_backends=compatible_backends,
+    )
 
 
 def reference_processor_manifest_payload(
     *,
     version: str | None = None,
+    compatible_backends: Collection[str] = ("stub",),
 ) -> dict[str, Any]:
     """Return the reference processor manifest as JSON-ready data."""
 
-    return reference_processor_manifest_v2_model(version=version).model_dump(mode="json")
+    return reference_processor_manifest_v2_model(
+        version=version,
+        compatible_backends=compatible_backends,
+    ).model_dump(mode="json")

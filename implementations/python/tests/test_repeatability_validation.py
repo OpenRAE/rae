@@ -36,16 +36,16 @@ from raes_conformance.repeatability_validation import (
     VariationPolicy,
     compare_repeatability_consistency,
 )
+from raes_contracts.behavioral_claims import BehavioralClaimBindingModel
 from raes_contracts.behavioral_relations import validate_behavioral_claim_binding
+from raes_contracts.canonical import canonical_contract_digest
 from raes_contracts.contracts import (
-    BehavioralClaimBindingModel,
     ExperimentCaptureSpecModel,
     ExperimentEvidenceRecordModel,
     ExperimentRunEvidenceInputs,
     ExperimentRunModel,
     ExperimentTaskModel,
 )
-from raes_contracts.satisfiability import canonical_contract_digest
 
 _REPO_ROOT = Path(__file__).resolve().parents[3]
 _DIGEST_A = "sha256:" + "a" * 64

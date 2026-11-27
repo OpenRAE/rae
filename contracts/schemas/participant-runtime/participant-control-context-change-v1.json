@@ -1,0 +1,327 @@
+{
+  "$defs": {
+    "ParticipantControlContextAssetReferenceModel": {
+      "additionalProperties": false,
+      "properties": {
+        "asset_digest": {
+          "pattern": "^sha256:[a-f0-9]{64}$",
+          "title": "Asset Digest",
+          "type": "string"
+        },
+        "asset_id": {
+          "maxLength": 1024,
+          "minLength": 1,
+          "title": "Asset Id",
+          "type": "string"
+        },
+        "asset_version": {
+          "maxLength": 1024,
+          "minLength": 1,
+          "title": "Asset Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "asset_id",
+        "asset_version",
+        "asset_digest"
+      ],
+      "title": "ParticipantControlContextAssetReferenceModel",
+      "type": "object"
+    },
+    "ParticipantDecisionSurfaceCausalCutModel": {
+      "additionalProperties": false,
+      "description": "A downward-closed causal frontier for a partially ordered realization.",
+      "properties": {
+        "cut_kind": {
+          "const": "causal_frontier",
+          "title": "Cut Kind",
+          "type": "string"
+        },
+        "cut_ref": {
+          "minLength": 1,
+          "title": "Cut Ref",
+          "type": "string"
+        },
+        "frontier_event_refs": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Frontier Event Refs",
+          "type": "array"
+        },
+        "history_domain": {
+          "minLength": 1,
+          "title": "History Domain",
+          "type": "string"
+        },
+        "order_model": {
+          "const": "causal_partial_order",
+          "title": "Order Model",
+          "type": "string"
+        },
+        "predecessor_closure_ref": {
+          "minLength": 1,
+          "title": "Predecessor Closure Ref",
+          "type": "string"
+        }
+      },
+      "required": [
+        "cut_kind",
+        "cut_ref",
+        "history_domain",
+        "order_model",
+        "frontier_event_refs",
+        "predecessor_closure_ref"
+      ],
+      "title": "ParticipantDecisionSurfaceCausalCutModel",
+      "type": "object"
+    },
+    "ParticipantDecisionSurfaceSequenceCutModel": {
+      "additionalProperties": false,
+      "description": "A complete prefix ending at one event in a declared total order.",
+      "properties": {
+        "anchor_event_ref": {
+          "minLength": 1,
+          "title": "Anchor Event Ref",
+          "type": "string"
+        },
+        "anchor_order": {
+          "minimum": 0,
+          "title": "Anchor Order",
+          "type": "integer"
+        },
+        "cut_kind": {
+          "const": "sequence_prefix",
+          "title": "Cut Kind",
+          "type": "string"
+        },
+        "cut_ref": {
+          "minLength": 1,
+          "title": "Cut Ref",
+          "type": "string"
+        },
+        "history_domain": {
+          "enum": [
+            "participant_episode_lifecycle",
+            "participant_behavior_history"
+          ],
+          "title": "History Domain",
+          "type": "string"
+        },
+        "history_prefix_length": {
+          "minimum": 1,
+          "title": "History Prefix Length",
+          "type": "integer"
+        },
+        "order_model": {
+          "enum": [
+            "control_plane_order",
+            "backend_serialized_order",
+            "behavior_history_order"
+          ],
+          "title": "Order Model",
+          "type": "string"
+        },
+        "predecessor_event_refs": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Predecessor Event Refs",
+          "type": "array"
+        }
+      },
+      "required": [
+        "cut_kind",
+        "cut_ref",
+        "history_domain",
+        "order_model",
+        "anchor_event_ref",
+        "anchor_order",
+        "history_prefix_length"
+      ],
+      "title": "ParticipantDecisionSurfaceSequenceCutModel",
+      "type": "object"
+    }
+  },
+  "$id": "https://openrae.github.io/rae/schemas/participant-control-context-change-v1.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "else": {
+        "properties": {
+          "successor_ref": {
+            "type": "null"
+          }
+        }
+      },
+      "if": {
+        "properties": {
+          "operation": {
+            "const": "replace"
+          }
+        },
+        "required": [
+          "operation"
+        ]
+      },
+      "then": {
+        "properties": {
+          "successor_ref": {
+            "not": {
+              "type": "null"
+            }
+          }
+        },
+        "required": [
+          "successor_ref"
+        ]
+      }
+    }
+  ],
+  "description": "An authorized lifecycle claim, independent of per-participant selection.",
+  "properties": {
+    "actor_ref": {
+      "maxLength": 1024,
+      "minLength": 1,
+      "title": "Actor Ref",
+      "type": "string"
+    },
+    "asset_ref": {
+      "$ref": "#/$defs/ParticipantControlContextAssetReferenceModel"
+    },
+    "authority_ref": {
+      "maxLength": 1024,
+      "minLength": 1,
+      "title": "Authority Ref",
+      "type": "string"
+    },
+    "change_id": {
+      "maxLength": 1024,
+      "minLength": 1,
+      "title": "Change Id",
+      "type": "string"
+    },
+    "effective_cut": {
+      "discriminator": {
+        "mapping": {
+          "causal_frontier": "#/$defs/ParticipantDecisionSurfaceCausalCutModel",
+          "sequence_prefix": "#/$defs/ParticipantDecisionSurfaceSequenceCutModel"
+        },
+        "propertyName": "cut_kind"
+      },
+      "oneOf": [
+        {
+          "$ref": "#/$defs/ParticipantDecisionSurfaceSequenceCutModel"
+        },
+        {
+          "$ref": "#/$defs/ParticipantDecisionSurfaceCausalCutModel"
+        }
+      ],
+      "title": "Effective Cut"
+    },
+    "evidence_refs": {
+      "items": {
+        "maxLength": 1024,
+        "minLength": 1,
+        "type": "string"
+      },
+      "maxItems": 256,
+      "minItems": 1,
+      "title": "Evidence Refs",
+      "type": "array",
+      "uniqueItems": true
+    },
+    "operation": {
+      "enum": [
+        "publish",
+        "replace",
+        "withdraw"
+      ],
+      "title": "Operation",
+      "type": "string"
+    },
+    "provenance_refs": {
+      "items": {
+        "maxLength": 1024,
+        "minLength": 1,
+        "type": "string"
+      },
+      "maxItems": 256,
+      "minItems": 1,
+      "title": "Provenance Refs",
+      "type": "array",
+      "uniqueItems": true
+    },
+    "reason_ref": {
+      "maxLength": 1024,
+      "minLength": 1,
+      "title": "Reason Ref",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "participant-control-context-change/v1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "scope_ref": {
+      "maxLength": 1024,
+      "minLength": 1,
+      "title": "Scope Ref",
+      "type": "string"
+    },
+    "successor_ref": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ParticipantControlContextAssetReferenceModel"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    }
+  },
+  "required": [
+    "schema_version",
+    "change_id",
+    "scope_ref",
+    "asset_ref",
+    "operation",
+    "actor_ref",
+    "authority_ref",
+    "effective_cut",
+    "reason_ref",
+    "evidence_refs",
+    "provenance_refs"
+  ],
+  "title": "ParticipantControlContextChangeModel",
+  "type": "object",
+  "x-raes-invariants": [
+    {
+      "description": "Full conformance requires trusted exact version, lifecycle, authority, recipient, cut and content agreement.",
+      "id": "control-context-trusted-agreement",
+      "inputs": [
+        {
+          "contract_id": "participant-control-context-change-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error",
+      "validator": "raes_contracts.participant_control_context.validate_control_context_change"
+    }
+  ],
+  "x-raes-semantic-profile": {
+    "contract_id": "participant-control-context-change-v1",
+    "entry_schema_contract_id": "raes-semantic-invariants-v1",
+    "entry_schema_pointer": "#/$defs/RaesSemanticInvariantEntryModel",
+    "id": "raes-semantic-invariants-v1",
+    "keyword": "x-raes-invariants",
+    "required": true,
+    "uri": "https://openrae.github.io/rae/schemas/semantic-invariants/v1"
+  }
+}

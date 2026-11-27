@@ -7,6 +7,7 @@ from raes_contracts.contracts import (
     ArtifactTransformationReportModel,
     ArtifactTransformationStatus,
 )
+from raes_contracts.errors import InvalidInputError
 from raes_contracts.semantic_comparison import (
     ArtifactCoordinate,
     ArtifactKind,
@@ -110,14 +111,14 @@ def analyze_semantic_comparison(
 
 def _require_profile(profile: SemanticComparisonProfileModel, request: SemanticComparisonRequestModel) -> None:
     if request.comparison_profile != profile.profile_id:
-        raise ValueError("request comparison profile id does not match the supplied profile")
+        raise InvalidInputError("request comparison profile id does not match the supplied profile")
     if request.comparison_profile_digest != canonical_semantic_comparison_profile_digest(profile):
-        raise ValueError("request comparison profile digest does not match the supplied profile")
+        raise InvalidInputError("request comparison profile digest does not match the supplied profile")
     if request.analyzer_profile != profile.analyzer_profile:
-        raise ValueError("request analyzer profile does not match the supplied profile")
+        raise InvalidInputError("request analyzer profile does not match the supplied profile")
     for name in ComparisonLimitsModel.model_fields:
         if getattr(request.limits, name) > getattr(profile.limits, name):
-            raise ValueError("request limits must not exceed the governed comparison profile")
+            raise InvalidInputError("request limits must not exceed the governed comparison profile")
 
 
 def _require_scope(
@@ -140,7 +141,7 @@ def _require_scope(
         )
     )
     if expected.before_artifacts != actual_before or expected.after_artifacts != actual_after:
-        raise ValueError("supplied artifacts must exactly match the declared two-sided impact scope")
+        raise InvalidInputError("supplied artifacts must exactly match the declared two-sided impact scope")
 
 
 def _compare_subjects(

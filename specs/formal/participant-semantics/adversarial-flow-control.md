@@ -1,4 +1,5 @@
-# SEM-233 And ASR-536 Adversarial Participant Flow Control
+<!-- vale RAES.HeadingCase = NO -->
+# SEM-233 and ASR-536 adversarial participant flow control
 
 Issue #1354 and ADR-114 publish [IFC profile variability and publication](ifc-profile-variability.md).
 The amendment separates authored requirements, exact profile expressibility
@@ -6,8 +7,11 @@ and evidenced realization, preserving this document's original revision and
 implementation boundary. It adds no registered owner-aware profile or runtime
 support; its migration contract governs future adoption.
 
+<!-- vale RAES.HeadingCase = YES -->
+
 Status: SEM-233 definition and portable-contract authority are published;
-runtime, backend, and ASR-536 evaluation obligations remain DRAFT.
+runtime and evaluation claims require their own exact execution evidence.
+Issue #1008 clarifies that RAE harness evaluation has no concrete backend prerequisite.
 
 Requirements: `SEM-233`, `ASR-536`.
 
@@ -59,11 +63,11 @@ governed state reuses:
 - experiment task, protocol, study, run, apparatus, evidence, measure, and
   traceability records.
 
-Every derived identity is fresh and binds the source identities, derivation
-kind, profile and revision, exact policy/state cut, authority, destination or
+Every derived identity is fresh and binds the source identities, derivation kind, and profile and revision.
+It also binds the exact policy/state cut, authority, destination or
 sink, and safe evidence refs. No release operation mutates a prior fact.
 
-## Exact Revision-1 Flow Algebra
+## Exact revision-1 flow algebra
 
 For revision 1, profile `phi` declares two independent, closed, finite
 universes:
@@ -76,8 +80,8 @@ I_phi = integrity-obligation tokens admitted by phi
 A confidentiality token is one revisioned policy clause, such as an
 owner-relative audience, destination, or sink restriction. An integrity token
 is one unresolved possible-influence obligation. The source-label resolver
-maps a possible writer or influence to the applicable integrity tokens; the
-immutable influence refs remain in provenance even if a later endorsement
+maps a possible writer or influence to the applicable integrity tokens.
+The immutable influence refs remain in provenance even if a later endorsement
 discharges an obligation. Tokens are stable typed refs, not raw values or open
 metadata keys.
 
@@ -112,13 +116,13 @@ ladder.
 
 The join is closed, associative, commutative, idempotent, and monotone in each
 argument. Its componentwise union makes it independent of traversal order.
-Adding a possible input cannot remove an obligation, and a successful decision
+Adding a possible input cannot remove an obligation.
+A successful decision
 for `l2` cannot imply success for a strictly more restrictive label unless the
 sink satisfies the added obligations.
 
-For sink policy `S` at the exact cut, let `SatC_phi(S)` and `SatI_phi(S)` be the
-closed sets of confidentiality and integrity obligations that its resolved
-audience, destination, sink class, and release authorities satisfy:
+Take sink policy `S` at the exact cut.
+Let `SatC_phi(S)` and `SatI_phi(S)` be the closed sets of confidentiality and integrity obligations that its resolved audience, destination, sink class, and release authorities satisfy:
 
 ```text
 ConfidentialityObligationsSatisfied_phi(l,S) iff Conf_phi(l) subset-of SatC_phi(S)
@@ -127,8 +131,8 @@ IntegrityObligationsSatisfied_phi(l,S)       iff Int_phi(l)  subset-of SatI_phi(
 
 The predicates are independent. A sink may satisfy one and fail the other.
 Authentication, signatures, hashes, markings, sensitivity, confidence, roles,
-and monitor scores may contribute evidence to a revisioned resolver, but none
-is a label coordinate or satisfies both predicates.
+and monitor scores may contribute evidence to a revisioned resolver.
+But none is a label coordinate or satisfies both predicates.
 
 ### Source defaults
 
@@ -149,8 +153,8 @@ Conf_phi(d,c) = union { Conf_phi(x,c) | x in Inputs(d) }
 Int_phi(d,c)  = union { Int_phi(x,c)  | x in Inputs(d) }
 ```
 
-`Inputs(d)` includes participant context, retained memory, shared/joint state,
-tool and destination arguments, error branches, and each participant, tool,
+`Inputs(d)` includes participant context, retained memory, shared/joint state, tool and destination arguments, and error branches.
+It also includes each participant, tool,
 service, transformation, monitor, or apparatus source that may influence the
 result. An opaque model, script, summary, copy, redaction, edit, parse, or
 transformation retains all inputs. A typed transformation may exclude an
@@ -159,8 +163,8 @@ evidence; omission from caller-supplied provenance is not such evidence.
 
 ### Cross-participant and cross-episode carriage
 
-API-409 handoff, API-423 crossing, controller change, participant change,
-shared state, joint state, or episode reset never clears labels, unresolved
+API-409 handoff, API-423 crossing, controller change, or participant change never clears labels or related state.
+Shared state, joint state, or episode reset also never clears labels, unresolved
 status, provenance, influence refs, or release history. A receiving
 participant inherits the effective upstream state through the governed
 crossing.
@@ -170,7 +174,7 @@ decisions, release events, SEM-230 memory scope, and expected history heads.
 Replay under a later cut receives a fresh final-sink decision; the later policy
 does not reinterpret the historical label or release.
 
-## Typed Carrier And Derivation Mapping
+## Typed carrier and derivation mapping
 
 The mapping is semantic and reference-based. Issue #1001 does not change the
 incumbent contracts.
@@ -182,7 +186,7 @@ incumbent contracts.
 | proposal, participant output, action and destination/tool arguments | participant decision surfaces, action definitions, and `ParticipantActionAdmissionRequest` | join of context, memory, observations, participant process, transformation apparatus, and every argument source; structural/action admission remains a separate gate |
 | controller change and handoff | ACT-617 and API-409 control occurrences/context validation | unchanged flow label and history plus fresh controller/authority occurrence refs; handoff is not declassification, endorsement, or admission |
 | crossing, projection, redaction, transformation, disclosure | API-423 typed subjects, predecessor stages, exact policy/cut refs, and contextual validator | source/result identities, transformation relation, full input label join, immutable provenance/influence refs, and any coordinate-specific release ref |
-| participant/external output, delivery, stream, callback, persistent write, and error | API-423 disclosure/delivery/observation stages and participant-facing views | a fresh final-sink decision for every serialization/effect; disclosure, delivery, and observation remain distinct; each stream chunk is independently governed or derived from one governed complete value |
+| participant/external output, delivery, stream, callback, persistent write, and error | API-423 disclosure/delivery/observation stages and participant-facing views | a fresh final-sink decision for every serialization/effect. Disclosure, delivery, and observation remain distinct. Each stream chunk is independently governed or derived from one governed complete value |
 | snapshot, retry, replay, and cross-episode reuse | RUN-310/RUN-319 snapshot/history/idempotency/expected-head carriers | original profile/policy/cut, label, unresolved status, provenance/influence/release histories, new exact cut, and fresh sink decision |
 
 An open `taint`, `security_labels`, `context`, `metadata`, prompt, diagnostic,
@@ -385,16 +389,16 @@ Every denied case records zero prohibited `RuntimeTarget` calls and zero
 participant/external disclosure. Tests also inspect append-only histories,
 safe audit/error evidence, and replay.
 
-## Bounded Executable Evidence
+## Bounded executable evidence
 
-`implementations/python/tests/sem233_boundary_flow_model.py` is a test-local
-finite interpretation of the revision-1 powerset algebra. Its companion
-`test_sem_233_adversarial_boundary_flow.py` exercises closure, associativity,
-commutativity, idempotence, monotonicity, traversal-order independence,
-coordinate independence, conservative derivation, unknown/missing labels,
-cross-profile joins, laundering attempts, coordinate-specific rewrites,
-release-operation conflation, handoff, cross-episode replay, stale cuts, sink
-obligations, and every deny-first final predicate conjunct.
+`implementations/python/tests/sem233_boundary_flow_model.py` is a test-local finite interpretation of the revision-1 powerset algebra.
+Its companion `test_sem_233_adversarial_boundary_flow.py` exercises:
+
+- Closure, associativity, commutativity, idempotence, and monotonicity.
+- Traversal-order independence, coordinate independence, and conservative derivation.
+- Unknown/missing labels, cross-profile joins, laundering attempts, and coordinate-specific rewrites.
+- Release-operation conflation, handoff, cross-episode replay, and stale cuts.
+- Sink obligations and every deny-first final predicate conjunct.
 
 Those cases are bounded falsification evidence over synthetic refs. The model
 is not a portable contract, runtime implementation, backend realization,
@@ -412,8 +416,8 @@ noninterference result, or intentional-subversion evaluation.
 - API-407 declared and effective support is deny-first.
 - Expected failures use stable bounded diagnostics. Unexpected failures use
   the redacted error envelope.
-- Logs, diagnostics, audit, and evidence contain safe refs, digests,
-  classifications, counts, and bounded summaries, never raw confidential data,
+- Logs, diagnostics, audit, and evidence contain safe refs, digests, classifications, counts, and bounded summaries.
+  They never contain raw confidential data,
   prompts, credentials, private state, monitor internals, or hidden objectives.
 - Portable semantics add no required environment variable, CLI flag,
   subprocess, socket, daemon, sidecar, or host path.
@@ -431,8 +435,10 @@ noninterference result, or intentional-subversion evaluation.
 | API-407 | declared/effective backend support, realization, downgrade, and conformance |
 | ASR-535 | bounded flow falsification and evidence/claim discipline |
 
-SEM-233 and ASR-536 remain DRAFT until their remaining downstream positive
-obligations are satisfied. Issue #812 supplies design authority and the
+The canonical requirement files record current SEM-233 and ASR-536 status.
+RAE evaluation uses a RAE-owned harness over public contracts and runtime seams.
+Each result binds its exact fixture composition and source content.
+Concrete backend realization is a separate claim with separate evidence. Issue #812 supplies design authority and the
 implementation program; #1001 publishes the SEM-233 revision-1 algebra, and
 #1002 publishes its profile and relation contracts. Neither delivery claims
 runtime enforcement, backend realization, or ASR-536 evaluation evidence.

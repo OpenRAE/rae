@@ -115,6 +115,17 @@
           "title": "Allowed Value Kinds",
           "type": "array"
         },
+        "control_context": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ParticipantControlContextTargetModel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
         "default": {
           "anyOf": [
             {
@@ -215,6 +226,76 @@
         "value"
       ],
       "title": "LiteralBindingValueModel",
+      "type": "object"
+    },
+    "ParticipantControlContextAssetReferenceModel": {
+      "additionalProperties": false,
+      "properties": {
+        "asset_digest": {
+          "pattern": "^sha256:[a-f0-9]{64}$",
+          "title": "Asset Digest",
+          "type": "string"
+        },
+        "asset_id": {
+          "maxLength": 1024,
+          "minLength": 1,
+          "title": "Asset Id",
+          "type": "string"
+        },
+        "asset_version": {
+          "maxLength": 1024,
+          "minLength": 1,
+          "title": "Asset Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "asset_id",
+        "asset_version",
+        "asset_digest"
+      ],
+      "title": "ParticipantControlContextAssetReferenceModel",
+      "type": "object"
+    },
+    "ParticipantControlContextTargetModel": {
+      "additionalProperties": false,
+      "description": "Manifest-owned finite domain of exact public SDL asset references.",
+      "properties": {
+        "references": {
+          "additionalProperties": false,
+          "maxProperties": 256,
+          "minProperties": 1,
+          "patternProperties": {
+            "^control_context_assets\\.[a-z0-9][a-z0-9_-]*(?:\\.[a-z0-9][a-z0-9_-]*)*$": {
+              "$ref": "#/$defs/ParticipantControlContextAssetReferenceModel"
+            }
+          },
+          "propertyNames": {
+            "maxLength": 1024,
+            "minLength": 1,
+            "not": {
+              "pattern": "[^a-z0-9_.-]"
+            }
+          },
+          "title": "References",
+          "type": "object"
+        },
+        "slot_id": {
+          "maxLength": 64,
+          "minLength": 1,
+          "not": {
+            "pattern": "[^a-z0-9_-]"
+          },
+          "pattern": "^[a-z0-9][a-z0-9_-]*$",
+          "title": "Slot Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "slot_id",
+        "references"
+      ],
+      "title": "ParticipantControlContextTargetModel",
       "type": "object"
     },
     "ParticipantImplementationCapabilitiesModel": {

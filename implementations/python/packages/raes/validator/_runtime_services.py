@@ -22,11 +22,12 @@ class _RuntimeServicesMixin(_RuntimeListenersMixin):
                 continue
             service_names = self._node_service_names(node)
             observed_paths = self._node_observed_paths(node)
-            for application in runtime.applications:
-                self._verify_application_service(name, application, service_names)
-                for route in application.routes:
-                    self._verify_route_refs(name, application, route, observed_paths)
-                    self._verify_route_upstream_target(name, application, route)
+            with self._owner(("nodes", name)):
+                for application in runtime.applications:
+                    self._verify_application_service(name, application, service_names)
+                    for route in application.routes:
+                        self._verify_route_refs(name, application, route, observed_paths)
+                        self._verify_route_upstream_target(name, application, route)
 
     @staticmethod
     def _node_service_names(node: object) -> set[str]:
@@ -186,23 +187,24 @@ class _RuntimeServicesMixin(_RuntimeListenersMixin):
             observed_paths = self._node_observed_paths(node)
             for unit in runtime.service_manager_units:
                 owner_label = f"Node '{node_name}' runtime service_manager_unit '{unit.unit_id}'"
-                self._verify_owned_service_ref(
-                    node_name,
-                    getattr(unit, "service", ""),
-                    service_names,
-                    owner_label=owner_label,
-                )
-                unit_file_path = getattr(unit, "unit_file_path", "")
-                if (
-                    unit_file_path
-                    and observed_paths
-                    and not self._is_unresolved_var(unit_file_path)
-                    and unit_file_path not in observed_paths
-                ):
-                    self._err(
-                        f"{owner_label} unit_file_path '{unit_file_path}' does not resolve to an "
-                        f"observed file on the node"
+                with self._owner(("nodes", node_name)):
+                    self._verify_owned_service_ref(
+                        node_name,
+                        getattr(unit, "service", ""),
+                        service_names,
+                        owner_label=owner_label,
                     )
+                    unit_file_path = getattr(unit, "unit_file_path", "")
+                    if (
+                        unit_file_path
+                        and observed_paths
+                        and not self._is_unresolved_var(unit_file_path)
+                        and unit_file_path not in observed_paths
+                    ):
+                        self._err(
+                            f"{owner_label} unit_file_path '{unit_file_path}' does not resolve to an "
+                            f"observed file on the node"
+                        )
 
     def _verify_runtime_ssh_servers(self) -> None:
         """Validate observed SSH server configurations against the scenario.
@@ -220,10 +222,11 @@ class _RuntimeServicesMixin(_RuntimeListenersMixin):
                 continue
             service_names = self._node_service_names(node)
             local_usernames = self._node_local_usernames(node)
-            for server in runtime.ssh_servers:
-                self._verify_ssh_server_service(node_name, server, service_names)
-                for rule in server.match_rules:
-                    self._verify_ssh_match_rule(node_name, server, rule, local_usernames)
+            with self._owner(("nodes", node_name)):
+                for server in runtime.ssh_servers:
+                    self._verify_ssh_server_service(node_name, server, service_names)
+                    for rule in server.match_rules:
+                        self._verify_ssh_match_rule(node_name, server, rule, local_usernames)
 
     @staticmethod
     def _node_local_usernames(node: object) -> set[str]:
@@ -303,8 +306,9 @@ class _RuntimeServicesMixin(_RuntimeListenersMixin):
             runtime = getattr(node, "runtime", None)
             if runtime is None or not runtime.app_authorizations:
                 continue
-            for authorization in runtime.app_authorizations:
-                self._verify_app_authorization_role_refs(node_name, authorization)
+            with self._owner(("nodes", node_name)):
+                for authorization in runtime.app_authorizations:
+                    self._verify_app_authorization_role_refs(node_name, authorization)
 
     def _verify_app_authorization_role_refs(self, node_name: str, authorization: object) -> None:
         role_ids = {role.role_id for role in authorization.roles}
@@ -351,7 +355,8 @@ class _RuntimeServicesMixin(_RuntimeListenersMixin):
                 # No declared process inventory to cross-check against — the
                 # override stands on its own selectors.
                 continue
-            self._check_override_subject_names(node_name, overrides, observed)
+            with self._owner(("nodes", node_name)):
+                self._check_override_subject_names(node_name, overrides, observed)
 
     @staticmethod
     def _capability_overrides_for(node: object) -> list[object]:

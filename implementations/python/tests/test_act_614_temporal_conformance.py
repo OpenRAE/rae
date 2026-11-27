@@ -1,5 +1,7 @@
 """Ownership of the temporal conformance probe's local clock driver."""
 
+import logging
+
 import pytest
 from implementations.python.tests._act_614_temporal_fixtures import (
     _bound_deadline_payload,
@@ -7,6 +9,7 @@ from implementations.python.tests._act_614_temporal_fixtures import (
     _TemporalEvidenceRuntime,
 )
 from raes_conformance.conformance import participant_temporal_probes as probes
+from raes_contracts.errors import ConflictError
 from raes_runtime.manager import RuntimeManager
 
 
@@ -38,12 +41,12 @@ def test_temporal_probe_joins_its_clock_driver_on_every_exit(monkeypatch, mode, 
             drivers.append(driver)
             threads.append(driver._thread)
             if failure_stage == "apply":
-                raise ValueError("fixture apply failure after driver startup")
+                raise ConflictError("fixture apply failure after driver startup")
             return result
 
         def advance_time(self, *args, **kwargs):
             if failure_stage == "advance":
-                raise ValueError("fixture advance failure")
+                raise ConflictError("fixture advance failure")
             return super().advance_time(*args, **kwargs)
 
     def reject_snapshot(_snapshot):
@@ -74,7 +77,7 @@ def test_temporal_probe_joins_its_clock_driver_on_every_exit(monkeypatch, mode, 
 
 
 @pytest.mark.parametrize("raises", [False, True])
-def test_temporal_probe_reports_unsuccessful_driver_shutdown(monkeypatch, raises):
+def test_temporal_probe_reports_unsuccessful_driver_shutdown(monkeypatch, caplog, raises):
     shutdowns = []
     managers = []
     marker = "private-shutdown-detail"
@@ -101,13 +104,32 @@ def test_temporal_probe_reports_unsuccessful_driver_shutdown(monkeypatch, raises
     )
     scenario, target = _wall_paced_target("real_time")
     try:
-        case = probes.participant_temporal_scenario_case(target, scenario)
+        with caplog.at_level(logging.ERROR, logger="raes_conformance"):
+            case = probes.participant_temporal_scenario_case(target, scenario)
         assert shutdowns == [True]
         assert not case.passed
         assert case.cleanup_verified is False
         assert case.residual_state
         assert any(d.code == "conformance.participant-clock-driver-stop-failed" for d in case.diagnostics)
         assert marker not in repr(case)
+        # A raised shutdown failure is recorded once, value-free; a reported one needs no record.
+        records = [record for record in caplog.records if record.name.endswith("participant_temporal_probes")]
+        assert len(records) == (1 if raises else 0)
+        for record in records:
+            assert marker not in record.getMessage()
+            assert marker not in (record.exc_text or "")
+            assert "RuntimeError" in (record.exc_text or "")
     finally:
         for manager in managers:
             assert RuntimeManager._stop_participant_clock_driver(manager)
+
+
+def test_temporal_probe_does_not_report_a_defect_as_a_guarantee_failure(monkeypatch):
+    def defect(_snapshot):
+        raise TypeError("probe defect")
+
+    monkeypatch.setattr(probes, "require_participant_temporal_history", defect)
+    scenario, target = _temporal_target(_bound_deadline_payload(), _TemporalEvidenceRuntime())
+
+    with pytest.raises(TypeError, match="probe defect"):
+        probes.participant_temporal_scenario_case(target, scenario)

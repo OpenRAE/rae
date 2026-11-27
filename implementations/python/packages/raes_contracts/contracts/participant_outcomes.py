@@ -4,8 +4,13 @@ from collections.abc import Mapping
 from typing import Any, Literal
 
 from pydantic import Field, StrictInt, model_validator
-from raes.participant_local_outcome import OutcomeAttainment, OutcomeCategory, OutcomeKnowledge
-from raes.participant_outcome_semantics import OutcomeInterpretationRule
+
+from raes_contracts.participant_outcome_semantics import (
+    OutcomeAttainment,
+    OutcomeCategory,
+    OutcomeInterpretationRule,
+    OutcomeKnowledge,
+)
 
 from ..addressing import CompiledAddress
 from .base import ContractModel, NonEmptyString, PrefixedDigestString
@@ -47,7 +52,7 @@ class ParticipantOutcomeReportV2Model(ParticipantRuntimeBaseEnvelopeModel):
     state_relationships: list[ParticipantOutcomeReportStateRelationshipModel] = Field(default_factory=list)
 
     @model_validator(mode="after")
-    def _local_state_shape(self) -> "ParticipantOutcomeReportV2Model":
+    def _local_state_shape(self) -> ParticipantOutcomeReportV2Model:
         if self.rule_spec.local_outcome is None or self.category != self.rule_spec.local_outcome.category:
             raise ValueError("local outcome category requires its versioned definition")
         if self.knowledge in {"conflicting", "withheld"} and self.attainment != "undetermined":

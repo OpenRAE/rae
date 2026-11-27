@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 
-from raes.explicitness import ExplicitnessClass, ExplicitnessProvenance
 from raes.nodes import Node
 from raes.realization_envelope import member_projection
 from raes.runtime_resource_limits import (
@@ -13,6 +12,8 @@ from raes.runtime_resource_limits import (
 )
 from raes_backend_protocols.manifest import BackendManifest
 from raes_contracts.artifact_requirements import ArtifactAvailabilityContext
+from raes_contracts.errors import InvalidInputError
+from raes_contracts.explicitness import ExplicitnessClass, ExplicitnessProvenance
 from raes_contracts.vocabulary import ProcessResourceLimitScope
 
 from ..compiler.realization_value_domains import nested_authored_value
@@ -108,7 +109,7 @@ def _require_configured_offer(resource: object, node: Node, manifest: BackendMan
         ).holds
     )
     if not holds:
-        raise ValueError("prepared node is outside its configured realization offer")
+        raise InvalidInputError("prepared node is outside its configured realization offer")
 
 
 def validate_prepared_node_support(
@@ -119,6 +120,9 @@ def validate_prepared_node_support(
 ) -> None:
     """A concrete backend choice is not authored intent or an observation demand."""
 
+    if manifest is None:
+        # Without a configured offer no backend choice can be admitted.
+        raise InvalidInputError("prepared node is outside its configured realization offer")
     requirements = _prepared_node_requirements(resource, node)
     unsupported = any(
         diagnostic.is_error
@@ -128,5 +132,5 @@ def validate_prepared_node_support(
         )
     )
     if unsupported:
-        raise ValueError("prepared node lacks existing concern or artifact admission")
+        raise InvalidInputError("prepared node lacks existing concern or artifact admission")
     _require_configured_offer(resource, node, manifest)

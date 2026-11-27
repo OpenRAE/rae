@@ -11,15 +11,14 @@ from enum import Enum
 from ipaddress import ip_address, ip_network
 
 from pydantic import Field, field_validator, model_validator
-
-from ._base import (
-    SDLModel,
+from raes_contracts.identifiers import OptionalPortableIdentifier
+from raes_contracts.sdl_model import SDLModel
+from raes_contracts.variable_references import (
     is_variable_ref,
     parse_bool_or_var,
     parse_enum_or_var,
     parse_int_or_var,
 )
-from ._identifiers import OptionalPortableIdentifier
 
 MINIMUM_NODE_COUNT = 1
 DEFAULT_NODE_COUNT = 1
@@ -90,7 +89,7 @@ class SimpleProperties(SDLModel):
         return parse_bool_or_var(v, field_name="internal")
 
     @model_validator(mode="after")
-    def gateway_within_cidr(self) -> "SimpleProperties":
+    def gateway_within_cidr(self) -> SimpleProperties:
         if is_variable_ref(self.cidr) or is_variable_ref(self.gateway):
             return self
         net = ip_network(self.cidr, strict=False)
@@ -124,19 +123,19 @@ class InfraNode(SDLModel):
         )
 
     @model_validator(mode="after")
-    def validate_unique_links(self) -> "InfraNode":
+    def validate_unique_links(self) -> InfraNode:
         if len(self.links) != len(set(self.links)):
             raise ValueError("Infrastructure links must be unique")
         return self
 
     @model_validator(mode="after")
-    def validate_unique_dependencies(self) -> "InfraNode":
+    def validate_unique_dependencies(self) -> InfraNode:
         if len(self.dependencies) != len(set(self.dependencies)):
             raise ValueError("Infrastructure dependencies must be unique")
         return self
 
     @model_validator(mode="after")
-    def validate_unique_acl_names(self) -> "InfraNode":
+    def validate_unique_acl_names(self) -> InfraNode:
         seen_names: set[str] = set()
         for acl in self.acls:
             if not acl.name:

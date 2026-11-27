@@ -9,8 +9,11 @@ from dataclasses import dataclass
 
 @dataclass(frozen=True)
 class DeploymentTenancyIssue:
+    """One tenancy issue. ``owner`` is the ``(section, name)`` pair of the declaration that the message names first."""
+
     code: str
     message: str
+    owner: tuple[str, str] | None = None
 
 
 @dataclass
@@ -21,8 +24,8 @@ class CellIndex:
     issues: list[DeploymentTenancyIssue]
 
 
-def issue(code: str, message: str) -> DeploymentTenancyIssue:
-    return DeploymentTenancyIssue(code=code, message=message)
+def issue(code: str, message: str, owner: tuple[str, str]) -> DeploymentTenancyIssue:
+    return DeploymentTenancyIssue(code=code, message=message, owner=owner)
 
 
 def enum_value(value: object) -> str:

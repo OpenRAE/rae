@@ -33,7 +33,7 @@ class ParticipantTemporalBindingModel(ContractModel):
     replay_boundary: NonEmptyString
 
     @model_validator(mode="after")
-    def _validate_guarantee_shape(self) -> "ParticipantTemporalBindingModel":
+    def _validate_guarantee_shape(self) -> ParticipantTemporalBindingModel:
         if self.temporal_kind == "dwell":
             self._validate_dwell_shape()
         else:
