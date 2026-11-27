@@ -1,12 +1,12 @@
 ---
 id: API-410
 title: "Shared Operational State And Derived Context Contracts"
-status: ACTIVE
+status: DRAFT
 type: INTERFACE
 priority: SHOULD
 wave: 3
 created_at: 2026-04-03T06:16:04.699562Z
-updated_at: 2026-10-09T00:00:00Z
+updated_at: 2026-11-27T00:00:00Z
 ---
 
 # API-410 — Shared Operational State And Derived Context Contracts
