@@ -9,7 +9,7 @@ created_at: 2026-04-03T06:16:04.699562Z
 updated_at: 2026-11-27T00:00:00Z
 ---
 
-# API-410 — Shared Operational State And Derived Context Contracts
+# `API-410` shared operational state and derived context contracts
 
 ## Statement
 
@@ -22,28 +22,36 @@ Requirement inventory expansion. Shared state and derived context must be portab
 ## Clause verification
 
 - Shared operational state: `participant-shared-state-record-v1` (RUN-307)
-  carries address, scope, kind, revision or digest, predecessor revisions,
-  conflict policy, visibility basis, provenance, evidence, and read/write
-  accesses whose revision markers the model and published schema both enforce.
-  `runtime-snapshot-v1` holds current records and append-only history. Snapshot
-  conformance and backend apply reject unresolved or mismatched shared state,
-  and backend apply also rejects rewritten history. Joint-action records bind
-  conflict classes and policies to overlapping reads and writes.
+  carries these fields:
+  - address, scope, kind, and revision or digest
+  - predecessor revisions and conflict policy
+  - visibility basis, provenance, and evidence
+  - read and write accesses with revision markers
+
+  The model and the published schema both enforce the revision markers.
+  `runtime-snapshot-v1` holds current records and append-only history.
+  Snapshot conformance and backend apply reject unresolved or mismatched shared
+  state. Backend apply also rejects rewritten history. Joint-action records
+  bind conflict classes and policies to overlapping reads and writes.
 - Derived context: `participant-context-view-v1` (API-408, SEM-214) carries
-  participant-local scope, audience, observation point, source layers with a
-  freshness basis, transformation, evidence and provenance, comparability with
-  backend disclosures, semantic limitations, visibility projection, and
-  redaction policy.
-- Composition: the reference example's view cites the snapshot that holds a
-  shared-state revision. The test checks this example, and no validator checks
+  these fields:
+  - participant-local scope, audience, and observation point
+  - source layers with a freshness basis, and the transformation
+  - evidence and provenance
+  - comparability with backend disclosures, and semantic limitations
+  - visibility projection and redaction policy
+- Composition: the view in the reference example cites the snapshot that holds
+  a shared-state revision. The test checks this example. No validator checks
   the citation in general. An ACT-604 information-state record joins a
-  shared-state source and a context-view source only when identity, relation,
-  participant, episode, visibility projection, and redaction policy agree, and
-  the shared-state record falls inside the sequence cut.
+  shared-state source and a context-view source only when both conditions are
+  true:
+  - Identity, relation, participant, episode, visibility projection, and
+    redaction policy agree.
+  - The shared-state record falls inside the sequence cut.
 - Retrieval: the runtime context view names the snapshot revision it came from.
-  An unknown or mismatched participant or episode gets no view, a governed view
-  needs exactly one audience binding, and unsupported projection options fail.
-- Limits: no validator resolves a view's references against recorded
+  An unknown or mismatched participant or episode gets no view. A governed view
+  needs exactly one audience binding. Unsupported projection options fail.
+- Limits: no validator resolves the references of a view against recorded
   shared-state revisions. The information-state join admits a superseded or
   unpinned shared-state revision. Contract presence does not show that a
   backend can compute a given view. The composition reference note lists each
